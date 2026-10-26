@@ -13,8 +13,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/DeviceEvent.hh"
+#include "corecel/sys/Stream.hh"
 
-#include "AsyncResultRef.hh"
 #include "Copier.hh"
 #include "ObserverPtr.hh"
 #include "PinnedAllocator.hh"
@@ -26,17 +28,21 @@ namespace celeritas
  * Host copy of a single value that is updated asynchronously from a stream.
  *
  * The value is stored in pinned host memory so that a device-to-host copy
- * enqueued with \c load_async does not block the host. The loaded value
- * \b must not be read until the stream has completed the copy, either by
- * synchronizing the stream or an event recorded after the copy. Code that
- * enqueues its own write can be given the destination with \c ref .
+ * enqueued with \c load_async does not block the host. Each device load
+ * records an event on its stream after the copy: \c ready queries it without
+ * blocking and \c sync waits for it. Because the copy is ordered after the
+ * work previously enqueued on that stream, completion of the load also
+ * implies completion of that work. A load from host memory completes
+ * immediately.
+ *
+ * The loaded value \b must not be read or overwritten until the load has
+ * completed, which is checked when \c CELERITAS_DEBUG is enabled.
  *
  * \code
     AsyncSnapshot<Counters> snapshot;
     snapshot.load_async(device_counters, stream_id);
-    done.record(device().stream(stream_id));
-    // ... enqueue more work ...
-    done.sync();
+    // ... enqueue more work or do host work ...
+    snapshot.sync();
     use(snapshot.value());
    \endcode
  */
@@ -57,24 +63,17 @@ class AsyncSnapshot
     inline void load_async(ObserverPtr<T const, MemSpace::device> src,
                            StreamId stream);
 
-    //! Destination for an asynchronous write
-    AsyncResultRef<T> ref() &
-    {
-        return AsyncResultRef<T>{make_observer(*this)};
-    }
+    //! Whether the most recent load has completed
+    bool ready() const { return loaded_.ready(); }
 
-    //! Observe the host value, even when compiled as device code
-    friend ObserverPtr<T, MemSpace::host> make_observer(
-        AsyncSnapshot<T>& s) noexcept
-    {
-        return ObserverPtr<T, MemSpace::host>{s.storage_.get()};
-    }
+    //! Block the host until the most recent load has completed
+    void sync() const { loaded_.sync(); }
 
     // Overwrite the host value
     inline void assign(T const& value);
 
-    //! Access the most recently copied value
-    T const& value() const { return *storage_; }
+    // Access the most recently loaded value
+    inline T const& value() const;
 
   private:
     struct PinnedDeleter
@@ -86,6 +85,7 @@ class AsyncSnapshot
     };
 
     std::unique_ptr<T, PinnedDeleter> storage_;
+    DeviceEvent loaded_;
 };
 
 //---------------------------------------------------------------------------//
@@ -93,10 +93,15 @@ class AsyncSnapshot
 //---------------------------------------------------------------------------//
 /*!
  * Construct with an initial host value.
+ *
+ * If a device is active, the storage is pinned and the completion event is
+ * created. A snapshot that loads from device memory must therefore be
+ * constructed after the device is activated.
  */
 template<class T>
 AsyncSnapshot<T>::AsyncSnapshot(T const& value)
     : storage_{new (PinnedAllocator<T>{}.allocate(1)) T(value)}
+    , loaded_{celeritas::device()}
 {
     CELER_ENSURE(storage_);
 }
@@ -113,6 +118,7 @@ void AsyncSnapshot<T>::load_async(ObserverPtr<T const, MemSpace::host> src,
                                   StreamId)
 {
     CELER_EXPECT(src);
+    CELER_EXPECT(this->ready());
     *storage_ = *static_cast<T const*>(src);
 }
 
@@ -120,7 +126,7 @@ void AsyncSnapshot<T>::load_async(ObserverPtr<T const, MemSpace::host> src,
 /*!
  * Enqueue a load of a single value from device memory.
  *
- * The copy is enqueued on the given stream and completes asynchronously.
+ * The copy is enqueued on the given stream, followed by the completion event.
  */
 template<class T>
 void AsyncSnapshot<T>::load_async(ObserverPtr<T const, MemSpace::device> src,
@@ -128,20 +134,37 @@ void AsyncSnapshot<T>::load_async(ObserverPtr<T const, MemSpace::device> src,
 {
     CELER_EXPECT(src);
     CELER_EXPECT(stream);
+    CELER_EXPECT(loaded_);
     Copier<T, MemSpace::host> copy{{storage_.get(), 1}, stream};
     copy(MemSpace::device, {static_cast<T const*>(src), 1});
+    loaded_.record(celeritas::device().stream(stream));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Overwrite the host value.
  *
- * The caller must ensure no asynchronous copy into the snapshot is pending.
+ * The most recent load must have completed.
  */
 template<class T>
 void AsyncSnapshot<T>::assign(T const& value)
 {
+    CELER_EXPECT(this->ready());
     *storage_ = value;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the most recently loaded value.
+ *
+ * The most recent load must have completed: call \c sync or check \c ready
+ * first.
+ */
+template<class T>
+T const& AsyncSnapshot<T>::value() const
+{
+    CELER_EXPECT(this->ready());
+    return *storage_;
 }
 
 //---------------------------------------------------------------------------//

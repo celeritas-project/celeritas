@@ -8,7 +8,6 @@
 
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceEvent.hh"
 #include "corecel/sys/Stream.hh"
 
 #include "celeritas_test.hh"
@@ -29,19 +28,19 @@ struct Counts
 TEST(AsyncSnapshotTest, host)
 {
     AsyncSnapshot<Counts> snapshot{Counts{1, 2}};
+    EXPECT_TRUE(snapshot.ready());
     EXPECT_EQ(1, snapshot.value().first);
     EXPECT_EQ(2, snapshot.value().second);
 
+    // Host loads complete immediately
     Counts src{3, 4};
     snapshot.load_async(make_observer(&src), StreamId{});
+    EXPECT_TRUE(snapshot.ready());
     src.first = 10;
     EXPECT_EQ(3, snapshot.value().first);
     EXPECT_EQ(4, snapshot.value().second);
 
-    // Write through the result reference
-    *snapshot.ref().ptr() = Counts{7, 8};
-    EXPECT_EQ(7, snapshot.value().first);
-
+    snapshot.sync();
     snapshot.assign(Counts{});
     EXPECT_EQ(0, snapshot.value().first);
 }
@@ -57,11 +56,17 @@ TEST(AsyncSnapshotTest, TEST_IF_CELER_DEVICE(device))
 
     AsyncSnapshot<Counts> snapshot;
     snapshot.load_async(make_observer(src), sid);
-    DeviceEvent done{device()};
-    done.record(device().stream(sid));
-    done.sync();
+    snapshot.sync();
+    EXPECT_TRUE(snapshot.ready());
     EXPECT_EQ(5, snapshot.value().first);
     EXPECT_EQ(6, snapshot.value().second);
+
+    // Reloading re-records the same event
+    Counts const update{7, 8};
+    src.copy_to_device({&update, 1});
+    snapshot.load_async(make_observer(src), sid);
+    snapshot.sync();
+    EXPECT_EQ(7, snapshot.value().first);
 }
 
 //---------------------------------------------------------------------------//
