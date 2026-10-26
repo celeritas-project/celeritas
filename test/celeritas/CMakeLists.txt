@@ -9,8 +9,7 @@ if(CELERITAS_REAL_TYPE STREQUAL "double")
 else()
   # Test relies on "gold" data; don't bother updating
   set(_needs_double DISABLE)
-  # Test has legitimate errors and we should fix if we support
-  # single-precision in the long term
+  # Test has legitimate errors and we should fix to reduce edge cases
   set(_fixme_single DISABLE)
 endif()
 
@@ -286,7 +285,7 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 #-----------------------------------------------------------------------------#
 # Geo
 
-celeritas_add_test(geo/Geometry.test.cc  GPU ${_needs_double} ${_fixme_cgs}
+celeritas_add_test(geo/Geometry.test.cc  GPU ${_fixme_cgs} ${_fixme_single}
   FILTER "SimpleCms*" "TestEm3*" "ThreeSpheres*")
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
