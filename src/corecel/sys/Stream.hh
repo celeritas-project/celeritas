@@ -16,7 +16,7 @@
 #    include "corecel/DeviceRuntimeApi.hh"
 #elif !defined(CELER_DEVICE_RUNTIME_INCLUDED)
 // Prevent DeviceRuntimeApi from being included later
-#    define CELER_DEVICE_RUNTIME_INCLUDED "Stream.hh"
+#    define CELER_DEVICE_RUNTIME_NEEDED "Stream.hh"
 #endif
 
 #if CELERITAS_USE_CUDA

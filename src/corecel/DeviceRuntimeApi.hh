@@ -65,16 +65,16 @@
 #    define CELER_EU_PER_CU 0
 #endif
 
-#if !defined(CELER_DEVICE_RUNTIME_INCLUDED)
 /*!
  * This macro informs downstream Celeritas code (namely, Stream and
  * DeviceEvent) that it's safe to use types from the device APIs.
  */
-#    define CELER_DEVICE_RUNTIME_INCLUDED "DeviceRuntimeApi.hh"
-#elif defined(CELER_DEVICE_RUNTIME_INCLUDED)
+#define CELER_DEVICE_RUNTIME_INCLUDED 1
+
+#if defined(CELER_DEVICE_RUNTIME_NEEDED)
 static_assert(false,
               "A file that requires DeviceRuntimeApi.hh was included before "
-              "this: " CELER_DEVICE_RUNTIME_INCLUDED);
+              "this: " CELER_DEVICE_RUNTIME_NEEDED);
 #endif
 
 /*!
