@@ -10,6 +10,9 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas/geo/GeoFwd.hh"
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#    include "orange/DebugIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -24,7 +27,9 @@ class SimTrackView;
 void to_json(nlohmann::json& j, CoreTrackView const&);
 
 //---------------------------------------------------------------------------//
+#if CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE
 void to_json(nlohmann::json& j, GeoTrackView const&);
+#endif
 
 //---------------------------------------------------------------------------//
 void to_json(nlohmann::json& j, ParticleTrackView const&);
