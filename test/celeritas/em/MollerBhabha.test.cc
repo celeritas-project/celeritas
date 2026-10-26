@@ -121,11 +121,12 @@ std::ostream& operator<<(std::ostream& os, SampleResult const& result)
                                    SampleResult const& val2)
 {
     AssertionHelper result{expr1, expr2};
-    result.vec_soft_eq("inc_exit_cost", val1.inc_exit_cost, val2.inc_exit_cost);
-    result.vec_soft_eq("inc_exit_e", val1.inc_exit_e, val2.inc_exit_e);
-    result.vec_soft_eq("inc_edep", val1.inc_edep, val2.inc_edep);
-    result.vec_soft_eq("sec_cost", val1.sec_cost, val2.sec_cost);
-    result.vec_soft_eq("sec_e", val1.sec_e, val2.sec_e);
+    is_vec_soft_eq(
+        result, "inc_exit_cost", val1.inc_exit_cost, val2.inc_exit_cost);
+    is_vec_soft_eq(result, "inc_exit_e", val1.inc_exit_e, val2.inc_exit_e);
+    is_vec_soft_eq(result, "inc_edep", val1.inc_edep, val2.inc_edep);
+    is_vec_soft_eq(result, "sec_cost", val1.sec_cost, val2.sec_cost);
+    is_vec_soft_eq(result, "sec_e", val1.sec_e, val2.sec_e);
 
     return result;
 }

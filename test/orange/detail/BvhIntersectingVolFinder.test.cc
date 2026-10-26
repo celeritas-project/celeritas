@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/StringSimplifier.hh"
+#include "corecel/Types.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTypes.hh"
@@ -122,28 +123,19 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
                                    IntersectResult const& val1,
                                    IntersectResult const& val2)
 {
-    ::celeritas::test::AssertionHelper result{expr1, expr2};
+    using namespace ::celeritas::test;
+    using SoftEqT = SoftComparator_t<real_type>;
 
-#define IRE_COMPARE(ATTR) \
-    if (val1.ATTR != val2.ATTR) \
-    { \
-        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR); \
-    } \
-    else \
-        CELER_DISCARD(int)
+    AssertionHelper result{expr1, expr2};
 
-    if (!testdetail::make_soft_comparator<real_type>()(val1.distance,
-                                                       val2.distance))
-    {
-        result.fail() << "Expected distance: " << repr(val1.distance)
-                      << " but got " << repr(val2.distance);
-    }
-    IRE_COMPARE(intersect_surface);
-    IRE_COMPARE(hit_count);
-    IRE_COMPARE(miss_count);
+    is_soft_eq(result, val1.distance, val2.distance, SoftEqT());
+    is_eq(result,
+          "intersect_surface",
+          val1.intersect_surface,
+          val2.intersect_surface);
+    is_eq(result, "hit_count", val1.hit_count, val2.hit_count);
+    is_eq(result, "miss_count", val1.miss_count, val2.miss_count);
 
-#undef IRE_COMPARE
     return result;
 }
 

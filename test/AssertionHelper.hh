@@ -22,9 +22,11 @@ namespace test
 
     if (a.foo != b.foo)
     {
-        result.fail() "  foo: " << a.foo << " != " << b.foo;
+        result.fail() << "  foo: " << a.foo << " != " << b.foo;
     }
-    result.vec_soft_eq("bar", a.bar, b.bar);
+    is_attr_eq(result, ...);
+    is_soft_eq(result, ...);
+    is_vec_soft_eq(result, "bar", a.bar, b.bar);
     return result;
  *  \endcode
  */
@@ -40,15 +42,15 @@ class AssertionHelper
     // Check the sizes, returning success, adding failure message if not
     bool equal_size(std::size_t expected, std::size_t actual);
 
-    // Compare containers using soft equivalence, with a field-specific error
-    template<class ContainerE, class ContainerA>
-    void vec_soft_eq(char const* field,
-                     ContainerE const& expected,
-                     ContainerA const& actual);
-
     //! Get the streamable assertion result
     operator ::testing::AssertionResult const&() const { return result_; }
     operator ::testing::AssertionResult&&() && { return std::move(result_); }
+
+    //! Get the expected expression string
+    char const* expected_expr() const { return expected_expr_; }
+
+    //! Get the actual expression string
+    char const* actual_expr() const { return actual_expr_; }
 
   private:
     ::testing::AssertionResult result_;

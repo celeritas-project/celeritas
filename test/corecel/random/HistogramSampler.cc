@@ -44,7 +44,8 @@ std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh)
                                    SampledHistogram const& val2)
 {
     AssertionHelper result(expr1, expr2);
-    result.vec_soft_eq("distribution", val1.distribution, val2.distribution);
+    is_vec_soft_eq(
+        result, "distribution", val1.distribution, val2.distribution);
     if (!soft_equal(val1.rng_count, val2.rng_count))
     {
         result.fail() << "  rng_count: " << val1.rng_count

@@ -52,14 +52,7 @@ void RunResult::print_expected() const
                                    RunResult const& val2)
 {
     AssertionHelper helper{expr1, expr2};
-
-    if (auto r = ::celeritas::testdetail::IsVecEq(
-            expr1, "num_hits", val1.num_hits, val2.num_hits);
-        !static_cast<bool>(r))
-    {
-        helper.fail() << r.message();
-    }
-
+    is_vec_eq(helper, "num_hits", val1.num_hits, val2.num_hits);
     return helper;
 }
 
@@ -103,18 +96,12 @@ void DepHitResult::print_expected() const
 {
     AssertionHelper helper{expr1, expr2};
 
-    if (auto r = ::celeritas::testdetail::IsVecEq(
-            expr1, "track_id", val1.track_id, val2.track_id);
-        !static_cast<bool>(r))
-    {
-        helper.fail() << r.message();
-    }
-
-    helper.vec_soft_eq("num_photons", val1.num_photons, val2.num_photons);
-    helper.vec_soft_eq("energy", val1.energy, val2.energy);
-    helper.vec_soft_eq("x", val1.x, val2.x);
-    helper.vec_soft_eq("y", val1.y, val2.y);
-    helper.vec_soft_eq("z", val1.z, val2.z);
+    is_eq(helper, "track_id", val1.track_id, val2.track_id);
+    is_vec_soft_eq(helper, "num_photons", val1.num_photons, val2.num_photons);
+    is_vec_soft_eq(helper, "energy", val1.energy, val2.energy);
+    is_vec_soft_eq(helper, "x", val1.x, val2.x);
+    is_vec_soft_eq(helper, "y", val1.y, val2.y);
+    is_vec_soft_eq(helper, "z", val1.z, val2.z);
 
     return helper;
 }

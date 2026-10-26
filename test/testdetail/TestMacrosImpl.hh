@@ -21,8 +21,24 @@
 namespace celeritas
 {
 class Constant;
+namespace test
+{
+// Forward declare functions from bottom
+template<class T>
+bool is_soft_eq(
+    AssertionHelper& helper, T expected, T actual, EqualOr<SoftEqual<T>> comp);
+
+template<class ContainerE, class ContainerA>
+bool is_vec_soft_eq(AssertionHelper& helper,
+                    char const* field,
+                    ContainerE const& expected,
+                    ContainerA const& actual);
+
+}  // namespace test
+
 namespace testdetail
 {
+
 //---------------------------------------------------------------------------//
 // FUNCTION DECLARATIONS
 //---------------------------------------------------------------------------//
@@ -39,189 +55,88 @@ char const* trunc_string(int digits, char const* str, char const* trunc);
 /*!
  * Get a "least common denominator" for soft comparisons.
  */
-template<class T1, class T2>
-struct SoftPrecisionType
+template<class T, class U = T>
+struct CommonPrecision
 {
     using type = void;
 };
 
 template<class T>
-struct SoftPrecisionType<T, T>
+struct CommonPrecision<T, T>
 {
     using type = T;
 };
+
+#define CELERTEST_COMMON_PRECISION(TEMPLATE, T, U, V) \
+    template<TEMPLATE> \
+    struct CommonPrecision<T, U> : CommonPrecision<V> \
+    { \
+    }
 
 // When comparing doubles to floats, use the floating point epsilon for
 // comparison
-template<>
-struct SoftPrecisionType<double, float>
-{
-    using type = float;
-};
-
-template<>
-struct SoftPrecisionType<float, double>
-{
-    using type = float;
-};
-
+CELERTEST_COMMON_PRECISION(, double, float, float);
+CELERTEST_COMMON_PRECISION(, float, double, float);
 // Allow reference type to be an int (i.e. user writes 0 or 1 instead of 0.)
+CELERTEST_COMMON_PRECISION(class T, int, T, T);
+// Allow reference or actual type to be a constant
+CELERTEST_COMMON_PRECISION(class T, Constant, T, T);
+CELERTEST_COMMON_PRECISION(class T, T, Constant, T);
+CELERTEST_COMMON_PRECISION(, Constant, Constant, double);
+
+template<class T, class U = T>
+using CommonPrecision_t = typename CommonPrecision<T, U>::type;
+
 template<class T>
-struct SoftPrecisionType<int, T>
-{
-    using type = T;
-};
-
-// Allow reference type to be a constant
-template<class T>
-struct SoftPrecisionType<Constant, T>
-{
-    using type = T;
-};
-
-// Allow actual type to be a constant (used in Constants test)
-template<class T>
-struct SoftPrecisionType<T, Constant>
-{
-    using type = T;
-};
-
-// Allow both to be constants
-template<>
-struct SoftPrecisionType<Constant, Constant>
-{
-    using type = double;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a soft comparison function from a \c SOFT_NEAR argument.
- *
- * If a floating point value, it defaults to EqualOrSoftEqual using explicit
- * casts to the given value type to avoid errors with mixed-precision
- * arithmetic.
- */
-template<class VT, class CT>
-constexpr auto make_soft_comparator(CT&& cmp_or_tol)
-{
-    if constexpr (std::is_floating_point_v<std::remove_reference_t<CT>>)
-    {
-        return EqualOr<SoftEqual<VT>>{static_cast<VT>(cmp_or_tol)};
-    }
-    else
-    {
-        return std::forward<CT>(cmp_or_tol);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a default soft comparison function.
- */
-template<class VT>
-constexpr auto make_soft_comparator()
-{
-    return EqualOr<SoftEqual<VT>>{};
-}
+using SoftComparator_t = EqualOr<SoftEqual<T>>;
 
 //---------------------------------------------------------------------------//
 //! Whether soft equivalence can be performed on the given types.
-template<class T1, class T2>
-constexpr bool can_soft_equiv()
-{
-    return !std::is_same_v<typename SoftPrecisionType<T1, T2>::type, void>;
-}
-
-//---------------------------------------------------------------------------//
-//! Compare a range of values.
-template<class BinaryOp>
-::testing::AssertionResult IsSoftEquivImpl(
-    typename BinaryOp::value_type expected,
-    char const* expected_expr,
-    typename BinaryOp::value_type actual,
-    char const* actual_expr,
-    BinaryOp comp)
-{
-    if (comp(expected, actual))
-    {
-        return ::testing::AssertionSuccess();
-    }
-
-    // Failed: print nice error message
-    ::testing::AssertionResult result = ::testing::AssertionFailure();
-
-    result << "Value of: " << actual_expr << "\n  Actual: " << repr(actual)
-           << "\nExpected: " << expected_expr
-           << "\nWhich is: " << repr(expected);
-
-    if (std::fabs(actual - expected) > comp.abs())
-    {
-        result << '\n'
-               << "- absolute error " << repr(actual - expected)
-               << " exceeds tolerance " << repr(comp.abs());
-    }
-    if (expected != 0
-        && std::fabs(actual - expected) > std::fabs(expected) * comp.rel())
-    {
-        result << "\n- relative error " << repr(actual / expected - 1)
-               << " exceeds tolerance " << repr(comp.rel());
-    }
-    return result;
-}
+template<class T, class U>
+inline constexpr bool can_soft_equiv = !std::is_void_v<CommonPrecision_t<T, U>>;
 
 //---------------------------------------------------------------------------//
 /*!
  * Predicate for relative error soft equivalence.
  */
-template<class ValueE, class ValueA>
+template<class VE, class VA>
 ::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
                                        char const* actual_expr,
-                                       ValueE&& expected,
-                                       ValueA&& actual)
+                                       const VE& expected,
+                                       const VA& actual)
 {
-    using VE = std::remove_cv_t<std::remove_reference_t<ValueE>>;
-    using VA = std::remove_cv_t<std::remove_reference_t<ValueA>>;
+    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
 
-    static_assert(can_soft_equiv<VE, VA>(),
-                  "Invalid types for soft equivalence");
-
-    // Construct with automatic or specified tolerances
-    using Value_t = typename SoftPrecisionType<VE, VA>::type;
-
-    return IsSoftEquivImpl(static_cast<Value_t>(expected),
-                           expected_expr,
-                           static_cast<Value_t>(actual),
-                           actual_expr,
-                           make_soft_comparator<Value_t>());
+    using common_type = CommonPrecision_t<VE, VA>;
+    test::AssertionHelper result{expected_expr, actual_expr};
+    is_soft_eq(result,
+               static_cast<common_type>(expected),
+               static_cast<common_type>(actual),
+               SoftComparator_t<common_type>());
+    return std::move(result);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Predicate for relative error soft equivalence.
  */
-template<class Value_E, class Value_A, class T>
+template<class VE, class VA, class T>
 ::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
                                        char const* actual_expr,
                                        char const*,
-                                       Value_E&& expected,
-                                       Value_A&& actual,
+                                       VE const& expected,
+                                       VA const& actual,
                                        T&& cmp_or_tol)
 {
-    using VE = std::remove_cv_t<std::remove_reference_t<Value_E>>;
-    using VA = std::remove_cv_t<std::remove_reference_t<Value_A>>;
+    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
 
-    static_assert(can_soft_equiv<VE, VA>(),
-                  "Invalid types for soft equivalence");
-
-    // Construct with automatic or specified tolerances
-    using Value_t = typename SoftPrecisionType<VE, VA>::type;
-
-    return IsSoftEquivImpl(
-        static_cast<Value_t>(expected),
-        expected_expr,
-        static_cast<Value_t>(actual),
-        actual_expr,
-        make_soft_comparator<Value_t>(std::forward<T>(cmp_or_tol)));
+    using common_type = CommonPrecision_t<VE, VA>;
+    test::AssertionHelper result{expected_expr, actual_expr};
+    is_soft_eq(result,
+               static_cast<common_type>(expected),
+               static_cast<common_type>(actual),
+               SoftComparator_t<common_type>(std::forward<T>(cmp_or_tol)));
+    return std::move(result);
 }
 
 //---------------------------------------------------------------------------//
@@ -699,21 +614,18 @@ template<class ContainerE, class ContainerA>
                                           ContainerE const& expected,
                                           ContainerA const& actual)
 {
-    using value_type_E = ScalarValueTypeT<ContainerE>;
-    using value_type_A = ScalarValueTypeT<ContainerA>;
+    using VE = ScalarValueTypeT<ContainerE>;
+    using VA = ScalarValueTypeT<ContainerA>;
 
-    static_assert(can_soft_equiv<value_type_E, value_type_A>(),
-                  "Invalid types for soft equivalence");
-
-    using Value_t =
-        typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
+    using common_type = CommonPrecision_t<VE, VA>;
 
     // Construct with automatic or specified tolerances
     return IsVecSoftEquivImpl(expected,
                               expected_expr,
                               actual,
                               actual_expr,
-                              make_soft_comparator<Value_t>());
+                              SoftComparator_t<common_type>());
 }
 
 //-------------------------------------------------------------------------//
@@ -731,14 +643,11 @@ template<class ContainerE, class ContainerA, class T>
                                           ContainerA const& actual,
                                           T&& cmp_or_tol)
 {
-    using value_type_E = ScalarValueTypeT<ContainerE>;
-    using value_type_A = ScalarValueTypeT<ContainerA>;
+    using VE = ScalarValueTypeT<ContainerE>;
+    using VA = ScalarValueTypeT<ContainerA>;
 
-    static_assert(can_soft_equiv<value_type_E, value_type_A>(),
-                  "Invalid types for soft equivalence");
-
-    using Value_t =
-        typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
+    using common_type = CommonPrecision_t<VE, VA>;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
@@ -746,7 +655,7 @@ template<class ContainerE, class ContainerA, class T>
         expected_expr,
         actual,
         actual_expr,
-        make_soft_comparator<Value_t>(std::forward<T>(cmp_or_tol)));
+        SoftComparator_t<common_type>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//
@@ -840,25 +749,115 @@ IsRefEq(char const* expr1,
 
 namespace test
 {
-// FIXME: move to assertion helper
-template<class ContainerE, class ContainerA>
-void test::AssertionHelper::vec_soft_eq(
-    char const* field, ContainerE const& expected, ContainerA const& actual)
+// Expose soft comparator type alias (to be refactored)
+using testdetail::SoftComparator_t;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform a soft equality comparison, appending error details on failure.
+ */
+template<class T>
+bool is_eq(AssertionHelper& helper, char const* attrname, T expected, T actual)
 {
-    if (this->equal_size(expected.size(), actual.size()))
+    if (expected == actual)
     {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expected_expr_, actual_expr_, expected, actual);
-        if (!softeq_result)
-        {
-            this->fail() << "  " << field << ": " << softeq_result.message();
-        }
+        return true;
     }
-    else
-    {
-        this->fail() << "  " << field << ": " << actual_expr_ << " = "
-                     << repr(actual);
-    }
+
+    helper.fail() << "Expected " << attrname << ": " << repr(expected)
+                  << " but got " << repr(actual);
+    return false;
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform a soft equality comparison, appending error details on failure.
+ */
+template<class T>
+bool is_soft_eq(
+    AssertionHelper& helper, T expected, T actual, EqualOr<SoftEqual<T>> comp)
+{
+    if (comp(expected, actual))
+    {
+        return true;
+    }
+
+    auto&& msg = helper.fail();
+    msg << "Value of: " << helper.actual_expr()
+        << "\n  Actual: " << repr(actual)
+        << "\nExpected: " << helper.expected_expr()
+        << "\nWhich is: " << repr(expected);
+
+    if (std::fabs(actual - expected) > comp.abs())
+    {
+        msg << '\n'
+            << "- absolute error " << repr(actual - expected)
+            << " exceeds tolerance " << repr(comp.abs());
+    }
+    if (expected != 0
+        && std::fabs(actual - expected) > std::fabs(expected) * comp.rel())
+
+    {
+        msg << "\n- relative error " << repr(actual / expected - 1)
+            << " exceeds tolerance " << repr(comp.rel());
+    }
+    return false;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform vector soft equality comparison, appending error details on failure.
+ */
+template<class ContainerE, class ContainerA>
+bool is_vec_eq(AssertionHelper& helper,
+               char const* field,
+               ContainerE const& expected,
+               ContainerA const& actual)
+{
+    if (!helper.equal_size(expected.size(), actual.size()))
+    {
+        helper.fail() << "  " << field << ": " << helper.actual_expr() << " = "
+                      << repr(actual);
+        return false;
+    }
+
+    if (auto r = ::celeritas::testdetail::IsVecEq(
+            helper.expected_expr(), helper.actual_expr(), expected, actual);
+        !r)
+    {
+        helper.fail() << "  " << field << ": " << r.message();
+        return false;
+    }
+
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform vector soft equality comparison, appending error details on failure.
+ */
+template<class ContainerE, class ContainerA>
+bool is_vec_soft_eq(AssertionHelper& helper,
+                    char const* field,
+                    ContainerE const& expected,
+                    ContainerA const& actual)
+{
+    if (!helper.equal_size(expected.size(), actual.size()))
+    {
+        helper.fail() << "  " << field << ": " << helper.actual_expr() << " = "
+                      << repr(actual);
+        return false;
+    }
+    if (auto r = ::celeritas::testdetail::IsVecSoftEquiv(
+            helper.expected_expr(), helper.actual_expr(), expected, actual);
+        !r)
+    {
+        helper.fail() << "  " << field << ": " << r.message();
+        return false;
+    }
+
+    return true;
+}
+
 }  // namespace test
 }  // namespace celeritas

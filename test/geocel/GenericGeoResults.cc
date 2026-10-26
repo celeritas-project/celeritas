@@ -232,16 +232,10 @@ void GenericGeoVolumeStackResult::fail()
 {
     AssertionHelper result{expr1, expr2};
 
-#define IRE_COMPARE(ATTR) \
-    if (val1.ATTR != val2.ATTR) \
-    { \
-        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR); \
-    } \
-    else \
-        CELER_DISCARD(int)
-    IRE_COMPARE(volume_instances);
-#undef IRE_COMPARE
+    is_eq(result,
+          "volume_instances",
+          val1.volume_instances,
+          val2.volume_instances);
     return result;
 }
 
