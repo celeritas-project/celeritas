@@ -9,6 +9,8 @@
 #include <thrust/iterator/counting_iterator.h>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/data/DeviceAlgorithms.device.hh"
@@ -126,12 +128,12 @@ void reserve_field(DetectorStepOutput::PinnedVec<T>* dst, SrcRef const& src)
  * state's stream:
  * - the selection of track slots (preserving their order),
  * - the compaction of the selected data into the scratch space, and
- * - an asynchronous copy of the number of selected tracks to \c num_selected.
+ * - an asynchronous load of the number of selected tracks into
+ *   \c num_selected .
  *
- * The pinned host memory referenced by \c num_selected must remain valid
- * until the stream reaches this point, and the scratch space must not be
- * overwritten until the copy enqueued by \c copy_compacted_steps_async
- * completes.
+ * The snapshot must not be read or destroyed until the stream reaches this
+ * point, and the scratch space must not be overwritten until the copy
+ * enqueued by \c copy_compacted_steps_async completes.
  *
  * \warning The scratch space is shared by all \c StepInterface callbacks of a
  * \c StepCollector, but nothing tracks its outstanding copies: each caller
@@ -141,10 +143,9 @@ void reserve_field(DetectorStepOutput::PinnedVec<T>* dst, SrcRef const& src)
  * \c detail::HitProcessor ).
  */
 void compact_steps_async(StepStateDeviceRef const& state,
-                         AsyncResultRef<size_type> num_selected)
+                         AsyncSnapshot<size_type>& num_selected)
 {
     CELER_EXPECT(state);
-    CELER_EXPECT(num_selected);
 
     ScopedProfiling profile_this{"compact-steps"};
 
@@ -169,10 +170,7 @@ void compact_steps_async(StepStateDeviceRef const& state,
     }
 
     // Copy the count to the host
-    auto* h_num_selected = static_cast<size_type*>(num_selected.ptr());
-    Copier<size_type, MemSpace::host> copy{{h_num_selected, 1},
-                                           state.stream_id};
-    copy(MemSpace::device, {d_num_selected.get(), 1});
+    num_selected.load_async(d_num_selected, state.stream_id);
 }
 
 //---------------------------------------------------------------------------//
