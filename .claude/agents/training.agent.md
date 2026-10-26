@@ -21,3 +21,7 @@ This agent can create and refine existing skills and code documentation to make 
 - Separate current behavior from proposed capabilities. Verify current behavior
 	against its owning implementation; label future work as a proposal and avoid
 	teaching it as an existing interface.
+- Use the documented `apply_patch` format and anchor edits to exact current
+	text. After a patch fails, do not retry blindly: if the user asked to pause
+	on failure, stop and request direction; otherwise reread the affected file
+	before rebuilding the patch. Verify successful edits in the resulting file.
