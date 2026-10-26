@@ -384,14 +384,6 @@ if(CELERITAS_USE_HIP)
   )
 endif()
 
-# These files depend on DeviceRuntimeApi.hh being included before Stream.hh.
-# A unity build can include Stream.hh from another source first.
-set_source_files_properties(
-  sys/DeviceEvent.cc
-  sys/Stream.cc
-  PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
-)
-
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#
