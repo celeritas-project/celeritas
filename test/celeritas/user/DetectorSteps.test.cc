@@ -58,7 +58,7 @@ void copy_sync_steps(
     auto& stream = device().stream(state.stream_id);
     AsyncSnapshot<size_type> num_selected;
     compact_steps_async(state, num_selected);
-    stream.sync();
+    num_selected.sync();
     CELER_EXPECT(num_selected.value() > 0);
     copy_compacted_steps_async(output, state, num_selected.value(), stream);
     stream.sync();

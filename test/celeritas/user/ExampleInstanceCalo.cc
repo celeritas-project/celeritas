@@ -120,7 +120,7 @@ void ExampleInstanceCalo::process_steps(DeviceStepState state)
     // Compact on device, then wait for the count before copying the data
     auto& stream = device().stream(state.stream_id);
     compact_steps_async(state.steps, num_selected_);
-    stream.sync();
+    num_selected_.sync();
     copy_compacted_steps_async(
         &steps_, state.steps, num_selected_.value(), stream);
     stream.sync();
