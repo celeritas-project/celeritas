@@ -32,7 +32,7 @@
 #include "corecel/sys/Thrust.device.hh"
 
 #include "Copier.hh"
-#include "DeviceVector.hh"
+#include "DeviceAllocation.hh"
 #include "ObserverPtr.device.hh"
 #include "ObserverPtr.hh"
 
@@ -106,7 +106,8 @@ void select_if_async(ObserverPtr<T, MemSpace::device> data,
                                                 pred,
                                                 stream.get());
     CELER_DISCARD(cub_error_code);
-    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
+    // Freed asynchronously on the stream after the algorithm completes
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     cub_error_code = cub::DeviceSelect::If(temp_storage.data(),
                                            temp_storage_bytes,
                                            data.get(),
@@ -166,7 +167,8 @@ void copy_if_async(InputIt input,
                                                 pred,
                                                 stream.get());
     CELER_DISCARD(cub_error_code);
-    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
+    // Freed asynchronously on the stream after the algorithm completes
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     cub_error_code = cub::DeviceSelect::If(temp_storage.data(),
                                            temp_storage_bytes,
                                            input,
@@ -209,7 +211,8 @@ void reduce_sum_async(InputIt input,
                                                  num_items,
                                                  stream.get());
     CELER_DISCARD(cub_error_code);
-    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
+    // Freed asynchronously on the stream after the algorithm completes
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     cub_error_code = cub::DeviceReduce::Sum(temp_storage.data(),
                                             temp_storage_bytes,
                                             input,
@@ -264,7 +267,8 @@ void exclusive_sum_async(InputIt input,
                                                         num_items,
                                                         stream.get());
     CELER_DISCARD(cub_error_code);
-    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
+    // Freed asynchronously on the stream after the algorithm completes
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     cub_error_code = cub::DeviceScan::ExclusiveSum(temp_storage.data(),
                                                    temp_storage_bytes,
                                                    input,
@@ -311,7 +315,8 @@ void inclusive_sum_async(InputIt input,
                                                         num_items,
                                                         stream.get());
     CELER_DISCARD(cub_error_code);
-    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
+    // Freed asynchronously on the stream after the algorithm completes
+    DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     cub_error_code = cub::DeviceScan::InclusiveSum(temp_storage.data(),
                                                    temp_storage_bytes,
                                                    input,
