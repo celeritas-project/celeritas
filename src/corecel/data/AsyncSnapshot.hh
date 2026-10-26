@@ -37,7 +37,7 @@ void copy_to_host_async(
     CELER_EXPECT(src);
     CELER_EXPECT(dst);
 
-    auto* dst_ptr = static_cast<T*>(dst.ptr);
+    auto* dst_ptr = static_cast<T*>(dst.ptr());
     auto const* src_ptr = static_cast<T const*>(src);
     if constexpr (M == MemSpace::host)
     {
@@ -84,8 +84,11 @@ class AsyncSnapshot
     template<class U, MemSpace M>
     inline void copy_async(ObserverPtr<U, M> src, StreamId stream);
 
-    // Destination for an asynchronous write
-    inline AsyncResultRef<T> ref();
+    //! Destination for an asynchronous write
+    AsyncResultRef<T> ref()
+    {
+        return AsyncResultRef<T>{make_observer(storage_.get())};
+    }
 
     // Overwrite the host value
     inline void assign(T const& value);
@@ -116,18 +119,6 @@ AsyncSnapshot<T>::AsyncSnapshot(T const& value)
     : storage_{new (PinnedAllocator<T>{}.allocate(1)) T(value)}
 {
     CELER_ENSURE(storage_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Destination for an asynchronous write.
- */
-template<class T>
-AsyncResultRef<T> AsyncSnapshot<T>::ref()
-{
-    AsyncResultRef<T> result;
-    result.ptr = make_observer(storage_.get());
-    return result;
 }
 
 //---------------------------------------------------------------------------//

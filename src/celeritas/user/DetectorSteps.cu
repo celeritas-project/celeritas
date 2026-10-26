@@ -243,7 +243,7 @@ void compact_steps_async(StepStateDeviceRef const& state,
     }
 
     // Copy the count to the host
-    auto* h_num_selected = static_cast<size_type*>(num_selected.ptr);
+    auto* h_num_selected = static_cast<size_type*>(num_selected.ptr());
     Copier<size_type, MemSpace::host> copy{{h_num_selected, 1},
                                            state.stream_id};
     copy(MemSpace::device, {d_num_selected.get(), 1});
