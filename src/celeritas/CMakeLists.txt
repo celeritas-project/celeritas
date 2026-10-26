@@ -267,6 +267,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
     ext/detail/NaviTouchableUpdater.cc
+    ext/detail/NullGeantProcess.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
   )
