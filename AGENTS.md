@@ -1,4 +1,5 @@
 # Celeritas AI Agent Instructions
+
 Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
 
 ## Required provenance
@@ -79,18 +80,7 @@ Test helpers (`@test/TestMacros.hh`, `@test/Test.hh`): `EXPECT_SOFT_EQ`,
 `EXPECT_VEC_SOFT_EQ`, `EXPECT_REF_EQ`, `EXPECT_JSON_EQ`, and `PRINT_EXPECTED`
 to dump reference values when updating expected results.
 `scripts/dev/ctest-debug-launch.py "<test-name>"` sets up a VS Code debug
-launch config for a CTest test.
-
-### Lint and format
-
-```bash
-pre-commit run          # clang-format, ruff-format, prettier, codespell,
-                        # fix-non-ascii, whitespace/JSON/YAML checks
-```
-
-`.clang-tidy` is enforced in CI on changed files. New source file stubs (with
-the required copyright header) can be generated with
-`@scripts/dev/celeritas-gen.py`.
+launch config for a CTest test. Use the `reference-result` skill with `@test/AssertionHelper.hh` to make reference structs.
 
 ## Documentation
 
@@ -100,6 +90,7 @@ the required copyright header) can be generated with
 - Use **only** ASCII characters in CMake/C++/CUDA/shell files.
 
 ## Architecture
+
 Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
 
 ### Big-picture flow
