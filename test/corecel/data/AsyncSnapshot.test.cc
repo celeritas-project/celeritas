@@ -39,8 +39,7 @@ TEST(AsyncSnapshotTest, host)
     EXPECT_EQ(4, snapshot.value().second);
 
     // Write through the result reference
-    Counts const other{7, 8};
-    copy_to_host_async(make_observer(&other), snapshot.ref(), StreamId{});
+    *snapshot.ref().ptr() = Counts{7, 8};
     EXPECT_EQ(7, snapshot.value().first);
 
     snapshot.assign(Counts{});

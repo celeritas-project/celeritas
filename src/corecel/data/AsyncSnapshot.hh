@@ -23,36 +23,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Enqueue a copy of a single value into pinned host memory.
- *
- * A copy from device memory is enqueued on the given stream and completes
- * asynchronously: the destination must not be read until the stream is
- * synchronized (directly or through a later event). A copy from host memory
- * completes immediately.
- */
-template<class T, MemSpace M>
-void copy_to_host_async(
-    ObserverPtr<T const, M> src, AsyncResultRef<T> dst, StreamId stream)
-{
-    CELER_EXPECT(src);
-    CELER_EXPECT(dst);
-
-    auto* dst_ptr = static_cast<T*>(dst.ptr());
-    auto const* src_ptr = static_cast<T const*>(src);
-    if constexpr (M == MemSpace::host)
-    {
-        *dst_ptr = *src_ptr;
-    }
-    else
-    {
-        CELER_EXPECT(stream);
-        Copier<T, MemSpace::host> copy{{dst_ptr, 1}, stream};
-        copy(M, {src_ptr, 1});
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Host copy of a single value that is updated asynchronously from a stream.
  *
  * The value is stored in pinned host memory so that a device-to-host copy
@@ -136,7 +106,19 @@ void AsyncSnapshot<T>::copy_async(ObserverPtr<U, M> src, StreamId stream)
 {
     static_assert(std::is_same_v<std::remove_const_t<U>, T>,
                   "Source type must match the snapshot type");
-    copy_to_host_async(ObserverPtr<T const, M>{src}, this->ref(), stream);
+    CELER_EXPECT(src);
+
+    auto const* src_ptr = static_cast<T const*>(src);
+    if constexpr (M == MemSpace::host)
+    {
+        *storage_ = *src_ptr;
+    }
+    else
+    {
+        CELER_EXPECT(stream);
+        Copier<T, MemSpace::host> copy{{storage_.get(), 1}, stream};
+        copy(M, {src_ptr, 1});
+    }
 }
 
 //---------------------------------------------------------------------------//
