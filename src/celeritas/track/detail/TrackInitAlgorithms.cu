@@ -6,38 +6,14 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
-#include "corecel/DeviceRuntimeApi.hh"
-
-#if CELERITAS_USE_CUDA
-#    include <cub/device/device_scan.cuh>
-#    include <cub/device/device_select.cuh>
-#elif CELERITAS_HAVE_HIPCUB
-#    include <hipcub/device/device_scan.hpp>
-#    include <hipcub/device/device_select.hpp>
-#endif
-#if CELER_USE_THRUST
-#    include <thrust/execution_policy.h>
-#    include <thrust/scan.h>
-#endif
-#include <thrust/device_ptr.h>
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/transform_iterator.h>
 
 #include "corecel/data/DeviceAlgorithms.device.hh"
-#include "corecel/data/DeviceVector.hh"
-#include "corecel/data/ObserverPtr.device.hh"
-#include "corecel/sys/Device.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "corecel/sys/Stream.hh"
-#include "corecel/sys/Thrust.device.hh"
 
 #include "../Utils.hh"
-
-#if CELERITAS_HAVE_HIPCUB
-namespace cub = hipcub;
-#endif
-
-using namespace celeritas::literals;
 
 namespace celeritas
 {
@@ -91,31 +67,9 @@ ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"prefix-sum-counts"};
-    auto data = device_pointer_cast(counts.data());
-#if CELER_USE_THRUST
-    // Exclusive scan:
-    thrust::exclusive_scan(
-        thrust_execute_on(stream_id), data, data + counts.size(), data, 0_sz);
-#else
-    auto& stream = device().stream(stream_id);
-    // Calling with nullptr causes the function to return the amount of working
-    // space needed instead of invoking the kernel
-    std::size_t temp_storage_bytes = 0;
-    auto cub_error_code = cub::DeviceScan::ExclusiveSum(
-        nullptr, temp_storage_bytes, data, counts.size(), stream.get());
-    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
-    CELER_DISCARD(cub_error_code);
-    // Allocate temporary storage
-    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
-    // Run exclusive prefix sum
-    cub_error_code = cub::DeviceScan::ExclusiveSum(temp_storage.data(),
-                                                   temp_storage_bytes,
-                                                   data,
-                                                   counts.size(),
-                                                   stream.get());
-    CELER_DISCARD(cub_error_code);
-#endif
-    CELER_DEVICE_API_CALL(PeekAtLastError());
+    // Scan in place
+    exclusive_sum_async(
+        counts.data().get(), counts.data(), counts.size(), stream_id);
     // No synchronization since the next use of the results (data array), which
     // pulls the value from the results, will use another call on this stream
     return make_observer(counts.data().get() + counts.size() - 1);
@@ -147,37 +101,8 @@ void scan_neutral_initializers(
         IsNeutralNewTrack{params.ptr<MemSpace::native>(),
                           init.initializers.data().get(),
                           init.counters.data().get()});
-    auto data = device_pointer_cast(init.indices.data());
-#if CELER_USE_THRUST
-    thrust::inclusive_scan(thrust_execute_on(stream_id),
-                           is_neutral,
-                           is_neutral + init.indices.size(),
-                           data);
-#else
-    auto& stream = device().stream(stream_id);
-    // Calling with nullptr causes the function to return the amount of working
-    // space needed instead of invoking the kernel
-    std::size_t temp_storage_bytes = 0;
-    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
-    auto cub_error_code = cub::DeviceScan::InclusiveSum(nullptr,
-                                                        temp_storage_bytes,
-                                                        is_neutral,
-                                                        data,
-                                                        init.indices.size(),
-                                                        stream.get());
-    CELER_DISCARD(cub_error_code);
-    // Allocate temporary storage
-    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
-    // Run inclusive prefix sum
-    cub_error_code = cub::DeviceScan::InclusiveSum(temp_storage.data(),
-                                                   temp_storage_bytes,
-                                                   is_neutral,
-                                                   data,
-                                                   init.indices.size(),
-                                                   stream.get());
-    CELER_DISCARD(cub_error_code);
-#endif
-    CELER_DEVICE_API_CALL(PeekAtLastError());
+    inclusive_sum_async(
+        is_neutral, init.indices.data(), init.indices.size(), stream_id);
 }
 
 //---------------------------------------------------------------------------//

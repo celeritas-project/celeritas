@@ -231,6 +231,53 @@ void reduce_sum_async(InputIt input,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the exclusive prefix sum of a fixed number of input values.
+ *
+ * The input may be any random-access iterator, including the output itself
+ * for an in-place scan. This does not synchronize the stream.
+ */
+template<class InputIt, class T>
+void exclusive_sum_async(InputIt input,
+                         ObserverPtr<T, MemSpace::device> output,
+                         size_type num_items,
+                         StreamId stream_id)
+{
+    CELER_EXPECT(output || num_items == 0);
+
+#if CELER_USE_THRUST
+    thrust::exclusive_scan(thrust_execute_on(stream_id),
+                           input,
+                           input + num_items,
+                           device_pointer_cast(output),
+                           T{0});
+    CELER_DEVICE_API_CALL(PeekAtLastError());
+#else
+#    if CELERITAS_HAVE_HIPCUB
+    namespace cub = hipcub;
+#    endif
+    auto& stream = device().stream(stream_id);
+    std::size_t temp_storage_bytes = 0;
+    auto cub_error_code = cub::DeviceScan::ExclusiveSum(nullptr,
+                                                        temp_storage_bytes,
+                                                        input,
+                                                        output.get(),
+                                                        num_items,
+                                                        stream.get());
+    CELER_DISCARD(cub_error_code);
+    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
+    cub_error_code = cub::DeviceScan::ExclusiveSum(temp_storage.data(),
+                                                   temp_storage_bytes,
+                                                   input,
+                                                   output.get(),
+                                                   num_items,
+                                                   stream.get());
+    CELER_DISCARD(cub_error_code);
+    CELER_DEVICE_API_CALL(PeekAtLastError());
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the inclusive prefix sum of a fixed number of input values.
  *
  * The input may be any random-access iterator (e.g., a transform of a
