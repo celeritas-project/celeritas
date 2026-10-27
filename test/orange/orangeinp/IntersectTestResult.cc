@@ -10,8 +10,9 @@
 
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "geocel/IsRefEq.hh"
 
-#include "testdetail/TestMacrosImpl.hh"
+#include "AssertionHelper.hh"
 
 //!@{
 //! Helper macros
@@ -81,34 +82,17 @@ void IntersectTestResult::print_expected() const
     IRE_COMPARE(node);
     IRE_COMPARE(surfaces);
 
-    // Special handling for BBox objects with soft equality
-    // TODO make its own expect-ref-eq
-    auto check_bbox =
-        [&result](char const* name, auto const& expected, auto const& actual) {
-            if (!expected && !actual)
-            {
-                return;  // Both null
-            }
-            if (static_cast<bool>(expected) != static_cast<bool>(actual))
-            {
-                result.fail() << "Expected " << name << ": " << repr(expected)
-                              << " but got " << repr(actual);
-                return;
-            }
-
-            EqualOr<SoftEqual<>> soft_eq;
-            for (int i = 0; i < 3; ++i)
-            {
-                if (!soft_eq(expected.lower()[i], actual.lower()[i])
-                    || !soft_eq(expected.upper()[i], actual.upper()[i]))
-                {
-                    result.fail()
-                        << "Expected " << name << ": " << repr(expected)
-                        << " but got " << repr(actual);
-                    return;
-                }
-            }
-        };
+    auto check_bbox = [&result](char const* name,
+                                auto const& expected,
+                                auto const& actual) {
+        auto bbox_result = ::celeritas::IsRefEq(
+            "expected", "actual", "auto", expected, actual, SoftEqual<>{}.rel());
+        if (!bbox_result)
+        {
+            result.fail() << "Expected " << name << ": " << repr(expected)
+                          << " but got " << repr(actual);
+        }
+    };
 
     check_bbox("interior", val1.interior, val2.interior);
     check_bbox("exterior", val1.exterior, val2.exterior);

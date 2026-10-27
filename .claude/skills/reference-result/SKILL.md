@@ -98,6 +98,14 @@ Compare discrete fields exactly, keep tolerances local to the fields they
 govern, and include tolerance context in diagnostics when useful. Return the
 helper so callers receive accumulated failures.
 
+For library-owned template types, define the `IsRefEq` overload in the type's
+associated namespace so argument-dependent lookup can find it. Put the
+predicate-format declaration in a test helper header and define it out of line
+for explicitly supported scalar instantiations; declare those instantiations
+`extern` in the header to keep callers from requiring the implementation.
+Exercise the tolerance-taking overload with `EXPECT_REF_NEAR`, including its
+tolerance boundary and any special values or null-state behavior.
+
 ### Preserve soft vector semantics
 
 When replacing an `EXPECT_VEC_SOFT_EQ` assertion with a result-struct

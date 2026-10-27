@@ -11,6 +11,7 @@
 #include "corecel/Config.hh"
 
 #include "geocel/BoundingBoxIO.json.hh"
+#include "geocel/IsRefEq.hh"
 
 #include "celeritas_test.hh"
 
@@ -180,6 +181,26 @@ TEST_F(BoundingBoxTest, io)
         EXPECT_VEC_SOFT_EQ(bb.lower(), reconstructed.lower());
         EXPECT_VEC_SOFT_EQ(bb.upper(), reconstructed.upper());
     }
+}
+
+TEST_F(BoundingBoxTest, ref_near)
+{
+    using BBoxD = BoundingBox<double>;
+
+    BBoxD const expected{{0, 0, 0}, {1, 1, 1}};
+    BBoxD const within_tolerance{{0.06, 0, 0}, {1, 1, 1}};
+    BBoxD const over_tolerance{{0.11, 0, 0}, {1, 1, 1}};
+    EXPECT_REF_NEAR(expected, within_tolerance, 0.1);
+    EXPECT_FALSE(::celeritas::IsRefEq(
+        "expected", "actual", "0.1", expected, over_tolerance, 0.1));
+
+    BBoxD const null_bbox;
+    EXPECT_REF_NEAR(null_bbox, null_bbox, 0.1);
+    EXPECT_FALSE(::celeritas::IsRefEq(
+        "expected", "actual", "0.1", expected, null_bbox, 0.1));
+
+    BBoxD const infinite_bbox = BBoxD::from_infinite();
+    EXPECT_REF_NEAR(infinite_bbox, infinite_bbox, 0.1);
 }
 
 //---------------------------------------------------------------------------//

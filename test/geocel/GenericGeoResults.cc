@@ -138,32 +138,15 @@ void GenericGeoTrackingResult::print_expected() const
                                    GenericGeoTrackingResult const& val2,
                                    GenericGeoTrackingTolerance const& tol)
 {
-    using ::celeritas::testdetail::IsVecEq;
-    using ::celeritas::testdetail::IsVecSoftEquiv;
-
     AssertionHelper helper{expr1, expr2};
 
-#define IRE_VEC_EQ(ATTR) \
-    if (auto result = IsVecEq(expr1, #ATTR, val1.ATTR, val2.ATTR); \
-        !static_cast<bool>(result)) \
-    { \
-        helper.fail() << result.message(); \
-    } \
-    else \
-        (void)sizeof(char)
-#define IRE_VEC_SOFT_EQ(ATTR, TOL) \
-    if (auto result \
-        = IsVecSoftEquiv(expr1, #ATTR, #TOL, val1.ATTR, val2.ATTR, TOL); \
-        !static_cast<bool>(result)) \
-    { \
-        helper.fail() << result.message(); \
-    } \
-    else \
-        (void)sizeof(char)
-
-    IRE_VEC_EQ(volumes);
-    IRE_VEC_EQ(volume_instances);
-    IRE_VEC_SOFT_EQ(distances, tol.distance);
+    is_vec_eq(helper, "volumes", val1.volumes, val2.volumes);
+    is_vec_eq(helper,
+              "volume_instances",
+              val1.volume_instances,
+              val2.volume_instances);
+    is_vec_soft_eq(
+        helper, "distances", val1.distances, val2.distances, tol.distance);
     if (val1.disabled_surface_normal() || val2.disabled_surface_normal())
     {
         static int warn_count{0};
@@ -173,14 +156,19 @@ void GenericGeoTrackingResult::print_expected() const
     }
     else
     {
-        IRE_VEC_SOFT_EQ(dot_normal, tol.normal);
+        is_vec_soft_eq(
+            helper, "dot_normal", val1.dot_normal, val2.dot_normal, tol.normal);
     }
-    IRE_VEC_SOFT_EQ(halfway_safeties,
-                    EqualOr{SoftEqual(tol.safety, tol.safety)});
-    IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
-
-#undef IRE_VEC_EQ
-#undef IRE_VEC_SOFT_EQ
+    is_vec_soft_eq(helper,
+                   "halfway_safeties",
+                   val1.halfway_safeties,
+                   val2.halfway_safeties,
+                   EqualOr{SoftEqual(tol.safety, tol.safety)});
+    is_vec_soft_eq(helper,
+                   "bumps",
+                   val1.bumps,
+                   val2.bumps,
+                   SoftEqual(tol.safety, tol.safety));
     return helper;
 }
 
