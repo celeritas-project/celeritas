@@ -18,12 +18,6 @@
 
 #include "UrbanMscHelper.hh"
 
-#if 1
-#    include <iostream>
-using std::cout;
-using std::endl;
-#endif
-
 namespace celeritas
 {
 namespace detail
@@ -134,7 +128,6 @@ CELER_FUNCTION MscStepToGeo::MscStepToGeo(UrbanMscRef const& shared,
     CELER_EXPECT(energy_ > 0);
     CELER_EXPECT(lambda_ > 0);
     CELER_EXPECT(range_ > 0);
-    cout << "* lambda = " << lambda_ << ", range = " << range_ << endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -147,22 +140,18 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     using namespace celeritas::literals;
     CELER_EXPECT(tstep >= 0_r && tstep <= range_);
 
-    cout << " - tstep = " << tstep << endl;
-
     result_type result;
     result.alpha = MscStep::small_step_alpha();
     if (tstep < shared_.params.min_step_transform)
     {
         // Very small step: do not transform step length
         result.step = tstep;
-        cout << "  -> small step" << endl;
     }
     else if (tstep < range_ * shared_.params.small_range_frac)
     {
         // Small enough distance to assume cross section is constant
         // over the step: z = lambda * (1 - exp(-tau))
         result.step = -lambda_ * std::expm1(-tstep / lambda_);
-        cout << "  -> small step: " << result.step << endl;
     }
     else
     {
@@ -170,13 +159,11 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
         real_type lambda_f = [this, tstep] {
             if (tstep == range_)
             {
-                cout << "  -> range-limited";
                 // MFP at rest (endpoint) is zero
                 return 0_r;
             }
             if (energy_ < value_as<Mass>(shared_.electron_mass))
             {
-                cout << "  -> low energy";
                 // Low-energy step: set alpha = 1 / range
                 // This scales between the small-step case (no change in xs)
                 // and the huge-step case (final lambda is zero)
@@ -185,12 +172,8 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
 
             // Calculate the energy at the end of the physics-limited step
             Energy endpoint_energy = helper_.calc_inverse_range(range_ - tstep);
-
-            cout << "  -> endpoint energy = " << endpoint_energy;
             return helper_.calc_msc_mfp(endpoint_energy);
         }();
-
-        cout << ": lambda_f = " << lambda_f << endl;
 
         // Calculate the geometric path assuming the cross section is
         // linear between the start and end energy. Eq 8.10+1
@@ -203,8 +186,6 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
         // Eq 8.10 with simplifications
         real_type w = 1_r + 1_r / (result.alpha * lambda_);
         result.step = (1_r - fastpow(lambda_frac, w)) / (result.alpha * w);
-        cout << "  -> alpha = " << result.alpha << ", w = " << w
-             << ", step = " << result.step << endl;
     }
 
     // For extremely large lambda we can slightly exceed the step

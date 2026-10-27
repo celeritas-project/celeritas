@@ -13,12 +13,6 @@
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"
 
-#if 1
-#    include <iostream>
-using std::cout;
-using std::endl;
-#endif
-
 namespace celeritas
 {
 namespace detail
@@ -93,9 +87,6 @@ CELER_FUNCTION MscStepFromGeo::MscStepFromGeo(MscParameters const& params,
     CELER_EXPECT(lambda_ > 0);
     CELER_EXPECT(true_step_ <= range_);
     // TODO: expect that the "skip sampling" conditions are false.
-
-    cout << "@ lambda = " << lambda_ << ", range = " << range_
-         << ", true = " << true_step_ << endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -110,11 +101,9 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
     using namespace celeritas::literals;
 
     CELER_EXPECT(gstep >= 0 && gstep <= true_step_);
-    cout << " - gstep = " << gstep << endl;
 
     if (gstep < params_.min_step_transform)
     {
-        cout << "  -> small step" << endl;
         // Geometrical path length is true path length for a very small step
         return gstep;
     }
@@ -129,10 +118,8 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
             if (result < params_.min_step_transform)
             {
                 // Very small step: did not transform path length
-                cout << "  -> corrected very small step" << endl;
                 return gstep;
             }
-            cout << "  -> small step: " << result << endl;
             return result;
         }
 
@@ -151,7 +138,6 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
         // transformation if not range-limited.
         real_type temp = 1 - fastpow(1 - x, 1 / w);
         real_type result = temp / alpha_;
-        cout << "  -> long: " << result << endl;
         return min(result, range_);
     }();
 
