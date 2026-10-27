@@ -90,6 +90,7 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
  */
 void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
 {
+    size_type num_photons{0};
     for (auto const& d : data)
     {
         CELER_VALIDATE(d, << "invalid optical step distribution " << d);
@@ -103,17 +104,27 @@ void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
                    "direction due to coincident start/stop points: "
                 << d;
         }
+        num_photons += d.num_photons;
     }
 
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
     {
-        return this->insert_impl(*s, data);
+        this->insert_impl(*s, data);
     }
     else if (auto* s = dynamic_cast<CoreState<MemSpace::device>*>(&state))
     {
-        return this->insert_impl(*s, data);
+        this->insert_impl(*s, data);
     }
-    CELER_ASSERT_UNREACHABLE();
+    else
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+    // Update the number of photons waiting to be generated
+    if (num_photons > 0)
+    {
+        state.add_pending(num_photons);
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -397,10 +397,6 @@ TEST_F(LarSphereGeneratorCountersTest, offload)
         = std::dynamic_pointer_cast<GeneratorAction>(loaded.problem.generator);
     ASSERT_TRUE(generator);
     generator->insert(*state, make_span(distributions));
-    // TODO: move this to generator action?
-    size_type const num_photons
-        = std::accumulate(photon_counts.begin(), photon_counts.end(), 0);
-    state->add_pending(num_photons);
 
     auto counts = this->run(params, *state);
     // counts.print_expected();
