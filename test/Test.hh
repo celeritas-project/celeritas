@@ -65,7 +65,7 @@ class Test : public ::testing::Test
     static std::string test_data_path(std::string_view subdir,
                                       std::string_view filename);
 
-    // True if CELER_TEST_STRICT is set (under CI)
+    // True if CELER_TEST_STRICT is set (under CI: standard version of G4)
     static bool strict_testing();
 
     static constexpr bool is_reference_rng
