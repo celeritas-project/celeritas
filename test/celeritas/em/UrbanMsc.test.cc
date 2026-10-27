@@ -323,6 +323,7 @@ TEST_F(UrbanMscTest, step_conversion)
 
     for (char const* mat : {"G4_STAINLESS-STEEL", "G4_Galactic"})
     {
+        SCOPED_TRACE(mat);
         for (auto ptype : {pdg::electron(), pdg::positron()})
         {
             for (real_type energy : {

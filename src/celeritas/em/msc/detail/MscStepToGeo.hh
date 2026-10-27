@@ -18,6 +18,12 @@
 
 #include "UrbanMscHelper.hh"
 
+#if 1
+#    include <iostream>
+using std::cout;
+using std::endl;
+#endif
+
 namespace celeritas
 {
 namespace detail
@@ -38,16 +44,23 @@ namespace detail
  * \f]
  * where \f$\lambda_{1}\f$ is the first transport mean free path. Due to the
  * fact that \f$\lambda_{1}\f$ depends on the kinetic energy of the path and
- * decreases along the step, the path length correction is approximated as
+ * decreases along the step, the path length correction is approximated as a
+ * linear function over the step:
  * \f[
  *     \lambda_{1} (t') = \lambda_{1,i} (1 - \alpha t') \,, 0 \le t' \le t
  * \f]
- * where the transport MFP at the start of the step is \f$ \lambda_{1,i} \def
- * \lambda_{1}(0)\f$ , and a linearity coefficient is defined as \f$ \alpha
- * \def \frac{\lambda_{1,i} - \lambda_{1,f}}{t \lambda_{1,i}} \f$, where  \f$
- * \lambda_{1,f}  \def \lambda_{1}(t) \f$. For low-energy or range-limited
- * steps, \f$ \alpha = 1/r_0 \f$ because the cross section at zero energy is
- * effectively infinite.
+ * where the transport MFP at the start of the step is
+ * \f$ \lambda_{1,i} \def \lambda_{1}(0)\f$ ,
+ * and the linearity coefficient is calculated from the mean free paths
+ * at the beginning and endpoints of the estimated step:
+ * \f[
+    \alpha \def \frac{\lambda_{1,i} - \lambda_{1,f}}{t \lambda_{1,i}}
+ * \f],
+ * where
+ * \f$ \lambda_{1,f} \def \lambda_{1}(t) \f$.
+ * For low-energy or range-limited
+ * steps, \f$ \alpha = 1/t \f$ because the mean free path at the end point
+ * (zero energy) is zero.
  *
  * Since the MSC cross section generally decreases as the energy increases,
  * \f$ \lambda_{1,i} \f$ will be larger than \f$ \lambda_{1,f} \f$ and
@@ -60,7 +73,7 @@ namespace detail
  * be *increasing* with energy just above the 10 MeV threshold and therefore
  * for \f$ \alpha \f$ is negative.
  *
- * The resulting geometrical step length *can* be greater than 1 MFP: it's the
+ * The resulting geometrical step length \em can be greater than 1 MFP: it's the
  * MSC step limiter's job to add additional restrictions.
  *
  * \note This performs the same method as in ComputeGeomPathLength of
@@ -121,6 +134,7 @@ CELER_FUNCTION MscStepToGeo::MscStepToGeo(UrbanMscRef const& shared,
     CELER_EXPECT(energy_ > 0);
     CELER_EXPECT(lambda_ > 0);
     CELER_EXPECT(range_ > 0);
+    cout << "* lambda = " << lambda_ << ", range = " << range_ << endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -130,7 +144,10 @@ CELER_FUNCTION MscStepToGeo::MscStepToGeo(UrbanMscRef const& shared,
 CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     -> result_type
 {
-    CELER_EXPECT(tstep >= 0 && tstep <= range_);
+    using namespace celeritas::literals;
+    CELER_EXPECT(tstep >= 0_r && tstep <= range_);
+
+    cout << " - tstep = " << tstep << endl;
 
     result_type result;
     result.alpha = MscStep::small_step_alpha();
@@ -138,43 +155,56 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     {
         // Very small step: do not transform step length
         result.step = tstep;
+        cout << "  -> small step" << endl;
     }
     else if (tstep < range_ * shared_.params.small_range_frac)
     {
         // Small enough distance to assume cross section is constant
         // over the step: z = lambda * (1 - exp(-tau))
         result.step = -lambda_ * std::expm1(-tstep / lambda_);
+        cout << "  -> small step: " << result.step << endl;
     }
     else
     {
-        // Eq 8.8: mfp_slope = (lambda_f / lambda_i) = (1 - alpha * tstep)
-        real_type mfp_slope;
-        if (energy_ < value_as<Mass>(shared_.electron_mass) || tstep == range_)
-        {
-            // Low energy or range-limited step
-            // (For range-limited step, the final cross section and thus MFP
-            // slope are zero).
-            result.alpha = 1 / range_;
-            // Use max to avoid slightly negative slope due to roundoff for
-            // range-limited steps
-            mfp_slope = max<real_type>(1 - result.alpha * tstep, 0);
-        }
-        else
-        {
-            // Calculate the energy at the end of a physics-limited step
-            real_type rfinal = range_ - tstep;
-            Energy endpoint_energy = helper_.calc_inverse_range(rfinal);
-            real_type lambda1 = helper_.calc_msc_mfp(endpoint_energy);
+        // Eq 8.8: lambda_frac = (lambda_f / lambda_i) = (1 - alpha * tstep)
+        real_type lambda_f = [this, tstep] {
+            if (tstep == range_)
+            {
+                cout << "  -> range-limited";
+                // MFP at rest (endpoint) is zero
+                return 0_r;
+            }
+            if (energy_ < value_as<Mass>(shared_.electron_mass))
+            {
+                cout << "  -> low energy";
+                // Low-energy step: set alpha = 1 / range
+                // This scales between the small-step case (no change in xs)
+                // and the huge-step case (final lambda is zero)
+                return lambda_ * (1_r - tstep / range_);
+            }
 
-            // Calculate the geometric path assuming the cross section is
-            // linear between the start and end energy. Eq 8.10+1
-            result.alpha = (lambda_ - lambda1) / (lambda_ * tstep);
-            mfp_slope = lambda1 / lambda_;
-        }
+            // Calculate the energy at the end of the physics-limited step
+            Energy endpoint_energy = helper_.calc_inverse_range(range_ - tstep);
+
+            cout << "  -> endpoint energy = " << endpoint_energy;
+            return helper_.calc_msc_mfp(endpoint_energy);
+        }();
+
+        cout << ": lambda_f = " << lambda_f << endl;
+
+        // Calculate the geometric path assuming the cross section is
+        // linear between the start and end energy. Eq 8.10+1
+        real_type lambda_frac = lambda_f / lambda_;
+        result.alpha = (1_r - lambda_frac) / tstep;
+        // The MFP *must* be monotonic decreasing; the exceptional cases above
+        // should have prevented catastrophic errors (which will lead to nan step)
+        CELER_ASSERT(result.alpha != 0_r);
 
         // Eq 8.10 with simplifications
-        real_type w = 1 + 1 / (result.alpha * lambda_);
-        result.step = (1 - fastpow(mfp_slope, w)) / (result.alpha * w);
+        real_type w = 1_r + 1_r / (result.alpha * lambda_);
+        result.step = (1_r - fastpow(lambda_frac, w)) / (result.alpha * w);
+        cout << "  -> alpha = " << result.alpha << ", w = " << w
+             << ", step = " << result.step << endl;
     }
 
     // For extremely large lambda we can slightly exceed the step

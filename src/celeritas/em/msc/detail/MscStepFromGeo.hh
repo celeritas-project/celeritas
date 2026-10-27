@@ -13,6 +13,12 @@
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"
 
+#if 1
+#    include <iostream>
+using std::cout;
+using std::endl;
+#endif
+
 namespace celeritas
 {
 namespace detail
@@ -35,7 +41,7 @@ namespace detail
  *
  * \param true_path the proposed step before transportation.
  * \param gstep the proposed step after transportation.
- * \param alpha variable from UrbanMscStepLimit.
+ * \param alpha linearity of MSC cross section over the step
  */
 class MscStepFromGeo
 {
@@ -87,6 +93,9 @@ CELER_FUNCTION MscStepFromGeo::MscStepFromGeo(MscParameters const& params,
     CELER_EXPECT(lambda_ > 0);
     CELER_EXPECT(true_step_ <= range_);
     // TODO: expect that the "skip sampling" conditions are false.
+
+    cout << "@ lambda = " << lambda_ << ", range = " << range_
+         << ", true = " << true_step_ << endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -101,9 +110,11 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
     using namespace celeritas::literals;
 
     CELER_EXPECT(gstep >= 0 && gstep <= true_step_);
+    cout << " - gstep = " << gstep << endl;
 
     if (gstep < params_.min_step_transform)
     {
+        cout << "  -> small step" << endl;
         // Geometrical path length is true path length for a very small step
         return gstep;
     }
@@ -111,20 +122,22 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
     real_type tstep = [&] {
         if (alpha_ == MscStep::small_step_alpha())
         {
-            // Cross section was assumed to be constant over the step:
+            // Cross section was constant over the step:
             // z = lambda * (1 - exp(-g / lambda))
             // => g = -lambda * log(1 - g / lambda)
             real_type result = -lambda_ * std::log1p(-gstep / lambda_);
             if (result < params_.min_step_transform)
             {
                 // Very small step: did not transform path length
+                cout << "  -> corrected very small step" << endl;
                 return gstep;
             }
+            cout << "  -> small step: " << result << endl;
             return result;
         }
 
         real_type w = 1 + 1 / (alpha_ * lambda_);
-        real_type x = alpha_ * w * gstep;  // = (1 - (1 - alpha * true)^w)
+        real_type x = alpha_ * gstep * w;  // = (1 - (1 - alpha * true)^w)
         // Range-limited step results in x = 1, which gives the correct
         // result in the inverted equation below for alpha = 1/range.
         // x >= 1 corresponds to the stopping MFP being <= 0: x=1 meaning
@@ -138,6 +151,7 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
         // transformation if not range-limited.
         real_type temp = 1 - fastpow(1 - x, 1 / w);
         real_type result = temp / alpha_;
+        cout << "  -> long: " << result << endl;
         return min(result, range_);
     }();
 
@@ -150,8 +164,7 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
     // - small travel distance results in roundoff error inside (1 -
     //   alpha/true)^w
     // - gstep is just above min_step_transform so that the updated
-    // recalculation of
-    //   tstep is just below min_step_transform
+    //   recalculation of tstep is just below min_step_transform
     return clamp(tstep, gstep, true_step_);
 }
 
