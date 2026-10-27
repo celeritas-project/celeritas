@@ -196,6 +196,9 @@ class StepperInterface
     // Reseed the RNGs at the start of an event for reproducibility
     virtual void reseed(UniqueEventId event_id) = 0;
 
+    // Restart track ID numbering at the start of an event
+    virtual void reset_track_ids() = 0;
+
     //! Get action sequence for timing diagnostics
     virtual ActionSequence const& actions() const = 0;
 
@@ -399,6 +402,9 @@ class Stepper final : public StepperInterface
 
     // Reseed the RNGs at the start of an event for reproducibility
     void reseed(UniqueEventId event_id) final;
+
+    // Restart track ID numbering at the start of an event
+    void reset_track_ids() final;
 
     //! Get action sequence for timing diagnostics
     ActionSequence const& actions() const final { return *actions_; }

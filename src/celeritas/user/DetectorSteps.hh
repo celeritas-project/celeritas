@@ -11,7 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/data/AsyncResultRef.hh"
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/data/PinnedAllocator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -84,6 +84,7 @@ struct DetectorStepOutput
     // Additional optional data (sim)
     PinnedVec<EventId> event_id;
     PinnedVec<TrackId> parent_id;
+    PinnedVec<size_type> generation;
     PinnedVec<PrimaryId> primary_id;
     PinnedVec<ActionId> post_step_action_id;
     PinnedVec<size_type> track_step_count;
@@ -117,7 +118,7 @@ void copy_steps(
 // Compact selected device step data without synchronizing the stream
 void compact_steps_async(
     StepStateData<Ownership::reference, MemSpace::device> const& state,
-    AsyncResultRef<size_type> num_selected);
+    AsyncSnapshot<size_type>& num_selected);
 
 // Enqueue a copy of device step data compacted by compact_steps_async
 void copy_compacted_steps_async(
@@ -151,7 +152,7 @@ inline void copy_compacted_steps_async(
 
 inline void compact_steps_async(
     StepStateData<Ownership::reference, MemSpace::device> const&,
-    AsyncResultRef<size_type>)
+    AsyncSnapshot<size_type>&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
