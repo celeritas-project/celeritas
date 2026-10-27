@@ -43,6 +43,8 @@ namespace test
  * - \c test_data_path : get the path to a test file at
  *   `{source}/test/{subdir}/data/{filename}` . It verifies that the path is an
  *   existing file before passing it to the code to be tested.
+ * - \c is_reference_rng: whether the core RNG is the "default" used for
+ *   testing regression results.
  * - \c inf , \c inff:  double- and single-precision infinities
  */
 class Test : public ::testing::Test
@@ -65,6 +67,10 @@ class Test : public ::testing::Test
 
     // True if CELER_TEST_STRICT is set (under CI)
     static bool strict_testing();
+
+    static constexpr bool is_reference_rng
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+           && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
     // Define "inf" value for subclass testing
     static constexpr double inf = HUGE_VAL;

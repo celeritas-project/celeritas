@@ -178,11 +178,6 @@ TEST_F(TestEm3SlotTest, host)
 {
     auto result = this->run<MemSpace::host>(32, 64);
 
-    if (CELERITAS_CORE_RNG != CELERITAS_CORE_RNG_XORWOW)
-    {
-        GTEST_SKIP() << "Reference results only apply to reference RNG";
-    }
-
     static char const* const expected_labels[] = {"gamma", "e-", "e+"};
     EXPECT_VEC_EQ(expected_labels, result.labels);
     std::vector<std::string> expected_slots = {
@@ -216,7 +211,9 @@ TEST_F(TestEm3SlotTest, host)
 
     // Some results change slightly as a function of architecture/build flags,
     // and they can change dramatically based on Geant4 cross sections etc.
-    auto max_check_count = (this->is_ci_build() ? 37 : 6);
+    auto max_check_count = (this->is_ci_build()      ? expected_slots.size()
+                            : Test::is_reference_rng ? 6
+                                                     : 1);
     ASSERT_LE(max_check_count, expected_slots.size());
     ASSERT_LE(max_check_count, result.slots.size());
 
