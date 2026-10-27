@@ -15,7 +15,7 @@
 
 //!@{
 //! Helper macros
-#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
+#define ITR_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
 //!@}
 
 namespace celeritas
@@ -55,8 +55,8 @@ void IntersectTestResult::print_expected() const
     using std::cout;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "IntersectTestResult ref;\n"
-         << CELER_REF_ATTR(node) << CELER_REF_ATTR(surfaces)
-         << CELER_REF_ATTR(interior) << CELER_REF_ATTR(exterior)
+         << ITR_REF_ATTR(node) << ITR_REF_ATTR(surfaces)
+         << ITR_REF_ATTR(interior) << ITR_REF_ATTR(exterior)
          << "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
 }
