@@ -36,6 +36,7 @@ jobs:
             cmake-args: "-DCELERITAS_RESEED=track"
           - name: omp-track
             cmake-args: "-DCELERITAS_USE_OpenMP=ON -DCELERITAS_OPENMP=track"
+            apt-packages: "libomp-dev"
           - name: unity
             cmake-args: "-DCMAKE_UNITY_BUILD:BOOL=ON"
     env:
@@ -51,10 +52,12 @@ jobs:
       ### ENVIRONMENT ###
 
       - name: Install dependencies
+        env:
+          APT_PACKAGES: ${{matrix.apt-packages || ''}}
         run: |
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
-            ccache nlohmann-json3-dev libgtest-dev
+            ccache nlohmann-json3-dev libgtest-dev ${APT_PACKAGES}
           echo "Installed toolchain:"
           ld --version | head -1
           $CC --version | head -1
