@@ -32,7 +32,6 @@ jobs:
       matrix:
         geometry: ["vecgeom"]
         geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3", "11.4"]
-        special: [""]
         include:
           - geometry: "orange"
             geant: "11.3"
@@ -43,8 +42,8 @@ jobs:
             special: "static"
             geant: "11.3"
           - geometry: "vecgeom"
-            geant: "11.3"
             special: "clhep"
+            geant: "11.3"
           - geometry: "vecgeom1" # VecGeom 1.x compatibility
             geant: "11.3"
           - geometry: "geant4"
