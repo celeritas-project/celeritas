@@ -149,9 +149,10 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     {
         // Eq 8.8: mfp_slope = (lambda_f / lambda_i) = (1 - alpha * tstep)
         real_type mfp_slope;
-        if (energy_ < value_as<Mass>(shared_.electron_mass) || tstep == range_)
+        if (energy_ < value_as<Mass>(shared_.electron_mass)
+            || (tstep == range_) || (shared_.params.geom_limit * tstep > 1))
         {
-            // Low energy or range-limited step
+            // Low energy or range-limited step or extremely large step
             // (For range-limited step, the final cross section and thus MFP
             // slope are zero).
             result.alpha = 1 / range_;

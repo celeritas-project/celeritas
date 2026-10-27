@@ -342,7 +342,7 @@ TEST_F(UrbanMscTest, step_conversion)
     }
 }
 
-TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
+TEST_F(UrbanMscTest, step_limit)
 {
     using Algorithm = MscStepLimitAlgorithm;
 
