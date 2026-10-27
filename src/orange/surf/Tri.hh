@@ -6,9 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <limits>
 #include <corecel/Macros.hh>
 #include <corecel/cont/Array.hh>
 #include <corecel/math/ArrayUtils.hh>
+#include <orange/OrangeTypes.hh>
 
 namespace celeritas
 {
@@ -28,11 +30,16 @@ class Tri
     //!@{
     //! \name Type aliases
     using Vertex = Array<T, 3>;
+    using Intersections = Array<real_type, 1>;
     //!@}
 
   public:
     // Construct from 3 vertices
     inline Tri(Vertex const& a, Vertex const& b, Vertex const& c);
+
+    // Calculate possible straight-line intersections with this triangle
+    inline CELER_FUNCTION Intersections calc_intersections(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
   private:
     // Calculate the centroid of the triangle
@@ -57,7 +64,7 @@ CELER_FUNCTION Tri<T>::Tri(Vertex const& a, Vertex const& b, Vertex const& c)
     : a_(a), b_(b), c_(c)
 {
     // Edge 1 and Edge 2
-    auto edge1 = a_ - b_;
+    auto edge1 = b_ - a_;
     auto edge2 = c_ - a_;
 
     // Calculate the normal vector
@@ -71,6 +78,73 @@ CELER_FUNCTION Tri<T>::Tri(Vertex const& a, Vertex const& b, Vertex const& c)
     {
         b_ = c;
         c_ = b;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the intersection point.
+ *
+ * This is an implementation of the Moller-Trumbore intersection algorithm
+ * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+ */
+template<typename T>
+CELER_FUNCTION auto Tri<T>::calc_intersections(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    -> Intersections
+{
+    constexpr T epsilon = std::numeric_limits<T>::epsilon();
+
+    // Edge 1 and Edge 2
+    auto edge1 = b_ - a_;
+    auto edge2 = c_ - a_;
+
+    // Calculate the normal vector
+    auto normal = cross_product(edge1, edge2);
+
+    if (dot_product(dir, normal) > 0.0)
+    {
+        return {no_intersection()};
+    }
+
+    auto rayCrossEdge2 = cross_product(dir, edge2);
+    T det = dot_product(edge1, rayCrossEdge2);
+
+    // Ray is parallel to triangle
+    if (std::fabs(det) < epsilon)
+    {
+        return {no_intersection()};
+    }
+
+    T inv_det = 1.0 / det;
+    auto s = pos - a_;
+    T u = inv_det * dot(s, rayCrossEdge2);
+
+    // Ray passes outside edge2's bounds
+    if (u < -epsilon || (u - 1) > epsilon)
+    {
+        return {no_intersection()};
+    }
+
+    auto sCrossEdge1 = cross_product(s, edge1);
+    T v = inv_det * dot_product(dir, sCrossEdge1);
+
+    // Ray passes outside edge1's bounds
+    if (v < -epsilon || (u + v - 1) > epsilon)
+    {
+        return {no_intersection()};
+    }
+
+    // Compute distance to intersection
+    T t = inv_det * dot_product(edge2, sCrossEdge1);
+
+    if (t > epsilon)
+    {
+        return {t};
+    }
+    else
+    {
+        return {no_intersection()};
     }
 }
 
