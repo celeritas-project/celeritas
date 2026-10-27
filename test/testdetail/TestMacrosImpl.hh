@@ -28,12 +28,6 @@ template<class T>
 bool is_soft_eq(
     AssertionHelper& helper, T expected, T actual, EqualOr<SoftEqual<T>> comp);
 
-template<class ContainerE, class ContainerA>
-bool is_vec_soft_eq(AssertionHelper& helper,
-                    char const* field,
-                    ContainerE const& expected,
-                    ContainerA const& actual);
-
 }  // namespace test
 
 namespace testdetail
@@ -806,7 +800,7 @@ bool is_soft_eq(
 
 //---------------------------------------------------------------------------//
 /*!
- * Perform vector soft equality comparison, appending error details on failure.
+ * Perform vector equality comparison, appending error details on failure.
  */
 template<class ContainerE, class ContainerA>
 bool is_vec_eq(AssertionHelper& helper,
@@ -834,22 +828,29 @@ bool is_vec_eq(AssertionHelper& helper,
 
 //---------------------------------------------------------------------------//
 /*!
- * Perform vector soft equality comparison, appending error details on failure.
+ * Perform vector soft equality comparison with a tolerance, appending error
+ * details on failure.
  */
-template<class ContainerE, class ContainerA>
+template<class ContainerE, class ContainerA, class Tol>
 bool is_vec_soft_eq(AssertionHelper& helper,
                     char const* field,
                     ContainerE const& expected,
-                    ContainerA const& actual)
+                    ContainerA const& actual,
+                    Tol const& tol)
 {
+    using namespace ::celeritas::testdetail;
     if (!helper.equal_size(expected.size(), actual.size()))
     {
         helper.fail() << "  " << field << ": " << helper.actual_expr() << " = "
                       << repr(actual);
         return false;
     }
-    if (auto r = ::celeritas::testdetail::IsVecSoftEquiv(
-            helper.expected_expr(), helper.actual_expr(), expected, actual);
+    if (auto r = IsVecSoftEquiv(helper.expected_expr(),
+                                helper.actual_expr(),
+                                "",
+                                expected,
+                                actual,
+                                tol);
         !r)
     {
         helper.fail() << "  " << field << ": " << r.message();
@@ -857,6 +858,26 @@ bool is_vec_soft_eq(AssertionHelper& helper,
     }
 
     return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform vector soft equality comparison, appending error details on failure.
+ */
+template<class ContainerE, class ContainerA>
+inline bool is_vec_soft_eq(AssertionHelper& helper,
+                           char const* field,
+                           ContainerE const& expected,
+                           ContainerA const& actual)
+{
+    using namespace ::celeritas::testdetail;
+    // Use default tolerance
+    using VE = ScalarValueTypeT<ContainerE>;
+    using VA = ScalarValueTypeT<ContainerA>;
+    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
+    using common_type = CommonPrecision_t<VE, VA>;
+    return is_vec_soft_eq(
+        helper, field, expected, actual, SoftComparator_t<common_type>());
 }
 
 }  // namespace test

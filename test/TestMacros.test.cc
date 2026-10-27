@@ -60,6 +60,22 @@ static std::string const expected_strings[] = {"a", "", "special\nchars\t"};
 )",
               out_result);
 }
+
+TEST(AssertionHelper, vector_soft_tolerance)
+{
+    VecDbl expected{1.0, 2.0};
+    VecDbl actual{1.01, 2.0};
+
+    AssertionHelper accepted{"expected", "actual"};
+    EXPECT_TRUE(is_vec_soft_eq(accepted, "distances", expected, actual, 0.02));
+
+    AssertionHelper rejected{"expected", "actual"};
+    EXPECT_FALSE(
+        is_vec_soft_eq(rejected, "distances", expected, actual, 0.001));
+    ::testing::AssertionResult const& result = rejected;
+    EXPECT_NE(std::string(result.message()).find("distances"),
+              std::string::npos);
+}
 }  // namespace test
 
 namespace testdetail

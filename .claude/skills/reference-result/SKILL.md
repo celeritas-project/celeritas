@@ -84,11 +84,15 @@ the field-aware wrappers from `test/testdetail/TestMacrosImpl.hh`:
 - `is_vec_eq(helper, "field", expected, actual)` for exact containers.
 - `is_vec_soft_eq(helper, "field", expected, actual)` for default soft
   container equivalence, including its size check and field-labeled diagnostic.
+- `is_vec_soft_eq(helper, "field", expected, actual, tol)` for a field-specific
+  tolerance or comparator, with the same size check and field-labeled
+  diagnostic. The final argument can be a scalar tolerance or a soft comparator
+  such as `SoftEqual` or `EqualOr`.
 - `is_soft_eq` with the appropriate comparator for scalar tolerant fields.
 
 These wrappers append failures to the shared helper so comparison continues
 across fields. Use `IsVecEq` or `IsVecSoftEquiv` directly only when their
-specific behavior is needed, such as a custom per-field vector tolerance; add
+specific behavior is needed that the field-aware wrappers cannot express; add
 the field label and protect any manual paired traversal with a size check.
 Compare discrete fields exactly, keep tolerances local to the fields they
 govern, and include tolerance context in diagnostics when useful. Return the
@@ -102,8 +106,8 @@ default soft tolerances while checking sizes, labeling diagnostics, and
 continuing to later fields. `is_vec_eq` provides the corresponding exact
 container behavior. Follow the current `RunnerResults.cc` and
 `HistogramSampler.cc` patterns rather than duplicating these wrapper checks.
-For custom tolerance behavior, inspect the current `IsVecSoftEquiv` overloads
-and add explicit field-aware diagnostics around the selected overload.
+For custom tolerance behavior, use the five-argument `is_vec_soft_eq` overload
+so size checks, field labels, and failure accumulation remain consistent.
 
 ## 5. Add or update focused tests
 
@@ -136,7 +140,6 @@ focused test before documenting the capability as available.
 
 Potential gaps to evaluate when a real use case appears:
 
-- Field-aware wrappers for custom vector comparators or per-field tolerances.
 - Composition of nested result comparators without losing field paths in
   diagnostics.
 - Explicit policies for optional, ignored, or sentinel-valued fields in both
