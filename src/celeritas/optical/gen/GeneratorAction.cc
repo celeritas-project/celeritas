@@ -200,6 +200,10 @@ void GeneratorAction::step_impl(CoreParams const& params,
             aux_state.store.ref().offsets,
             counters.buffer_size,
             state.stream_id());
+
+        // Accumulate the queued distributions and photons
+        aux_state.accum.buffer_size += counters.buffer_size;
+        aux_state.accum.num_pending += counters.num_pending;
     }
 
     if (counters.num_pending > 0)
@@ -215,7 +219,6 @@ void GeneratorAction::step_impl(CoreParams const& params,
     // If there are no more tracks to generate, reset the buffer size
     if (counters.num_pending == 0)
     {
-        aux_state.accum.buffer_size += counters.buffer_size;
         counters.buffer_size = 0;
     }
 }
