@@ -63,6 +63,8 @@ void Transporter::transport_impl(CoreState<M>& state) const
     size_type num_step_iters{0};
     size_type num_steps{0};
 
+    // Reset the counts that are accumulated during the loop
+    state.clear_tallies();
     auto counters = state.sync_get_counters();
 
     // Store a pointer to aux data for timing results

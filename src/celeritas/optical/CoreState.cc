@@ -146,6 +146,19 @@ void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Clear the generated, cut, and errored counts for a new loop.
+ *
+ * The number of pending tracks, which is accumulated before the loop starts,
+ * is unchanged.
+ */
+template<MemSpace M>
+void CoreState<M>::clear_tallies()
+{
+    celeritas::clear_tallies(this->ref().init.counters, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
 //! Add to the number of pending optical photons
 template<MemSpace M>
 void CoreState<M>::add_pending(size_type count)

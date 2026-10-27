@@ -462,6 +462,7 @@ function(celeritas_add_standalone_tests basename suite test)
 endfunction()
 
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest cut_multiple_flushes)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
 celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)
