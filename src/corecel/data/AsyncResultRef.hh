@@ -34,23 +34,44 @@ namespace celeritas
    \endcode
  */
 template<class T>
-struct AsyncResultRef
+class AsyncResultRef
 {
-    //! Host destination of the asynchronous write
-    ObserverPtr<T, MemSpace::host> ptr;
-
+  public:
     //! Construct with a null reference
     AsyncResultRef() = default;
+
+    // Construct from a pointer to pinned host memory
+    inline explicit AsyncResultRef(ObserverPtr<T, MemSpace::host> dst);
 
     // Construct from the first element of a pinned host vector
     inline explicit AsyncResultRef(std::vector<T, PinnedAllocator<T>>& vec);
 
+    //! Host destination of the asynchronous write
+    ObserverPtr<T, MemSpace::host> ptr() const { return ptr_; }
+
     //! Whether the reference is assigned
-    explicit operator bool() const { return static_cast<bool>(ptr); }
+    explicit operator bool() const { return static_cast<bool>(ptr_); }
+
+  private:
+    ObserverPtr<T, MemSpace::host> ptr_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a pointer to pinned host memory.
+ *
+ * The pointed-to memory must remain valid while the asynchronous write is
+ * pending.
+ */
+template<class T>
+AsyncResultRef<T>::AsyncResultRef(ObserverPtr<T, MemSpace::host> dst)
+    : ptr_{dst}
+{
+    CELER_EXPECT(dst);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from the first element of a pinned host vector.
@@ -59,7 +80,7 @@ struct AsyncResultRef
  */
 template<class T>
 AsyncResultRef<T>::AsyncResultRef(std::vector<T, PinnedAllocator<T>>& vec)
-    : ptr{vec.data()}
+    : ptr_{vec.data()}
 {
     CELER_EXPECT(!vec.empty());
 }

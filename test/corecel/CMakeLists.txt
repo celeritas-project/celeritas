@@ -42,6 +42,7 @@ celeritas_add_device_test(cont/Range
   LINK_LIBRARIES Celeritas::ExtThrust)
 
 # Data
+celeritas_add_test(data/AsyncSnapshot.test.cc GPU)
 celeritas_add_device_test(data/Collection)
 celeritas_add_test(data/Copier.test.cc GPU)
 celeritas_add_test(data/DeviceAllocation.test.cc GPU)

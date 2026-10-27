@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantTrackReconstruction.hh"
 
+#include <limits>
 #include <G4DynamicParticle.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
@@ -172,7 +173,8 @@ TEST_F(GtrTest, primary_registration)
     EXPECT_EQ(nullptr, primary_track->GetUserInformation());
 
     // Test that process information can be retrieved by restoring the track
-    G4Track& test_restored = recon.view(ParticleId{0}, primary_id);
+    G4Track& test_restored
+        = recon.view(ParticleId{0}, primary_id, TrackId{0}, {}, 0);
     EXPECT_EQ(mock_process.get(), test_restored.GetCreatorProcess());
     EXPECT_EQ(123, test_restored.GetTrackID());
 
@@ -216,7 +218,8 @@ TEST_F(GtrTest, track_restoration)
     PrimaryId primary_id = recon.acquire(*primary_track);
 
     // Restore track for electron (particle ID 1) with primary information
-    G4Track& restored_track = recon.view(ParticleId{1}, primary_id);
+    G4Track& restored_track
+        = recon.view(ParticleId{1}, primary_id, TrackId{0}, {}, 0);
 
     // Verify restored track properties
     EXPECT_EQ(789, restored_track.GetTrackID());
@@ -235,25 +238,6 @@ TEST_F(GtrTest, track_restoration)
 
     // Clear after retrieving all tracks
     recon.clear();
-}
-
-//---------------------------------------------------------------------------//
-
-TEST_F(GtrTest, track_restoration_without_primary)
-{
-    GeantTrackReconstruction recon(particles_, step_);
-
-    recon.init_event();
-
-    // Restore track without primary information (invalid PrimaryId)
-    G4Track& restored_track = recon.view(ParticleId{0});
-
-    // Verify basic track properties
-    EXPECT_EQ(particles_[0], restored_track.GetParticleDefinition());
-    EXPECT_EQ(0, restored_track.GetTrackID());
-    EXPECT_EQ(0, restored_track.GetParentID());
-    EXPECT_EQ(nullptr, restored_track.GetUserInformation());
-    EXPECT_EQ(nullptr, restored_track.GetCreatorProcess());
 }
 
 //---------------------------------------------------------------------------//
@@ -308,7 +292,8 @@ TEST_F(GtrTest, end_event_cleanup)
             // Simulate celeritas loop: acquire
             for (auto i : range(num_primaries))
             {
-                G4Track& track = recon.view(ParticleId{i}, primary_ids[i]);
+                G4Track& track = recon.view(
+                    ParticleId{i}, primary_ids[i], TrackId{0}, {}, 0);
                 EXPECT_EQ(flush * 100 + i, track.GetTrackID());
                 EXPECT_EQ(processes[i].get(), track.GetCreatorProcess());
             }
@@ -317,9 +302,10 @@ TEST_F(GtrTest, end_event_cleanup)
             {
                 // Check that we can't restore a particle from a previous event
                 GtrTest::test_cur_event++;
-                EXPECT_THROW(static_cast<void>(
-                                 recon.view(ParticleId{0}, primary_ids[0])),
-                             RuntimeError);
+                EXPECT_THROW(
+                    static_cast<void>(recon.view(
+                        ParticleId{0}, primary_ids[0], TrackId{0}, {}, 0)),
+                    RuntimeError);
 
                 // Check that we can't push a particle from a new event
                 auto track = std::make_unique<G4Track>(
@@ -335,13 +321,10 @@ TEST_F(GtrTest, end_event_cleanup)
             // Flush should clear reconstruction data
             recon.clear();
 
-            // Verify all tracks have cleared user information
-            for (auto particle_id :
-                 range(ParticleId{static_cast<size_type>(particles_.size())}))
-            {
-                G4Track& track = recon.view(particle_id);
-                EXPECT_EQ(nullptr, track.GetUserInformation());
-            }
+            // The shared track no longer refers to the user information,
+            // which was deleted with the reconstruction data
+            ASSERT_TRUE(step_->GetTrack());
+            EXPECT_EQ(nullptr, step_->GetTrack()->GetUserInformation());
         }
     }
 }
@@ -353,16 +336,130 @@ TEST_F(GtrTest, multiple_particle_types)
     GeantTrackReconstruction recon(particles_, step_);
     recon.init_event();
 
-    // Test all particle types can be restored
+    auto primary = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    primary->SetTrackID(7);
+    PrimaryId const pid = recon.acquire(*primary);
+
+    // Secondaries of every particle type can be restored
+    constexpr int max_id = std::numeric_limits<int>::max();
     for (auto i : range(particles_.size()))
     {
         ParticleId particle_id{static_cast<size_type>(i)};
-        G4Track& track = recon.view(particle_id);
+        TrackId const track_id{static_cast<size_type>(i + 1)};
+        G4Track& track = recon.view(particle_id, pid, track_id, TrackId{0}, 1);
 
         EXPECT_EQ(particles_[i], track.GetParticleDefinition());
-        EXPECT_EQ(0, track.GetTrackID());
-        EXPECT_EQ(0, track.GetParentID());
+        EXPECT_EQ(&track, step_->GetTrack());
+        EXPECT_EQ(max_id - static_cast<int>(i + 1), track.GetTrackID());
+        EXPECT_EQ(7, track.GetParentID());
     }
+    recon.clear();
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(GtrTest, secondary_view)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
+
+    auto primary_track = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    primary_track->SetTrackID(12);
+    primary_track->SetParentID(3);
+    primary_track->SetUserInformation(new MockUserTrackInformation(7));
+    auto mock_process = std::make_unique<MockG4Process>("TestCompton");
+    primary_track->SetCreatorProcess(mock_process.get());
+    PrimaryId const pid = recon.acquire(*primary_track);
+
+    constexpr int max_id = std::numeric_limits<int>::max();
+    EXPECT_EQ(max_id, GeantTrackReconstruction::geant_track_id(TrackId{0}));
+    EXPECT_EQ(max_id - 10,
+              GeantTrackReconstruction::geant_track_id(TrackId{10}));
+    EXPECT_THROW(static_cast<void>(GeantTrackReconstruction::geant_track_id(
+                     id_cast<TrackId>(max_id / 2))),
+                 RuntimeError);
+    G4VProcess const& placeholder = recon.placeholder_process();
+    EXPECT_EQ("celeritas", placeholder.GetProcessName());
+    EXPECT_EQ(fUserDefined, placeholder.GetProcessType());
+
+    {
+        // The offloaded track itself (Celeritas track 0) keeps its identity
+        G4Track& track = recon.view(ParticleId{0}, pid, TrackId{0}, {}, 0);
+        EXPECT_EQ(12, track.GetTrackID());
+        EXPECT_EQ(3, track.GetParentID());
+        EXPECT_EQ(mock_process.get(), track.GetCreatorProcess());
+        EXPECT_NE(nullptr, track.GetUserInformation());
+    }
+    {
+        // Electron created by the offloaded track
+        G4Track& track
+            = recon.view(ParticleId{1}, pid, TrackId{5}, TrackId{0}, 1);
+        EXPECT_EQ(particles_[1], track.GetParticleDefinition());
+        EXPECT_EQ(max_id - 5, track.GetTrackID());
+        EXPECT_EQ(12, track.GetParentID());
+        EXPECT_EQ(&placeholder, track.GetCreatorProcess());
+        EXPECT_EQ(nullptr, track.GetUserInformation());
+    }
+    {
+        // Photon created by that electron
+        G4Track& track
+            = recon.view(ParticleId{0}, pid, TrackId{8}, TrackId{5}, 2);
+        EXPECT_EQ(max_id - 8, track.GetTrackID());
+        EXPECT_EQ(max_id - 5, track.GetParentID());
+        EXPECT_EQ(&placeholder, track.GetCreatorProcess());
+        EXPECT_EQ(nullptr, track.GetUserInformation());
+    }
+
+    if constexpr (CELERITAS_DEBUG)
+    {
+        // A primary has no parent, and a secondary has one
+        EXPECT_THROW(static_cast<void>(recon.view(
+                         ParticleId{0}, pid, TrackId{0}, TrackId{2}, 0)),
+                     DebugError);
+        EXPECT_THROW(static_cast<void>(
+                         recon.view(ParticleId{0}, pid, TrackId{8}, {}, 1)),
+                     DebugError);
+
+        // Secondaries can't be viewed for a primary from a previous event
+        GtrTest::test_cur_event++;
+        EXPECT_THROW(static_cast<void>(recon.view(
+                         ParticleId{1}, pid, TrackId{5}, TrackId{0}, 1)),
+                     RuntimeError);
+        --GtrTest::test_cur_event;
+    }
+    recon.clear();
+
+    // The electron is handed back to Geant4, which offloads it again: it is a
+    // new primary (Celeritas track 20) that keeps its Geant4 identity
+    auto electron = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[1], G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    electron->SetTrackID(max_id - 5);
+    electron->SetParentID(12);
+    electron->SetCreatorProcess(&placeholder);
+    PrimaryId const electron_pid = recon.acquire(*electron);
+    {
+        G4Track& track
+            = recon.view(ParticleId{1}, electron_pid, TrackId{20}, {}, 0);
+        EXPECT_EQ(max_id - 5, track.GetTrackID());
+        EXPECT_EQ(12, track.GetParentID());
+        EXPECT_EQ(&placeholder, track.GetCreatorProcess());
+    }
+    {
+        // Its secondaries refer to its Geant4 ID
+        G4Track& track = recon.view(
+            ParticleId{0}, electron_pid, TrackId{23}, TrackId{20}, 1);
+        EXPECT_EQ(max_id - 23, track.GetTrackID());
+        EXPECT_EQ(max_id - 5, track.GetParentID());
+    }
+    recon.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -392,7 +489,8 @@ TEST_F(GtrTest, reconstruction_data_persistence)
     // Test reconstruction data persists across multiple restore calls
     for (int i = 0; i < 3; ++i)
     {
-        G4Track& restored = recon.view(ParticleId{2}, primary_id);
+        G4Track& restored
+            = recon.view(ParticleId{2}, primary_id, TrackId{0}, {}, 0);
 
         EXPECT_EQ(999, restored.GetTrackID());
         EXPECT_EQ(1, restored.GetParentID());

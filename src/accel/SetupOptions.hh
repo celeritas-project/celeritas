@@ -59,10 +59,15 @@ struct AlongStepFactoryInput;
  * - Some properties (\c Material and \c MaterialCutsCouple) are
  *   set for the pre-step and, if the post-step touchable is reconstructed, for
  *   post-step as well.
- * - Track and Parent IDs will \em never be a valid value since Celeritas track
- *   counters are independent from Geant4 track counters. Similarly, special
- *   Geant4 user-defined \c UserInformation and \c AuxiliaryTrackInformation
- *   are never set.
+ * - Enabling \c track restores the Geant4 identity of the track. A hit from a
+ *   track offloaded by Geant4 has its original track ID, parent ID, creator
+ *   process, and \c UserInformation . A hit from a track created by
+ *   Celeritas has its own track ID, counting down from \c INT_MAX , the ID of
+ *   its actual parent, a placeholder creator process named "celeritas", and
+ *   no \c UserInformation (see \c GeantTrackReconstruction ). Geant4 never
+ *   sees tracks created by Celeritas: they have no user tracking action calls
+ *   and no trajectories.
+ * - \c AuxiliaryTrackInformation is never set.
  *
  * The \c force_volumes option can be used for unusual cases (i.e., when using
  * a custom run manager) that do not define the same SDs on the main thread
