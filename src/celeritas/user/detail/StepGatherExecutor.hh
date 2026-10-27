@@ -67,6 +67,15 @@ CELER_FUNCTION void StepGatherExecutor<P>::operator()(
             // No more data to be written
             return;
         }
+
+        if (P == StepPoint::post && this->params.hand_back
+            && sim.hand_back_reason() == HandBackReason::none)
+        {
+            // Only keep tracks being handed back: clear the track ID to mark
+            // the slot as unselected
+            this->state.data.track_id[track.track_slot_id()] = {};
+            return;
+        }
     }
 
     if (!this->params.detector.empty())
