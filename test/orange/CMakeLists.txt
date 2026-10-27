@@ -114,6 +114,7 @@ celeritas_add_test(surf/Sphere.test.cc)
 celeritas_add_test(surf/SphereCentered.test.cc)
 celeritas_add_test(surf/Involute.test.cc)
 celeritas_add_test(surf/Toroid.test.cc)
+celeritas_add_test(surf/Tri.test.cc)
 
 # Surface utilities
 celeritas_add_test(surf/FaceNamer.test.cc)

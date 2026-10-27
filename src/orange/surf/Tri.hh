@@ -9,6 +9,7 @@
 #include <limits>
 #include <corecel/Macros.hh>
 #include <corecel/cont/Array.hh>
+#include <corecel/math/ArrayOperators.hh>
 #include <corecel/math/ArrayUtils.hh>
 #include <orange/OrangeTypes.hh>
 
