@@ -172,6 +172,11 @@ class CoreState final : public CoreStateBase
     // Whether the state is being transported with no active particles
     bool warming_up() const;
 
+    //// COUNTERS ////
+
+    // Clear the generated, cut, and errored counts for a new loop
+    void clear_tallies();
+
     //// CORE DATA ////
 
     //! Get a reference to the mutable state data

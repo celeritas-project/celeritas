@@ -169,6 +169,35 @@ TEST_F(LArSphereGeneratorTest, primary)
     EXPECT_EQ(65536, gen.num_generated);
 }
 
+TEST_F(LArSphereGeneratorTest, cut_multiple_flushes)
+{
+    size_type const num_photons = 1024;
+    osi_.problem.generator = [] {
+        inp::OpticalPrimaryGenerator gen;
+        gen.primaries = num_photons;
+        gen.energy = inp::MonoenergeticDistribution{1e-5};
+        gen.angle = inp::IsotropicDistribution{};
+        gen.shape = inp::PointDistribution{{0, 0, 0}};
+        return gen;
+    }();
+    osi_.problem.capacity.tracks = num_photons;
+
+    // Kill all photons that survive their first step
+    osi_.problem.limits.steps = 1;
+
+    // The cut counts must not accumulate across transport loops
+    optical::Runner run(std::move(osi_));
+    for (int i = 0; i < 2; ++i)
+    {
+        run.insert();
+        auto result = run();
+        EXPECT_EQ(1, result.counters.flushes);
+        EXPECT_GT(result.counters.num_cut, 0);
+        EXPECT_LE(result.counters.num_cut, num_photons);
+        EXPECT_EQ(0, result.counters.num_errored);
+    }
+}
+
 TEST_F(LArSphereGeneratorTest, direct)
 {
     osi_.problem.generator = inp::OpticalDirectGenerator{};
