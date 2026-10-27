@@ -166,6 +166,7 @@ class TestEm3SlotTest : virtual public TestEm3Base,
         std::vector<Primary> result(count, p);
         for (auto i : range(count))
         {
+            result[i].primary_id = id_cast<PrimaryId>(i);
             result[i].particle_id = particles[i % particles.size()];
         }
         return result;

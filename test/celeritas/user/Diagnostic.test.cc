@@ -53,6 +53,7 @@ class SimpleComptonDiagnosticTest : public SimpleTestBase,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
+            result[i].primary_id = id_cast<PrimaryId>(i);
             result[i].particle_id = gamma;
         }
         return result;
@@ -97,6 +98,7 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
+            result[i].primary_id = id_cast<PrimaryId>(i);
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;

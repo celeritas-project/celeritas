@@ -249,6 +249,7 @@ class TestEm3CollectorTestBase : public TestEm3Base,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
+            result[i].primary_id = PrimaryId{i};
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;
@@ -434,11 +435,6 @@ TEST_F(KnCaloTest, single_track)
     if (Test::is_reference_rng)
     {
         static double const expected_edep[] = {0.00043564799352598};
-        EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
-    }
-    else
-    {
-        static double const expected_edep[] = {0};
         EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
     }
 }

@@ -118,6 +118,7 @@ class TestEm3NoMsc : public TrackSortTestBase, public TestEm3Base
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = id_cast<PrimaryId>(i);
             result[i].particle_id = particles[i % particles.size()];
         }
         return result;

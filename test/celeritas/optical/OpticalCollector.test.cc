@@ -159,6 +159,7 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
 
     for (auto i : range(count))
     {
+        result[i].primary_id = id_cast<PrimaryId>(i);
         result[i].direction = sample_dir(rng);
         result[i].particle_id = particles[i % particles.size()];
     }

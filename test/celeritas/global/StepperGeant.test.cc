@@ -16,6 +16,7 @@
 #include "celeritas/OneSteelSphereBase.hh"
 #include "celeritas/TestEm15Base.hh"
 #include "celeritas/TestEm3Base.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
@@ -63,6 +64,7 @@ class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = PrimaryId{i};
         }
         return result;
     }
@@ -217,6 +219,7 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = PrimaryId{i};
             result[i].direction = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
@@ -271,6 +274,7 @@ class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
 
         for (auto i : range(count))
         {
+            result[i].primary_id = PrimaryId{i};
             result[i].direction = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
@@ -296,6 +300,11 @@ class LeadBox : public LeadBoxTestBase, public StepperTestBase
         p.event_id = EventId{0};
 
         std::vector<Primary> result(count, p);
+
+        for (auto i : celeritas::range(result.size()))
+        {
+            result[i].primary_id = id_cast<PrimaryId>(i);
+        }
         return result;
     }
 
