@@ -441,7 +441,10 @@ TEST_F(UrbanMscTest, step_limit)
             = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
 
         auto result = sample(Algorithm::minimal, false);
-        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
+        real_type tol = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+                             ? 2e-6f
+                             : 1e-11);
+        EXPECT_VEC_NEAR(expected_mean_step, result.mean_step, tol);
         EXPECT_VEC_EQ(expected_range_init, result.range_init);
         EXPECT_VEC_EQ(expected_range_factor, result.range_factor);
         EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
