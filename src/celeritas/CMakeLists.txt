@@ -248,12 +248,14 @@ if(CELERITAS_USE_Geant4)
     g4/detail/GeantBremsstrahlungProcess.cc
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
+    ext/GeantHandBack.cc
     ext/GeantImporter.cc
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
     ext/GeantStepPointView.cc
     ext/GeantStepView.cc
+    ext/GeantTrackHandBack.cc
     ext/GeantTrackReconstruction.cc
     ext/HadronicInteractor.cc
     ext/detail/EmStandardPhysics.cc
@@ -264,6 +266,9 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeantScintillationLoader.cc
     ext/detail/GeantSurfacePhysicsLoader.cc
+    ext/detail/GeantTrackOrder.cc
+    ext/detail/HandBackProcessor.cc
+    ext/detail/HandedBackIds.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
     ext/detail/NaviTouchableUpdater.cc
