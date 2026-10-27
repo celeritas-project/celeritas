@@ -417,7 +417,7 @@ TEST_F(LarSphereGeneratorCountersTest, offload)
              {
                  /* buffer_size */ {5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 0ul},
                  /* pending */ {0ul, 168ul, 137ul, 106ul, 74ul, 46ul, 16ul, 0ul},
-                 /* generated */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 0ul},
+                 /* generated */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
                  /* accum_buffer_size */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 5ul},
                  /* accum_pending */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
                  /* accum_generated */
@@ -546,7 +546,7 @@ TEST_F(LarSphereGeneratorCountersTest, direct)
              {
                  /* buffer_size */ {89ul, 89ul, 89ul, 89ul, 0ul, 0ul, 0ul},
                  /* pending */ {89ul, 57ul, 37ul, 16ul, 0ul, 0ul, 0ul},
-                 /* generated */ {0ul, 32ul, 52ul, 73ul, 0ul, 0ul, 0ul},
+                 /* generated */ {0ul, 32ul, 52ul, 73ul, 89ul, 89ul, 89ul},
                  /* accum_buffer_size */ {0ul, 0ul, 0ul, 0ul, 89ul, 89ul, 89ul},
                  /* accum_pending */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
                  /* accum_generated */ {0ul, 32ul, 52ul, 73ul, 89ul, 89ul, 89ul},

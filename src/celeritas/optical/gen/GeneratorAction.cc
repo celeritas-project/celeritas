@@ -189,7 +189,7 @@ void GeneratorAction::step_impl(CoreParams const& params,
     auto& aux_state = get<GeneratorState<M>>(*state.aux(), this->aux_id());
     auto& counters = aux_state.counters;
 
-    if (counters.num_generated == 0 && counters.buffer_size > 0)
+    if (counters.num_pending == 0 && counters.buffer_size > 0)
     {
         // If this process created photons, on the first step iteration
         // calculate the cumulative sum of the number of photons in the
@@ -212,12 +212,11 @@ void GeneratorAction::step_impl(CoreParams const& params,
     // Update the generator and optical core state counters
     this->update_counters(state);
 
-    // If there are no more tracks to generate, reset the buffer size and
-    // number of photons generated
+    // If there are no more tracks to generate, reset the buffer size
     if (counters.num_pending == 0)
     {
         aux_state.accum.buffer_size += counters.buffer_size;
-        counters = {};
+        counters.buffer_size = 0;
     }
 }
 

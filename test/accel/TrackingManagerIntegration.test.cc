@@ -763,7 +763,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
-            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+            EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
         }
     }
     if (G4Threading::IsMasterThread())
@@ -877,7 +877,7 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
-            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+            EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
         }
     }
     if (G4Threading::IsMasterThread())
@@ -1034,7 +1034,7 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
-            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+            EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
         }
     }
 
