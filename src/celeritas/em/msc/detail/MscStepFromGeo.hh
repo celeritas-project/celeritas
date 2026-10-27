@@ -100,7 +100,7 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
 {
     using namespace celeritas::literals;
 
-    CELER_EXPECT(gstep >= 0 && gstep <= true_step_);
+    CELER_EXPECT(gstep >= 0_r && gstep <= true_step_);
 
     if (gstep < params_.min_step_transform)
     {
@@ -123,20 +123,22 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
             return result;
         }
 
-        real_type w = 1 + 1 / (alpha_ * lambda_);
-        real_type x = alpha_ * gstep * w;  // = (1 - (1 - alpha * true)^w)
+        real_type w = 1_r + 1_r / (alpha_ * lambda_);
+        // NOTE: use (alpha_ * w) as in the last steps of MscStepToGeo to
+        // avoid numerical roundoff issues when range-limited
+        real_type x = gstep * (alpha_ * w);  // = (1 - (1 - alpha * true)^w)
         // Range-limited step results in x = 1, which gives the correct
         // result in the inverted equation below for alpha = 1/range.
         // x >= 1 corresponds to the stopping MFP being <= 0: x=1 meaning
         // ending MFP of zero is correct when the step is the range. Precision
         // loss means this conversion also may result in x > 1, which we guard
         // against.
-        x = min(x, 1.0_r);
+        x = min(x, 1_r);
         // Near x=1, (1 - (1-x)^(1/w)) suffers from numerical precision loss;
         // the maximum value of the expression should be range_.
         // TODO: we should use the action ID to avoid applying this
         // transformation if not range-limited.
-        real_type temp = 1 - fastpow(1 - x, 1 / w);
+        real_type temp = 1_r - fastpow(1_r - x, 1_r / w);
         real_type result = temp / alpha_;
         return min(result, range_);
     }();
