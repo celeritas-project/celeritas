@@ -98,9 +98,10 @@ jobs:
   all:
     if: ${{ always() && github.event.pull_request.draft == false }}
     needs:
+      - build-docs
       - build-fast
       - build-ultralite
-      - build-docs
+      - build-fast-extra
       - build-spack
       - build-spack-extra
       - build-codecov
