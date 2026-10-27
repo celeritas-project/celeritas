@@ -307,7 +307,12 @@ TYPED_TEST(TrackInitTest, run)
         auto result = RunResult::from_state(this->state());
         static int const expected_track_ids[]
             = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // TODO: internal track IDs are not reproducible due to atomic add
+            EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+        }
 
         // All primary particles, so no parent
         static int const expected_parent_ids[]
@@ -348,10 +353,12 @@ TYPED_TEST(TrackInitTest, run)
                                 std::end(result.init_ids),
                                 [](int id) { return id >= 0 && id <= 18; }));
         ASSERT_EQ(5, result.init_ids.size());
-
-        // First two initializers are from primaries
-        EXPECT_EQ(0, result.init_ids[0]);
-        EXPECT_EQ(1, result.init_ids[1]);
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // First two initializers are from primaries
+            EXPECT_EQ(0, result.init_ids[0]);
+            EXPECT_EQ(1, result.init_ids[1]);
+        }
     }
 
     // Initialize secondaries on device
@@ -453,10 +460,14 @@ TYPED_TEST(TrackInitTest, primaries)
         36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55,
     };
     auto result = RunResult::from_state(this->state());
-    EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+    if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+    {
+        // TODO: internal track IDs are not reproducible due to atomic add
+        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+        EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
+    }
     EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
-    EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
 }
 
 TYPED_TEST(TrackInitTest, extend_from_secondaries)
