@@ -431,7 +431,7 @@ TEST_F(TestEm3NoMsc, host_multi)
     // Add some more primaries
     primaries = this->make_primaries(num_primaries);
     counts = step(make_span(primaries));
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(24, counts.active);
         EXPECT_EQ(24, counts.alive);
@@ -439,7 +439,7 @@ TEST_F(TestEm3NoMsc, host_multi)
 
     // Transport existing tracks
     counts = step();
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(36, counts.active);
         EXPECT_EQ(35, counts.alive);

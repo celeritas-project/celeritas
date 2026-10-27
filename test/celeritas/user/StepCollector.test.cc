@@ -411,7 +411,7 @@ TEST_F(KnMctruthTest, two_step)
     EXPECT_VEC_EQ(expected_track, result.track);
     static int const expected_step[] = {1, 2, 1, 2, 1, 2, 1, 2};
     EXPECT_VEC_EQ(expected_step, result.step);
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -431,7 +431,7 @@ TEST_F(KnCaloTest, single_track)
 {
     auto result = this->run<MemSpace::host>(1, 64);
 
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         static double const expected_edep[] = {0.00043564799352598};
         EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);

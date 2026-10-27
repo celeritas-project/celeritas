@@ -355,7 +355,7 @@ TEST_F(SimpleComptonTest, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(919, result.num_step_iters());
         EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());
@@ -371,7 +371,7 @@ TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(device))
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(919, result.num_step_iters());
         EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());

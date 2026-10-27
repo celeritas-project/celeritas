@@ -74,7 +74,8 @@ class Test : public ::testing::Test
            && CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT);
 
     static constexpr bool is_reference_geo
-        = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+           && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
            && CELERITAS_UNITS == CELERITAS_UNITS_CGS);
 
     // Define "inf" value for subclass testing
