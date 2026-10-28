@@ -45,6 +45,7 @@ jobs:
       - build-fast
       - build-ultralite
       - build-docs
+      - build-fast-extra
       - build-spack
       - build-spack-extra
       - build-codecov
