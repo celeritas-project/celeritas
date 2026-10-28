@@ -25,11 +25,8 @@ namespace test
 
 struct ReadAllTolerance
 {
-    double pos{Test::fine_eps};
-    double time{Test::fine_eps};
     double energy{Test::fine_eps};
     double dir{Test::fine_eps};
-    double mass{Test::fine_eps};
 };
 
 struct ReadAllResult
@@ -46,26 +43,21 @@ struct ReadAllResult
     friend std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref);
 };
 
-namespace
-{
-
 ::testing::AssertionResult is_ref_eq(AssertionHelper& helper,
                                      ReadAllResult const& expected,
                                      ReadAllResult const& actual,
                                      ReadAllTolerance const& tol)
 {
-    is_vec_soft_eq(helper, "pos", expected.pos, actual.pos, tol.pos);
-    is_vec_soft_eq(helper, "time", expected.time, actual.time, tol.time);
+    is_vec_soft_eq(helper, "pos", expected.pos, actual.pos);
+    is_vec_soft_eq(helper, "time", expected.time, actual.time);
     is_vec_eq(helper, "vtx", expected.vtx, actual.vtx);
     is_vec_eq(helper, "pdg", expected.pdg, actual.pdg);
     is_vec_soft_eq(
         helper, "energy", expected.energy, actual.energy, tol.energy);
     is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
-    is_vec_soft_eq(helper, "mass", expected.mass, actual.mass, tol.mass);
+    is_vec_soft_eq(helper, "mass", expected.mass, actual.mass);
     return std::move(helper);
 }
-
-}  // namespace
 
 ::testing::AssertionResult IsRefEq(char const* expr1,
                                    char const* expr2,

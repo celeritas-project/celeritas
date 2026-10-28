@@ -20,10 +20,7 @@ Inspect the owning test helper and nearby call sites before editing:
 - `test/testdetail/TestMacrosImpl.hh` for `is_eq`, `is_vec_eq`,
   `is_vec_soft_eq`, scalar/vector comparison predicates, and generic container
   dispatch; `test/TestMacros.hh` for `EXPECT_REF_EQ` / `EXPECT_REF_NEAR`.
-- Existing result types with `IsRefEq`, `print_expected()`, or stream
-  operators, especially `test/geocel/GenericGeoResults.*`,
-  `test/larceler/RunnerResults.*`, and
-  `test/celeritas/field/FieldPropagator.test.cc`.
+- `test/accel/HepMC3PrimaryGenerator.test.cc` as a canonical example.
 
 Keep the result in the existing test helper or test file that owns the data;
 follow its namespace, declaration/definition split, and CMake registration
@@ -38,6 +35,8 @@ patterns. For new C++ files, follow the `new-class` skill.
   inventory against its construction, expected-value output, and comparator.
   Preserve intentional omissions, sentinels, and normalization behavior
   explicitly; do not silently drop fields or change comparison semantics.
+- Checks of individual fields can be omitted deliberately by clearing both
+  reference and actual results.
 - Add a separate tolerance struct only when fields need approximate or fuzzy
   comparison. Give it one clearly named tolerance per independently
   configurable comparison, or reuse one tolerance when semantics are truly
