@@ -64,9 +64,7 @@ DepHitResult DepHitResult::from_sdp(std::vector<sim::SDP> const& sdps)
         result.track_id.push_back(sdp.trackID);
         result.num_photons.push_back(sdp.numPhotons);
         result.energy.push_back(sdp.energy);
-        result.x.push_back(sdp.x);
-        result.y.push_back(sdp.y);
-        result.z.push_back(sdp.z);
+        result.pos.push_back(Real3{sdp.x, sdp.y, sdp.z});
     }
     return result;
 }
@@ -79,9 +77,7 @@ void DepHitResult::print_expected() const
               << "ref.track_id = " << repr(track_id) << ";\n"
               << "ref.num_photons = " << repr(num_photons) << ";\n"
               << "ref.energy = " << repr(energy) << ";\n"
-              << "ref.x = " << repr(x) << ";\n"
-              << "ref.y = " << repr(y) << ";\n"
-              << "ref.z = " << repr(z) << ";\n"
+              << "ref.pos = " << repr(pos) << ";\n"
               << "EXPECT_REF_EQ(ref, result);\n";
 }
 
@@ -95,9 +91,7 @@ void check_ref_eq(AssertionHelper& helper,
     is_eq(helper, "track_id", val1.track_id, val2.track_id);
     is_vec_soft_eq(helper, "num_photons", val1.num_photons, val2.num_photons);
     is_vec_soft_eq(helper, "energy", val1.energy, val2.energy);
-    is_vec_soft_eq(helper, "x", val1.x, val2.x);
-    is_vec_soft_eq(helper, "y", val1.y, val2.y);
-    is_vec_soft_eq(helper, "z", val1.z, val2.z);
+    is_vec_soft_eq(helper, "pos", val1.pos, val2.pos);
 }
 
 //---------------------------------------------------------------------------//

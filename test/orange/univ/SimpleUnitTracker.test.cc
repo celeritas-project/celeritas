@@ -7,6 +7,7 @@
 #include "orange/univ/SimpleUnitTracker.hh"
 
 #include <algorithm>
+#include <cstddef>
 #include <random>
 
 #include "corecel/Config.hh"
@@ -25,6 +26,7 @@
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
 
+#include "AssertionHelper.hh"
 #include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"
 
@@ -55,7 +57,36 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
         double failed{0};  //!< Fraction that couldn't initialize
         double walltime_per_track_ns{0};  //!< Kernel time
 
-        void print_expected() const;
+        friend std::ostream& operator<<(std::ostream& os,
+                                        HeuristicInitResult const& result)
+        {
+            return os << '{' << repr(result.vol_fractions) << ", "
+                      << result.failed << '}';
+        }
+
+        friend void print_expected(HeuristicInitResult const& result)
+        {
+            cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+                 << "HeuristicInitResult ref = " << result << ";\n"
+                 << "EXPECT_REF_EQ(ref, result);\n"
+                 << "// Wall time (ns), informational only: "
+                 << result.walltime_per_track_ns << "\n"
+                 << "/*** END CODE ***/\n";
+        }
+
+        friend void check_ref_eq(AssertionHelper& result,
+                                 HeuristicInitResult const& val1,
+                                 HeuristicInitResult const& val2,
+                                 std::nullptr_t)
+        {
+            using namespace ::celeritas::test;
+            is_vec_soft_eq(result,
+                           "vol_fractions",
+                           val1.vol_fractions,
+                           val2.vol_fractions);
+            is_soft_eq(
+                result, val1.failed, val2.failed, SoftComparator_t<double>());
+        }
     };
 
   protected:
@@ -334,22 +365,6 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Output copy-pasteable "gold" comparison unit testing code.
- */
-void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-         << "static const double expected_vol_fractions[] = "
-         << repr(this->vol_fractions) << ";\n"
-         << "EXPECT_VEC_SOFT_EQ(expected_vol_fractions, "
-            "result.vol_fractions);\n"
-         << "EXPECT_SOFT_EQ(" << this->failed << ", result.failed);\n"
-         << "// Wall time (ns): " << this->walltime_per_track_ns << "\n"
-         << "/*** END CODE ***/\n";
-}
-
-//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
@@ -407,22 +422,20 @@ TEST_F(OneVolumeTest, safety)
 TEST_F(OneVolumeTest, heuristic_init)
 {
     size_type num_tracks = 1024;
-    static double const expected_vol_fractions[] = {1.0};
+    HeuristicInitResult const expected{{1.0}, 0};
 
     {
         SCOPED_TRACE("Host heuristic");
         auto result = this->run_heuristic_init_host(num_tracks);
 
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 
     if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 }
 
@@ -634,21 +647,19 @@ TEST_F(TwoVolumeTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 1024;
 
-    static double const expected_vol_fractions[] = {0.4765625, 0.5234375};
+    HeuristicInitResult const expected{{0.4765625, 0.5234375}, 0};
 
     {
         SCOPED_TRACE("Host heuristic");
         auto result = this->run_heuristic_init_host(num_tracks);
 
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
     if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 }
 
@@ -737,27 +748,26 @@ TEST_F(FieldLayersTest, intersect)
 TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 8192;
-    static double const expected_vol_fractions[] = {0,
-                                                    0.018310546875,
-                                                    0.019775390625,
-                                                    0.020263671875,
-                                                    0.0189208984375,
-                                                    0.021484375,
-                                                    0.9012451171875};
+    HeuristicInitResult const expected{{0,
+                                        0.018310546875,
+                                        0.019775390625,
+                                        0.020263671875,
+                                        0.0189208984375,
+                                        0.021484375,
+                                        0.9012451171875},
+                                       0};
 
     {
         SCOPED_TRACE("Host heuristic");
         auto result = this->run_heuristic_init_host(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 
     if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 }
 
@@ -937,21 +947,19 @@ TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 10000;
 
-    static double const expected_vol_fractions[]
-        = {0, 0.0701, 0.106, 0.1621, 0.6555, 0.0063};
+    HeuristicInitResult const expected{
+        {0, 0.0701, 0.106, 0.1621, 0.6555, 0.0063}, 0};
 
     {
         SCOPED_TRACE("Host heuristic");
         auto result = this->run_heuristic_init_host(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
     if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 }
 

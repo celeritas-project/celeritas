@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <map>
 #include <memory>
 #include <vector>
@@ -21,6 +23,8 @@ class VolumeParams;
 
 namespace test
 {
+class AssertionHelper;
+
 //---------------------------------------------------------------------------//
 /*!
  * Store calorimeter results based on pre-step volume instance names.
@@ -41,6 +45,11 @@ class ExampleInstanceCalo final : public StepInterface
         std::vector<double> edep;
 
         void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream&, Result const&);
+        friend void print_expected(Result const&);
+        friend void check_ref_eq(
+            AssertionHelper&, Result const&, Result const&, std::nullptr_t);
     };
 
   public:
@@ -78,6 +87,8 @@ class ExampleInstanceCalo final : public StepInterface
     //! Number of compacted device steps, loaded into pinned host memory
     AsyncSnapshot<size_type> num_selected_;
 };
+
+void print_expected(ExampleInstanceCalo::Result const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

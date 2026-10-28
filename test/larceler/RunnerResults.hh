@@ -10,6 +10,9 @@
 #include <vector>
 #include <gtest/gtest.h>
 
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"  // IWYU pragma: keep
+
 namespace sim
 {
 class OpDetBacktrackerRecord;
@@ -43,12 +46,12 @@ void check_ref_eq(AssertionHelper& helper,
 //---------------------------------------------------------------------------//
 struct DepHitResult
 {
+    using Real3 = Array<float, 3>;
+
     std::vector<int> track_id;
     std::vector<float> num_photons;
     std::vector<float> energy;
-    std::vector<float> x;
-    std::vector<float> y;
-    std::vector<float> z;
+    std::vector<Real3> pos;
 
     static DepHitResult from_sdp(std::vector<sim::SDP> const& sdps);
 

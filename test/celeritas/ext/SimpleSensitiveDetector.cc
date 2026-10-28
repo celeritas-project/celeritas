@@ -15,7 +15,6 @@
 #include <G4Track.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 
 #include "TestMacros.hh"
@@ -132,14 +131,12 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     hits_.pre_energy.push_back(pre_step->GetKineticEnergy() / CLHEP::MeV);
     hits_.pre_time.push_back(pre_step->GetGlobalTime() / CLHEP::ns);
 
-    for (int i : range(3))
-    {
-        hits_.pre_pos.push_back(pre_step->GetPosition()[i] / CLHEP::cm);
-    }
-    for (int i : range(3))
-    {
-        hits_.pre_dir.push_back(pre_step->GetMomentumDirection()[i]);
-    }
+    hits_.pre_pos.push_back({pre_step->GetPosition()[0] / CLHEP::cm,
+                             pre_step->GetPosition()[1] / CLHEP::cm,
+                             pre_step->GetPosition()[2] / CLHEP::cm});
+    hits_.pre_dir.push_back({pre_step->GetMomentumDirection()[0],
+                             pre_step->GetMomentumDirection()[1],
+                             pre_step->GetMomentumDirection()[2]});
 
     if (auto* touchable = pre_step->GetTouchable())
     {
@@ -150,14 +147,12 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     {
         hits_.post_time.push_back(post_step->GetGlobalTime() / CLHEP::ns);
         hits_.post_energy.push_back(post_step->GetKineticEnergy() / CLHEP::MeV);
-        for (int i : range(3))
-        {
-            hits_.post_pos.push_back(post_step->GetPosition()[i] / CLHEP::cm);
-        }
-        for (int i : range(3))
-        {
-            hits_.post_dir.push_back(post_step->GetMomentumDirection()[i]);
-        }
+        hits_.post_pos.push_back({post_step->GetPosition()[0] / CLHEP::cm,
+                                  post_step->GetPosition()[1] / CLHEP::cm,
+                                  post_step->GetPosition()[2] / CLHEP::cm});
+        hits_.post_dir.push_back({post_step->GetMomentumDirection()[0],
+                                  post_step->GetMomentumDirection()[1],
+                                  post_step->GetMomentumDirection()[2]});
         if (auto* touchable = post_step->GetTouchable())
         {
             auto* vol = touchable->GetVolume();

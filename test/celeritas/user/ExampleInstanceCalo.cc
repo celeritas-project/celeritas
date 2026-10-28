@@ -21,27 +21,50 @@
 #include "geocel/VolumeIdBuilder.hh"
 #include "geocel/VolumeParams.hh"
 
+#include "AssertionHelper.hh"
+#include "testdetail/TestMacrosImpl.hh"
+
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Print key/value pairs.
+ * Print the result as a valid aggregate initializer.
  */
-void ExampleInstanceCalo::Result::print_expected() const
+std::ostream& operator<<(std::ostream& os,
+                         ExampleInstanceCalo::Result const& ref)
+{
+    return os << '{' << repr(ref.instance) << ", " << repr(ref.edep) << '}';
+}
+
+//---------------------------------------------------------------------------//
+void print_expected(ExampleInstanceCalo::Result const& ref)
 {
     using std::cout;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static char const* const expected_instance[] = "
-         << repr(this->instance)
+            "ExampleInstanceCalo::Result ref = "
+         << ref
          << ";\n"
-            "EXPECT_VEC_EQ(expected_instance, result.instance);\n"
-            "static real_type const expected_edep[] = "
-         << repr(this->edep)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);\n"
+            "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
+void ExampleInstanceCalo::Result::print_expected() const
+{
+    ::celeritas::test::print_expected(*this);
+}
+
+//---------------------------------------------------------------------------//
+void check_ref_eq(AssertionHelper& helper,
+                  ExampleInstanceCalo::Result const& expected,
+                  ExampleInstanceCalo::Result const& actual,
+                  std::nullptr_t)
+{
+    using namespace ::celeritas::test;
+    is_vec_eq(helper, "instance", expected.instance, actual.instance);
+    is_vec_soft_eq(helper, "edep", expected.edep, actual.edep);
 }
 
 //---------------------------------------------------------------------------//
