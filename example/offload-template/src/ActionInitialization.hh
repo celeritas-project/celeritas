@@ -14,9 +14,10 @@ namespace example
 {
 //---------------------------------------------------------------------------//
 /*!
- * Initialize all user action classes, set up Celeritas offloading interface,
- * and assign the Celeritas' implementation of \c G4VTrackingManager to the
- * particles that should be offloaded.
+ * Initialize all user action classes.
+ *
+ * Celeritas offloading setup and teardown are driven automatically by Geant4
+ * state hooks, so no user run action is required.
  */
 class ActionInitialization final : public G4VUserActionInitialization
 {
@@ -24,10 +25,7 @@ class ActionInitialization final : public G4VUserActionInitialization
     // Construct empty
     ActionInitialization();
 
-    // Master thread user actions and Celeritas offload interface
-    void BuildForMaster() const final;
-
-    // Worker thread actions and Celeritas offload interface
+    // Worker thread actions
     void Build() const final;
 };
 }  // namespace example

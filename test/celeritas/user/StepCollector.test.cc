@@ -7,10 +7,13 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include <algorithm>
+#include <map>
+#include <utility>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/SimpleTestBase.hh"
 #include "celeritas/TestEm15Base.hh"
@@ -37,6 +40,95 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+// Count callback invocations, including steps with no active tracks.
+class CountingStepInterface final : public StepInterface
+{
+  public:
+    Filters filters() const final { return {}; }
+
+    StepSelection selection() const final
+    {
+        StepSelection result;
+        result.points[StepPoint::pre].time = true;
+        result.energy_deposition = true;
+        return result;
+    }
+
+    void process_steps(HostStepState) final { ++num_steps_; }
+    void process_steps(DeviceStepState) final { ++num_steps_; }
+
+    size_type num_steps() const { return num_steps_; }
+
+  private:
+    size_type num_steps_{};
+};
+
+// Record the parent and generation of every track (host only)
+class ParentRecorder final : public StepInterface
+{
+  public:
+    Filters filters() const final { return {}; }
+
+    StepSelection selection() const final
+    {
+        StepSelection result;
+        result.primary_id = true;
+        result.parent_id = true;
+        result.generation = true;
+        return result;
+    }
+
+    void process_steps(HostStepState state) final
+    {
+        auto const& data = state.steps.data;
+        for (auto tid : range(TrackSlotId{data.size()}))
+        {
+            if (TrackId track = data.track_id[tid])
+            {
+                parents_[{data.primary_id[tid], track}]
+                    = {data.parent_id[tid], data.generation[tid]};
+            }
+        }
+    }
+    void process_steps(DeviceStepState) final { CELER_ASSERT_UNREACHABLE(); }
+
+    // Check that each track is one generation after its parent, returning
+    // the number of tracks in generation 1 and in deeper generations
+    std::pair<size_type, size_type> check_generations() const
+    {
+        size_type num_children{0};
+        size_type num_descendants{0};
+        for (auto const& [key, value] : parents_)
+        {
+            auto const& [parent, generation] = value;
+            if (!parent)
+            {
+                // Primaries have no parent
+                EXPECT_EQ(0, generation);
+                continue;
+            }
+            auto iter = parents_.find({key.first, parent});
+            if (iter == parents_.end())
+            {
+                ADD_FAILURE() << "parent " << parent.value() << " of track "
+                              << key.second.value() << " was never recorded";
+                continue;
+            }
+            EXPECT_EQ(iter->second.second + 1, generation)
+                << "track " << key.second.value();
+            ++(generation == 1 ? num_children : num_descendants);
+        }
+        return {num_children, num_descendants};
+    }
+
+  private:
+    using Key = std::pair<PrimaryId, TrackId>;
+    std::map<Key, std::pair<TrackId, size_type>> parents_;
+};
+}  // namespace
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
@@ -59,6 +151,7 @@ class KnSimpleLoopTestBase : public SimpleTestBase,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = PrimaryId{i};
         }
         return result;
     }
@@ -71,6 +164,51 @@ class KnMctruthTest : public KnSimpleLoopTestBase, public MctruthTestBase
 class KnCaloTest : public KnSimpleLoopTestBase, public CaloTestBase
 {
     VecString get_detector_names() const final { return {"inner"}; }
+};
+
+class KnWarmupTest : public KnSimpleLoopTestBase
+{
+  protected:
+    template<MemSpace M>
+    void run()
+    {
+        auto callback = std::make_shared<CountingStepInterface>();
+        auto collector
+            = StepCollector::make_and_insert(*this->core(), {callback});
+
+        StepperInput step_inp;
+        step_inp.params = this->core();
+        step_inp.stream_id = StreamId{0};
+        step_inp.num_track_slots = 2;
+        step_inp.actions = std::make_shared<ActionSequence>(
+            *this->action_reg(), ActionSequence::Options{});
+        if constexpr (M == MemSpace::device)
+        {
+            // Core state construction already uses the assigned device stream.
+            device().create_streams(1);
+        }
+        Stepper<M> step(step_inp);
+
+        // Warmup has no step result to consume or associated hit processing.
+        for (int i = 0; i < 2; ++i)
+        {
+            step.warm_up();
+            EXPECT_FALSE(step.has_outstanding_result());
+            EXPECT_EQ(0, callback->num_steps());
+        }
+
+        // Ordinary empty steps must still invoke callbacks.
+        step.async();
+        EXPECT_FALSE(step.get());
+        EXPECT_EQ(1, callback->num_steps());
+
+        auto primaries = this->make_primaries(2);
+        step.async(make_span(primaries));
+        auto result = step.get();
+        EXPECT_EQ(2, result.generated);
+        EXPECT_EQ(2, result.active);
+        EXPECT_EQ(2, callback->num_steps());
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -222,6 +360,20 @@ TEST_F(KnSimpleLoopTestBase, multiple_interfaces)
 }
 
 //---------------------------------------------------------------------------//
+// WARMUP
+//---------------------------------------------------------------------------//
+
+TEST_F(KnWarmupTest, host)
+{
+    this->run<MemSpace::host>();
+}
+
+TEST_F(KnWarmupTest, TEST_IF_CELER_DEVICE(device))
+{
+    this->run<MemSpace::device>();
+}
+
+//---------------------------------------------------------------------------//
 // KLEIN-NISHINA
 //---------------------------------------------------------------------------//
 
@@ -294,6 +446,23 @@ TEST_F(KnCaloTest, single_track)
 //---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
+
+#define TestEm3ParentTest TEST_IF_CELERITAS_GEANT(TestEm3ParentTest)
+class TestEm3ParentTest : public TestEm3CollectorTestBase
+{
+};
+
+TEST_F(TestEm3ParentTest, generation)
+{
+    // All primaries are in a single event: track IDs are unique
+    auto recorder = std::make_shared<ParentRecorder>();
+    auto collector = StepCollector::make_and_insert(*this->core(), {recorder});
+    this->run_impl<MemSpace::host>(16, 64);
+
+    auto [num_children, num_descendants] = recorder->check_generations();
+    EXPECT_GT(num_children, 0);
+    EXPECT_GT(num_descendants, 0);
+}
 
 TEST_F(TestEm3MctruthTest, four_step)
 {

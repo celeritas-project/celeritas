@@ -61,8 +61,9 @@ class GeantTestBase : public ImportedDataTestBase
 //! Print the current configuration
 struct StreamableBuildConf
 {
+    friend std::ostream& operator<<(std::ostream& os,
+                                    StreamableBuildConf const&);
 };
-std::ostream& operator<<(std::ostream& os, StreamableBuildConf const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

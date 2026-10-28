@@ -41,12 +41,6 @@ class IntegrationBase
     // Set options before starting the run
     void SetOptions(SetupOptions&& opts);
 
-    // REMOVE in v0.7
-    [[deprecated]] void BuildForMaster() {}
-
-    // REMOVE in v0.7
-    [[deprecated]] void Build() {}
-
     // Start the run
     void BeginOfRunAction(G4Run const* run);
 
@@ -68,6 +62,9 @@ class IntegrationBase
     IntegrationBase();
     ~IntegrationBase() = default;
     CELER_DEFAULT_COPY_MOVE(IntegrationBase);
+
+    // Whether this integration is driven by Geant4 state hooks
+    virtual bool use_auto_hooks() const;
 
     //! Verify setup after initialization (called if thread is doing offload)
     virtual void verify_local_setup() = 0;

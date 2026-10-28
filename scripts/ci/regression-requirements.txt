@@ -1,0 +1,3 @@
+# NOTE: these specifications are only for CI use by process-regression.py
+# and post-regression-comment.py.
+PyGithub >= 2.8

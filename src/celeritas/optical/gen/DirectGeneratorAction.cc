@@ -18,6 +18,8 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
+#include "GeneratorAction.hh"
+
 #include "detail/DirectGeneratorExecutor.hh"
 #include "detail/GeneratorAlgorithms.hh"
 
@@ -25,25 +27,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Construct a state.
-template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
-{
-    using StoreT = StateDataStore<DirectGeneratorStateData, M>;
-
-    auto result = std::make_unique<DirectGeneratorState<M>>();
-    result->store = StoreT{stream, size};
-
-    CELER_ENSURE(result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -73,6 +56,7 @@ DirectGeneratorAction::DirectGeneratorAction(
                     gen_id,
                     "generate-direct",
                     "directly generate optical photon primaries")
+
 {
 }
 
@@ -143,9 +127,7 @@ void DirectGeneratorAction::insert_impl(CoreState<M>& state,
     // Update counters and copy distributions to aux state storage
     aux_state.counters.buffer_size = data.size();
     aux_state.counters.num_pending = data.size();
-    auto counters = state.sync_get_counters();
-    counters.num_pending += data.size();
-    state.sync_put_counters(counters);
+    state.add_pending(data.size());
     Copier<TrackInitializer, M> copy_to_aux{aux_state.initializers(),
                                             state.stream_id()};
 
@@ -161,11 +143,11 @@ auto DirectGeneratorAction::create_state(
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(stream, size);
+        return make_state<MemSpace::host, DirectGeneratorState>(stream, size);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(stream, size);
+        return make_state<MemSpace::device, DirectGeneratorState>(stream, size);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -184,9 +166,10 @@ void DirectGeneratorAction::step_impl(CoreParams const& params,
         = get<DirectGeneratorState<M>>(*state.aux(), this->aux_id());
     auto& counters = aux_state.counters;
 
-    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (counters.num_pending > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
     }
 
@@ -213,12 +196,11 @@ void DirectGeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state = get<DirectGeneratorState<MemSpace::native>>(
         *state.aux(), this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
     detail::DirectGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), aux_state.store.ref()};
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
     launch_action(num_gen, execute);
 }
 
@@ -226,7 +208,7 @@ void DirectGeneratorAction::generate(CoreParams const& params,
 #if !CELER_USE_DEVICE
 void DirectGeneratorAction::generate(CoreParams const&, CoreStateDevice&) const
 {
-    CELER_NOT_IMPLEMENTED("device");
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
 

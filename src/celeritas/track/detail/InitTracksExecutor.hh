@@ -45,7 +45,6 @@ struct InitTracksExecutor
 
     ParamsPtr params;
     StatePtr state;
-    size_type num_init{};
 
     //// FUNCTIONS ////
 
@@ -60,45 +59,63 @@ struct InitTracksExecutor
  * The track initializers are created from either primary particles or
  * secondaries. The new tracks are inserted into empty slots (vacancies) in the
  * track vector.
+ *
+ * With \c TrackOrder::init_charge, the \c indices array holds the inclusive
+ * prefix sum \f$ S \f$ of neutral flags over the \f$ n \f$ initializers used
+ * in this step (see \c scan_neutral_initializers). With
+ * \f$ N = S_{n-1} \f$ neutral tracks in total, initializer \f$ i \f$ is
+ * placed in vacancy \f$ S_i - 1 \f$ if it is neutral and in vacancy
+ * \f$ v - (n - N) + (i - S_i) \f$ if it is charged, where \f$ v \f$ is the
+ * number of vacancies. Neutral tracks thus fill the front of the vacancies and
+ * charged tracks the back, each in initializer order.
  */
 CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
-    CELER_EXPECT(tid < num_init);
+    CELER_EXPECT(params);
+    CELER_EXPECT(state);
 
     auto const& data = state->init;
     auto* counters = state->init.counters.data().get();
-    // Get the track initializer from the back of the vector. Since new
-    // initializers are pushed to the back of the vector, these will be the
-    // most recently added and therefore the ones that still might have a
-    // parent they can copy the geometry state from.
-    TrackInitializer& init = data.initializers[ItemId<TrackInitializer>([&] {
-        if (params->init.track_order == TrackOrder::init_charge)
-        {
-            // Get the index into the track initializer or parent track slot ID
-            // array from the sorted indices
-            return data.indices[TrackSlotId(index_before(num_init, tid))]
-                   + counters->num_initializers - num_init;
-        }
-        return index_before(counters->num_initializers, tid);
-    }())];
+    size_type num_init
+        = min(counters->num_vacancies, counters->num_initializers);
+    CELER_EXPECT(num_init <= state->size());
+    if (tid < num_init)
+    {
+        // Get the track initializer from the back of the vector. Since new
+        // initializers are pushed to the back of the vector, these will be the
+        // most recently added and therefore the ones that still might have a
+        // parent they can copy the geometry state from.
+        TrackInitializer& init = data.initializers[ItemId<TrackInitializer>(
+            index_before(counters->num_initializers, tid))];
 
-    // View to the new track to be initialized
-    CoreTrackView vacancy{
-        *params, *state, [&] {
-            if (params->init.track_order == TrackOrder::init_charge
-                && IsNeutral{params}(init))
-            {
-                // Get the vacancy from the front of the
-                // track state
-                return data.vacancies[TrackSlotId(index_before(num_init, tid))];
-            }
-            // Get the vacancy from the back of the track
-            // state
-            return data.vacancies[TrackSlotId(
-                index_before(counters->num_vacancies, tid))];
-        }()};
+        // View to the new track to be initialized
+        CoreTrackView vacancy{
+            *params, *state, [&] {
+                if (params->init.track_order == TrackOrder::init_charge)
+                {
+                    // Index among the initializers used in this step
+                    size_type i = index_before(num_init, tid);
+                    size_type num_neutral_upto = data.indices[TrackSlotId(i)];
+                    if (IsNeutral{params}(init))
+                    {
+                        // Get the vacancy from the front of the track state
+                        CELER_ASSERT(num_neutral_upto > 0);
+                        return data.vacancies[TrackSlotId(num_neutral_upto - 1)];
+                    }
+                    // Get the vacancy from the back of the track state
+                    size_type num_charged
+                        = num_init - data.indices[TrackSlotId(num_init - 1)];
+                    return data.vacancies[TrackSlotId(
+                        counters->num_vacancies - num_charged
+                        + (i - num_neutral_upto))];
+                }
+                // Get the vacancy from the back of the track state
+                return data.vacancies[TrackSlotId(
+                    index_before(counters->num_vacancies, tid))];
+            }()};
 
-    vacancy = init;
+        vacancy = init;
+    }
 }
 
 //---------------------------------------------------------------------------//

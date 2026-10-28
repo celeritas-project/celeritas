@@ -69,6 +69,18 @@ cmake_dependent_option(CELERITAS_CODESIGN_APPS
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
+# GCC 8 fails to deduce the return type of the lambda used by
+# CELER_SOURCE_FILE inside a discarded `if constexpr` branch
+set(_compiler_robust_constexpr TRUE)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  set(_compiler_robust_constexpr FALSE)
+endif()
+cmake_dependent_option(CELERITAS_TRIM_SOURCE_FILE
+  "Shorten source filenames in log and error messages at compile time" "OFF"
+  "NOT CELERITAS_DEBUG;_compiler_robust_constexpr" OFF
+)
+
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   set(_celeritas_use_device TRUE)
 else()
@@ -114,12 +126,14 @@ else()
   set(_needs_python OFF)
 endif()
 
-# Automatic options
+# Automatic options (these set CELERITAS_USE_X and save version info to
+# Config.cc)
 celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
 celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
-celeritas_force_package(G4VG ${_needs_g4vg})
 celeritas_force_package(nlohmann_json ON)
 celeritas_force_package(Python ${_needs_python})
+celeritas_force_package(CLHEP ${CELERITAS_USE_Geant4})
+celeritas_force_package(G4VG ${_needs_g4vg})
 
 # Optional capabilities
 # Enable torus by default for debugging but not optimized until performance consequences are known
@@ -130,7 +144,8 @@ option(CELERITAS_ORANGE_TORUS "Enable runtime ORANGE torus" ${CELERITAS_DEBUG})
 #----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Python)
-  # Note that these are used by the celeritas_get_python_env command
+  # Enabled for testing/docs (set by celeritas_force_package(Python))
+  # These variables are used by the celeritas_get_python_env command
   set(CELERITAS_PYTHONPATH "$ENV{PYTHONPATH}" CACHE STRING
     "Python path used for finding modules and generating documentation"
   )
@@ -249,15 +264,6 @@ celeritas_setup_option(CELERITAS_REAL_TYPE double)
 celeritas_setup_option(CELERITAS_REAL_TYPE float)
 celeritas_define_options(CELERITAS_REAL_TYPE
   "Global runtime precision for real numbers")
-
-if((CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    AND (NOT CELERITAS_UNITS STREQUAL "CGS"))
-  celeritas_error_incompatible_option(
-    "ORANGE currently requires CGS units"
-    CELERITAS_UNITS
-    CGS
-  )
-endif()
 
 #----------------------------------------------------------------------------#
 # CMAKE VERSION CHECKS
@@ -424,6 +430,8 @@ if(CELERITAS_USE_DD4hep)
   endif()
 endif()
 
+# NOTE: some older versions of CUDA/HIP/Thrust lack CMake configuration
+# files, so we don't make them required
 if(CELERITAS_USE_CUDA)
   if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT (DEFINED ENV{CUDAARCHS}))
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
@@ -448,34 +456,50 @@ if(CELERITAS_USE_CUDA)
       "${_allowed_arch}"
     )
   endif()
+  find_package(CUB)
+  find_package(Thrust)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
+  find_package(hip) # Enable hip API in host code, and support version diagnostics
+  find_package(hipcub)
+  find_package(hiprand)
+  find_package(rocthrust)
+  find_package(roctracer)
+  # DEPRECATE
+  celeritas_set_onoff(CELERITAS_HAVE_ROCTX ${roctracer_FOUND})
+  celeritas_set_onoff(CELERITAS_HAVE_HIPCUB ${hipcub_FOUND})
+
   # NOTE: known broken up to 5.6; unknown after
-  if(CELERITAS_DEVICE_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
+  if(CELERITAS_DEVICE_DEBUG AND "${hip_VERSION}" VERSION_LESS 5.7)
     celeritas_error_incompatible_option(
       "HIP cannot build debug code (unhandled SGPR spill to memory)"
       CELERITAS_DEVICE_DEBUG
       OFF
     )
   endif()
-  # Include the default ROCm installation path in the search
-  find_library(ROCTX_LIBRARY roctx64 PATHS /opt/rocm/lib)
-  celeritas_set_onoff(CELERITAS_HAVE_ROCTX ${ROCTX_LIBRARY})
-  find_file(HIPCUB hipcub_version.hpp PATHS /opt/rocm/include/hipcub)
-  celeritas_set_onoff(CELERITAS_HAVE_HIPCUB ${HIPCUB})
+  if(CELERITAS_USE_covfie AND "${hip_VERSION}" VERSION_LESS 6)
+    celeritas_error_incompatible_option(
+      "covfie requires HIP to support C++20 (hip 6 and higher)"
+      CELERITAS_USE_covfie
+      OFF
+    )
+  endif()
 endif()
-
-if(CELERITAS_USE_CUDA)
-  # NOTE: older versions of CUDA/Thrust don't include a CMake configuration
-  # file, so don't make it required
-  find_package(Thrust)
-endif()
-# Unconditionally set Thrust availability for downstream configuration
-celeritas_force_package(Thrust "${Thrust_FOUND}")
+# Unconditionally set availability for downstream configuration
+foreach(_pkg IN ITEMS CUB Thrust hipcub hiprand rocthrust roctracer)
+  celeritas_force_package(${_pkg} "${${_pkg}_FOUND}")
+endforeach()
 
 if(CELERITAS_USE_Geant4)
   if(NOT Geant4_FOUND)
     find_package(Geant4 REQUIRED)
+  endif()
+  if(Geant4_usolids_FOUND AND Geant4_VERSION VERSION_LESS 10.6)
+    celeritas_error_incompatible_option(
+      "Geant4 with USolids requires Geant4 10.6 or newer"
+      CELERITAS_USE_Geant4
+      OFF
+    )
   endif()
   if(CELERITAS_OPENMP STREQUAL "track" AND Geant4_multithreaded_FOUND)
     message(WARNING "Track-level OpenMP will conflict with MT runs of geant4:"
@@ -578,6 +602,15 @@ if(CELERITAS_USE_VecGeom)
     # Another package, probably Geant4, is already using vecgeom
     celeritas_error_incompatible_option(
       "VecGeom version \"${VecGeom_VERSION}\" at \"${VecGeom_DIR}\" is too old for Celeritas to use: you must update to ${_min_vecgeom_version} or higher"
+      CELERITAS_USE_VecGeom
+      OFF
+    )
+  endif()
+  if(VecGeom_VERSION VERSION_GREATER_EQUAL 2.0
+      AND VecGeom_VERSION VERSION_LESS 2.2)
+    # 2.2 is needed for the NavView navigation interface
+    celeritas_error_incompatible_option(
+      "VecGeom version \"${VecGeom_VERSION}\" at \"${VecGeom_DIR}\" is not supported by Celeritas: you must use VecGeom 1.2 or update to 2.2 or higher"
       CELERITAS_USE_VecGeom
       OFF
     )
@@ -811,13 +844,13 @@ set(_cmake_files
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
 # Add packages with custom Celeritas-provided FindX scripts
-foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 LArSoft Perfetto ROOT Thrust VecGeom)
+foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 LArSoft Perfetto ROOT Thrust VecGeom rocthrust roctracer)
   if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()
 endforeach()
 if(CELERITAS_USE_LArSoft)
-  foreach(_dep lardataobj cetmodules)
+  foreach(_dep cetmodules art lardataobj larsim)
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endforeach()
 endif()

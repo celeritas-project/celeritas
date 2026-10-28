@@ -22,6 +22,8 @@ namespace celeritas
  * This class is thread-safe for concurrent writes: calls to \c operator() are
  * serialized using an internal mutex. The writer must be constructed on the
  * main thread.
+ *
+ * \todo The mutex may be duplicated with OffloadWriter.
  */
 class OpticalDistributionWriter
 {

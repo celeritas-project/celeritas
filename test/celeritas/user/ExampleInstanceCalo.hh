@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/io/Label.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -74,6 +75,8 @@ class ExampleInstanceCalo final : public StepInterface
 
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
+    //! Number of compacted device steps, loaded into pinned host memory
+    AsyncSnapshot<size_type> num_selected_;
 };
 
 //---------------------------------------------------------------------------//

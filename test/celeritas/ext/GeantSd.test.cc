@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantSd.hh"
 
+#include <memory>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4NistManager.hh>
@@ -16,14 +17,23 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/ext/GeantSdOutput.hh"
+#include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
+#include "celeritas/global/Stepper.hh"
 #include "celeritas/inp/Scoring.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Primary.hh"
+#include "celeritas/user/StepCollector.hh"
 
 #include "SensDetTestBase.hh"
+#include "SimpleSensitiveDetector.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -108,6 +118,19 @@ class SimpleCmsTest : public SensDetTestBase, public SimpleCmsTestBase
         return to_string(out);
     }
 
+    size_type num_hits() const
+    {
+        size_type result{};
+        for (auto const& [name, detector] : this->detectors())
+        {
+            result += detector->hits().energy_deposition.size();
+        }
+        return result;
+    }
+
+    template<MemSpace M>
+    void test_step_lifecycle();
+
   protected:
     inp::GeantSd sd_setup_;
     ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::world_logger()};
@@ -117,6 +140,128 @@ class SimpleCmsTest : public SensDetTestBase, public SimpleCmsTestBase
 
 G4LogicalVolume const* SimpleCmsTest::detached_lv{nullptr};
 
+//---------------------------------------------------------------------------//
+// Exercise the Stepper, gather actions, and Geant4 sensitive detectors together.
+template<MemSpace M>
+void SimpleCmsTest::test_step_lifecycle()
+{
+    auto manager = std::make_shared<GeantSd>(this->make_hit_manager());
+    auto collector = StepCollector::make_and_insert(*this->core(), {manager});
+    StepperInput input;
+    input.params = this->core();
+    input.stream_id = StreamId{0};
+    input.num_track_slots = 16;
+    input.actions = std::make_shared<ActionSequence>(
+        *this->action_reg(), ActionSequence::Options{});
+    if constexpr (M == MemSpace::device)
+    {
+        // Core state construction already uses the assigned device stream.
+        device().create_streams(1);
+    }
+    Stepper<M> step(input);
+    if constexpr (M == MemSpace::device)
+    {
+        // Allocate the pinned hit output before stepping
+        processor_->reserve(
+            collector->step_state<MemSpace::device>(step.state()));
+    }
+
+    for (int i = 0; i < 2; ++i)
+    {
+        step.warm_up();
+        EXPECT_FALSE(step.has_outstanding_result());
+        ASSERT_FALSE(processor_->has_pending_steps());
+        EXPECT_EQ(0, this->num_hits());
+        EXPECT_EQ(0, processor_->exchange_hits());
+    }
+
+    size_type consumed_hits{};
+    auto complete_step = [&] {
+        step.wait();
+        EXPECT_TRUE(step.ready());
+        EXPECT_EQ(M == MemSpace::device, processor_->has_pending_steps());
+        if constexpr (M == MemSpace::device)
+        {
+            // Neither executing the actions nor waiting delivers device hits.
+            EXPECT_EQ(consumed_hits, this->num_hits());
+        }
+
+        auto const hits_before_get = this->num_hits();
+        auto result = step.get();
+        EXPECT_FALSE(step.has_outstanding_result());
+        EXPECT_EQ(M == MemSpace::device, processor_->has_pending_steps());
+        EXPECT_EQ(hits_before_get, this->num_hits());
+
+        processor_->copy_pending_steps();
+        processor_->process_copied_steps();
+        EXPECT_FALSE(processor_->has_pending_steps());
+        EXPECT_EQ(this->num_hits() - consumed_hits,
+                  processor_->exchange_hits());
+        consumed_hits = this->num_hits();
+
+        // Processing again must not deliver the same batch twice.
+        processor_->copy_pending_steps();
+        processor_->process_copied_steps();
+        EXPECT_EQ(consumed_hits, this->num_hits());
+        EXPECT_EQ(0, processor_->exchange_hits());
+        return result;
+    };
+
+    step.async();
+    EXPECT_FALSE(complete_step());
+    EXPECT_EQ(0, consumed_hits);
+
+    Primary primary;
+    primary.particle_id = this->particle()->find(pdg::electron());
+    ASSERT_TRUE(primary.particle_id);
+    primary.position = from_cm(Real3{0, 150, 10});
+    primary.direction = {0, 0, 1};
+    primary.event_id = EventId{0};
+    PrimaryId primary_id{0};
+    for (real_type energy : {1.0_r, 2.0_r})
+    {
+        // Drain two showers through the same step state and hit buffers.
+        auto const previous_hits = consumed_hits;
+        primary.energy = units::MevEnergy{energy};
+        primary.primary_id = primary_id++;
+        step.async({&primary, 1});
+        auto result = complete_step();
+        EXPECT_EQ(1, result.generated);
+        EXPECT_EQ(1, result.active);
+        ASSERT_EQ(previous_hits + 1, consumed_hits);
+        auto const& energies
+            = this->detectors().at("em_calorimeter")->hits().pre_energy;
+        ASSERT_FALSE(energies.empty());
+        EXPECT_SOFT_EQ(energy, energies.back());
+        for (int num_steps = 0; result; ++num_steps)
+        {
+            ASSERT_LT(num_steps, 256);
+            step.async();
+            result = complete_step();
+        }
+        EXPECT_GT(consumed_hits, previous_hits);
+
+        // A terminal result still has a device callback to consume. The next
+        // empty step must not replay hits left in the previous host buffer.
+        auto const final_hits = consumed_hits;
+        step.async();
+        EXPECT_FALSE(complete_step());
+        EXPECT_EQ(final_hits, consumed_hits);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, step_lifecycle_host)
+{
+    this->test_step_lifecycle<MemSpace::host>();
+}
+
+TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(step_lifecycle_device))
+{
+    this->test_step_lifecycle<MemSpace::device>();
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, no_change)
 {
     GeantSd man = this->make_hit_manager();
@@ -132,6 +277,32 @@ TEST_F(SimpleCmsTest, no_change)
     EXPECT_JSON_EQ(
         R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3]})json",
         this->get_diagnostics(man));
+}
+
+TEST_F(SimpleCmsTest, recreate_local_processor)
+{
+    GeantSd man = this->make_hit_manager();
+    std::weak_ptr<GeantSd::HitProcessor> previous = processor_;
+
+    // In production the processor is created only by the LocalTransporter
+    // constructor, and IntegrationSingleton guards against initializing a
+    // live transporter twice: this "duplicate" call exercises a defensive
+    // path only
+    auto duplicate = man.make_local_processor(StreamId{0});
+    EXPECT_EQ(processor_, duplicate);
+
+    processor_.reset();
+    EXPECT_FALSE(previous.expired());
+    duplicate.reset();
+    EXPECT_TRUE(previous.expired());
+
+    // The essential behavior: LocalTransporter::Finalize destroys the
+    // processor at end of run, and the deleter must clear the slot's cached
+    // pointer so the next run recreates the processor instead of returning a
+    // dangling pointer
+    processor_ = man.make_local_processor(StreamId{0});
+    EXPECT_TRUE(processor_);
+    EXPECT_EQ(processor_, man.make_local_processor(StreamId{0}));
 }
 
 TEST_F(SimpleCmsTest, delete_one)

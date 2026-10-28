@@ -44,11 +44,7 @@ struct GeneratorExecutor
     //// FUNCTIONS ////
 
     // Generate optical photons
-    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
-    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
-    {
-        return (*this)(TrackSlotId{tid.unchecked_get()});
-    }
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -57,7 +53,7 @@ struct GeneratorExecutor
 /*!
  * Generate photons from optical distribution data.
  */
-CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
+CELER_FUNCTION void GeneratorExecutor::operator()(ThreadId tid) const
 {
     using namespace celeritas::literals;
     CELER_EXPECT(state);
@@ -67,8 +63,16 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
 
     auto* counters = state->init.counters.data().get();
 
-    // Find the index of the first distribution that has a nonzero number of
-    // primaries left to generate
+    // Original code set the number of threads to the minimum between of number
+    // of vacancies and the number of pending in the auxiliary state. To avoid
+    // accessing the state counters to compute this min, we skip the extra
+    // threads if state.counters.num_vacancies < aux_state.counters.num_pending
+    if (!(tid < counters->num_vacancies))
+    {
+        return;
+    }
+    // Find the index of the first distribution that has a nonzero number
+    // of primaries left to generate
     auto all_offsets = offload.offsets[ItemRange<size_type>(
         ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
     auto buffer_start
@@ -88,14 +92,13 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_ASSERT(dist);
 
     // Create the view to the new track to be initialized
-    CoreTrackView vacancy{
-        *params, *state, [&] {
-            // Get the vacancy from the back in case there
-            // are more vacancies than photons to generate
-            TrackSlotId idx{
-                index_before(counters->num_vacancies, ThreadId(tid.get()))};
-            return state->init.vacancies[idx];
-        }()};
+    CoreTrackView vacancy{*params, *state, [&] {
+                              // Get the vacancy from the back in case there
+                              // are more vacancies than photons to generate
+                              TrackSlotId idx{
+                                  index_before(counters->num_vacancies, tid)};
+                              return state->init.vacancies[idx];
+                          }()};
 
     if (!dist.material)
     {

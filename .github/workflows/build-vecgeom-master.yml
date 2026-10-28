@@ -1,0 +1,157 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Check compatibility with upstream VecGeom independently of required PR jobs.
+# cron_daily schedules this on develop; manual runs use the selected ref.
+# Follow the setup/build/test/artifact pattern of build-regression.
+#-----------------------------------------------------------------------------#
+
+name: build-vecgeom-master
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "VecGeom commit SHA, or latest for the current master"
+        type: string
+        required: false
+        default: "latest"
+  workflow_call:
+    inputs:
+      commit:
+        description: "VecGeom commit SHA, or latest for the current master"
+        type: string
+        required: false
+        default: "latest"
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-vecgeom-master-${{github.ref_name}}
+  cancel-in-progress: true
+
+jobs:
+  vecgeom-master:
+    name: vecgeom-master-clang18
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    env:
+      CELER_CMAKE_PRESET: vecgeom
+      CELER_RUN_NAME: ubuntu24-clang18-vecgeom-master-g4@11.3
+      CELER_JOB_NAME: vecgeom-master-clang18
+      CC: clang-18
+      CXX: clang++-18
+      CXXSTD: 20
+    steps:
+      - name: Check out Celeritas
+        id: celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-tags: true
+
+      - name: Select VecGeom revision
+        id: vecgeom
+        env:
+          VECGEOM_SHA: ${{inputs.commit}}
+        run: |
+          vecgeom_sha="$VECGEOM_SHA"
+          if [[ "$vecgeom_sha" == "latest" ]]; then
+            vecgeom_sha=$(git ls-remote --exit-code \
+              https://gitlab.cern.ch/VecGeom/VecGeom.git refs/heads/master | cut -f1)
+          fi
+          printf "VecGeom: %s -> %s\n" "$VECGEOM_SHA" "$vecgeom_sha"
+          if [[ ! "$vecgeom_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::VecGeom revision must resolve to a full commit SHA"
+            exit 1
+          fi
+          echo "commit=$vecgeom_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up core and VecGeom Spack environments
+        uses: ./.github/actions/setup-spack
+        with:
+          cxxstd: ${{env.CXXSTD}}
+          # Stable roots have a lockfile cache independent of the VecGeom SHA.
+          add: geant4@11.3
+          add-dependent: >-
+            g4vg
+            vecgeom@${{steps.vecgeom.outputs.commit}}=master~cuda~surface
+
+      - name: Configure Celeritas
+        id: configure
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-ubuntu-github.json
+
+      - name: Build VecGeom tests
+        id: build
+        uses: ./.github/actions/build-cached
+        with:
+          name: ${{env.CELER_RUN_NAME}}
+          preset: spack
+          targets: geocel_vg_Vecgeom geocel_vg_VgBasicTrackView celer-config
+          ccache-max-size: 512Mi
+
+      - name: Run VecGeom tests
+        id: test
+        env:
+          CELER_TEST_STRICT: 0
+        run: |
+          mkdir -p test-output/ctest
+          ctest --preset=spack-unit -R '^geocel/vg/(Vecgeom:|VgBasicTrackView$)' \
+            --output-junit "$GITHUB_WORKSPACE/test-output/ctest/vecgeom-master.xml"
+
+      - name: Print versions
+        if: ${{ !cancelled() }}
+        env:
+          CELER_SHA: ${{steps.celeritas.outputs.commit}}
+          VECGEOM_SHA: ${{steps.vecgeom.outputs.commit}}
+        run: |
+          {
+            printf 'Celeritas: [%s](https://github.com/%s/commit/%s)\n' \
+              "$CELER_SHA" \
+              "celeritas-project/celeritas" \
+              "$CELER_SHA"
+            printf 'VecGeom: [%s](https://gitlab.cern.ch/%s/-/commit/%s)\n' \
+              "$VECGEOM_SHA" \
+              "VecGeom/VecGeom" \
+              "$VECGEOM_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
+          {
+            printf "Parsed versions:\n"
+
+            if [ -e build/bin/celer-config ] ; then
+              printf "%s\n" '```json'
+              ./build/bin/celer-config | jq .version,.config.versions
+              printf "%s\n" '```'
+            else
+              printf "**UNAVAILABLE**"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build and test diagnostics
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{env.CELER_RUN_NAME}}-${{steps.vecgeom.outputs.commit || 'unresolved'}}
+          path: |
+            revisions.txt
+            spack.yaml
+            spack.lock
+            spack.config.json
+            spack-dependent/spack.yaml
+            spack-dependent/spack.lock
+            spack-dependent/spack.config.json
+            build/CMakeCache.txt
+            build/CMakeFiles/CMakeConfigureLog.yaml
+            build/Testing/Temporary/LastTest.log
+            test-output/
+          if-no-files-found: warn
+          retention-days: 1
+
+# vim: set nowrap tw=100:

@@ -12,6 +12,7 @@
 #include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/orangeinp/UnitProto.hh"
+#include "orange/transform/Transformation.hh"
 
 #include "Volume.hh"
 
@@ -39,6 +40,14 @@ namespace g4org
  * local_parent field is set for every "material" entry created: the enclosing
  * material entry ID normally, or an empty material entry if the volume is
  * placed directly in the "background".
+ *
+ * If a logical volume is listed in \c OrangeGeoFromGeant::universe_alignment ,
+ * it is constructed in a frame rotated by the given matrix so that its
+ * daughters are axis-aligned (to improve acceleration performance). This is
+ * done by applying the rotation to the local volume's boundary and all
+ * daughters, and applying the inverse rotation to its placement in its parent
+ * parent. Note that this operation does not change the physical geometry, only
+ * how it is represented computationally.
  */
 class ProtoConstructor
 {
@@ -54,11 +63,8 @@ class ProtoConstructor
     //!@}
 
   public:
-    //! Construct with verbosity setting
-    ProtoConstructor(VolumeParams const& vols, Input const& options)
-        : volumes_{vols}, opts_{options}
-    {
-    }
+    // Construct with volume parameters and options
+    ProtoConstructor(VolumeParams const& vols, Input const& options);
 
     // Construct a proto from the world volume
     SPUnitProto operator()(LogicalVolume const&);
@@ -68,14 +74,27 @@ class ProtoConstructor
 
     using MaterialInputId = orangeinp::UnitProto::MaterialInputId;
 
+    //! Data for aligning universes such that daughters are axis-aligned
+    struct Alignment
+    {
+        //! Rotation that makes a volume's daughters axis-aligned
+        Transformation rotation;
+        //! Inverse of the rotation, applied to each placement
+        Transformation inverse;
+    };
+
     //// DATA ////
 
     VolumeParams const& volumes_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
+    std::unordered_map<VolumeId, Alignment> alignment_;
     int depth_{0};
     Input const& opts_;
 
     //// HELPER FUNCTIONS ////
+
+    // Get the alignment for a volume
+    Alignment const* find_alignment(VolumeId) const;
 
     // Whether we should inline a volume based on its pv's transform
     bool can_inline_transform(VariantTransform const&) const;

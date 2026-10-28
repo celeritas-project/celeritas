@@ -6,10 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "LocateVacanciesAction.hh"
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/track/CounterAlgorithms.hh"
 
 #include "detail/TrackInitAlgorithms.hh"
 
@@ -47,20 +45,18 @@ void LocateVacanciesAction::step(CoreParams const&,
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize optical track states.
+ * Compact the IDs of the inactive slots to find the vacancies and update the
+ * number of alive slots accordingly.
  */
 template<MemSpace M>
 void LocateVacanciesAction::step_impl(CoreState<M>& state) const
 {
-    auto counters = state.sync_get_counters();
-
     // Compact the IDs of the inactive tracks, getting the sorted indices of
     // the empty slots
-    counters.num_vacancies = detail::copy_if_vacant(
-        state.ref().sim.status, state.ref().init.vacancies, state.stream_id());
-
-    counters.num_alive = state.size() - counters.num_vacancies;
-    state.sync_put_counters(counters);
+    detail::copy_if_vacant(
+        state.ref().sim.status, state.ref().init, state.stream_id());
+    return celeritas::update_alive(
+        state.ref().init.counters, state.size(), state.stream_id());
 }
 
 //---------------------------------------------------------------------------//

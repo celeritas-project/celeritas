@@ -5,9 +5,12 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": [".spack-env", ".cuda-volta", "full"],
+      "inherits": [".nobuiltin", ".cuda-volta", "full"],
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
+      },
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "OFF" },
@@ -93,9 +96,9 @@
       "inherits": [".reldeb", ".base"]
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "wildstyle: everything but VecGeom in release mode",
-      "inherits": [".ndebug", ".base"]
+      "inherits": [".release", ".base"]
     },
     {
       "name": "reldeb-single",
@@ -108,9 +111,9 @@
       "inherits": [".reldeb", "vecgeom"]
     },
     {
-      "name": "ndebug-vecgeom",
+      "name": "release-vecgeom",
       "displayName": "wildstyle: everything in release mode",
-      "inherits": [".ndebug", "vecgeom"]
+      "inherits": [".release", "vecgeom"]
     }
   ],
   "buildPresets": [

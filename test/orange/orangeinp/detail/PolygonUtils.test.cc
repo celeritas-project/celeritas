@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/detail/PolygonUtils.hh"
 
+#include <algorithm>
 #include <vector>
 
 #include "corecel/Constants.hh"
@@ -44,6 +45,72 @@ TEST(PolygonUtilsTest, calc_orientation)
     EXPECT_EQ(col, calc_orientation<real_type>({2, 2}, {1, 1}, {0, 0}));
     EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {0, 0}, {1, 1}));
     EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {0, 0}, {0, 0}));
+}
+
+TEST(PolygonUtilsTest, calc_polygon_orientation)
+{
+    // The closing edge contributes to the orientation of this triangle
+    VecReal2 triangle{{1, 2}, {1, 1}, {2, 1}};
+    EXPECT_EQ(ccw, calc_orientation(make_span(triangle)));
+    EXPECT_EQ(calc_orientation(triangle[0], triangle[1], triangle[2]),
+              calc_orientation(make_span(triangle)));
+    std::reverse(triangle.begin(), triangle.end());
+    EXPECT_EQ(cw, calc_orientation(make_span(triangle)));
+
+    VecReal2 square{{-2, -2}, {0, -2}, {0, 0}, {-2, 0}};
+    EXPECT_EQ(ccw, calc_orientation(make_span(square)));
+    std::reverse(square.begin(), square.end());
+    EXPECT_EQ(cw, calc_orientation(make_span(square)));
+}
+
+TEST(PolygonUtilsTest, calc_polygon_orientation_concave)
+{
+    // The first corner turns clockwise, but the polygon is counterclockwise
+    VecReal2 corners{{0, 0}, {1, 1}, {2, 0}, {2, 3}, {-1, 3}, {-1, 0}};
+    EXPECT_EQ(cw, calc_orientation(corners[0], corners[1], corners[2]));
+    EXPECT_EQ(ccw, calc_orientation(make_span(corners)));
+    std::reverse(corners.begin(), corners.end());
+    EXPECT_EQ(cw, calc_orientation(make_span(corners)));
+}
+
+TEST(PolygonUtilsTest, calc_polygon_orientation_offset)
+{
+    constexpr real_type d = 0.1;
+    for (
+        auto corners :
+        {VecReal2{{0, 0}, {d, 0}, {d, d}, {0, d}},
+         VecReal2{
+             {0, 0}, {d, d}, {2 * d, 0}, {2 * d, 3 * d}, {-d, 3 * d}, {-d, 0}}})
+    {
+        SCOPED_TRACE(corners.size());
+        for (auto& p : corners)
+        {
+            p[0] += 100000;
+            p[1] += 100000;
+        }
+
+        // Check both windings with every vertex as the reference point
+        for (auto expected : {ccw, cw})
+        {
+            SCOPED_TRACE(static_cast<int>(expected));
+            for (auto i : range(corners.size()))
+            {
+                SCOPED_TRACE(i);
+                EXPECT_EQ(expected, calc_orientation(make_span(corners)));
+                std::rotate(
+                    corners.begin(), corners.begin() + 1, corners.end());
+            }
+            std::reverse(corners.begin(), corners.end());
+        }
+    }
+}
+
+TEST(PolygonUtilsTest, calc_polygon_orientation_degenerate)
+{
+    Real2 const line[] = {{1, 1}, {2, 2}, {3, 3}, {4, 4}};
+    EXPECT_EQ(col, calc_orientation(make_span(line)));
+    Real2 const point[] = {{1, 1}, {1, 1}, {1, 1}};
+    EXPECT_EQ(col, calc_orientation(make_span(point)));
 }
 
 TEST(PolygonUtilsTest, has_orientation)

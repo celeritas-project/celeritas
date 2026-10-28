@@ -28,6 +28,10 @@ manager correctly, we recommend using this helper class:
 
 The high-level :cpp:class:`celeritas::TrackingManagerIntegration` class should be used in
 addition to the tracking manager constructor to set up and tear down Celeritas.
+Setup and teardown are performed automatically through Geant4 state hooks:
+user run actions do not need to call ``BeginOfRunAction`` and
+``EndOfRunAction``, and legacy manual calls are harmless no-ops that emit a
+one-time warning advising their removal.
 See :ref:`example_template` for a template of adding to a user application.
 
 .. doxygenclass:: celeritas::TrackingManagerIntegration

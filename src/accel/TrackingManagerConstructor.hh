@@ -72,6 +72,7 @@ class TrackingManagerConstructor final : public G4VPhysicsConstructor
   private:
     SharedParams const* shared_{nullptr};
     LocalOffloadFromThread get_local_{};
+    bool from_tracking_manager_integration_{false};
     VecG4PD offload_particles_;
 };
 

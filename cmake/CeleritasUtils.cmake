@@ -95,7 +95,11 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 function(celeritas_version_to_hex var version)
-  if(NOT DEFINED "${version}_MAJOR" AND DEFINED "${version}")
+  if(DEFINED "${version}_MAJOR")
+    set(_MAJOR "${${version}_MAJOR}")
+    set(_MINOR "${${version}_MINOR}")
+    set(_PATCH "${${version}_PATCH}")
+  elseif(DEFINED "${version}")
     # Split version into components
     string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" _match "${${version}}")
     if(NOT _match)
@@ -104,19 +108,22 @@ function(celeritas_version_to_hex var version)
         _match=${_match}"
       )
     endif()
-    set(${version}_MAJOR "${CMAKE_MATCH_1}")
-    set(${version}_MINOR "${CMAKE_MATCH_2}")
-    set(${version}_PATCH "${CMAKE_MATCH_3}")
+    set(_MAJOR "${CMAKE_MATCH_1}")
+    set(_MINOR "${CMAKE_MATCH_2}")
+    set(_PATCH "${CMAKE_MATCH_3}")
   endif()
   # Set any empty or undefined values to zero
-  foreach(_ext MAJOR MINOR PATCH)
-    if(NOT ${version}_${_ext})
-      set(${version}_${_ext} 0)
+  foreach(var IN ITEMS _MAJOR _MINOR _PATCH)
+    if(NOT "${${var}}")
+      set(${var} 0)
+    elseif("${${var}}" GREATER 255)
+      # Prevent overflow: e.g. hip 7.14.60850
+      set(${var} 255)
     endif()
   endforeach()
   # Add an extra 1 up front and strip it to zero-pad
   math(EXPR _temp_version
-    "((256 + ${${version}_MAJOR}) * 256 + ${${version}_MINOR}) * 256 + ${${version}_PATCH}"
+    "((256 + ${_MAJOR}) * 256 + ${_MINOR}) * 256 + ${_PATCH}"
     OUTPUT_FORMAT HEXADECIMAL
   )
   string(SUBSTRING "${_temp_version}" 3 -1 _temp_version)

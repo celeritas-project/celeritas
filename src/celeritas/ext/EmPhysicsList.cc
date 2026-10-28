@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "EmPhysicsList.hh"
 
-#include <memory>
-
 #include "corecel/io/ScopedStreamRedirect.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/g4/SupportedEmStandardPhysics.hh"
@@ -25,6 +23,8 @@ EmPhysicsList::EmPhysicsList(Options const& options)
 {
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
+    // Redirection from stdout is required for old versions of G4; but we should
+    // at least be printing the scoped result (currently it's being discarded)
     ScopedStreamRedirect scoped_log(&std::cout);
 
     this->SetVerboseLevel(options.verbose);

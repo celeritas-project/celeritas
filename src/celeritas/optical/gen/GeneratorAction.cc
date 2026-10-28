@@ -28,25 +28,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Construct a state
-template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
-{
-    using StoreT = StateDataStore<GeneratorStateData, M>;
-
-    auto result = std::make_unique<GeneratorState<M>>();
-    result->store = StoreT{stream, size};
-
-    CELER_ENSURE(*result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -92,11 +73,13 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(id, initial_capacity_);
+        return make_state<MemSpace::host, GeneratorState>(id,
+                                                          initial_capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(id, initial_capacity_);
+        return make_state<MemSpace::device, GeneratorState>(id,
+                                                            initial_capacity_);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -208,9 +191,10 @@ void GeneratorAction::step_impl(CoreParams const& params,
             state.stream_id());
     }
 
-    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (counters.num_pending > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
     }
 
@@ -240,8 +224,7 @@ void GeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
@@ -255,7 +238,8 @@ void GeneratorAction::generate(CoreParams const& params,
     {
         // Update the cumulative sum of the number of photons per distribution
         // according to how many were generated
-        detail::UpdateSumExecutor execute{aux_state.store.ref(), num_gen};
+        detail::UpdateSumExecutor execute{
+            state.ptr(), aux_state.store.ref(), num_gen};
         launch_kernel(aux_state.counters.buffer_size, execute);
     }
 }

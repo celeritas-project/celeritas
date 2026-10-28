@@ -288,10 +288,10 @@ public data; and use ``class`` for classes designed to encapsulate
 functionality and/or data.
 
 With template parameters, ``typename T`` and ``class T`` are also
-interchangeable, but use ``template <class T>`` to be consistent internally and
-with the standard library. (It's also possible to have ``template <typename``
+interchangeable, but use ``template<class T>`` to be consistent internally and
+with the standard library. (It's also possible to have ``template<typename``
 where ``typename`` *doesn't* mean a class: namely,
-``template <typename U::value_type Value>``.)
+``template<typename U::value_type Value>``.)
 
 Use ``this->`` when calling member functions inside a class to convey that the
 ``this`` pointer is implicitly being passed to the function and to make it

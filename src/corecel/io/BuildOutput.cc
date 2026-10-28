@@ -7,6 +7,7 @@
 #include "BuildOutput.hh"
 
 #include <string>
+#include <string_view>
 #include <utility>
 #include <nlohmann/json.hpp>
 
@@ -55,9 +56,8 @@ void BuildOutput::output(JsonPimpl* j) const
             return options;
         }();
 
-#define CO_ADD_CFG(NAME) cfg[#NAME] = std::string(cmake::NAME);
+#define CO_ADD_CFG(NAME) cfg[#NAME] = std::string(config::NAME);
         CO_ADD_CFG(build_type);
-        CO_ADD_CFG(hostname);
         CO_ADD_CFG(real_type);
         CO_ADD_CFG(units);
         CO_ADD_CFG(constants);
@@ -82,38 +82,51 @@ void BuildOutput::output(JsonPimpl* j) const
             // Only a boolean option is needed
             cfg["debug"] = bool(CELERITAS_DEBUG);
         }
+        cfg["trim_source_file"] = bool(CELERITAS_TRIM_SOURCE_FILE);
 
         cfg["versions"] = [] {
             auto deps = nlohmann::json::object();
 
-#define CO_ADD_COND_VERS(USE, NAME, LOWER) \
-    if constexpr (CELERITAS_USE_##USE) \
-    { \
-        deps[#NAME] = std::string(cmake::LOWER##_version); \
-    }
-            CO_ADD_COND_VERS(COVFIE, covfie, covfie);
-            CO_ADD_COND_VERS(CUDA, CUDA, cuda);
-            CO_ADD_COND_VERS(CUDA, Thrust, thrust);
-            CO_ADD_COND_VERS(GEANT4, CLHEP, clhep);
-            CO_ADD_COND_VERS(GEANT4, Geant4, geant4);
-            CO_ADD_COND_VERS(HEPMC3, HepMC3, hepmc3);
-            CO_ADD_COND_VERS(HIP, HIP, hip);
-            CO_ADD_COND_VERS(LARSOFT, LArSoft, larsoft);
-            CO_ADD_COND_VERS(ROOT, ROOT, root);
-            CO_ADD_COND_VERS(VECGEOM, G4VG, g4vg);
-            CO_ADD_COND_VERS(VECGEOM, VecGeom, vecgeom);
-#undef CO_ADD_COND_VERS
+            // TODO: export CELERITAS_ENABLED_COMPONENTS from cmake
+            auto append_version = [&deps](bool enabled, std::string_view name) {
+                if (!enabled)
+                    return;
+                auto lower = tolower(name);
+                char const* v = config::package_version_cstring(lower.c_str());
+                CELER_VALIDATE(v != nullptr,
+                               << "invalid package '" << name << "'");
+                deps[std::string{name}] = std::string{v};
+            };
+            append_version(CELERITAS_USE_COVFIE, "covfie");
+            append_version(CELERITAS_USE_CUDA, "CUB");
+            append_version(CELERITAS_USE_CUDA, "CUDA");
+            append_version(CELERITAS_USE_CUDA, "Thrust");
+            append_version(CELERITAS_USE_GEANT4, "CLHEP");
+            append_version(CELERITAS_USE_GEANT4, "Geant4");
+            append_version(CELERITAS_USE_HEPMC3, "HepMC3");
+            append_version(CELERITAS_USE_HIP, "HIP");
+            append_version(CELERITAS_USE_HIP, "hipcub");
+            append_version(CELERITAS_USE_HIP, "hiprand");
+            append_version(CELERITAS_USE_HIP, "rocthrust");
+            append_version(CELERITAS_USE_HIP, "roctracer");
+            append_version(CELERITAS_USE_LARSOFT, "LArSoft");
+            append_version(CELERITAS_USE_ROOT, "ROOT");
+            append_version(CELERITAS_USE_VECGEOM && CELERITAS_USE_GEANT4,
+                           "G4VG");
+            append_version(CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS,
+                           "VecGeom");
+
             return deps;
         }();
 
         if constexpr (CELERITAS_USE_GEANT4)
         {
-            cfg["geant4"] = std::string(cmake::geant4_options);
+            cfg["geant4"] = std::string(config::geant4_options);
         }
 
-        if constexpr (CELERITAS_USE_VECGEOM)
+        if constexpr (CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS)
         {
-            cfg["vecgeom"] = std::string(cmake::vecgeom_options);
+            cfg["vecgeom"] = std::string(config::vecgeom_options);
         }
 
         if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)

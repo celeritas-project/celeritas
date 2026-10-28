@@ -1,7 +1,4 @@
 packages:
-  all:
-    prefer:
-      - "cxxstd=20"
   cli11:
     require: "@2.4:"
   cmake:
@@ -30,7 +27,7 @@ packages:
       - "@6.28:"
   vecgeom:
     require:
-      - "@1.2.10:"
+      - "@1.2.10:1,2.2:"
       - +gdml
     version:
-      - "1"
+      - "2"

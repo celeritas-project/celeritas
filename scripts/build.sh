@@ -3,21 +3,31 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-#
-# Intelligently set up and run CMake using presets and user-defined environment
-# scripts that live in `scripts/cmake-presets`. This is intended primarily for
-# developers.
-#
-# 1. Determine the system name
-# 2. Source environment file for the system at scripts/env (if available)
-# 3. Symbolically link the CMake user settings from scripts/cmake-presets
-# 4. Search for ccache
-# 5. Forward additional arguments to cmake for configuring
-# 6. Build and test
-#
-#-----------------------------------------------------------------------------#
 
 set -e
+
+_usage() {
+  echo "Usage: $0 PRESET_NAME [CMAKE_ARGS...]"
+  echo "       $0 [-h | --help]"
+  echo "       $0 [-L | --list-presets]"
+}
+
+_help() {
+  echo '
+Intelligently set up and run CMake using presets and user-defined environment
+scripts that live in "scripts/cmake-presets". This is intended primarily for
+developers.
+1. Determine the system name
+2. Source environment file for the system at 'scripts/env' (if available)
+3. Include or symbolically link the CMake user settings from
+   'scripts/cmake-presets'
+4. Search for ccache and set CCACHE_PROGRAM if found
+5. Forward additional arguments to CMake for configuring
+6. Configure
+7. Build, if the presets file is configured to do so
+8. Run tests, if the presets file is configured to do so
+'
+}
 
 # Print a colorful message to stderr
 celerlog() {
@@ -99,22 +109,20 @@ load_system_env() {
   fi
 }
 
-# Link the presets file
-ln_presets() {
+# Set up the user presets file: a regular file that includes the system
+# presets if they include CMakePresets.json (so that git worktrees can copy it),
+# otherwise a symbolic link to them. Only a symbolic link is ever replaced.
+setup_presets() {
   src="scripts/cmake-presets/$1.json"
   dst="CMakeUserPresets.json"
 
-  # Return early if it exists
-  if [ -L "${dst}" ]; then
-    actual="$(readlink "${dst}" 2>/dev/null || printf "<unknown>")"
-    if [ "${src}" = "${actual}" ]; then
-      log debug "CMake preset already exists: ${dst} -> ${actual}"
-      return
-    else
-      log warning "${dst} points to ${actual}, not ${src}: overwriting"
+  # Never modify a user presets file that is not a link
+  if [ -e "${dst}" ] && [ ! -L "${dst}" ]; then
+    if grep -qF "\"${src}\"" "${dst}"; then
+      log debug "CMake preset already exists: ${dst} includes ${src}"
+    elif [ -e "${src}" ]; then
+      log warning "${PWD}/${dst} is not a symbolic link and does not include ${src}: remove it or add the include manually"
     fi
-  elif [ -e "${dst}" ]; then
-    log warning "${PWD}/${dst} already exists but is not a symlink (should link to ${src})"
     return
   fi
 
@@ -124,8 +132,19 @@ ln_presets() {
     cp "scripts/cmake-presets/_dev_.json" "${src}"
     git add "${src}" || log error "Could not stage presets"
   fi
-  log info "Linking presets to ${dst}"
-  ln -f -s "${src}" "${dst}"
+
+  # Destination is either a link or doesn't exist, so we can safely replace it
+  if grep -q '"${sourceDir}/CMakePresets.json"' "${src}"; then
+    log info "Writing ${dst} to include ${src}"
+    # Write to a temporary file so that an existing link's target is untouched
+    printf '{\n  "version": 4,\n  "include": ["%s"]\n}\n' "${src}" > "${dst}.tmp"
+    mv -f "${dst}.tmp" "${dst}"
+  elif [ "$(readlink "${dst}" 2>/dev/null)" = "${src}" ]; then
+    log debug "CMake preset already exists: ${dst} -> ${src}"
+  else
+    log info "Linking presets to ${dst}"
+    ln -fs "${src}" "${dst}"
+  fi
 }
 
 # Check if ccache is full and warn user
@@ -225,6 +244,20 @@ EOF
 }
 
 #-----------------------------------------------------------------------------#
+# Load preset argument first and check for help
+
+if [ $# -eq 0 ] ; then
+  _usage
+  exit 1
+fi
+
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  _usage
+  _help
+  exit 0
+fi
+
+#-----------------------------------------------------------------------------#
 
 # Determine the source directory from the build script
 export CELER_SOURCE_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
@@ -291,15 +324,16 @@ if ${needs_env} && [ -n "${ENV_SCRIPT}" ]; then
   fi
 fi
 
-# Link preset file
-ln_presets "${SYSTEM_NAME}"
+# Set up user preset file
+setup_presets "${SYSTEM_NAME}"
 
 # Search for and probe ccache
 setup_ccache
 
 # Check arguments and give presets if missing
-if [ $# -eq 0 ] ; then
-  printf '%s\n' "Usage: $0 PRESET [config_args...]" >&2
+CMAKE_PRESET=$1
+shift
+if [ "${CMAKE_PRESET}" = "--list-presets" ] || [ "${CMAKE_PRESET}" = "-L" ]; then
   if [ -z "${CMAKE}" ]; then
     log error "cmake unavailable: cannot call --list-presets"
     exit 1
@@ -311,8 +345,6 @@ if [ $# -eq 0 ] ; then
   fi
   exit 2
 fi
-CMAKE_PRESET=$1
-shift
 
 # Configure, build, and test
 log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"

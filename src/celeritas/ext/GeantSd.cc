@@ -8,7 +8,6 @@
 
 #include <utility>
 #include <G4LogicalVolumeStore.hh>
-#include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -22,6 +21,7 @@
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+#include "detail/GeantParticleUtils.hh"
 #include "detail/HitProcessor.hh"
 #include "detail/SensDetInserter.hh"
 
@@ -29,6 +29,7 @@ using celeritas::detail::SensDetInserter;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -71,11 +72,14 @@ GeantSd::GeantSd(ParticleParams const& par,
                  Input const& setup,
                  StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
+    , processors_{num_streams}
 {
     CELER_EXPECT(num_streams > 0);
 
     // Convert setup options to step data
     selection_.primary_id = setup.track;
+    selection_.parent_id = setup.track;
+    selection_.generation = setup.track;
     selection_.particle_id = setup.track;
     selection_.weight = setup.track;
     selection_.energy_deposition = setup.energy_deposition;
@@ -88,13 +92,6 @@ GeantSd::GeantSd(ParticleParams const& par,
             locate_touchable_[p] = true;
         }
     }
-    // Hit processors MUST be allocated on the thread they're used because of
-    // geant4 thread-local SDs. They MUST also be DEallocated on the same
-    // thread they're created due to Geant4 thread-local allocators.
-    // There must be one hit processor per thread.
-    processor_weakptrs_.resize(num_streams);
-    processors_.resize(num_streams);
-
     // Map detector volumes
     this->setup_volumes(setup);
 
@@ -116,17 +113,19 @@ GeantSd::GeantSd(ParticleParams const& par,
  * Due to Geant4 multithread semantics, this \b must be done on the same CPU
  * thread on which the resulting processor used. It must be done once per
  * thread and can be done separately.
+ *
+ * Hit processors \b must be allocated on the thread they're used because of
+ * Geant4 thread-local SDs. They \b must also be deallocated on the same
+ * thread they're created due to Geant4 thread-local allocators.
  */
 auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
 {
-    CELER_EXPECT(sid < processor_weakptrs_.size());
-    CELER_EXPECT(!processors_[sid.get()]);
+    CELER_EXPECT(sid < processors_.size());
 
-    auto result = std::make_shared<HitProcessor>(
-        geant_vols_, particles_, selection_, locate_touchable_);
-    processor_weakptrs_[sid.get()] = result;
-    processors_[sid.get()] = result.get();
-    return result;
+    return processors_.make(sid, [this] {
+        return new HitProcessor(
+            geant_vols_, particles_, selection_, locate_touchable_);
+    });
 }
 
 //---------------------------------------------------------------------------//
@@ -163,7 +162,11 @@ void GeantSd::process_steps(HostStepState state)
 
 //---------------------------------------------------------------------------//
 /*!
- * Process detector tallies (GPU).
+ * Defer device detector tallies to the thread-local hit processor.
+ *
+ * The hit processor enqueues compaction of the step data on device.
+ * LocalTransporter completes the transfer and invokes the host sensitive
+ * detectors after the asynchronous step result is ready.
  */
 void GeantSd::process_steps(DeviceStepState state)
 {
@@ -239,35 +242,7 @@ void GeantSd::setup_particles(ParticleParams const& par)
 {
     CELER_EXPECT(selection_.particle_id);
 
-    auto& g4particles = *G4ParticleTable::GetParticleTable();
-
-    particles_.resize(par.size());
-    std::vector<ParticleId> missing;
-    for (auto pid : range(ParticleId{par.size()}))
-    {
-        int pdg = par.id_to_pdg(pid).get();
-        if (G4ParticleDefinition* particle = g4particles.FindParticle(pdg))
-        {
-            particles_[pid.get()] = particle;
-        }
-        else
-        {
-            missing.push_back(pid);
-        }
-    }
-
-    CELER_VALIDATE(missing.empty(),
-                   << "failed to map Celeritas particles to Geant4: missing "
-                   << join_stream(missing.begin(),
-                                  missing.end(),
-                                  ", ",
-                                  [&par](std::ostream& os, ParticleId pid) {
-                                      os << '"' << par.id_to_label(pid)
-                                         << "\" (ID=" << pid.unchecked_get()
-                                         << ", PDG="
-                                         << par.id_to_pdg(pid).unchecked_get()
-                                         << ")";
-                                  }));
+    particles_ = detail::make_geant_particles(par);
 }
 
 //---------------------------------------------------------------------------//
@@ -276,14 +251,7 @@ void GeantSd::setup_particles(ParticleParams const& par)
  */
 auto GeantSd::get_local_hit_processor(StreamId sid) -> HitProcessor&
 {
-    CELER_EXPECT(sid < processors_.size());
-    CELER_EXPECT(([&] {
-        // Check that shared pointer is still alive
-        auto sp = processor_weakptrs_[sid.get()].lock();
-        return sp && sp.get() == processors_[sid.get()];
-    }()));
-
-    return *processors_[sid.unchecked_get()];
+    return processors_.get(sid);
 }
 
 //---------------------------------------------------------------------------//

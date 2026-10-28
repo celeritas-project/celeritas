@@ -72,11 +72,11 @@ void Stream::ImplDeleter::operator()(Impl* impl) noexcept
         }
         catch (RuntimeError const& e)
         {
-            std::cerr << "Failed to destroy stream: " << e.what() << std::endl;
+            std::clog << "Failed to destroy stream: " << e.what() << std::endl;
         }
         catch (...)
         {
-            std::cerr << "Failed to destroy stream" << std::endl;
+            std::clog << "Failed to destroy stream" << std::endl;
         }
     }
 }
@@ -180,7 +180,8 @@ void Stream::wait(DeviceEvent const& e)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(e);
-    CELER_DEVICE_API_CALL(StreamWaitEvent(this->get(), e.get()));
+    CELER_DEVICE_API_CALL(
+        StreamWaitEvent(this->get(), e.get(), /* flags = */ 0));
 }
 
 //---------------------------------------------------------------------------//

@@ -16,11 +16,6 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 
-#ifndef VECGEOM_PRECISION_NAMESPACE
-// VecGeom <= 2.0.0-rc.7 puts navindex, precision in global namespace
-#    define VECGEOM_PRECISION_NAMESPACE
-#endif
-
 #define CELER_VGNAV_TUPLE 1
 #define CELER_VGNAV_INDEX 2
 #define CELER_VGNAV_PATH 3
@@ -42,8 +37,9 @@ static_assert(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE);
 namespace vecgeom
 {
 #if VECGEOM_VERSION >= 0x020000
-template<VECGEOM_PRECISION_NAMESPACE::uint MD>
+template<vecgeom::uint MD>
 struct NavTuple;
+class NavStateTuple;
 #endif
 VECGEOM_HOST_FORWARD_DECLARE(class LogicalVolume;);
 VECGEOM_DEVICE_FORWARD_DECLARE(class LogicalVolume;);
@@ -57,9 +53,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-using VgSurfaceInt = long;
 using VgPlacedVolumeInt = int;
-using vg_real_type = VECGEOM_PRECISION_NAMESPACE::Precision;
+
+#if VECGEOM_VERSION >= 0x020000
+using vg_real_type = vecgeom::Precision;
+#else
+using vg_real_type = ::Precision;
+#endif
 
 #if defined(VECGEOM_BVH_SINGLE) || defined(__DOXYGEN__)
 using vgbvh_real_type = float;
@@ -69,8 +69,14 @@ using vgbvh_real_type = double;
 
 #if VECGEOM_VERSION >= 0x020000
 // Allow trivial copying of tuple between device/host
-template<VECGEOM_PRECISION_NAMESPACE::uint MD>
+template<vecgeom::uint MD>
 struct IsTriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
+{
+};
+
+// Allow trivial copying of *state* between device/host
+template<>
+struct IsTriviallyCopyable<vecgeom::NavStateTuple> : std::true_type
 {
 };
 #endif
@@ -82,22 +88,6 @@ struct IsTriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
 //! VecGeom::VPlacedVolume::id is unsigned int
 using VgVolumeInstanceId = OpaqueId<struct VecgeomPlacedVolume_,
                                     std::make_unsigned_t<VgPlacedVolumeInt>>;
-
-enum class VgBoundary : bool
-{
-    off,
-    on
-};
-
-CELER_CONSTEXPR_FUNCTION bool to_bool(VgBoundary b)
-{
-    return static_cast<bool>(b);
-}
-
-CELER_CONSTEXPR_FUNCTION VgBoundary to_vgboundary(bool b)
-{
-    return static_cast<VgBoundary>(b);
-}
 
 //---------------------------------------------------------------------------//
 // VOLUME/VECTOR TYPES
@@ -121,19 +111,20 @@ using VgReal3 = VgVector3<vg_real_type, MemSpace::native>;
 // NAVIGATION TYPES
 //---------------------------------------------------------------------------//
 
-using VgNavIndex = VECGEOM_PRECISION_NAMESPACE::NavIndex_t;
-
-//! Low-level (POD compatible) VecGeom navigation state
-#if CELER_VGNAV == CELER_VGNAV_INDEX || defined(__DOXYGEN__)
-using VgNavStateImpl = VgNavIndex;
-#elif CELER_VGNAV == CELER_VGNAV_TUPLE
-using VgNavStateImpl = vecgeom::NavTuple<VECGEOM_NAVTUPLE_MAXDEPTH>;
-#elif CELER_VGNAV == CELER_VGNAV_PATH
-// Only used clangd parsing of VgNavStateWrapper
-using VgNavStateImpl = VgNavIndex;
+#if VECGEOM_VERSION >= 0x020000
+using VgNavIndex = vecgeom::NavIndex_t;
+#else
+using VgNavIndex = ::NavIndex_t;
 #endif
 
-//! High level VecGeom navigation state
+/*!
+ * VecGeom navigation state.
+ *
+ * This is \c NavStateTuple or \c NavStateIndex (VecGeom 2) or \c
+ * NavStateIndex or \c NavStatePath (VecGeom 1). The index and tuple states
+ * are stored directly in Celeritas state collections and include the boundary
+ * flag and last-exited state.
+ */
 using VgNavState = vecgeom::NavigationState;
 
 //---------------------------------------------------------------------------//

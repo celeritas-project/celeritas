@@ -12,13 +12,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+// clang-format off
 /*!
-* Celeritas version as a compile-time constant.
-*
-* Encoded as a big-endian hexadecimal with one byte per component:
-* (major * 256 + minor) * 256 + patch.
-*/
+ * Celeritas version as a compile-time constant.
+ *
+ * Encoded as a big-endian hexadecimal with one byte per component:
+ * (major * 256 + minor) * 256 + patch.
+ */
 #define CELERITAS_VERSION @CELERITAS_VERSION@
+// clang-format on
 
 namespace celeritas
 {

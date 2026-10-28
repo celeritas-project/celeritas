@@ -1,27 +1,23 @@
 diff --git example/geant4/trackingmanager-offload.cc example/geant4/trackingmanager-offload.cc
-index f11c900f0..8fda9cd09 100644
+index b57c9400a..b17b0e783 100644
 --- example/geant4/trackingmanager-offload.cc
 +++ example/geant4/trackingmanager-offload.cc
-@@ -31,2 +31,5 @@
+@@ -33,8 +33,13 @@
+ #endif
  
 +// Celeritas
 +#include <CeleritasG4.hh>
 +
  // Celeritas convenience utils
-@@ -35,2 +38,4 @@
+ #include <corecel/Assert.hh>
+ #include <corecel/io/Logger.hh>
  
 +using TMI = celeritas::TrackingManagerIntegration;
 +
  namespace
-@@ -133,2 +138,3 @@ class RunAction final : public G4UserRunAction
-     {
-+        TMI::Instance().BeginOfRunAction(run);
-     }
-@@ -136,2 +142,3 @@ class RunAction final : public G4UserRunAction
-     {
-+        TMI::Instance().EndOfRunAction(run);
-     }
-@@ -213,4 +220,8 @@ int main()
+ {
+@@ -207,9 +212,15 @@ int main()
+     run_manager->SetUserInitialization(new DetectorConstruction{});
  
 +    auto& tmi = TMI::Instance();
 +
@@ -30,8 +26,9 @@ index f11c900f0..8fda9cd09 100644
 +    physics_list->RegisterPhysics(
 +        new celeritas::TrackingManagerConstructor(&tmi));
      run_manager->SetUserInitialization(physics_list);
-@@ -218,2 +229,4 @@ int main()
+     run_manager->SetUserInitialization(new ActionInitialization());
  
 +    tmi.SetOptions(MakeOptions());
 +
      run_manager->Initialize();
+ 

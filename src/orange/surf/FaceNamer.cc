@@ -132,6 +132,7 @@ std::string FaceNamer::Impl::operator()(ConeAligned<T> const&) const
 //! \cond
 ORANGE_INSTANTIATE_OP(ConeAligned);
 //! \endcond
+#undef ORANGE_INSTANTIATE_OP
 
 //---------------------------------------------------------------------------//
 /*!

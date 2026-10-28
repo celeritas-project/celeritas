@@ -7,9 +7,12 @@
 #include "corecel/io/Logger.hh"
 
 #include <iomanip>
+#include <iostream>
+#include <stdexcept>
 #include <thread>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/io/detail/NullLoggerMessage.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/MpiCommunicator.hh"
@@ -98,7 +101,7 @@ TEST_F(LoggerTest, global_handlers)
         << R"(It is pitch black. You are likely to be eaten by a grue.)";
 }
 
-TEST_F(LoggerTest, null)
+TEST_F(LoggerTest, no_handle)
 {
     Logger log(nullptr);
 
@@ -146,6 +149,24 @@ TEST_F(LoggerTest, custom_log)
     EXPECT_EQ("Things failed because:  1 is the loneliest number", last_msg);
 }
 
+TEST_F(LoggerTest, error_handling)
+{
+    std::string output;
+    {
+        ScopedStreamRedirect scoped{&std::clog};
+        Logger log([](LogProvenance, LogLevel, std::string) {
+            throw std::runtime_error("handler error");
+        });
+
+        log({"test.cc", 42}, LogLevel::error) << "trigger handler";
+
+        output = scoped.str();
+    }
+    EXPECT_NE(output.find("writing a 'error' message"), std::string::npos);
+    EXPECT_NE(output.find("from test.cc:42"), std::string::npos);
+    EXPECT_NE(output.find("handler error"), std::string::npos);
+}
+
 TEST_F(LoggerTest, DISABLED_performance)
 {
     // Construct a logger with an expensive output routine that will never be
@@ -176,6 +197,17 @@ TEST_F(LoggerTest, level_from_env)
     EXPECT_EQ(LogLevel::error, set_level("CELER_TEST_ENV_1", "error"));
     EXPECT_THROW(set_level("CELER_TEST_ENV_2", "not_a_log_level"),
                  RuntimeError);
+}
+
+using NullLogMessageTest = LoggerTest;
+TEST_F(NullLogMessageTest, all)
+{
+    ScopedStreamRedirect scoped_{&std::clog};
+    null_log_message() << "This may not even be compiled into the code"
+                       << std::setw(8)
+                       << "and it certainly should not be printed"
+                       << std::ios::hex << 1234 << *this;
+    EXPECT_EQ("", scoped_.str());
 }
 
 //---------------------------------------------------------------------------//

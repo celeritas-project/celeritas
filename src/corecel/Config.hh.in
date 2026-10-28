@@ -14,10 +14,15 @@
  * (e.g.) \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_RNG_HIPRAND; options that
  * are *invalid* (e.g. for missing libraries such as HIP) will have a value of
  * zero.
+ *
+ * This header should \em not include any C++ library functions because of its
+ * ubiquituous use. (This is why the package version signatures are primitive C
+ * style.)
  */
 //---------------------------------------------------------------------------//
 #pragma once
 
+// clang-format off
 //---------------------------------------------------------------------------//
 // User-configurable options for Celeritas
 //---------------------------------------------------------------------------//
@@ -36,9 +41,17 @@
 #cmakedefine01 CELERITAS_USE_ROOT
 #cmakedefine01 CELERITAS_USE_VECGEOM
 
-// Debugging
+//!@{
+//! \name Debugging
+
+//! Enable debug assertions in host code
 #cmakedefine01 CELERITAS_DEBUG
+//! Enable debug assertions in device code
 #cmakedefine01 CELERITAS_DEVICE_DEBUG
+//! Trim source filenames in log and error messages at compile time
+#cmakedefine01 CELERITAS_TRIM_SOURCE_FILE
+
+//!@}
 
 // Device-only options
 #cmakedefine01 CELERITAS_HAVE_HIPCUB
@@ -74,10 +87,12 @@
 @CELERITAS_SINCOSPI_PREFIX_DEF@
 
 // Versions of software dependencies
+// See \c celeritas::Version::from_hex_xxyyzz
 @CELERITAS_DEPENDENCY_VERSIONS@
 
 // Configurations of software dependencies
 @CELERITAS_VECGEOM_CONFIG@
+@CELERITAS_GEANT4_CONFIG@
 
 //---------------------------------------------------------------------------//
 // Detailed CMake configuration information
@@ -85,8 +100,19 @@
 
 namespace celeritas
 {
-namespace cmake
+namespace config
 {
 @CELERITAS_CMAKE_STRINGS_DECL@
-}
-}
+
+/*!
+ * Low-level function to get the version of a configured package.
+ *
+ * \param package Lowercase package name
+ * \return Version string: empty if unknown, nullptr if unknown package name
+ * \sa Version::from_package
+ */
+char const* package_version_cstring(char const* package);
+
+}  // namespace config
+}  // namespace celeritas
+// clang-format on

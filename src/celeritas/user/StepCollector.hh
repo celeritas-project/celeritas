@@ -20,6 +20,7 @@ namespace celeritas
 class ActionRegistry;
 class AuxParamsRegistry;
 class CoreParams;
+class CoreStateInterface;
 class VolumeParams;
 
 namespace detail
@@ -36,6 +37,11 @@ class StepParams;
  * This defines the interface to set up and manage a generic class for
  * interfacing with the GPU track states at the beginning and/or end of every
  * step.
+ *
+ * During \c Stepper::warm_up, the gather kernels execute but the callbacks
+ * are skipped: warmup produces no step result with which to consume deferred
+ * hit data. Ordinary transport steps still invoke the callbacks, including
+ * when no tracks are active.
  *
  * \todo The step collector serves two purposes: supporting "sensitive
  * detectors" (mapping volume IDs to detector IDs and ignoring unmapped
@@ -71,6 +77,11 @@ class StepCollector
 
     // See which data are being gathered
     StepSelection const& selection() const;
+
+    // Access step state
+    template<MemSpace M>
+    StepStateData<Ownership::reference, M> const& step_state(
+        CoreStateInterface const& core) const;
 
   private:
     template<StepPoint P>

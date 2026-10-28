@@ -18,12 +18,15 @@ namespace optical
 {
 
 //! Opaque index of sub-surface interface
-using LocalSurfaceId = OpaqueId<struct LocalSurface_, unsigned short int>;
+using LocalSurfaceId
+    = OpaqueId<struct OpticalLocalSurface_, unsigned short int>;
 
 //! Opaque index of sub-surface material region
 using LocalPositionId = OpaqueId<struct LocalMat_, unsigned short int>;
 
 }  // namespace optical
+
+using ScintComponentId = OpaqueId<struct ScintDistributionRecord>;
 
 using ScintSpectrumId = OpaqueId<struct ScintSpectrumRecord>;
 

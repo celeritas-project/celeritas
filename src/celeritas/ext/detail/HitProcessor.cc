@@ -7,6 +7,7 @@
 #include "HitProcessor.hh"
 
 #include <cstddef>
+#include <exception>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4LogicalVolume.hh>
@@ -25,6 +26,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -95,6 +97,9 @@ G4StepStatus get_step_status(DetectorStepOutput const& out,
 //---------------------------------------------------------------------------//
 /*!
  * Construct local navigator and step data.
+ *
+ * If a device is active, events for compacting and copying device hits are
+ * also created.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            VecParticle const& particles,
@@ -121,7 +126,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
             = std::make_shared<GeantTrackReconstruction>(particles, step_);
     }
     CELER_ASSERT(ss_.particle_id == static_cast<bool>(track_reconstruction_)
-                 && ss_.primary_id == ss_.particle_id);
+                 && ss_.primary_id == ss_.particle_id
+                 && ss_.parent_id == ss_.particle_id
+                 && ss_.generation == ss_.particle_id);
 
     GeantStepView step_view{*step_};
 
@@ -167,7 +174,65 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                        << StreamableLV{lv});
     }
 
+    if (celeritas::device())
+    {
+        // Create the event for copying hits
+        copied_ = DeviceEvent{celeritas::device()};
+    }
+
     CELER_ENSURE(!detectors_.empty());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for any pending device compaction or copy before releasing buffers.
+ *
+ * The count of selected steps and the compacted steps are asynchronously
+ * copied into pinned memory owned by this class, so pending copies must
+ * complete before that memory is freed (e.g., when an exception unwinds the
+ * transporter mid-step).
+ */
+HitProcessor::~HitProcessor()
+{
+    try
+    {
+        if (this->has_pending_steps())
+        {
+            num_selected_.sync();
+            copied_.sync();
+        }
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG_LOCAL(error) << "Failed to wait for pending hit compaction "
+                                  "or copy while destroying hit processor: "
+                               << e.what();
+    }
+    catch (...)
+    {
+        CELER_LOG_LOCAL(error) << "Failed to wait for pending hit compaction "
+                                  "or copy while destroying hit processor: "
+                                  "unknown exception";
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Allocate pinned host output for the largest possible device step.
+ *
+ * This \b must be called during setup, once the device step state exists and
+ * before any device steps are processed, so that no pinned memory is
+ * allocated while stepping: growing the output later would call
+ * \c cudaHostAlloc and \c cudaFreeHost , which serialize CUDA API calls from
+ * all host threads.
+ */
+void HitProcessor::reserve(StepStateDeviceRef const& states)
+{
+    CELER_EXPECT(states);
+    CELER_EXPECT(!this->has_pending_steps());
+
+    reserve_compacted_steps(&steps_, states);
+    steps_reserved_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -177,24 +242,105 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 void HitProcessor::operator()(StepStateHostRef const& states)
 {
     copy_steps(&steps_, states);
-    if (steps_)
-    {
-        num_hits_ += steps_.size();
-        (*this)(steps_);
-    }
+    this->process_local_steps();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Process detector tallies (GPU).
+ * Enqueue compaction of device detector tallies without synchronizing.
+ *
+ * The selection and compaction into the state's scratch space are enqueued on
+ * the state's stream, along with a copy of the selected count to pinned host
+ * memory. Deferring the data copy keeps host-sensitive-detector reconstruction
+ * and its stream synchronization out of the device action sequence.
+ *
+ * The compaction waits on the device for any previous copy of the scratch
+ * space, so the step that produces this data can be launched before that copy
+ * completes. The pinned host output must have been allocated with \c reserve .
  */
 void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
-    copy_steps(&steps_, states);
-    if (steps_)
+    CELER_EXPECT(states);
+    CELER_EXPECT(this->scratch_state() == ScratchState::free);
+    CELER_EXPECT(copied_);
+    CELER_EXPECT(steps_reserved_);
+
+    auto& stream = celeritas::device().stream(states.stream_id);
+    // Don't overwrite the scratch space while it is being copied
+    stream.wait(copied_);
+    compact_steps_async(states, num_selected_);
+    pending_device_steps_ = states;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enqueue the copy of compacted device tallies after their step completes.
+ *
+ * This waits for the compaction enqueued by the call operator, which has
+ * already completed if the caller established device step completion. Any
+ * previously copied steps are processed first since they share host storage.
+ * The copy is enqueued on the memcpy stream without synchronizing.
+ */
+void HitProcessor::copy_pending_steps()
+{
+    if (this->scratch_state() == ScratchState::free)
     {
-        num_hits_ += steps_.size();
-        (*this)(steps_);
+        return;
+    }
+
+    // The copy overwrites the output, so finish processing it first
+    this->process_copied_steps();
+    CELER_ASSERT(output_ == OutputState::empty);
+
+    // The count is loaded after the compaction, so the host-observed load
+    // also orders the copy after the compaction. Keep the steps pending until
+    // then so the destructor waits on failure.
+    num_selected_.sync();
+    auto states = std::exchange(pending_device_steps_, {});
+    auto& stream = celeritas::device().memcpy_stream(states.stream_id);
+    try
+    {
+        copy_compacted_steps_async(
+            &steps_, states, num_selected_.value(), stream);
+    }
+    catch (...)
+    {
+        // Don't leave partially enqueued copies writing into host buffers
+        CELER_LOG_LOCAL(critical)
+            << "Failed to enqueue copy of compacted hits: waiting for "
+               "already enqueued copies before propagating the error";
+        stream.sync();
+        throw;
+    }
+    copied_.record(stream);
+    output_ = OutputState::copied;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for and process copied device tallies.
+ */
+void HitProcessor::process_copied_steps()
+{
+    if (output_ == OutputState::empty)
+    {
+        return;
+    }
+
+    copied_.sync();
+    output_ = OutputState::empty;
+    this->process_local_steps();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process copied device tallies only if the copy has completed.
+ */
+void HitProcessor::process_copied_steps_if_ready()
+{
+    if (output_ == OutputState::copied && copied_.ready())
+    {
+        this->process_copied_steps();
     }
 }
 
@@ -213,6 +359,19 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
     for (auto i : range(out.size()))
     {
         (*this)(out, i);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process hits already copied into temporary CPU storage.
+ */
+void HitProcessor::process_local_steps()
+{
+    if (steps_)
+    {
+        num_hits_ += steps_.size();
+        (*this)(steps_);
     }
 }
 
@@ -297,10 +456,15 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     {
         CELER_ASSERT(i < out.particle_id.size());
         CELER_ASSERT(i < out.primary_id.size());
-        // Get track corresponding to the particle type, and reload primary
-        // data if possible
+        CELER_ASSERT(i < out.parent_id.size());
+        CELER_ASSERT(i < out.generation.size());
+        // Get track corresponding to the particle type, and restore the
+        // Geant4 identity of the offloaded track or the Celeritas secondary
         G4Track& g4track = track_reconstruction_->view(out.particle_id[i],
-                                                       out.primary_id[i]);
+                                                       out.primary_id[i],
+                                                       out.track_id[i],
+                                                       out.parent_id[i],
+                                                       out.generation[i]);
         CELER_ASSERT(&g4track == step_->GetTrack());
         // Copy step information to the corresponding track
         GeantStepView{*step_}.update_track();

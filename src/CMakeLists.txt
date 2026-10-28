@@ -58,6 +58,11 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107532
     celer_silence_flag(CXX dangling-reference)
   endif()
+  if(CMAKE_UNITY_BUILD)
+    # With Unity build enabled GCC will complain about linkage issue when
+    # using anonyomous namespaces in source files.
+    celer_silence_flag(CXX subobject-linkage)
+  endif()
 endif()
 
 celeritas_target_include_directories(BuildFlags
@@ -114,9 +119,6 @@ elseif(CELERITAS_USE_HIP)
   target_include_directories(ExtDeviceApi
     SYSTEM INTERFACE "${ROCM_PATH}/include"
   )
-  if(ROCTX_LIBRARY)
-    target_link_libraries(ExtDeviceApi INTERFACE "${ROCTX_LIBRARY}")
-  endif()
   if(NOT BUILD_SHARED_LIBS)
     # Downstream libs don't link against correct HIP dependencies when using
     # static libraries, and even though the code below propagates the library

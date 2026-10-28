@@ -22,6 +22,7 @@
 #include "celeritas/optical/model/WavelengthShiftModel.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
+#include "GeneratorAction.hh"
 #include "WavelengthShiftGenerator.hh"
 
 #include "detail/GeneratorAlgorithms.hh"
@@ -32,25 +33,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Construct a state
-template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
-{
-    using StoreT = StateDataStore<WlsGeneratorStateData, M>;
-
-    auto result = std::make_unique<WlsGeneratorState<M>>();
-    result->store = StoreT{stream, size};
-
-    CELER_ENSURE(*result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with IDs, WLS model, and buffer capacity.
@@ -80,11 +62,11 @@ auto WlsGeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(id, capacity_);
+        return make_state<MemSpace::host, WlsGeneratorState>(id, capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(id, capacity_);
+        return make_state<MemSpace::device, WlsGeneratorState>(id, capacity_);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -129,8 +111,6 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     auto& counters = aux_state.counters;
     auto& buffer = aux_state.store.ref().distributions;
 
-    auto num_pending_prev = counters.num_pending;
-
     // Compact the buffer, returning the total number of valid distributions
     counters.buffer_size = celeritas::detail::remove_if_invalid(
         buffer, 0, counters.buffer_size + state.size(), state.stream_id());
@@ -139,7 +119,9 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     {
         // If this process created photons, calculate the cumulative sum of the
         // number of photons in the buffered distributions. This is used to
-        // determine which thread will generate photons from which distribution
+        // determine which thread will generate photons from which
+        // distribution. The new photons were already added to the core
+        // state's pending count when the distributions were created.
         counters.num_pending = detail::inclusive_scan_photons(
             aux_state.store.ref().distributions,
             aux_state.store.ref().offsets,
@@ -147,14 +129,10 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
             state.stream_id());
     }
 
-    // Update the core state counters with the number of new pending tracks
-    auto core_counters = state.sync_get_counters();
-    core_counters.num_pending += counters.num_pending - num_pending_prev;
-    state.sync_put_counters(core_counters);
-
-    if (counters.num_pending > 0 && core_counters.num_vacancies > 0)
+    if (counters.num_pending > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
 
         // Compact the buffer again to remove stale distributions and free up
@@ -194,8 +172,6 @@ void WlsGeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state = get<WlsGeneratorState<MemSpace::native>>(*state.aux(),
                                                                this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
     detail::WlsGeneratorExecutor execute{
@@ -205,6 +181,7 @@ void WlsGeneratorAction::generate(CoreParams const& params,
         wls2_ ? wls2_->host_ref() : NativeCRef<WavelengthShiftData>{},
         aux_state.store.ref(),
         aux_state.counters.buffer_size};
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
     launch_action(num_gen, execute);
 }
 

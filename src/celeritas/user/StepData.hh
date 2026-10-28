@@ -72,6 +72,7 @@ struct StepSelection
 
     bool event_id{false};
     bool parent_id{false};
+    bool generation{false};
     bool primary_id{false};
     bool post_step_action_id{false};
     bool track_step_count{false};
@@ -94,6 +95,7 @@ struct StepSelection
             true,
             true,
             true,
+            true,
             true};
     }
 
@@ -101,7 +103,7 @@ struct StepSelection
     explicit CELER_FUNCTION operator bool() const
     {
         return points[StepPoint::pre] || points[StepPoint::post] || event_id
-               || parent_id || primary_id || post_step_action_id
+               || parent_id || generation || primary_id || post_step_action_id
                || track_step_count || step_length || weight || particle_id
                || energy_deposition;
     }
@@ -116,6 +118,7 @@ struct StepSelection
 
         this->event_id |= other.event_id;
         this->parent_id |= other.parent_id;
+        this->generation |= other.generation;
         this->primary_id |= other.primary_id;
         this->post_step_action_id |= other.post_step_action_id;
         this->track_step_count |= other.track_step_count;
@@ -236,6 +239,8 @@ struct StepPointStateData
  *   on the pre-step geometric volume. Data members will have \b unspecified
  *   values if the detector ID is "false" (i.e. no information is being
  *   collected). The detector ID for inactive threads is always "false".
+ * - If no detectors are specified, a slot's data is valid if and only if its
+ *   track ID is set.
  */
 template<Ownership W, MemSpace M>
 struct StepStateDataImpl
@@ -261,6 +266,7 @@ struct StepStateDataImpl
     // Sim
     StateItems<EventId> event_id;
     StateItems<TrackId> parent_id;
+    StateItems<size_type> generation;
     StateItems<PrimaryId> primary_id;
     StateItems<ActionId> post_step_action_id;
     StateItems<size_type> track_step_count;
@@ -282,7 +288,8 @@ struct StepStateDataImpl
 
         return !track_id.empty() && right_sized(detector_id)
                && right_sized(event_id) && right_sized(parent_id)
-               && right_sized(primary_id) && right_sized(post_step_action_id)
+               && right_sized(generation) && right_sized(primary_id)
+               && right_sized(post_step_action_id)
                && right_sized(track_step_count) && right_sized(step_length)
                && right_sized(weight) && right_sized(particle_id)
                && right_sized(energy_deposition);
@@ -311,6 +318,7 @@ struct StepStateDataImpl
         detector_id = other.detector_id;
         event_id = other.event_id;
         parent_id = other.parent_id;
+        generation = other.generation;
         primary_id = other.primary_id;
         post_step_action_id = other.post_step_action_id;
         track_step_count = other.track_step_count;
@@ -354,6 +362,9 @@ struct StepStateData
     //! Thread IDs of active tracks that are in a detector
     StateItems<size_type> valid_id;
 
+    //! Number of selected tracks after device compaction (single element)
+    Collection<size_type, W, M> num_selected;
+
     // Copy of params max depth for dimensioning volume_instance_ids
     size_type num_volume_levels{0};
 
@@ -371,6 +382,8 @@ struct StepStateData
         };
 
         return data.size() > 0 && right_sized(scratch) && right_sized(valid_id)
+               && (num_selected.size() == 1
+                   || (num_selected.empty() && M == MemSpace::host))
                && stream_id;
     }
 
@@ -386,6 +399,7 @@ struct StepStateData
         data = other.data;
         scratch = other.scratch;
         valid_id = other.valid_id;
+        num_selected = other.num_selected;
         num_volume_levels = other.num_volume_levels;
         stream_id = other.stream_id;
         return *this;
@@ -463,6 +477,7 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
 
     SD_RESIZE_IF_SELECTED(event_id);
     SD_RESIZE_IF_SELECTED(parent_id);
+    SD_RESIZE_IF_SELECTED(generation);
     SD_RESIZE_IF_SELECTED(primary_id);
     SD_RESIZE_IF_SELECTED(post_step_action_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
@@ -495,6 +510,7 @@ inline void resize(StepStateData<Ownership::value, M>* state,
         // Allocate extra space on device for gathering step data
         resize(&state->scratch, params, size);
         resize(&state->valid_id, size);
+        resize(&state->num_selected, 1);
     }
 }
 

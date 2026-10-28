@@ -1,0 +1,206 @@
+test/accel/TrackingManagerIntegration --gtest_filter=LegacyTMIHooks.run
+Device.cc: debug: Disabling GPU support since CUDA and HIP are disabled
+PersistentSP.hh: debug: Registering persistent run manager cleanup
+PersistentSP.hh: debug: Building persistent run manager for key 'lar-sphere'
+status: Creating run manager
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+info: Created run manager type G4RunManager
+ScopedGeantExceptionHandler.cc: debug: Destroying scoped G4 exception handler (depth 0)
+status: Setting run manager initialization
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+IntegrationTestBase.cc: debug: Creating default EM-only physics list
+SupportedEmStandardPhysics.cc: debug: Setting EM parameters
+debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+debug@StateDependent.cc: Registered state dependent 0x0000 on {0}
+debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
+debug@SupportedEmStandardPhysics.cc: Constructing: proton
+debug@IntegrationTestBase.cc: ActionInitialization::Build
+debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+debug@PrimaryGenerator.cc: Created primary generator with 4 events and 10 primaries per event
+debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+status@TrackingManagerIntegration.test.cc: Run initialization
+debug@DetectorConstruction.cc: Loading detector geometry
+info@GeantGdmlLoader.cc: Loading Geant4 geometry from GDML at lar-sphere.gdml
+debug@ScopedProfiling.cc: Disabling unavailable performance profiling
+debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
+debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+debug@DetectorConstruction.cc: Found 2 detectors
+debug@GeantGeoParams.cc: GeantGeoParams constructed with a non-navigation world: given 'world_PV'@0x0000; navigation world is unset
+debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
+debug@DetectorConstruction.cc: Constructing sensitive detectors
+info@DetectorConstruction.cc: Constructed SensDet='detshell' and attached to 2 volumes
+debug@DetectorConstruction.cc: Attached 'detshell' to 'detshell_bot, detshell_top'
+debug@SupportedEmStandardPhysics.cc: Constructing processes
+debug@SupportedEmStandardPhysics.cc: Using Compton scattering with G4KleinNishinaCompton
+debug@SupportedEmStandardPhysics.cc: Using photoelectric effect with G4LivermorePhotoElectricModel
+debug@SupportedEmStandardPhysics.cc: Using Rayleigh scattering with G4LivermoreRayleighModel
+debug@SupportedEmStandardPhysics.cc: Using gamma conversion with G4PairProductionRelModel
+debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihilation
+debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+debug@TrackingManagerConstructor.cc: Activating tracking manager
+info@TrackingManagerConstructor.cc: Built Celeritas tracking managers for e-, e+, gamma
+status@TrackingManagerIntegration.test.cc: Beam on (first run)
+debug@TrackingManager.cc: Preparing physics table for e+
+debug: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+debug: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+debug@TrackingManager.cc: Preparing physics table for e-
+debug: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+debug: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+debug@TrackingManager.cc: Preparing physics table for gamma
+debug@TrackingManager.cc: Building physics table for gamma
+debug@TrackingManager.cc: Building physics table for e-
+debug@TrackingManager.cc: Building physics table for e+
+debug: Initializing shared params
+info: Activating Celeritas version [suppressed] on CPU
+debug: Celeritas environment variables: {... [truncated: set CELER_LOG_SCOPED_VERBOSE to show]
+status: Transferring data from Geant4
+debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+debug: Loaded 3 particles
+debug: Loaded 1 optical materials
+debug: Loaded 9 isotopes
+debug: Loaded 3 elements
+debug: Loaded 3 geo materials
+debug: Ignoring ScopedGeantLogger initialization because log redirection is disabled
+debug: Loaded 2 physics materials
+debug: Loading process 'annihil' for particle e+ (-11)
+debug: Loading process 'eIoni' for particle e+ (-11)
+debug: Loading process 'eBrem' for particle e+ (-11)
+debug: Loading MSC model 'UrbanMsc' for particle e+ (-11)
+debug: Loading process 'eIoni' for particle e- (11)
+debug: Loading process 'eBrem' for particle e- (11)
+debug: Loading MSC model 'UrbanMsc' for particle e- (11)
+debug: Loading process 'compt' for particle gamma (22)
+debug: Loading process 'phot' for particle gamma (22)
+debug: Loading process 'Rayl' for particle gamma (22)
+debug: Loading process 'conv' for particle gamma (22)
+debug: Loaded 9 EM processes
+debug: Loaded 2 MSC models
+debug: Loaded 5 of 5 volumes
+debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+debug: Loaded 1 detectors in a total of 2 logical volumes
+debug: Loaded 1 regions out of 2 Geant4 regions and created 0 new regions
+debug: No magnetic field
+status: Initializing problem
+status: Converting Geant4 geometry elements to ORANGE input
+status: Constructing ORANGE surfaces and runtime data
+debug: Building 'world': 0 daughters and 5 materials...
+debug: - Logic simplification hard-coded 2 nodes and pruned 3 unused nodes of 19 CSG nodes
+debug: - Eliminated 0 of 4 surfaces
+debug: Merging runtime data
+debug: Allocating labels for 1 universes with 6 impl volumes and 4 impl surfaces
+debug: No surfaces are defined
+warning: Geometry contains surfaces that are incompatible with the current ORANGE simple safety algorithm: multiple scattering may result in arbitrarily small steps without displacement
+debug: Building geometry->physics map using VolumeParams (5 volumes) and import data (5 volumes)
+debug: Filling geometry->physics map using canonical volumes
+status: Celeritas core setup complete
+debug: Mapped sensitive detector "detshell" on logical volume "detshell_top"@0x0000 (ID=1) to volume ID 1
+debug: Mapped sensitive detector "detshell" on logical volume "detshell_bot"@0x0000 (ID=2) to volume ID 2
+debug: Setting celeritas::global_geant_geo
+debug: Setting number of streams to 1
+info: Wrote Geant4 diagnostic output to "legacytmihooks-run-cpu-serial.out.json"
+debug: Constructing local state
+debug: Setting up thread-local hit processor for 2 sensitive detectors
+debug@AuxStateVec.cc: Allocating 3 aux state classes for host on stream {0} with state size 1024
+status: Celeritas core state initialization complete
+debug: Verifying tracking managers
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+warning: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
+debug: Environment variables after setup: {... [truncated: set CELER_LOG_SCOPED_VERBOSE to show]
+debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
+debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+status@LocalTransporter.cc: Executing the first Celeritas stepping loop
+debug@LocalTransporter.cc: Reconstituted 96 hits for event 0
+debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 1
+debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+debug@LocalTransporter.cc: Reconstituted 110 hits for event 1
+debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+debug: Destroying local state
+info@LocalTransporter.cc: Finalizing Celeritas after 663 steps from 2 flushes with 20 offloaded tracks over 2 events, generating 206 hits
+debug: Deallocating host core state (stream 0)
+debug: Deallocating track reconstruction
+status@TrackingManagerIntegration.test.cc: Beam on (second run)
+debug@IntegrationSingleton.cc: Shared Celeritas state already initialized
+debug@IntegrationSingleton.cc: Constructing local state
+debug@HitProcessor.cc: Setting up thread-local hit processor for 2 sensitive detectors
+debug@AuxStateVec.cc: Allocating 3 aux state classes for host on stream {0} with state size 1024
+status@CoreState.cc: Celeritas core state initialization complete
+debug@TrackingManagerIntegration.cc: Verifying tracking managers
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+debug@IntegrationTestBase.cc: Environment variables after setup: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'cpu',
+  G4RUN_MANAGER_TYPE: 'Serial',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  CELER_LOG_SCOPED: 'debug',
+  CELER_LOG_SCOPED_VERBOSE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+  CELER_DISABLE_SIGNALS: '0',
+}
+debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
+debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+status@LocalTransporter.cc: Executing the first Celeritas stepping loop
+debug@LocalTransporter.cc: Reconstituted 96 hits for event 0
+debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+debug@IntegrationSingleton.cc: Destroying local state
+info@LocalTransporter.cc: Finalizing Celeritas after 323 steps from 1 flushes with 10 offloaded tracks over 1 events, generating 96 hits
+debug@CoreState.cc: Deallocating host core state (stream 0)
+debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
+debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
+debug@StateDependent.cc: Deregistering state dependent 0x0000 on {0}
+debug@IntegrationSingleton.cc: Local Celeritas state already finalized on thread 0
+status@IntegrationSingleton.cc: Finalizing Celeritas
+info@SharedParams.cc: Wrote Geant4 diagnostic output to "legacytmihooks-run-cpu-serial.out.json"
+debug@SharedParams.cc: Resetting shared parameters
+debug@IntegrationTestBase.cc: Tearing down action initialization
+debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'cpu',
+  G4RUN_MANAGER_TYPE: 'Serial',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  CELER_LOG_SCOPED: 'debug',
+  CELER_LOG_SCOPED_VERBOSE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+  CELER_DISABLE_SIGNALS: '0',
+}

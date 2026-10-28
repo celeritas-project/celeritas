@@ -11,8 +11,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
-#include "celeritas/optical/detail/GroupVelocityCalculator.hh"
-
 namespace celeritas
 {
 namespace optical
@@ -42,9 +40,13 @@ CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
     CELER_ASSERT(sim.step_length() > 0);
     CELER_ASSERT(sim.post_step_action());
 
+    // Look up the precomputed group velocity
+    auto calc_group_velocity
+        = track.material_record().make_group_velocity_calculator();
+    auto group_vel = calc_group_velocity(
+        value_as<units::MevEnergy>(track.particle().energy()));
+
     // Update time
-    auto group_vel = GroupVelocityCalculator{track.material_record()}(
-        track.particle().energy());
     sim.add_time(sim.step_length() / group_vel);
 
     // Increment the step counter

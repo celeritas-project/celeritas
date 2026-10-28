@@ -28,7 +28,7 @@ namespace celeritas
  * the tracks are sorted. Otherwise, thread and track slot have the same
  * numerical value.
  *
- * This is primarily used by \c ActionLauncher .
+ * This is used primarily by \c ActionLauncher .
  *
  * \code
 void foo_kernel(CoreParamsPtr const params,
@@ -153,7 +153,7 @@ CELER_CTAD_FUNCTION ConditionalTrackExecutor(
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Return a track executor that only applies to active, non-errored tracks.
+ * Return a track executor that applies only to active, non-errored tracks.
  */
 template<class T>
 inline CELER_FUNCTION decltype(auto) make_active_track_executor(

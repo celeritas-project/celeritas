@@ -116,8 +116,10 @@ For the high-level integration classes, this means:
   programmatic changes to the options are prohibited.
 - The decision to disable Celeritas based on user environment settings is made
   during physics initialization when using the tracking manager.
-- Shared and thread-local Celeritas data structures are created during
-  ``BeginOfRunAction``.
+- Shared and thread-local Celeritas data structures are created at the
+  beginning of the run: automatically via Geant4 state hooks when using the
+  tracking manager integration, or during the user-provided
+  ``BeginOfRunAction`` for the other integration classes.
 
 .. toctree::
    :maxdepth: 2

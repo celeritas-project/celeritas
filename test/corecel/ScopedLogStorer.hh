@@ -30,6 +30,11 @@ namespace test
  * You can use the \c CELER_LOG_SCOPED environment variable to print the
  * captured log messages as they are written.
  *
+ * \todo The move constructor is subtly broken: the logger retains a pointer
+ * to the moved-from object, which may result in use-after-free. Break this
+ * into a \c shared_ptr<ScopedLogResult>, copyable \c ScopedLogHandler, and a
+ * generic \c ScopedExchange object.
+ *
  * \par Example:
  * \code
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
@@ -56,7 +61,7 @@ class ScopedLogStorer
     // No default constructor
     ScopedLogStorer() = delete;
 
-    // Default move constructor will work, but nothing else
+    // Careful data management required due to pointer-to-this
     ScopedLogStorer(ScopedLogStorer&&) = default;
     ScopedLogStorer(ScopedLogStorer const&) = delete;
     ScopedLogStorer& operator=(ScopedLogStorer&&) = delete;

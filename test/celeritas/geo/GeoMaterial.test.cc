@@ -7,6 +7,7 @@
 #include <limits>
 
 #include "corecel/data/StateDataStore.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/RootTestBase.hh"

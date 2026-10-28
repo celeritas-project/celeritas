@@ -15,7 +15,7 @@ The `g4org` sub-directory converts an in-memory Geant4 geometry into an `OrangeI
 | `Scaler` | Converts CLHEP/Geant4 length units to Celeritas `real_type` (default: mm) |
 | `Transformer` | Converts G4 affine/rotation/translation objects to ORANGE `VariantTransform` (daughter-to-parent convention) |
 
-**Intermediate data structures** (in `g4org/Volume.hh`):
+**Intermediate data structures** (in `@g4org/Volume.hh`):
 - `LogicalVolume` — ORANGE equivalent of `G4LogicalVolume`: holds an `ObjectInterface` plus child placements. Will be renamed `Volume`.
 - `PhysicalVolume` — ORANGE equivalent of `G4VPhysicalVolume`: holds a `VolumeInstanceId`, a `VariantTransform`, and a shared `LogicalVolume`. Will be renamed `VolumeInstance`.
 
@@ -29,7 +29,7 @@ The converter decomposes the logical volume graph into subgraphs that each becom
 - **Singly-placed volumes** without transforms are usually also inlined (controlled by `inp::InlineSingletons`).
 - **Multiply-placed or rotated volumes** become their own unit proto.
 
-Each `UnitProto` is built with a `build` call that produces surfaces, a CSG tree, and bounding boxes. The proto is then inserted by `UnitInserter` during geometry flattening into the final `OrangeInput`.
+Each `UnitProto` is then built and flattened as described in [Unit proto and build pipeline](#unit-proto-and-build-pipeline).
 
 ### Volume mapping (touchable history)
 
@@ -47,6 +47,8 @@ An ORANGE track state is a `[{universe, impl_volume}]` stack. The *local volume 
 `inp::OrangeGeoFromGeant` (deserialized from the `G4ORG_OPTIONS` environment variable for debugging) controls:
 - `unit_length` and `tol`: length scale and tracking tolerance.
 - `inp::InlineSingletons` enum (`none` / `untransformed` / `unrotated` / `all`): how aggressively to inline single-use volumes into their parent universe.
+- `universe_alignment`: map of logical volume names to a rotation matrices that makes the volume's daughters axis-aligned, to improve acceleration. Logical volumes included in this map are never inlined.
+
 
 ## ORANGE Construction (`orangeinp` namespace)
 
@@ -124,8 +126,7 @@ State is split into two tiers:
 ```
 find_next_step(max_step)   → sets next_step / next_surf / next_univ_level
 move_to_boundary()         → physically moves; sets geo_status = boundary_inc
-cross_boundary()           → flips sense, re-initializes volume at surface level
-                             and re-descends into daughters below
+cross_boundary()           → enters the next volume (see below)
 ```
 Or for a step that does not reach a boundary:
 ```

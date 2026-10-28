@@ -33,8 +33,8 @@ namespace optical
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
-    CoreParams const& params, Input&& input)
+std::shared_ptr<PrimaryGeneratorAction>
+PrimaryGeneratorAction::make_and_insert(CoreParams& params, Input&& input)
 {
     CELER_EXPECT(input);
     ActionRegistry& actions = *params.action_reg();
@@ -70,7 +70,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(
     data_.shape = std::visit(insert, inp.shape);
 
     params_ = ParamsDataStore<DistributionParamsData>{std::move(host_params)};
-
     CELER_ENSURE(data_);
     CELER_ENSURE(params_);
 }
@@ -133,9 +132,10 @@ void PrimaryGeneratorAction::insert_impl(optical::CoreState<M>& state) const
 
     auto& aux_state = this->counters(*state.aux());
     aux_state.counters.num_pending = data_.num_photons;
-    auto counters = state.sync_get_counters();
-    counters.num_pending += data_.num_photons;
-    state.sync_put_counters(counters);
+    if (data_.num_photons > 0)
+    {
+        state.add_pending(data_.num_photons);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -150,9 +150,10 @@ void PrimaryGeneratorAction::step_impl(CoreParams const& params,
 
     auto const& counters = this->counters(*state.aux()).counters;
 
-    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (counters.num_pending > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
     }
 
@@ -170,12 +171,11 @@ void PrimaryGeneratorAction::generate(CoreParams const& params,
     CELER_EXPECT(state.aux());
 
     auto const& aux_state = this->counters(*state.aux());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
     detail::PrimaryGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), data_, params_.host_ref()};
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
     launch_action(num_gen, execute);
 }
 

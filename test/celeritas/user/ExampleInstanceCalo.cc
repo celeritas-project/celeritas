@@ -16,6 +16,8 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 #include "geocel/VolumeIdBuilder.hh"
 #include "geocel/VolumeParams.hh"
 
@@ -115,7 +117,12 @@ void ExampleInstanceCalo::process_steps(HostStepState state)
  */
 void ExampleInstanceCalo::process_steps(DeviceStepState state)
 {
-    copy_steps(&steps_, state.steps);
+    // Compact on device, then wait for the count before copying the data
+    auto& stream = device().stream(state.stream_id);
+    compact_steps_async(state.steps, num_selected_);
+    copy_compacted_steps_async(
+        &steps_, state.steps, num_selected_.wait(), stream);
+    stream.sync();
     if (steps_)
     {
         this->process_steps(steps_);

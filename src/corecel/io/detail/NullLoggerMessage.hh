@@ -6,7 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <ostream>
+#include <ios>
+#include <iosfwd>
 
 #include "corecel/Macros.hh"
 
@@ -17,8 +18,6 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Stream-like helper class that \em discards everything passed to it.
- *
- * This helper class should simply eat any messages and objects passed to it.
  */
 class NullLoggerMessage
 {
@@ -26,27 +25,25 @@ class NullLoggerMessage
     //!@{
     //! \name Type aliases
     using StreamManip = std::ostream& (*)(std::ostream&);
+    using IoState = std::ios_base::iostate;
     //!@}
 
   public:
-    // Default constructor.
-    NullLoggerMessage() = default;
-
     //! Do not print this object
     template<class T>
-    CELER_FORCEINLINE_FUNCTION NullLoggerMessage& operator<<(T&&)
+    CELER_CONSTEXPR_FUNCTION NullLoggerMessage& operator<<(T&&)
     {
         return *this;
     }
 
     //! Ignore this manipulator function
-    CELER_FORCEINLINE_FUNCTION NullLoggerMessage& operator<<(StreamManip)
+    CELER_CONSTEXPR_FUNCTION NullLoggerMessage& operator<<(StreamManip)
     {
         return *this;
     }
 
     //! Do not set any state
-    CELER_FORCEINLINE_FUNCTION void setstate(std::ostream::iostate) {}
+    CELER_CONSTEXPR_FUNCTION void setstate(IoState) {}
 };
 
 //---------------------------------------------------------------------------//

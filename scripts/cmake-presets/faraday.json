@@ -5,7 +5,7 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": [".hip", "full", ".spack-base"],
+      "inherits": [".hip", "full", ".nobuiltin"],
       "binaryDir": "$env{SCRATCHDIR}/build/celeritas-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
@@ -32,7 +32,7 @@
     {
       "name": "release-orange",
       "displayName": "Build with full optimizations (ORANGE)",
-      "inherits": [".base", ".ndebug"],
+      "inherits": [".base", ".release"],
       "cacheVariables": {}
     },
     {

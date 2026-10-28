@@ -18,6 +18,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
+//! Wrap environment setup for logger due to early construction time
 auto safe_getenv_loglevel(char const* env_var, LogLevel default_level)
     -> LogLevel
 {
@@ -73,7 +74,7 @@ Logger& world_logger()
 
 //---------------------------------------------------------------------------//
 /*!
- * Serial logger: print on \em every process that calls it.
+ * Local logger: print on \em every thread and process that calls it.
  *
  * Setting the "CELER_LOG_LOCAL" environment variable to "debug", "info",
  * "error", etc. will change the default log level.

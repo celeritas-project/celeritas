@@ -1,6 +1,7 @@
 {
-  "version": 3,
-  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "version": 9,
+  "cmakeMinimumRequired": { "major": 3, "minor": 30, "patch": 0 },
+  "include": ["${sourceDir}/CMakePresets.json"],
   "configurePresets": [
     {
       "name": ".base",
@@ -17,11 +18,7 @@
         "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" },
-        "CELERITAS_USE_Perfetto": { "type": "BOOL", "value": "ON" },
-        "PERFETTO_ROOT": {
-          "type": "PATH",
-          "value": "$env{PERFETTO_ROOT}/perfetto/sdk"
-        },
+        "CELERITAS_USE_Perfetto": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_STANDARD": { "type": "STRING", "value": "17" },
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always",
         "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" }
@@ -75,14 +72,14 @@
       "inherits": [".profile", "reldeb-novg"]
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "Vecgeom release",
-      "inherits": [".ndebug", ".base"]
+      "inherits": [".release", ".base"]
     },
     {
-      "name": "ndebug-novg",
+      "name": "release-novg",
       "displayName": "ORANGE release",
-      "inherits": [".no-vg", ".ndebug", ".base"]
+      "inherits": [".no-vg", ".release", ".base"]
     }
   ],
   "buildPresets": [
@@ -93,10 +90,10 @@
       "nativeToolOptions": ["-k0"]
     },
     { "name": "base-novg", "configurePreset": "base-novg", "inherits": "base" },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" },
+    { "name": "release", "configurePreset": "release", "inherits": "base" },
     {
-      "name": "ndebug-novg",
-      "configurePreset": "ndebug-novg",
+      "name": "release-novg",
+      "configurePreset": "release-novg",
       "inherits": "base"
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" },
@@ -128,10 +125,10 @@
       }
     },
     { "name": "base-novg", "configurePreset": "base-novg", "inherits": "base" },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" },
+    { "name": "release", "configurePreset": "release", "inherits": "base" },
     {
-      "name": "ndebug-novg",
-      "configurePreset": "ndebug-novg",
+      "name": "release-novg",
+      "configurePreset": "release-novg",
       "inherits": "base"
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" },

@@ -65,7 +65,9 @@ void StepGatherAction<P>::step(CoreParams const& params,
         detail::StepGatherExecutor<P>{step_params, step_state}};
     launch_action(*this, params, state, execute);
 
-    if (P == StepPoint::post)
+    // Warmup runs the gather kernels but produces no step result. Callbacks
+    // could otherwise retain hit data that will never be consumed.
+    if (P == StepPoint::post && !state.warming_up())
     {
         // Execute callbacks at the end of the step
         StepState<MemSpace::native> cb_state{step_state, state.stream_id()};

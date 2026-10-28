@@ -27,6 +27,7 @@ celeritas_add_test(Assert.test.cc
   ENVIRONMENT "CELER_COLOR=1;CELER_LOG=debug"
 )
 celeritas_add_test(OpaqueId.test.cc)
+celeritas_add_test(SourceFile.test.cc)
 celeritas_add_test(Types.test.cc)
 
 # Cont
@@ -41,6 +42,7 @@ celeritas_add_device_test(cont/Range
   LINK_LIBRARIES Celeritas::ExtThrust)
 
 # Data
+celeritas_add_test(data/AsyncSnapshot.test.cc GPU)
 celeritas_add_device_test(data/Collection)
 celeritas_add_test(data/Copier.test.cc GPU)
 celeritas_add_test(data/DeviceAllocation.test.cc GPU)
@@ -148,6 +150,7 @@ celeritas_add_test(sys/MpiCommunicator.test.cc
 celeritas_add_test(sys/MultiExceptionHandler.test.cc)
 celeritas_add_test(sys/TypeDemangler.test.cc)
 celeritas_add_test(sys/ScopedSignalHandler.test.cc)
+celeritas_add_test(sys/ScopeExit.test.cc)
 celeritas_add_test(sys/Stopwatch.test.cc ADDED_TESTS _stopwatch)
 set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
 celeritas_add_test(sys/Version.test.cc)

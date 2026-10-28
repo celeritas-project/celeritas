@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "SolidConverter.hh"
 
+#include <algorithm>
 #include <memory>
 #include <typeindex>
 #include <typeinfo>  // IWYU pragma: keep
@@ -66,6 +67,7 @@
 #include "orange/orangeinp/StackedExtrudedPolygon.hh"
 #include "orange/orangeinp/Transformed.hh"
 #include "orange/orangeinp/Truncated.hh"
+#include "orange/orangeinp/detail/PolygonUtils.hh"
 
 #include "Scaler.hh"
 #include "Transformer.hh"
@@ -571,9 +573,8 @@ auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4GenericPolycone const&>(solid_base);
 
-    // Get the polygon. Although Geant4 prefers clockwise order upon input,
-    // GetCorner actually returns points in counterclockwise order, as used
-    // by ORANGE.
+    // Get the polygon. Native Geant4 normalizes the winding, but USolids
+    // can retain clockwise input.
     size_type num_points = solid.GetNumRZCorner();
     std::vector<Real2> polygon;
     polygon.reserve(num_points);
@@ -581,6 +582,13 @@ auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
     {
         auto point = solid.GetCorner(i);
         polygon.push_back(scale_.to<Real2>(point.r, point.z));
+    }
+
+    // Use signed area to orient even nonconvex polygons counterclockwise
+    if (orangeinp::detail::calc_orientation(make_span(polygon))
+        == orangeinp::detail::Orientation::clockwise)
+    {
+        std::reverse(polygon.begin(), polygon.end());
     }
 
     return std::make_shared<RevolvedPolygon>(std::string{solid.GetName()},

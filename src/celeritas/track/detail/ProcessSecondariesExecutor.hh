@@ -81,9 +81,10 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
     CELER_ASSERT(data.secondary_counts[tid] <= counters.num_secondaries);
     size_type offset = counters.num_secondaries - data.secondary_counts[tid];
 
-    // Save the parent ID since it will be overwritten if a secondary is
-    // initialized in this slot
+    // Save the parent ID and generation since they will be overwritten if a
+    // secondary is initialized in this slot
     TrackId const track_id{sim.track_id()};
+    size_type const generation{sim.generation()};
 
     for (auto const& secondary : track.physics_step().secondaries())
     {
@@ -102,6 +103,7 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
             ti.sim.track_id = make_track_id(params->init, data, sim.event_id());
             ti.sim.primary_id = sim.primary_id();
             ti.sim.parent_id = track_id;
+            ti.sim.generation = generation + 1;
             ti.sim.event_id = sim.event_id();
             ti.sim.time = sim.time();
             ti.sim.weight = sim.weight();
@@ -109,6 +111,13 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
             ti.geo.dir = secondary.direction;
             ti.particle.particle_id = secondary.particle_id;
             ti.particle.energy = secondary.energy;
+            if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
+            {
+                // Branch the parent's RNG regardless of whether the
+                // secondary reuses the parent's slot, so that results are
+                // reproducible independent of the number of track slots
+                ti.rng = track.rng().branch();
+            }
             CELER_ASSERT(ti);
 
             if (sim.track_id() == track_id && sim.status() != TrackStatus::alive
@@ -131,14 +140,6 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
             else
             {
                 CELER_ASSERT(offset > 0 && offset <= counters.num_initializers);
-
-                if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
-                {
-                    // If we are reseeding with each track, because this
-                    // secondary is not reusing the primary track, branch the
-                    // rng
-                    ti.rng = track.rng().branch();
-                }
 
                 if (offset <= min(counters.num_secondaries,
                                   counters.num_vacancies)

@@ -28,6 +28,7 @@ else()
   celeritas_get_g4libs(_g4_geo_lib geometry)
   celeritas_get_g4libs(_g4_event_lib event)
   celeritas_get_g4libs(_g4_global_libs global)
+  celeritas_get_g4libs(_g4_run_lib run)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -142,6 +143,7 @@ celeritas_setup_tests(SERIAL
 
 celeritas_add_test(Constants.test.cc LINK_LIBRARIES ${_g4_global_libs})
 celeritas_add_test(Units.test.cc LINK_LIBRARIES ${_g4_global_libs})
+celeritas_add_test(Json.test.cc LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 #-----------------------------------------------------------------------------#
 # Decay
@@ -228,11 +230,11 @@ celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
 if(CELERITAS_USE_Geant4)
-  celeritas_add_test(ext/GeantSd.test.cc
+  celeritas_add_test(ext/GeantSd.test.cc GPU
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
-  celeritas_add_test(ext/detail/HitProcessor.test.cc
-    LINK_LIBRARIES testcel_celeritas_g4
+  celeritas_add_test(ext/detail/HitProcessor.test.cc GPU
+    LINK_LIBRARIES testcel_celeritas_g4 ${_g4_run_lib}
     ENVIRONMENT "${CELER_G4ENV}")
   celeritas_add_test(ext/GeantTrackReconstruction.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
@@ -398,11 +400,6 @@ celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
-# Inp
-celeritas_add_test(inp/JsonIO.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
-
-#-----------------------------------------------------------------------------#
 # Optical
 
 function(celeritas_standalone_add_tests basename suite test backend)
@@ -465,6 +462,7 @@ function(celeritas_add_standalone_tests basename suite test)
 endfunction()
 
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest cut_multiple_flushes)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
 celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)

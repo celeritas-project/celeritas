@@ -35,59 +35,94 @@ jobs:
     name: "Save job metadata"
     runs-on: ubuntu-24.04
     steps:
-      # Event file is needed for pull_request_completed.report-tests
+      # Event file is needed for pull_request_completed to provide the fork's context
       - name: Upload event file
         id: upload
         uses: actions/upload-artifact@v7
         with:
           name: event-file
           path: ${{github.event_path}}
+          if-no-files-found: error
+          retention-days: 1
+
+  ## PRE-CHECK JOBS ##
+  # These run very quickly and do not require expensive externals
+  build-docs:
+    uses: ./.github/workflows/build-docs.yml
   build-fast:
     uses: ./.github/workflows/build-fast.yml
   build-ultralite:
     uses: ./.github/workflows/build-ultralite.yml
-  build-docs:
-    uses: ./.github/workflows/build-docs.yml
+
   all-prechecks:
+    # This job will skip if any dependent skips
     needs:
+      - build-docs
       - build-fast
       - build-ultralite
-      - build-docs
     runs-on: ubuntu-24.04
     steps:
       - name: Success
         run: "true"
+
+  ## MAIN JOBS ##
   build-spack:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
-
-  # Defer large jobs while the PR is in draft state
   build-spack-extra:
-    if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack-extra.yml
-  build-docker:
-    if: ${{github.event.pull_request.draft == false}}
-    needs: [all-prechecks]
-    uses: ./.github/workflows/build-docker.yml
+
+  ## EXPENSIVE JOBS ##
+  # Defer large jobs while the PR is in draft state
   build-codecov:
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-codecov.yml
+  build-docker:
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [build-spack] # Fail first
+    uses: ./.github/workflows/build-docker.yml
+  build-regression:
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-regression.yml
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
+  # - When running in draft mode, this check is skipped since dependent jobs are skipped
+  # - Otherwise this check always runs and will mark as failure if any required job did not succeed
   all:
-    if: ${{!cancelled()}}
+    if: ${{ always() && github.event.pull_request.draft == false }}
     needs:
+      - build-fast
+      - build-ultralite
+      - build-docs
       - build-spack
       - build-spack-extra
-      - build-docker
       - build-codecov
+      - build-docker
+      - build-regression
     runs-on: ubuntu-24.04
+    outputs:
+      unsuccessful: ${{ steps.check.outputs.unsuccessful }}
     steps:
-      - name: Decide whether the needed jobs succeeded or failed
-        uses: re-actors/alls-green@v1.3.0 # immutable, 21 Aug 2026
+      - name: Check failures
+        id: check
+        uses: actions/github-script@v9
+        env:
+          NEEDS: ${{ toJSON(needs) }}
         with:
-          jobs: ${{toJSON(needs)}}
+          script: |
+            const needs = JSON.parse(process.env.NEEDS);
+            core.debug(`needs: ${JSON.stringify(needs)}`);
+
+            const unsuccessful = Object.entries(needs)
+              .filter(([, job]) => job.result !== 'success')
+              .map(([name]) => name);
+
+            core.setOutput('unsuccessful', unsuccessful.join(','));
+            if (unsuccessful.length) {
+              core.setFailed(`Jobs did not succeed: ${unsuccessful.join(', ')}`);
+            }
 
 # vim: set nowrap tw=100:

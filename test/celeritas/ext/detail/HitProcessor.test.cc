@@ -6,11 +6,23 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/detail/HitProcessor.hh"
 
+#include <chrono>
+#include <exception>
+#include <limits>
+#include <memory>
+#include <random>
+#include <thread>
+#include <vector>
 #include <G4DynamicParticle.hh>
+#include <G4LogicalVolume.hh>
 #include <G4ParticleTable.hh>
+#include <G4Threading.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
+#include <G4WorkerThread.hh>
 
+#include "corecel/data/Ref.hh"
+#include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
@@ -27,6 +39,7 @@
 
 using celeritas::test::from_cm;
 using celeritas::test::SimpleHitsResult;
+using celeritas::test::SimpleSensitiveDetector;
 using celeritas::units::MevEnergy;
 
 namespace celeritas
@@ -35,6 +48,40 @@ namespace detail
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Copy and process pending device hits synchronously
+void process_pending(HitProcessor& process_hits)
+{
+    process_hits.copy_pending_steps();
+    process_hits.process_copied_steps();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set up Geant4 thread-local geometry data as in a worker thread.
+ *
+ * Geant4 stores per-thread data (including each logical volume's sensitive
+ * detector) in "split" classes that a worker thread copies from the master.
+ */
+class ScopedWorkerGeometry
+{
+  public:
+    explicit ScopedWorkerGeometry(int thread_id)
+    {
+        G4Threading::G4SetThreadId(thread_id);
+        G4WorkerThread::BuildGeometryAndPhysicsVector();
+    }
+    ~ScopedWorkerGeometry()
+    {
+        G4WorkerThread::DestroyGeometryAndPhysicsVector();
+    }
+    CELER_DELETE_COPY_MOVE(ScopedWorkerGeometry);
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace
 
 //---------------------------------------------------------------------------//
 class SimpleCmsTest : public ::celeritas::test::SensDetTestBase,
@@ -55,6 +102,22 @@ class SimpleCmsTest : public ::celeritas::test::SensDetTestBase,
     DetectorStepOutput make_dso() const;
 
     SimpleHitsResult const& get_hits(std::string const& name) const;
+
+    //! Hits recorded by one mock worker thread
+    struct ThreadResult
+    {
+        std::vector<double> em_edep;
+        size_type num_hits{0};
+        std::exception_ptr error;
+    };
+
+    // Process steps on independent threads with random delays
+    template<MemSpace M>
+    std::vector<ThreadResult> run_threads(int num_threads, int num_steps);
+
+    // Check that each thread processed every step exactly once, in order
+    void check_thread_results(std::vector<ThreadResult> const& results,
+                              int num_steps) const;
 
     // Event ID mock for GeantTrackReconstruction (used in CELERITAS_DEBUG)
     static int test_cur_event;
@@ -95,6 +158,8 @@ void SimpleCmsTest::SetUp()
     selection_.points[StepPoint::post].energy = true;
     selection_.particle_id = true;
     selection_.primary_id = true;
+    selection_.parent_id = true;
+    selection_.generation = true;
 }
 
 auto SimpleCmsTest::detector_volumes() const -> SetStr
@@ -188,6 +253,19 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             PrimaryId{1},
             PrimaryId{1},
         };
+    }
+    if (selection_.parent_id)
+    {
+        // The last step is from a secondary of the second primary's track
+        dso.parent_id = {
+            TrackId{},
+            TrackId{},
+            TrackId{2},
+        };
+    }
+    if (selection_.generation)
+    {
+        dso.generation = {0, 0, 1};
     }
     if (selection_.energy_deposition)
     {
@@ -297,6 +375,178 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             = {wovi, sivi, wovi, emvi, wovi, havi};
     }
     return dso;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process steps on independent threads with random delays.
+ *
+ * This mocks up a multithreaded job: each thread owns Geant4 worker geometry,
+ * thread-local sensitive detectors, a hit processor, and step state on its own
+ * stream. Each step scales the energy deposition by the step number so that
+ * lost, duplicated, or mixed-up batches are detected. Random waits between
+ * the asynchronous phases vary how device work overlaps with host work.
+ */
+template<MemSpace M>
+auto SimpleCmsTest::run_threads(int num_threads, int num_steps)
+    -> std::vector<ThreadResult>
+{
+    CELER_EXPECT(num_threads > 0 && num_steps > 0);
+
+    selection_ = {};
+    selection_.energy_deposition = true;
+    selection_.step_length = true;
+    selection_.points[StepPoint::pre].time = true;
+
+    // Construct shared, read-only data on the master thread
+    auto const detector_volumes = this->make_detector_volumes();
+    auto const dso = this->make_dso();
+    auto const selection = selection_;
+    HostVal<StepParamsData> params;
+    params.selection = selection;
+    std::vector<DetectorId> detector_map{DetectorId{0}};
+    make_builder(&params.detector)
+        .insert_back(detector_map.begin(), detector_map.end());
+    if constexpr (M == MemSpace::device)
+    {
+        device().create_streams(num_threads);
+    }
+
+    std::vector<ThreadResult> results(num_threads);
+    auto run_thread = [&](int thread_idx) {
+        auto& result = results[thread_idx];
+        try
+        {
+            if constexpr (M == MemSpace::device)
+            {
+                activate_device_local();
+            }
+            ScopedWorkerGeometry worker_geo{thread_idx};
+
+            // Attach thread-local detectors, as each Geant4 worker owns
+            std::vector<std::unique_ptr<SimpleSensitiveDetector>> detectors;
+            for (G4LogicalVolume const* lv : *detector_volumes)
+            {
+                detectors.push_back(
+                    std::make_unique<SimpleSensitiveDetector>(lv));
+                const_cast<G4LogicalVolume*>(lv)->SetSensitiveDetector(
+                    detectors.back().get());
+            }
+
+            HitProcessor process_hits{
+                detector_volumes, {}, selection, {false, false}};
+
+            StreamId const stream_id(thread_idx);
+            HostVal<StepStateData> host_states;
+            resize(&host_states, make_const_ref(params), stream_id, dso.size());
+            StepStateData<Ownership::value, MemSpace::device> device_states;
+            if constexpr (M == MemSpace::device)
+            {
+                resize(&device_states,
+                       make_const_ref(params),
+                       stream_id,
+                       dso.size());
+                process_hits.reserve(make_ref(device_states));
+            }
+
+            std::mt19937 rng(thread_idx);
+            std::uniform_int_distribution<int> sample_wait(0, 500);
+            auto random_wait = [&] {
+                std::this_thread::sleep_for(
+                    std::chrono::microseconds(sample_wait(rng)));
+            };
+
+            for (int step : range(num_steps))
+            {
+                for (auto i : range(dso.size()))
+                {
+                    TrackSlotId const tid{i};
+                    auto& data = host_states.data;
+                    data.track_id[tid] = dso.track_id[i];
+                    data.detector_id[tid] = dso.detector_id[i];
+                    data.energy_deposition[tid]
+                        = static_cast<real_type>(step + 1)
+                          * dso.energy_deposition[i];
+                    data.step_length[tid] = dso.step_length[i];
+                    data.points[StepPoint::pre].time[tid]
+                        = dso.points[StepPoint::pre].time[i];
+                }
+
+                if constexpr (M == MemSpace::device)
+                {
+                    // "Launch" the step, which enqueues the compaction
+                    device_states.data = host_states.data;
+                    process_hits(make_ref(device_states));
+                    // Geant4 work while the step runs
+                    random_wait();
+                    // Wait for the compaction, then copy without waiting
+                    process_hits.copy_pending_steps();
+                    // Geant4 work while the copy runs
+                    random_wait();
+                    process_hits.process_copied_steps_if_ready();
+                }
+                else
+                {
+                    process_hits(make_ref(host_states));
+                    random_wait();
+                }
+            }
+            process_hits.process_copied_steps();
+
+            result.num_hits = process_hits.exchange_hits();
+            // Detectors are sorted by name: em_calorimeter is first
+            result.em_edep = detectors.front()->hits().energy_deposition;
+        }
+        catch (...)
+        {
+            result.error = std::current_exception();
+        }
+    };
+
+    std::vector<std::thread> threads;
+    for (int i : range(num_threads))
+    {
+        threads.emplace_back(run_thread, i);
+    }
+    for (auto& t : threads)
+    {
+        t.join();
+    }
+    return results;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check that each thread processed every step exactly once, in order.
+ *
+ * Each step has three hits, and the em_calorimeter energy deposition of step
+ * \em s is the base value (0.2 MeV) scaled by <code>s + 1</code>.
+ */
+void SimpleCmsTest::check_thread_results(
+    std::vector<ThreadResult> const& results, int num_steps) const
+{
+    // Use real_type for single-precision tolerance in float builds
+    std::vector<real_type> expected_em_edep;
+    for (int step : range(num_steps))
+    {
+        expected_em_edep.push_back(
+            static_cast<real_type>(step + 1) * real_type{0.2});
+    }
+    for (auto const& result : results)
+    {
+        if (result.error)
+        {
+            std::rethrow_exception(result.error);
+        }
+        EXPECT_EQ(3 * num_steps, result.num_hits);
+        EXPECT_VEC_SOFT_EQ(expected_em_edep, result.em_edep);
+    }
+
+    // Threads must use their own detectors, not the master thread's
+    for (auto const& name : this->detector_volumes())
+    {
+        EXPECT_TRUE(this->get_hits(name).energy_deposition.empty()) << name;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -434,10 +684,215 @@ TEST_F(SimpleCmsTest, no_touchable)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, pre_step_only)
+{
+    // An unselected post-step point can be null even when a hit is valid.
+    selection_ = {};
+    selection_.energy_deposition = true;
+    selection_.points[StepPoint::pre].time = true;
+
+    HitProcessor process_hits = this->make_hit_processor();
+    process_hits(this->make_dso());
+
+    auto const& result = this->get_hits("si_tracker");
+    ASSERT_EQ(1, result.energy_deposition.size());
+    EXPECT_SOFT_EQ(0.1_r, result.energy_deposition.front());
+    ASSERT_EQ(1, result.pre_time.size());
+    EXPECT_SOFT_EQ(0.5_r, result.pre_time.front());
+    EXPECT_EQ(result.post_energy.size(), result.post_time.size());
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
+{
+    selection_ = {};
+    selection_.energy_deposition = true;
+    selection_.step_length = true;
+    selection_.points[StepPoint::pre].time = true;
+
+    HitProcessor process_hits = this->make_hit_processor();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    process_pending(process_hits);
+    EXPECT_EQ(0, process_hits.exchange_hits());
+    auto const dso = this->make_dso();
+
+    HostVal<StepParamsData> params;
+    params.selection = selection_;
+    std::vector<DetectorId> detector_map{DetectorId{0}};
+    make_builder(&params.detector)
+        .insert_back(detector_map.begin(), detector_map.end());
+
+    StepStateData<Ownership::value, MemSpace::host> host_states;
+    resize(&host_states, make_const_ref(params), StreamId{0}, dso.size());
+    for (auto i : range(dso.size()))
+    {
+        TrackSlotId const tid{i};
+        host_states.data.track_id[tid] = dso.track_id[i];
+        host_states.data.detector_id[tid] = dso.detector_id[i];
+        host_states.data.energy_deposition[tid] = dso.energy_deposition[i];
+        host_states.data.step_length[tid] = dso.step_length[i];
+        host_states.data.points[StepPoint::pre].time[tid]
+            = dso.points[StepPoint::pre].time[i];
+    }
+
+    celeritas::device().create_streams(1);
+    StepStateData<Ownership::value, MemSpace::device> device_states;
+    resize(&device_states, make_const_ref(params), StreamId{0}, dso.size());
+    device_states.data = host_states.data;
+
+    // Allocate the pinned output at setup rather than on the first step
+    process_hits.reserve(make_ref(device_states));
+    EXPECT_FALSE(process_hits.has_pending_steps());
+
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    EXPECT_TRUE(this->get_hits("si_tracker").energy_deposition.empty());
+    EXPECT_TRUE(this->get_hits("em_calorimeter").energy_deposition.empty());
+    EXPECT_TRUE(this->get_hits("had_calorimeter").energy_deposition.empty());
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(process_hits(make_ref(device_states)), DebugError);
+        EXPECT_THROW(process_hits.exchange_hits(), DebugError);
+        // Reallocating could free memory that pending copies target
+        EXPECT_THROW(process_hits.reserve(make_ref(device_states)), DebugError);
+        EXPECT_TRUE(process_hits.has_pending_steps());
+    }
+
+    process_pending(process_hits);
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(3, process_hits.exchange_hits());
+    EXPECT_EQ(1, this->get_hits("si_tracker").energy_deposition.size());
+    EXPECT_EQ(1, this->get_hits("em_calorimeter").energy_deposition.size());
+    EXPECT_EQ(1, this->get_hits("had_calorimeter").energy_deposition.size());
+
+    // Reuse the same state with different data to catch replay of stale hits.
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.energy_deposition[TrackSlotId{i}]
+            = 2 * dso.energy_deposition[i];
+    }
+    device_states.data = host_states.data;
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    EXPECT_EQ(1, this->get_hits("em_calorimeter").energy_deposition.size());
+    process_pending(process_hits);
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(3, process_hits.exchange_hits());
+    static real_type const expected_si_edep[] = {0.1, 0.2};
+    EXPECT_VEC_SOFT_EQ(expected_si_edep,
+                       this->get_hits("si_tracker").energy_deposition);
+    static real_type const expected_em_edep[] = {0.2, 0.4};
+    EXPECT_VEC_SOFT_EQ(expected_em_edep,
+                       this->get_hits("em_calorimeter").energy_deposition);
+    static real_type const expected_had_edep[] = {0.3, 0.6};
+    EXPECT_VEC_SOFT_EQ(expected_had_edep,
+                       this->get_hits("had_calorimeter").energy_deposition);
+    EXPECT_TRUE(this->get_hits("world").energy_deposition.empty());
+
+    // An empty batch must clear the previous output, not deliver it again.
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.detector_id[TrackSlotId{i}] = {};
+    }
+    device_states.data = host_states.data;
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    process_pending(process_hits);
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(0, process_hits.exchange_hits());
+    process_pending(process_hits);
+    EXPECT_EQ(0, process_hits.exchange_hits());
+    EXPECT_EQ(2, this->get_hits("si_tracker").energy_deposition.size());
+    EXPECT_EQ(2, this->get_hits("em_calorimeter").energy_deposition.size());
+    EXPECT_EQ(2, this->get_hits("had_calorimeter").energy_deposition.size());
+
+    // Compaction is enqueued by the call operator, so the gathered step data
+    // can be overwritten before the pending steps are processed.
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.detector_id[TrackSlotId{i}] = dso.detector_id[i];
+    }
+    device_states.data = host_states.data;
+    process_hits(make_ref(device_states));
+    celeritas::device().stream(StreamId{0}).sync();
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.detector_id[TrackSlotId{i}] = {};
+    }
+    device_states.data = host_states.data;
+    process_pending(process_hits);
+    EXPECT_EQ(3, process_hits.exchange_hits());
+    EXPECT_EQ(3, this->get_hits("si_tracker").energy_deposition.size());
+    EXPECT_EQ(3, this->get_hits("em_calorimeter").energy_deposition.size());
+    EXPECT_EQ(3, this->get_hits("had_calorimeter").energy_deposition.size());
+
+    // Copied steps can be processed after the next compaction is enqueued,
+    // which waits on the device for the copy to finish reading the scratch
+    // space. Copying the next step processes the previous one first.
+    auto set_device_steps = [&](real_type edep_scale) {
+        for (auto i : range(dso.size()))
+        {
+            TrackSlotId const tid{i};
+            host_states.data.detector_id[tid] = dso.detector_id[i];
+            host_states.data.energy_deposition[tid]
+                = edep_scale * dso.energy_deposition[i];
+        }
+        device_states.data = host_states.data;
+    };
+    set_device_steps(3);
+    process_hits(make_ref(device_states));
+    celeritas::device().stream(StreamId{0}).sync();
+    process_hits.copy_pending_steps();
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    EXPECT_EQ(3, this->get_hits("em_calorimeter").energy_deposition.size());
+
+    set_device_steps(4);
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    EXPECT_EQ(3, this->get_hits("em_calorimeter").energy_deposition.size());
+    celeritas::device().stream(StreamId{0}).sync();
+    process_hits.copy_pending_steps();
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    EXPECT_EQ(4, this->get_hits("em_calorimeter").energy_deposition.size());
+
+    celeritas::device().memcpy_stream(StreamId{0}).sync();
+    process_hits.process_copied_steps_if_ready();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(6, process_hits.exchange_hits());
+    static real_type const expected_lagged_em_edep[]
+        = {0.2, 0.4, 0.4, 0.6, 0.8};
+    EXPECT_VEC_SOFT_EQ(expected_lagged_em_edep,
+                       this->get_hits("em_calorimeter").energy_deposition);
+
+    // Processing without a pending copy is a null-op
+    process_hits.process_copied_steps();
+    process_hits.process_copied_steps_if_ready();
+    EXPECT_EQ(0, process_hits.exchange_hits());
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, multithread_host)
+{
+    constexpr int num_steps = 20;
+    this->check_thread_results(this->run_threads<MemSpace::host>(4, num_steps),
+                               num_steps);
+}
+
+TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(multithread_device))
+{
+    constexpr int num_steps = 20;
+    this->check_thread_results(
+        this->run_threads<MemSpace::device>(4, num_steps), num_steps);
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, touchable_midvol)
 {
     selection_.particle_id = false;
     selection_.primary_id = false;
+    selection_.parent_id = false;
+    selection_.generation = false;
     locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
@@ -469,6 +924,8 @@ TEST_F(SimpleCmsTest, touchable_edgecase)
 {
     selection_.particle_id = false;
     selection_.primary_id = false;
+    selection_.parent_id = false;
+    selection_.generation = false;
     locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
 
@@ -522,6 +979,8 @@ TEST_F(SimpleCmsTest, touchable_exiting)
     locate_touchable_ = {true, true};
     selection_.particle_id = false;
     selection_.primary_id = false;
+    selection_.parent_id = false;
+    selection_.generation = false;
     selection_.points[StepPoint::pre].time = false;
     selection_.points[StepPoint::post].time = false;
     selection_.points[StepPoint::pre].energy = false;
@@ -633,11 +1092,12 @@ TEST_F(SimpleCmsTest, with_primary_id)
         EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
     }
     {
-        // had_calorimeter -> PrimaryId{1} -> track_id=20, parent_id=5
+        // had_calorimeter -> secondary (Celeritas track 4) of PrimaryId{1}:
+        // its own mapped ID, with the offloaded track as parent
         auto& result = this->get_hits("had_calorimeter");
-        static int const expected_track_id[] = {20};
+        int const expected_track_id[] = {std::numeric_limits<int>::max() - 4};
         EXPECT_VEC_EQ(expected_track_id, result.track_id);
-        static int const expected_parent_id[] = {5};
+        static int const expected_parent_id[] = {20};
         EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
     }
 }

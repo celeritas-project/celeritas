@@ -29,7 +29,6 @@ class Transporter;
 
 class ActionSequence;
 class CoreParams;
-class CoreStateInterface;
 class GeantGeoParams;
 class GeantSd;
 class OffloadWriter;
@@ -76,16 +75,6 @@ class SharedParams
 
     // Whether celeritas is disabled, set to kill, or to be enabled
     static Mode GetMode();
-
-    // True if Celeritas is globally disabled using the CELER_DISABLE env
-    // Remove in 0.7
-    [[deprecated]]
-    static bool CeleritasDisabled();
-
-    // Whether to kill tracks that would have been offloaded
-    // Remove in 0.7
-    [[deprecated]]
-    static bool KillOffloadTracks();
 
     // Get list of all supported particles in Celeritas
     static VecG4PD const& supported_offload_particles();
@@ -136,7 +125,6 @@ class SharedParams
     using SPOffloadWriter = std::shared_ptr<OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPTimeOutput = std::shared_ptr<TimeOutput>;
-    using SPState = std::shared_ptr<CoreStateInterface>;
     using BBox = BoundingBox<double>;
 
     //! Initialization status and integration mode
@@ -154,7 +142,7 @@ class SharedParams
     // Hit manager, to be used only by LocalTransporter
     inline SPGeantSd const& hit_manager() const;
 
-    // Optional offload writer, only for use by LocalTransporter
+    // Optional offload writer, for use by LocalTransporter
     inline SPOffloadWriter const& offload_writer() const;
 
     // Output registry
@@ -162,9 +150,6 @@ class SharedParams
 
     // Access the timer
     inline SPTimeOutput const& timer() const;
-
-    // Let LocalTransporter register the thread's state
-    void set_state(unsigned int stream_id, SPState&&);
 
     // Number of streams, lazily obtained from run manager
     unsigned int num_streams() const;
@@ -180,7 +165,7 @@ class SharedParams
     Mode mode_{Mode::uninitialized};
     setup::FrameworkLoaded loaded_;
     VecG4PD offload_particles_;
-    std::vector<std::shared_ptr<CoreStateInterface>> states_;
+    unsigned int num_streams_{0};
     SPOutputRegistry output_reg_;
     SPTimeOutput timer_;
     BBox bbox_;

@@ -87,9 +87,12 @@ struct TrackInitializer
  * most cases accessed by \c TrackSlotId. Specifically, \c initializers and \c
  * vacancies are resizable, and \c track_counters has size
  * \c max_events.
+ * - \c indices is only allocated (with one element per track slot) when
+ *   sorting by charge: element \em i is the number of neutral tracks among the
+ *   first \em i + 1 initializers used to create tracks in the current step.
  * - \c initializers stores the data for primaries and secondaries waiting to
  *   be turned into new tracks and can be any size up to \c capacity.
- * - \c vacancies stores the \c TrackSlotid of the tracks that have been
+ * - \c vacancies stores the \c TrackSlotId of the tracks that have been
  *   killed; the size will be <= the number of track states.
  * - \c track_counters stores the total number of particles that have been
  *   created per event.

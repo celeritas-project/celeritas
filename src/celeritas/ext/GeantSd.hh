@@ -15,6 +15,8 @@
 #include "geocel/Types.hh"
 #include "celeritas/user/StepInterface.hh"
 
+#include "detail/LocalProcessorSlots.hh"
+
 class G4LogicalVolume;
 class G4ParticleDefinition;
 
@@ -116,8 +118,8 @@ class GeantSd final : public StepInterface
     StepSelection selection_;
     StepPointBool locate_touchable_{};
 
-    std::vector<std::weak_ptr<HitProcessor>> processor_weakptrs_;
-    std::vector<HitProcessor*> processors_;
+    // Thread-local hit processors
+    detail::LocalProcessorSlots<HitProcessor> processors_;
 
     // Construct vecgeom/geant volumes
     void setup_volumes(Input const& setup);

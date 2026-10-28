@@ -25,11 +25,14 @@ namespace orangeinp
 namespace
 {
 //! Convenience enumeration for implementations in this file
+namespace rz_axes
+{
 enum
 {
     R = 0,
     Z = 1
 };
+}  // namespace rz_axes
 }  // namespace
 //---------------------------------------------------------------------------//
 /*!
@@ -41,6 +44,8 @@ RevolvedPolygon::RevolvedPolygon(
     , polygon_{std::move(polygon)}
     , enclosed_{std::move(enclosed)}
 {
+    using namespace rz_axes;
+
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must have at least 3 vertices");
 
@@ -156,6 +161,8 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
 NodeId RevolvedPolygon::make_region(
     detail::VolumeBuilder& vb, VecReal2 const& polygon, SubIndex si) const
 {
+    using namespace rz_axes;
+
     // The polygon should have a strictly clockwise orientation
     CELER_VALIDATE(
         has_orientation(make_span(polygon),
@@ -225,6 +232,8 @@ NodeId RevolvedPolygon::make_cylinder(detail::VolumeBuilder& vb,
                                       Real2 const& p1,
                                       SubIndex const& si) const
 {
+    using namespace rz_axes;
+
     real_type hh = std::fabs(p1[Z] - p0[Z]) / 2;
     auto z_bot = std::min(p0[Z], p1[Z]);
     auto scoped_transform
@@ -243,6 +252,8 @@ NodeId RevolvedPolygon::make_cone(detail::VolumeBuilder& vb,
                                   Real2 const& p1,
                                   SubIndex const& si) const
 {
+    using namespace rz_axes;
+
     Real2 p_bot = p0;
     Real2 p_top = p1;
 

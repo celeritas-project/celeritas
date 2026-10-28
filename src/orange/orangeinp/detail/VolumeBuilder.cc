@@ -132,8 +132,8 @@ NodeId VolumeBuilder::insert_region(Metadata&& md, Negated&& n)
 /*!
  * Apply a transform within this scope.
  */
-[[nodiscard]] PopVBTransformOnDestruct VolumeBuilder::make_scoped_transform(
-    VariantTransform const& t)
+[[nodiscard]] auto VolumeBuilder::make_scoped_transform(
+    VariantTransform const& t) -> ScopedTransform
 {
     // Apply the current local transform to get a new local transform, and add
     // it to the stack
@@ -141,7 +141,7 @@ NodeId VolumeBuilder::insert_region(Metadata&& md, Negated&& n)
 
     // Return the helper class that will pop the last transform
     CELER_ENSURE(transforms_.size() > 1);
-    return PopVBTransformOnDestruct(this);
+    return ScopedTransform{this};
 }
 
 //---------------------------------------------------------------------------//
@@ -160,21 +160,11 @@ void VolumeBuilder::push_transform(VariantTransform&& vt)
 /*!
  * Pop the last transform, used only by PopVBTransformOnDestruct.
  */
-void VolumeBuilder::pop_transform()
+void VolumeBuilder::pop_transform() noexcept(!CELERITAS_DEBUG)
 {
     CELER_EXPECT(transforms_.size() > 1);
     transforms_.pop_back();
     CELER_ENSURE(!transforms_.empty());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a volume builder pointer.
- */
-PopVBTransformOnDestruct::PopVBTransformOnDestruct(VolumeBuilder* vb) : vb_{vb}
-{
-    CELER_EXPECT(vb_);
-    CELER_EXPECT(vb_->transforms_.size() > 1);
 }
 
 //---------------------------------------------------------------------------//

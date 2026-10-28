@@ -104,10 +104,10 @@ void run(std::string const& gdml_filename,
     }
     else
     {
-        celeritas::FileOrStdout outstream{out_filename};
+        celeritas::FileOrStdout outstream{out_filename, std::ios::out};
 
         // Write JSON to file
-        CELER_LOG(info) << "Opening JSON output at " << outstream.filename();
+        CELER_LOG(info) << "Dumping JSON output to " << outstream.filename();
         RootJsonDumper dump_json(outstream);
         dump_json(imported);
     }

@@ -16,7 +16,6 @@
 #include "GenericGeoTestInterface.hh"
 #include "LazyGeantGeoManager.hh"
 #include "Test.hh"
-#include "WrappedGeoTrackView.hh"
 
 class G4VPhysicalVolume;
 

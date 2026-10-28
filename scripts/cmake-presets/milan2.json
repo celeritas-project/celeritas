@@ -5,7 +5,7 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": [".cuda", "full", ".spack-base"],
+      "inherits": [".cuda", "full", ".nobuiltin"],
       "binaryDir": "/scratch/$env{USER}/build/celeritas-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
@@ -38,7 +38,7 @@
     {
       "name": "release",
       "displayName": "Build with full optimizations (VecGeom)",
-      "inherits": [".base", ".ndebug"]
+      "inherits": [".base", ".release"]
     },
     {
       "name": "reldeb",

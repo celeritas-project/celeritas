@@ -45,6 +45,7 @@ void to_json(nlohmann::json& j, GeneratorDistributionData const& v)
         CELER_JSON_PAIR(v, charge),
         CELER_JSON_PAIR(v, material),
         CELER_JSON_PAIR(v, continuous_edep_fraction),
+        CELER_JSON_PAIR(v, component_id),
         {"points",
          {
              {"pre", v.points[StepPoint::pre]},
@@ -62,6 +63,7 @@ void from_json(nlohmann::json const& j, GeneratorDistributionData& v)
     CELER_JSON_LOAD_REQUIRED(j, v, charge);
     CELER_JSON_LOAD_REQUIRED(j, v, material);
     CELER_JSON_LOAD_REQUIRED(j, v, continuous_edep_fraction);
+    CELER_JSON_LOAD_OPTION(j, v, component_id);
     auto const& points = j.at("points");
     points.at("pre").get_to(v.points[StepPoint::pre]);
     points.at("post").get_to(v.points[StepPoint::post]);

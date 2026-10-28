@@ -109,15 +109,23 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(
         // NOTE: material and spectrum currently have one-to-one correspondence
         auto spectrum_id = dist_.material;
         CELER_ASSERT(spectrum_id < shared_.spectra.size());
-        auto const& s = shared_.spectra[spectrum_id];
+        auto const& spectrum = shared_.spectra[spectrum_id];
 
-        auto pdf = shared_.reals[s.yield_pdf];
+        if (dist_.component_id)
+        {
+            // Use the provided component instead of sampling
+            CELER_ASSERT(dist_.component_id < spectrum.components.size());
+            return shared_.scint_records
+                [spectrum.components[dist_.component_id.get()]];
+        }
+
+        auto pdf = shared_.reals[spectrum.yield_pdf];
         auto select_idx = make_selector(
             [&pdf](size_type i) { return static_cast<real_type>(pdf[i]); },
             pdf.size());
         size_type component_idx = select_idx(rng);
-        CELER_ASSERT(component_idx < s.components.size());
-        return shared_.scint_records[s.components[component_idx]];
+        CELER_ASSERT(component_idx < spectrum.components.size());
+        return shared_.scint_records[spectrum.components[component_idx]];
     }();
 
     real_type energy_val{};

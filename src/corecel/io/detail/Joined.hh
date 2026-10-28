@@ -58,37 +58,35 @@ struct Joined
     InputIterator last;
     Conjunction conjunction;
     StreamOp op;
+
+    //! Write to a stream
+    friend std::ostream& operator<<(std::ostream& os, Joined const& j)
+    {
+        auto iter = j.first;
+        auto op = j.op;
+
+        // First element is not preceded by a conjunction
+        if (iter != j.last)
+        {
+            op(os, *iter++);
+        }
+
+        // Join the rest
+        while (iter != j.last)
+        {
+            os << j.conjunction;
+            op(os, *iter++);
+        }
+
+        return os;
+    }
+
+    //! Convert to a string
+    friend std::string to_string(Joined const& j)
+    {
+        return stream_to_string(j);
+    }
 };
-
-//---------------------------------------------------------------------------//
-template<class I, class C, class S>
-inline std::ostream& operator<<(std::ostream& os, Joined<I, C, S> const& j)
-{
-    auto iter = j.first;
-    auto op = j.op;
-
-    // First element is not preceded by a conjunction
-    if (iter != j.last)
-    {
-        op(os, *iter++);
-    }
-
-    // Join the rest
-    while (iter != j.last)
-    {
-        os << j.conjunction;
-        op(os, *iter++);
-    }
-
-    return os;
-}
-
-//---------------------------------------------------------------------------//
-template<class I, class C, class S>
-inline std::string to_string(Joined<I, C, S> const& j)
-{
-    return stream_to_string(j);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

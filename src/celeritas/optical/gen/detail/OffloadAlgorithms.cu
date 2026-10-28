@@ -7,18 +7,34 @@
 #include "OffloadAlgorithms.hh"
 
 #include <thrust/device_ptr.h>
-#include <thrust/execution_policy.h>
 #include <thrust/functional.h>
+// TODO: Move these two headers inside the #else block once the
+//       remove_if_invalid function is ported to CUB/hipCUB
+#include <thrust/execution_policy.h>
 #include <thrust/remove.h>
-#include <thrust/transform_reduce.h>
 
+#include "corecel/Types.hh"
+
+#if CELERITAS_USE_CUDA
+#    include <cub/device/device_reduce.cuh>
+#    include <thrust/iterator/transform_iterator.h>
+#elif CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
+#    include <hipcub/device/device_reduce.hpp>
+#    include <thrust/iterator/transform_iterator.h>
+#else
+#    include <thrust/transform_reduce.h>
+#endif
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "corecel/data/Copier.hh"
-#include "corecel/math/Algorithms.hh"
+#include "corecel/data/DeviceVector.hh"
+#include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
+
+#if CELERITAS_HAVE_HIPCUB
+namespace cub = hipcub;
+#endif
 
 using namespace celeritas::literals;
 
@@ -36,37 +52,87 @@ template<class T>
 size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const& buffer,
                             size_type offset,
                             size_type size,
-                            StreamId stream)
+                            StreamId stream_id)
 {
     ScopedProfiling profile_this{"remove-if-invalid"};
     auto start = thrust::device_pointer_cast(buffer.data().get());
-    auto stop = thrust::remove_if(
-        thrust_execute_on(stream), start + offset, start + size, LogicalNot{});
+    auto stop = thrust::remove_if(thrust_execute_on(stream_id),
+                                  start + offset,
+                                  start + size,
+                                  LogicalNot{});
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return stop - start;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Count the number of optical photons in the distributions.
+ * Count the number of optical photons in the distributions and add these to
+ * the number of pending tracks.
  */
-size_type count_num_photons(
+void add_pending_photon_count(
+    optical::CoreState<MemSpace::device>& state,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const& buffer,
     size_type offset,
     size_type size,
-    StreamId stream)
+    StreamId stream_id)
 {
     ScopedProfiling profile_this{"count-num-photons"};
-    auto start = thrust::device_pointer_cast(buffer.data().get());
+    auto& stream = device().stream(stream_id);
+    auto start = device_pointer_cast(buffer.data());
+#if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
+    std::size_t temp_storage_bytes = 0;
+    // This could be allocated once and reused for each call
+    DeviceVector<size_type> result(1, stream_id);
+    auto transform = thrust::transform_iterator(
+        start + offset,
+        celeritas::optical::GetNumPhotons<GeneratorDistributionData>());
+    // Calling with nullptr causes the function to return the amount of working
+    // space needed instead of invoking the kernel
+    // Note: The CUB/hipCUB functions need the number of entries being
+    // processed instead of the end of the entries, so we need to pass the end
+    // of the distributions (size) minus the starting point, which is offset
+    // Compute summation
+    auto cub_error_code = cub::DeviceReduce::Sum(nullptr,
+                                                 temp_storage_bytes,
+                                                 transform,
+                                                 result.data(),
+                                                 size - offset,
+                                                 stream.get());
+    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
+    CELER_DISCARD(cub_error_code);
+    // Note: Reductions are done in place but allocate 1 byte, so this could
+    // be done once and reused
+    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
+    cub_error_code = cub::DeviceReduce::Sum(temp_storage.data(),
+                                            temp_storage_bytes,
+                                            transform,
+                                            result.data(),
+                                            size - offset,
+                                            stream.get());
+    CELER_DISCARD(cub_error_code);
+
+    // Must match variable name in #else below for thrust
+    ObserverPtr<size_type, MemSpace::device> count{result.data()};
+#else
     size_type count = thrust::transform_reduce(
-        thrust_execute_on(stream),
+        thrust_execute_on(stream_id),
         start + offset,
         start + size,
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
         0_sz,
         thrust::plus<size_type>());
+    // If there aren't any new photons, skip updating the counter. Can't do the
+    // same check with the CUB/hipCUB functions because the counter is device
+    // resident.
+    if (count == 0)
+    {
+        CELER_DEVICE_API_CALL(PeekAtLastError());
+        return;
+    }
+#endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
-    return count;
+    state.add_pending(count);
+    return;
 }
 
 //---------------------------------------------------------------------------//

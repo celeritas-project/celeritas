@@ -9,13 +9,12 @@
 #include <utility>
 
 #include "corecel/Macros.hh"
+#include "corecel/SourceFile.hh"
+#include "corecel/io/detail/NullLoggerMessage.hh"
 
 #include "LoggerTypes.hh"
 
 #include "detail/LoggerMessage.hh"  // IWYU pragma: export
-#if CELER_DEVICE_COMPILE
-#    include "detail/NullLoggerMessage.hh"  // IWYU pragma: export
-#endif
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -24,7 +23,7 @@
 #define CELER_CODE_PROVENANCE \
     ::celeritas::LogProvenance \
     { \
-        __FILE__, __LINE__ \
+        CELER_SOURCE_FILE, __LINE__ \
     }
 
 /*!
@@ -62,15 +61,13 @@
 // Allow CELER_LOG to be present (but ignored) in device code
 #if CELER_DEVICE_COMPILE
 #    undef CELER_LOG
-#    define CELER_LOG(LEVEL) ::celeritas::detail::NullLoggerMessage()
+#    define CELER_LOG(LEVEL) ::celeritas::null_log_message()
 #    undef CELER_LOG_LOCAL
-#    define CELER_LOG_LOCAL(LEVEL) ::celeritas::detail::NullLoggerMessage()
+#    define CELER_LOG_LOCAL(LEVEL) ::celeritas::null_log_message()
 #endif
 
 namespace celeritas
 {
-class MpiCommunicator;
-
 //---------------------------------------------------------------------------//
 /*!
  * Create a log message to be printed based on output/verbosity settings.
@@ -84,9 +81,8 @@ class MpiCommunicator;
    world_logger = Logger(my_handler);
  * \endcode
  *
- * When using with MPI, the \c world_logger global objects are different on
- * each process: rank 0 will have a handler that outputs to screen, and the
- * other ranks will have a "null" handler that suppresses all log output.
+ * When using with MPI, set a null handle to \c world_logger on all processes
+ * other than rank 0, or use \c LocalMpiHandler on each process.
  *
  * \todo Replace the back-end with \c spdlog to reduce maintenance
  * burden and improve flexibility.
@@ -156,11 +152,17 @@ auto Logger::operator()(LogProvenance&& prov, LogLevel lev) const -> Message
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-// Parallel logger (print only on "main" process)
+// Parallel logger (print only on "main" process using CELER_LOG)
 Logger& world_logger();
 
-// Serial logger (print on *every* process)
+// Serial logger (print on *every* process using CELER_LOG_LOCAL)
 Logger& self_logger();
+
+//! Return a stream-like object that ignores everything (used for device code)
+CELER_CONSTEXPR_FUNCTION auto null_log_message()
+{
+    return detail::NullLoggerMessage();
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

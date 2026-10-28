@@ -7,6 +7,7 @@ if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
 else()
   celeritas_get_g4libs(_g4_global_libs global)
+  celeritas_get_g4libs(_g4_sd_libs digits_hits)
 endif()
 
 if(CELERITAS_UNITS STREQUAL "CGS")
@@ -31,7 +32,6 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
-  CheckedGeoTrackView.cc
   LazyGeantGeoManager.cc
   GeantImportVolumeResult.cc
   GenericGeoResults.cc
@@ -137,6 +137,12 @@ if(CELERITAS_USE_VecGeom)
   )
 endif()
 
+if(CELERITAS_USE_VecGeom AND VecGeom_VERSION VERSION_GREATER_EQUAL 2.2)
+  celeritas_add_test(vg/VgBasicTrackView.test.cc
+    LINK_LIBRARIES VecGeom::vecgeom
+  )
+endif()
+
 #-----------------------------------------------------------------------------#
 # Geant4
 
@@ -147,7 +153,8 @@ if(CELERITAS_USE_Geant4)
   # Tests that depend on GeantGeoTestBase will not link without it
   celeritas_add_test(GeantGeoUtils.test.cc)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
-  celeritas_add_test(g4/GeantGeo.test.cc ${_needs_double})
+  celeritas_add_test(g4/GeantGeo.test.cc ${_needs_double}
+    LINK_LIBRARIES ${_g4_sd_libs} ${_g4_global_libs})
   celeritas_add_test(g4/GeantNavHistoryUpdater.test.cc)
 endif()
 

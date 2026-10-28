@@ -63,6 +63,8 @@ void Transporter::transport_impl(CoreState<M>& state) const
     size_type num_step_iters{0};
     size_type num_steps{0};
 
+    // Reset the counts that are accumulated during the loop
+    state.clear_tallies();
     auto counters = state.sync_get_counters();
 
     // Store a pointer to aux data for timing results
@@ -167,6 +169,20 @@ auto Transporter::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
 
 //---------------------------------------------------------------------------//
 /*!
+ * Clear the accumulated action times.
+ */
+auto Transporter::exchange_action_times(AuxStateVec& aux) const -> MapStrDbl
+{
+    auto result = this->get_action_times(aux);
+    if (input_.action_times)
+    {
+        input_.action_times->clear_action_times(aux);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the recorded step times.
  */
 auto Transporter::get_step_times(AuxStateVec const& aux) const -> VecDbl
@@ -176,6 +192,20 @@ auto Transporter::get_step_times(AuxStateVec const& aux) const -> VecDbl
         return input_.step_times->state(aux).time;
     }
     return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear the recorded step times.
+ */
+auto Transporter::exchange_step_times(AuxStateVec& aux) const -> VecDbl
+{
+    VecDbl result;
+    if (input_.step_times)
+    {
+        result = std::exchange(input_.step_times->state(aux).time, {});
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

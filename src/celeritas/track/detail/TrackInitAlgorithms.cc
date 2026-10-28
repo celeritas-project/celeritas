@@ -9,9 +9,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/math/Algorithms.hh"
-
-#include "../Utils.hh"
 
 using namespace celeritas::literals;
 
@@ -45,22 +44,23 @@ void remove_if_alive(
  * where \f$ y_0 = 0 \f$, and stores the result in the input array.
  *
  * The input size is one greater than the number of track slots so that the
- * final element will be the total accumulated value.
+ * final element will be the total accumulated value. The returned pointer
+ * refers to that final element.
  */
-size_type exclusive_scan_counts(
+ObserverPtr<size_type, MemSpace::host> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::host> const&
         counts,
     StreamId)
 {
     CELER_EXPECT(!counts.empty());
     auto* data = counts.data().get();
+    auto* stop = data + counts.size();
 #ifdef __cpp_lib_parallel_algorithm
-    auto* stop = std::exclusive_scan(data, data + counts.size(), data, 0_sz);
+    std::exclusive_scan(data, stop, data, 0_sz);
 #else
     // Standard library shipped with GCC 8.5 does not include exclusive_scan
     // (I guess it's *too* exclusive)
     size_type acc = 0;
-    auto* const stop = data + counts.size();
     for (; data != stop; ++data)
     {
         size_type current = *data;
@@ -68,31 +68,36 @@ size_type exclusive_scan_counts(
         acc += current;
     }
 #endif
-    // Return the final value
-    return *(stop - 1);
+    // Return last value (*not* past-the-end)
+    return make_observer(stop - 1);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sort the tracks that will be initialized in this step by charged/neutral.
+ * Count the neutral tracks that will be initialized in this step.
  *
- * This partitions an array of indices used to access the track initializers
- * and the thread IDs of the initializers' parent tracks.
+ * This calculates the inclusive prefix sum of \c IsNeutralNewTrack over all
+ * track slots and stores it in the \c indices array: element \em i is the
+ * number of neutral tracks among the first \em i + 1 initializers used in
+ * this step.
  */
-void partition_initializers(
+void scan_neutral_initializers(
     CoreParams const& params,
     TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
-    size_type count,
     StreamId)
 {
-    // Partition the indices based on the track initializer charge
-    auto* start = init.indices.data().get();
-    auto* end = start + count;
-    auto* counters = init.counters.data().get();
-    auto* stencil = init.initializers.data().get() + counters->num_initializers
-                    - count;
-    std::stable_partition(
-        start, end, IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
+    CELER_EXPECT(!init.indices.empty());
+
+    IsNeutralNewTrack is_neutral{params.ptr<MemSpace::native>(),
+                                 init.initializers.data().get(),
+                                 init.counters.data().get()};
+    auto* data = init.indices.data().get();
+    size_type acc = 0;
+    for (size_type i = 0; i < init.indices.size(); ++i)
+    {
+        acc += is_neutral(i);
+        data[i] = acc;
+    }
 }
 
 //---------------------------------------------------------------------------//

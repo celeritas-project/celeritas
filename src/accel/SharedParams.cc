@@ -132,7 +132,7 @@ std::mutex& updating_mutex()
  * Currently the mode is set by querying the environment variables \c
  * CELER_KILL_OFFLOAD and \c CELER_DISABLE .
  *
- * \todo This will be refactored for 0.7 to take a \c celeritas::inp object and
+ * \todo This will be refactored to take a \c celeritas::inp object and
  * determine values rather than from the environment .
  */
 auto SharedParams::GetMode() -> Mode
@@ -215,18 +215,6 @@ auto SharedParams::default_offload_particles() -> VecG4PD const&
     };
 
     return default_particles;
-}
-
-//---------------------------------------------------------------------------//
-bool SharedParams::CeleritasDisabled()
-{
-    return GetMode() == Mode::disabled;
-}
-
-//---------------------------------------------------------------------------//
-bool SharedParams::KillOffloadTracks()
-{
-    return GetMode() == Mode::kill_offload;
 }
 
 //---------------------------------------------------------------------------//
@@ -393,22 +381,6 @@ void SharedParams::Finalize()
 
 //---------------------------------------------------------------------------//
 /*!
- * Let LocalTransporter register the thread's state.
- */
-void SharedParams::set_state(unsigned int stream_id, SPState&& state)
-{
-    CELER_EXPECT(*this);
-    CELER_EXPECT(!states_.empty());
-
-    CELER_EXPECT(stream_id < states_.size());
-    CELER_EXPECT(state);
-    CELER_EXPECT(!states_[stream_id]);
-
-    states_[stream_id] = std::move(state);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Lazily obtained number of streams.
  *
  * \todo This is currently needed due to some wackiness with the
@@ -418,7 +390,7 @@ void SharedParams::set_state(unsigned int stream_id, SPState&& state)
  */
 unsigned int SharedParams::num_streams() const
 {
-    if (CELER_UNLIKELY(states_.empty()))
+    if (CELER_UNLIKELY(num_streams_ == 0))
     {
         // Initial lock-free check failed; now lock and create if needed
         // Default to setting the maximum number of streams based on Geant4
@@ -427,8 +399,8 @@ unsigned int SharedParams::num_streams() const
             celeritas::get_geant_num_threads());
     }
 
-    CELER_ENSURE(!states_.empty());
-    return states_.size();
+    CELER_ENSURE(num_streams_ > 0);
+    return num_streams_;
 }
 
 //---------------------------------------------------------------------------//
@@ -442,12 +414,12 @@ void SharedParams::set_num_streams(unsigned int num_streams)
     CELER_EXPECT(num_streams > 0);
 
     std::lock_guard scoped_lock{updating_mutex()};
-    if (!states_.empty() && states_.size() != num_streams)
+    if (num_streams_ > 0 && num_streams_ != num_streams)
     {
         // This could happen if someone queries the number of streams
         // before initializing celeritas
         CELER_LOG(warning) << "Changing number of streams from "
-                           << states_.size() << " to user-specified "
+                           << num_streams_ << " to user-specified "
                            << num_streams;
     }
     else
@@ -455,7 +427,7 @@ void SharedParams::set_num_streams(unsigned int num_streams)
         CELER_LOG(debug) << "Setting number of streams to " << num_streams;
     }
 
-    states_.resize(num_streams);
+    num_streams_ = num_streams;
 }
 
 //---------------------------------------------------------------------------//

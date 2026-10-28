@@ -22,12 +22,15 @@ namespace orangeinp
 namespace
 {
 //! Convenience enumeration for implementations in this file
+namespace xyz_axes
+{
 enum
 {
     X = 0,
     Y = 1,
     Z = 2
 };
+}  // namespace xyz_axes
 }  // namespace
 //---------------------------------------------------------------------------//
 /*!
@@ -38,6 +41,8 @@ auto StackedExtrudedPolygon::or_solid(std::string&& label,
                                       VecReal3&& polyline,
                                       VecReal&& scaling) -> SPConstObject
 {
+    using namespace xyz_axes;
+
     CELER_VALIDATE(polygon.size() >= 3,
                    << "polygon must have at least 3 vertices");
     CELER_VALIDATE(polyline.size() >= 2,
@@ -86,6 +91,8 @@ StackedExtrudedPolygon::StackedExtrudedPolygon(std::string&& label,
     , polyline_{std::move(polyline)}
     , scaling_{std::move(scaling)}
 {
+    using namespace xyz_axes;
+
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must have at least 3 vertices");
     CELER_VALIDATE(polyline_.size() >= 2,
@@ -186,6 +193,8 @@ NodeId StackedExtrudedPolygon::make_stack(
     VecReal2 const& polygon,
     StackedExtrudedPolygon::SubRegionIndex si) const
 {
+    using namespace xyz_axes;
+
     std::vector<NodeId> nodes;
     SoftEqual<real_type> soft_equal(vb.tol().rel, vb.tol().abs);
     SoftZero<real_type> soft_zero(vb.tol().abs);

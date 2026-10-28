@@ -175,9 +175,25 @@ void TrackingManagerIntegration::verify_local_setup()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Auto hooks drive begin/end run for tracking manager integration.
+ */
+bool TrackingManagerIntegration::use_auto_hooks() const
+{
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Only allow the singleton to construct.
  */
-TrackingManagerIntegration::TrackingManagerIntegration() = default;
+TrackingManagerIntegration::TrackingManagerIntegration()
+{
+    auto& singleton = detail::IntegrationSingleton::instance();
+
+    singleton.register_auto_hooks();
+    singleton.set_verify_callback(
+        [this](StreamId) { this->verify_local_setup(); });
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

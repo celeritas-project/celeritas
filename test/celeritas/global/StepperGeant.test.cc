@@ -27,6 +27,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
@@ -128,6 +129,15 @@ class TestEm3NoMsc : public TestEm3StepperTestBase
         auto opts = TestEm3Base::build_geant_options();
         opts.msc = MscModelSelection::none;
         return opts;
+    }
+
+    SPConstTrackInit build_init() override
+    {
+        TrackInitParams::Input input;
+        input.capacity = 32768;
+        input.max_events = 4096;
+        input.track_order = TrackOrder::none;
+        return std::make_shared<TrackInitParams>(input);
     }
 };
 

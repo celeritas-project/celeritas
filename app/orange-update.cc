@@ -32,7 +32,7 @@ void run(std::string const& input_file, std::string const& output_file)
         nlohmann::json::parse(instream).get_to(inp);
     }
 
-    celeritas::FileOrStdout outstream{output_file};
+    celeritas::FileOrStdout outstream{output_file, std::ios::out};
     outstream << nlohmann::json(inp).dump(/* indent = */ 0);
 }
 

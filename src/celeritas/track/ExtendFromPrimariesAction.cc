@@ -9,15 +9,15 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
-#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/track/CounterAlgorithms.hh"
 
-#include "TrackInitParams.hh"
+#include "TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
 
@@ -99,18 +99,9 @@ auto ExtendFromPrimariesAction::create_state(
 /*!
  * Add user-provided primaries on host.
  */
-void ExtendFromPrimariesAction::insert(CoreParams const& params,
-                                       CoreStateInterface& state,
-                                       Span<Primary const> host_primaries) const
+void ExtendFromPrimariesAction::insert(
+    CoreStateInterface& state, Span<Primary const> host_primaries) const
 {
-    size_type num_initializers = state.sync_get_counters().num_initializers;
-    size_type init_capacity = params.init()->capacity();
-
-    CELER_VALIDATE(host_primaries.size() + num_initializers <= init_capacity,
-                   << "insufficient initializer capacity (" << init_capacity
-                   << ") with size (" << num_initializers
-                   << ") for primaries (" << host_primaries.size() << ")");
-
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
     {
         this->insert_impl(*s, host_primaries);
@@ -177,24 +168,21 @@ void ExtendFromPrimariesAction::insert_impl(
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct primaries.
+ * Create track initializers from primary particles.
  */
 template<MemSpace M>
 void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
                                           CoreState<M>& state) const
 {
-    auto& primaries = get<PrimaryStateData<M>>(state.aux(), aux_id_);
-
-    // Create track initializers from primaries
-    this->process_primaries(params, state, primaries);
-
-    // Mark that the primaries have been processed
-    auto counters = state.sync_get_counters();
-    counters.num_initializers += primaries.count;
-    counters.num_generated += primaries.count;
-    counters.num_pending = 0;
-    primaries.count = 0;
-    state.sync_put_counters(counters);
+    auto& pstate = get<PrimaryStateData<M>>(state.aux(), aux_id_);
+    if (pstate.count > 0)
+    {
+        // TODO: if trying CUDA graphs we may need to always call this.
+        this->process_primaries(params, state, pstate);
+        add_primaries(
+            state.ref().init.counters, pstate.count, state.stream_id());
+        pstate.count = 0;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -206,14 +194,12 @@ void ExtendFromPrimariesAction::process_primaries(
     CoreStateHost& state,
     PrimaryStateData<MemSpace::host> const& pstate) const
 {
+    CELER_EXPECT(pstate.count > 0);
     auto primaries = pstate.primaries();
     detail::ProcessPrimariesExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), primaries};
-    if (!primaries.empty())
-    {
-        auto num_threads = max<size_type>(primaries.size(), state.size());
-        return launch_action(*this, num_threads, params, state, execute);
-    }
+    auto num_threads = max<size_type>(primaries.size(), state.size());
+    return launch_action(*this, num_threads, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

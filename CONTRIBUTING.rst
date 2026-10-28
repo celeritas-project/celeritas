@@ -203,7 +203,7 @@ are copied directly into the release notes. For example:
  - Refactor code in preparation for new tracker type
  - Add CI support for multiple Geant4 versions
 
-Do not add textual or emoji tags to the title (e.g., no ``CI:`` or ``🐛``).
+Do not add textual or emoji tags to the title (e.g., no ``CI:`` or ``:bug:``).
 
 Description
 ^^^^^^^^^^^
