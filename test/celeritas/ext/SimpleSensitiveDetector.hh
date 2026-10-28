@@ -6,9 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <string>
 #include <vector>
 #include <G4VSensitiveDetector.hh>
+
+#include "AssertionHelper.hh"
 
 namespace celeritas
 {
@@ -35,7 +39,12 @@ struct SimpleHitsResult
     std::vector<std::string> post_physvol;
     std::vector<std::string> post_status;
 
-    void print_expected() const;
+    friend std::ostream& operator<<(std::ostream&, SimpleHitsResult const&);
+    friend void print_expected(SimpleHitsResult const&);
+    friend void check_ref_eq(AssertionHelper&,
+                             SimpleHitsResult const&,
+                             SimpleHitsResult const&,
+                             std::nullptr_t);
 };
 
 //---------------------------------------------------------------------------//

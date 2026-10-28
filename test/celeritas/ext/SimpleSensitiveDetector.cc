@@ -16,8 +16,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/Repr.hh"
 #include "celeritas/ext/GeantParticleView.hh"
+
+#include "TestMacros.hh"
 
 using std::cout;
 
@@ -26,96 +27,70 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-void SimpleHitsResult::print_expected() const
+std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
+{
+    return os << "SimpleHitsResult{\n"
+              << CELER_REF_ATTR(energy_deposition)
+              << CELER_REF_ATTR(step_length) << CELER_REF_ATTR(particle)
+              << CELER_REF_ATTR(weight) << CELER_REF_ATTR(track_id)
+              << CELER_REF_ATTR(parent_id) << CELER_REF_ATTR(pre_energy)
+              << CELER_REF_ATTR(pre_time) << CELER_REF_ATTR(pre_pos)
+              << CELER_REF_ATTR(pre_dir) << CELER_REF_ATTR(pre_physvol)
+              << CELER_REF_ATTR(post_time) << CELER_REF_ATTR(post_energy)
+              << CELER_REF_ATTR(post_pos) << CELER_REF_ATTR(post_dir)
+              << CELER_REF_ATTR(post_physvol) << CELER_REF_ATTR(post_status)
+              << "}";
+}
+
+//---------------------------------------------------------------------------//
+void print_expected(SimpleHitsResult const& ref)
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static double const expected_energy_deposition[] = "
-         << repr(this->energy_deposition)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_energy_deposition, "
-            "result.energy_deposition);\n"
-
-            "static double const expected_step_length[] = "
-         << repr(this->step_length)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_step_length, result.step_length);\n"
-
-            "static char const* const expected_particle[] = "
-         << repr(this->particle)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_particle, result.particle);\n"
-
-            "static double const expected_weight[] = "
-         << repr(this->weight)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_weight, result.weight);\n"
-
-            "static int const expected_track_id[] = "
-         << repr(this->track_id)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_track_id, result.track_id);\n"
-
-            "static int const expected_parent_id[] = "
-         << repr(this->parent_id)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_parent_id, result.parent_id);\n"
-
-            "static double const expected_pre_energy[] = "
-         << repr(this->pre_energy)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);\n"
-
-            "static double const expected_pre_time[] = "
-         << repr(this->pre_time)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_pre_time, result.pre_time);\n"
-
-            "static double const expected_pre_pos[] = "
-         << repr(this->pre_pos)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);\n"
-
-            "static double const expected_pre_dir[] = "
-         << repr(this->pre_dir)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_pre_dir, result.pre_dir);\n"
-
-            "static char const* const expected_pre_physvol[] = "
-         << repr(this->pre_physvol)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);\n"
-
-            "static double const expected_post_time[] = "
-         << repr(this->post_time)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);\n"
-
-            "static double const expected_post_energy[] = "
-         << repr(this->post_energy)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_post_energy, result.post_energy);\n"
-
-            "static double const expected_post_pos[] = "
-         << repr(this->post_pos)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_post_pos, result.post_pos);\n"
-
-            "static double const expected_post_dir[] = "
-         << repr(this->post_dir)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_post_dir, result.post_dir);\n"
-
-            "static char const* const expected_post_physvol[] = "
-         << repr(this->post_physvol)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);\n"
-
-            "static char const* const expected_post_status[] = "
-         << repr(this->post_status)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_post_status, result.post_status);\n"
-
+            "SimpleHitsResult ref;\n"
+         << CELER_REF_ATTR(energy_deposition) << CELER_REF_ATTR(step_length)
+         << CELER_REF_ATTR(particle) << CELER_REF_ATTR(weight)
+         << CELER_REF_ATTR(track_id) << CELER_REF_ATTR(parent_id)
+         << CELER_REF_ATTR(pre_energy) << CELER_REF_ATTR(pre_time)
+         << CELER_REF_ATTR(pre_pos) << CELER_REF_ATTR(pre_dir)
+         << CELER_REF_ATTR(pre_physvol) << CELER_REF_ATTR(post_time)
+         << CELER_REF_ATTR(post_energy) << CELER_REF_ATTR(post_pos)
+         << CELER_REF_ATTR(post_dir) << CELER_REF_ATTR(post_physvol)
+         << CELER_REF_ATTR(post_status)
+         << "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
+void check_ref_eq(AssertionHelper& result,
+                  SimpleHitsResult const& expected,
+                  SimpleHitsResult const& actual,
+                  std::nullptr_t)
+{
+    using namespace ::celeritas::test;
+    is_vec_soft_eq(result,
+                   "energy_deposition",
+                   expected.energy_deposition,
+                   actual.energy_deposition);
+    is_vec_soft_eq(
+        result, "step_length", expected.step_length, actual.step_length);
+    is_vec_eq(result, "particle", expected.particle, actual.particle);
+    is_vec_soft_eq(result, "weight", expected.weight, actual.weight);
+    is_vec_eq(result, "track_id", expected.track_id, actual.track_id);
+    is_vec_eq(result, "parent_id", expected.parent_id, actual.parent_id);
+    is_vec_soft_eq(
+        result, "pre_energy", expected.pre_energy, actual.pre_energy);
+    is_vec_soft_eq(result, "pre_time", expected.pre_time, actual.pre_time);
+    is_vec_soft_eq(result, "pre_pos", expected.pre_pos, actual.pre_pos);
+    is_vec_soft_eq(result, "pre_dir", expected.pre_dir, actual.pre_dir);
+    is_vec_eq(result, "pre_physvol", expected.pre_physvol, actual.pre_physvol);
+    is_vec_soft_eq(result, "post_time", expected.post_time, actual.post_time);
+    is_vec_soft_eq(
+        result, "post_energy", expected.post_energy, actual.post_energy);
+    is_vec_soft_eq(result, "post_pos", expected.post_pos, actual.post_pos);
+    is_vec_soft_eq(result, "post_dir", expected.post_dir, actual.post_dir);
+    is_vec_eq(
+        result, "post_physvol", expected.post_physvol, actual.post_physvol);
+    is_vec_eq(result, "post_status", expected.post_status, actual.post_status);
 }
 
 //---------------------------------------------------------------------------//
