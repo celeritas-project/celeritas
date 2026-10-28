@@ -111,7 +111,7 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
     real_type tstep = [&] {
         if (alpha_ == MscStep::small_step_alpha())
         {
-            // Cross section was constant over the step:
+            // Cross section was approximated as constant over the step:
             // z = lambda * (1 - exp(-g / lambda))
             // => g = -lambda * log(1 - g / lambda)
             real_type result = -lambda_ * std::log1p(-gstep / lambda_);

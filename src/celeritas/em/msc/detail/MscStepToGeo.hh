@@ -155,7 +155,7 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
     }
     else
     {
-        // Eq 8.8: lambda_frac = (lambda_f / lambda_i) = (1 - alpha * tstep)
+        // Calculate end-of-step MSC MFP
         real_type lambda_f = [this, tstep] {
             if (tstep == range_)
             {
@@ -175,6 +175,7 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
             return helper_.calc_msc_mfp(endpoint_energy);
         }();
 
+        // Eq 8.8: lambda_frac = (lambda_f / lambda_i) = (1 - alpha * tstep)
         // Calculate the geometric path assuming the cross section is
         // linear between the start and end energy. Eq 8.10+1
         real_type lambda_frac = lambda_f / lambda_;
