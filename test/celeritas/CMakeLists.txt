@@ -9,8 +9,7 @@ if(CELERITAS_REAL_TYPE STREQUAL "double")
 else()
   # Test relies on "gold" data; don't bother updating
   set(_needs_double DISABLE)
-  # Test has legitimate errors and we should fix if we support
-  # single-precision in the long term
+  # Test has legitimate errors and we should fix to reduce edge cases
   set(_fixme_single DISABLE)
 endif()
 
@@ -286,7 +285,7 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 #-----------------------------------------------------------------------------#
 # Geo
 
-celeritas_add_test(geo/Geometry.test.cc  GPU ${_needs_double} ${_fixme_cgs}
+celeritas_add_test(geo/Geometry.test.cc  GPU ${_fixme_cgs} ${_fixme_single}
   FILTER "SimpleCms*" "TestEm3*" "ThreeSpheres*")
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
@@ -560,11 +559,11 @@ endif()
 
 celeritas_add_test(user/DetectorSteps.test.cc GPU)
 celeritas_add_test(user/Diagnostic.test.cc
-  GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo} ${_needs_double}
+  GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo}
   FILTER ${_diagnostic_filter}
 )
 celeritas_add_test(user/SlotDiagnostic.test.cc
-  GPU NT 1 ${_needs_geant4} ${_needs_double}
+  GPU NT 1 ${_needs_geant4}
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(user/StepCollector.test.cc

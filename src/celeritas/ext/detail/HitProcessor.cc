@@ -176,8 +176,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 
     if (celeritas::device())
     {
-        // Create events for compacting and copying hits
-        compacted_ = DeviceEvent{celeritas::device()};
+        // Create the event for copying hits
         copied_ = DeviceEvent{celeritas::device()};
     }
 
@@ -199,7 +198,7 @@ HitProcessor::~HitProcessor()
     {
         if (this->has_pending_steps())
         {
-            compacted_.sync();
+            num_selected_.sync();
             copied_.sync();
         }
     }
@@ -263,14 +262,13 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
     CELER_EXPECT(states);
     CELER_EXPECT(this->scratch_state() == ScratchState::free);
-    CELER_EXPECT(compacted_ && copied_);
+    CELER_EXPECT(copied_);
     CELER_EXPECT(steps_reserved_);
 
     auto& stream = celeritas::device().stream(states.stream_id);
     // Don't overwrite the scratch space while it is being copied
     stream.wait(copied_);
     compact_steps_async(states, num_selected_);
-    compacted_.record(stream);
     pending_device_steps_ = states;
 }
 
@@ -294,9 +292,10 @@ void HitProcessor::copy_pending_steps()
     this->process_copied_steps();
     CELER_ASSERT(output_ == OutputState::empty);
 
-    // The host-observed completion also orders the copy after the compaction.
-    // Keep the steps pending until then so the destructor waits on failure.
-    compacted_.sync();
+    // The count is loaded after the compaction, so the host-observed load
+    // also orders the copy after the compaction. Keep the steps pending until
+    // then so the destructor waits on failure.
+    num_selected_.sync();
     auto states = std::exchange(pending_device_steps_, {});
     auto& stream = celeritas::device().memcpy_stream(states.stream_id);
     try

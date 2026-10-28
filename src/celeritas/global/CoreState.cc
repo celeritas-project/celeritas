@@ -196,27 +196,15 @@ void CoreState<M>::initialize_counters(size_type num_pending)
  * Copy the current counters to host-accessible storage without synchronizing.
  *
  * For a device state, the copy is enqueued on the state's stream and completes
- * asynchronously. The caller must ensure the copy has completed before
- * accessing \c host_counters.
+ * asynchronously: the \c host_counters snapshot tracks its completion.
+ * Completion of the copy also implies completion of all work enqueued on the
+ * stream before this call.
  */
 template<MemSpace M>
 void CoreState<M>::async_copy_counters()
 {
     host_counters_.load_async(this->ref().init.counters.data(),
                               this->stream_id());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access the most recently copied host counters.
- *
- * For a device state, the caller must ensure the preceding counter copy has
- * completed.
- */
-template<MemSpace M>
-CoreStateCounters const& CoreState<M>::host_counters() const
-{
-    return host_counters_.value();
 }
 
 //---------------------------------------------------------------------------//
