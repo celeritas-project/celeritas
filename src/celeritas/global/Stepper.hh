@@ -259,22 +259,22 @@ class StepperInterface
  * \par Asynchronous state
  *
  * The \c has_outstanding_result_ flag tracks whether an asynchronous step has
- * a result that has not yet been retrieved with \c get, whereas \c step_done_
- * tracks completion of device work. Their states after successful calls are:
+ * a result that has not yet been retrieved with \c get, whereas the core
+ * state's counter snapshot tracks completion of device work. The counter copy
+ * is the last work that \c async enqueues, so its completion implies the
+ * completion of the whole step. Their states after successful calls are:
  *
- * | Lifecycle point | \c has_outstanding_result_ | CPU \c step_done_ | GPU \c
- step_done_ |
- * | --------------- | -------------------------- | ----------------- |
- ----------------- |
- * | Construction or after \c get | false | Null | Allocated and ready |
- * | After \c async | true | Null and ready | Recorded; pending or ready |
- * | After \c ready returns false | true | Not possible | Recorded and pending |
- * | After \c ready is true or \c wait | true | Null/ready | Recorded/ready |
+ * | Lifecycle point          | Outstanding | CPU counters | GPU counters     |
+ * | ------------------------ | ----------- | ------------ | ---------------- |
+ * | Construction or \c get   | false       | Ready        | Ready            |
+ * | After \c async           | true        | Ready        | Pending or ready |
+ * | \c ready is false        | true        | Not possible | Pending          |
+ * | \c ready is true/\c wait | true        | Ready        | Ready            |
  *
- * A host step executes synchronously, so its null event is always ready. A
- * device event is allocated once and re-recorded after each counter snapshot.
- * Calling \c get first waits for completion and then clears \c
- * has_outstanding_result_; it does not reset or replace the event. Primary
+ * A host step executes synchronously, so its counters are copied
+ * immediately. A device snapshot creates its event at construction and
+ * re-records it after each copy. Calling \c get first waits for completion and
+ * then clears \c has_outstanding_result_. Primary
  * buffering has an independent state, tracked by \c primary_phase_ and \c
  * primary_copy_done_. The staged storage remains internal while a copy source
  * is submitted, but the public \c staged_primaries accessor returns only an
@@ -451,8 +451,6 @@ class Stepper final : public StepperInterface
     DeviceEvent primary_copy_done_{nullptr};
     // Logical state of staged_primaries_
     PrimaryPhase primary_phase_{PrimaryPhase::empty};
-    // Completion of device work and the result-counter snapshot
-    DeviceEvent step_done_{nullptr};
     // Whether an asynchronous step result can be retrieved
     bool has_outstanding_result_{false};
 
