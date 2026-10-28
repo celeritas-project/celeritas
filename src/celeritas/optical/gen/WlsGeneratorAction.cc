@@ -22,6 +22,7 @@
 #include "celeritas/optical/model/WavelengthShiftModel.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
+#include "GeneratorAction.hh"
 #include "WavelengthShiftGenerator.hh"
 
 #include "detail/GeneratorAlgorithms.hh"
@@ -32,25 +33,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Construct a state
-template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
-{
-    using StoreT = StateDataStore<WlsGeneratorStateData, M>;
-
-    auto result = std::make_unique<WlsGeneratorState<M>>();
-    result->store = StoreT{stream, size};
-
-    CELER_ENSURE(*result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with IDs, WLS model, and buffer capacity.
@@ -80,11 +62,11 @@ auto WlsGeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(id, capacity_);
+        return make_state<MemSpace::host, WlsGeneratorState>(id, capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(id, capacity_);
+        return make_state<MemSpace::device, WlsGeneratorState>(id, capacity_);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -129,8 +111,6 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     auto& counters = aux_state.counters;
     auto& buffer = aux_state.store.ref().distributions;
 
-    auto num_pending_prev = counters.num_pending;
-
     // Compact the buffer, returning the total number of valid distributions
     counters.buffer_size = celeritas::detail::remove_if_invalid(
         buffer, 0, counters.buffer_size + state.size(), state.stream_id());
@@ -139,7 +119,9 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     {
         // If this process created photons, calculate the cumulative sum of the
         // number of photons in the buffered distributions. This is used to
-        // determine which thread will generate photons from which distribution
+        // determine which thread will generate photons from which
+        // distribution. The new photons were already added to the core
+        // state's pending count when the distributions were created.
         counters.num_pending = detail::inclusive_scan_photons(
             aux_state.store.ref().distributions,
             aux_state.store.ref().offsets,
@@ -147,13 +129,6 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
             state.stream_id());
     }
 
-    // Update the core state counters if there the process created any photons
-    if (counters.num_pending > num_pending_prev)
-    {
-        // This function doesn't change the aux_state counters, so the next if
-        // statement is still checking inclusive_scan_photons() result
-        state.add_pending(counters.num_pending - num_pending_prev);
-    }
     if (counters.num_pending > 0)
     {
         // Generate the optical photons from the distribution data. To avoid

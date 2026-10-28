@@ -98,8 +98,8 @@ G4StepStatus get_step_status(DetectorStepOutput const& out,
 /*!
  * Construct local navigator and step data.
  *
- * If a device is active, pinned host storage for device hit compaction is also
- * allocated.
+ * If a device is active, events for compacting and copying device hits are
+ * also created.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            VecParticle const& particles,
@@ -176,8 +176,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 
     if (celeritas::device())
     {
-        // Allocate pinned count and events for compacting and copying hits
-        num_selected_.resize(1);
+        // Create events for compacting and copying hits
         compacted_ = DeviceEvent{celeritas::device()};
         copied_ = DeviceEvent{celeritas::device()};
     }
@@ -264,13 +263,13 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
     CELER_EXPECT(states);
     CELER_EXPECT(this->scratch_state() == ScratchState::free);
-    CELER_EXPECT(compacted_ && copied_ && num_selected_.size() == 1);
+    CELER_EXPECT(compacted_ && copied_);
     CELER_EXPECT(steps_reserved_);
 
     auto& stream = celeritas::device().stream(states.stream_id);
     // Don't overwrite the scratch space while it is being copied
     stream.wait(copied_);
-    compact_steps_async(states, AsyncResultRef{num_selected_});
+    compact_steps_async(states, num_selected_);
     compacted_.record(stream);
     pending_device_steps_ = states;
 }
@@ -303,7 +302,7 @@ void HitProcessor::copy_pending_steps()
     try
     {
         copy_compacted_steps_async(
-            &steps_, states, num_selected_.front(), stream);
+            &steps_, states, num_selected_.value(), stream);
     }
     catch (...)
     {

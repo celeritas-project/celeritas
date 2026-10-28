@@ -37,7 +37,8 @@ void WavelengthShiftModel::step(CoreParams const& params,
         InteractionApplier{
             WavelengthShiftExecutor{this->device_ref(),
                                     aux_state.store.ref(),
-                                    aux_state.counters.buffer_size}});
+                                    aux_state.counters.buffer_size,
+                                    state.ref().init.counters.data()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }

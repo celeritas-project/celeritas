@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "DebugIO.json.hh"
 
+#include "corecel/Config.hh"
+
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/math/QuantityIO.json.hh"
@@ -196,10 +198,14 @@ void to_json(nlohmann::json& j, CoreTrackView const& view)
 }
 
 //---------------------------------------------------------------------------//
+#if CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE
+// With ORANGE, GeoTrackView is OrangeTrackView, which is defined in
+// orange/DebugIO.json.cc
 void to_json(nlohmann::json& j, GeoTrackView const& view)
 {
     return to_json_impl(j, view, {});
 }
+#endif
 
 //---------------------------------------------------------------------------//
 void to_json(nlohmann::json& j, ParticleTrackView const& view)

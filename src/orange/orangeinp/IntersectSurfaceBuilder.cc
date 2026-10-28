@@ -237,25 +237,25 @@ void visit(
     template void IntersectSurfaceBuilder::operator()( \
         Sense, SURF const&, std::string&&); \
     template void IntersectSurfaceBuilder::operator()(Sense, SURF const&)
-CSB_INSTANTIATE(PlaneAligned<Axis::x>);
-CSB_INSTANTIATE(PlaneAligned<Axis::y>);
-CSB_INSTANTIATE(PlaneAligned<Axis::z>);
-CSB_INSTANTIATE(CylCentered<Axis::x>);
-CSB_INSTANTIATE(CylCentered<Axis::y>);
-CSB_INSTANTIATE(CylCentered<Axis::z>);
-CSB_INSTANTIATE(SphereCentered);
-CSB_INSTANTIATE(CylAligned<Axis::x>);
-CSB_INSTANTIATE(CylAligned<Axis::y>);
-CSB_INSTANTIATE(CylAligned<Axis::z>);
-CSB_INSTANTIATE(Plane);
-CSB_INSTANTIATE(Sphere);
-CSB_INSTANTIATE(ConeAligned<Axis::x>);
-CSB_INSTANTIATE(ConeAligned<Axis::y>);
-CSB_INSTANTIATE(ConeAligned<Axis::z>);
-CSB_INSTANTIATE(SimpleQuadric);
-CSB_INSTANTIATE(GeneralQuadric);
-CSB_INSTANTIATE(Involute);
-CSB_INSTANTIATE(Toroid);
+CSB_INSTANTIATE(celeritas::PlaneAligned<celeritas::Axis::x>);
+CSB_INSTANTIATE(celeritas::PlaneAligned<celeritas::Axis::y>);
+CSB_INSTANTIATE(celeritas::PlaneAligned<celeritas::Axis::z>);
+CSB_INSTANTIATE(celeritas::CylCentered<celeritas::Axis::x>);
+CSB_INSTANTIATE(celeritas::CylCentered<celeritas::Axis::y>);
+CSB_INSTANTIATE(celeritas::CylCentered<celeritas::Axis::z>);
+CSB_INSTANTIATE(celeritas::SphereCentered);
+CSB_INSTANTIATE(celeritas::CylAligned<celeritas::Axis::x>);
+CSB_INSTANTIATE(celeritas::CylAligned<celeritas::Axis::y>);
+CSB_INSTANTIATE(celeritas::CylAligned<celeritas::Axis::z>);
+CSB_INSTANTIATE(celeritas::Plane);
+CSB_INSTANTIATE(celeritas::Sphere);
+CSB_INSTANTIATE(celeritas::ConeAligned<celeritas::Axis::x>);
+CSB_INSTANTIATE(celeritas::ConeAligned<celeritas::Axis::y>);
+CSB_INSTANTIATE(celeritas::ConeAligned<celeritas::Axis::z>);
+CSB_INSTANTIATE(celeritas::SimpleQuadric);
+CSB_INSTANTIATE(celeritas::GeneralQuadric);
+CSB_INSTANTIATE(celeritas::Involute);
+CSB_INSTANTIATE(celeritas::Toroid);
 #undef CSB_INSTANTIATE
 //! \endcond
 

@@ -93,7 +93,6 @@ class CounterTrackingAction final : public G4UserTrackingAction
     std::size_t num_electrons_{};
     std::size_t num_positrons_{};
 };
-
 }  // namespace
 
 //---------------------------------------------------------------------------//

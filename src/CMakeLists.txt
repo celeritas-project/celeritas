@@ -58,6 +58,11 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107532
     celer_silence_flag(CXX dangling-reference)
   endif()
+  if(CMAKE_UNITY_BUILD)
+    # With Unity build enabled GCC will complain about linkage issue when
+    # using anonyomous namespaces in source files.
+    celer_silence_flag(CXX subobject-linkage)
+  endif()
 endif()
 
 celeritas_target_include_directories(BuildFlags

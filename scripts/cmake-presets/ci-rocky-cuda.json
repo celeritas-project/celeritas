@@ -25,7 +25,8 @@
         "CMAKE_CXX_EXTENSIONS": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
+        "CMAKE_UNITY_BUILD": { "type": "BOOL", "value": "ON" }
       }
     },
     {

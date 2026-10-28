@@ -134,6 +134,7 @@ GeneralQuadric SurfaceTransformer::operator()(ConeAligned<T> const& other) const
 //! \cond
 ORANGE_INSTANTIATE_OP(GeneralQuadric, ConeAligned);
 //! \endcond
+#undef ORANGE_INSTANTIATE_OP
 
 //---------------------------------------------------------------------------//
 /*!

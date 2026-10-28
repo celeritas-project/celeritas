@@ -15,7 +15,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/data/PinnedAllocator.hh"
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/sys/DeviceEvent.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/DetectorSteps.hh"
@@ -210,8 +210,8 @@ class HitProcessor
 
     //! Device step data compacted in the scratch space, awaiting a copy
     StepStateDeviceRef pending_device_steps_;
-    //! Number of compacted device steps (pinned, allocated if device is used)
-    std::vector<size_type, PinnedAllocator<size_type>> num_selected_;
+    //! Number of compacted device steps, loaded into pinned host memory
+    AsyncSnapshot<size_type> num_selected_;
     //! Completion of the pending device step compaction
     DeviceEvent compacted_{nullptr};
     //! Completion of the copy of compacted steps to \c steps_
