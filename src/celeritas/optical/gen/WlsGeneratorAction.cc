@@ -22,7 +22,6 @@
 #include "celeritas/optical/model/WavelengthShiftModel.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
-#include "GeneratorAction.hh"
 #include "WavelengthShiftGenerator.hh"
 
 #include "detail/GeneratorAlgorithms.hh"
@@ -33,6 +32,92 @@ namespace celeritas
 {
 namespace optical
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Construct a state
+template<MemSpace M>
+auto make_state(StreamId stream, size_type size)
+{
+    using StoreT = StateDataStore<WlsGeneratorStateData, M>;
+
+    auto result = std::make_unique<WlsGeneratorState<M>>();
+    result->store = StoreT{stream, size};
+
+    CELER_ENSURE(*result);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compact the buffer and count the distributions created during a step.
+ *
+ * Distributions created during the previous step were written after the end
+ * of the buffer, at most one per track slot. This compacts them into the
+ * buffer, computes the cumulative photon counts, and accumulates the new
+ * distributions and photons.
+ */
+template<MemSpace M>
+void update_buffer(
+    WlsGeneratorState<M>& state, StreamId stream_id, size_type num_track_slots)
+{
+    auto& counters = state.counters;
+
+    // Distributions and photons remaining from the previous step
+    auto const prev_buffer_size = counters.buffer_size;
+    auto const prev_pending = counters.num_pending;
+
+    // Compact the buffer, returning the total number of valid distributions
+    counters.buffer_size = celeritas::detail::remove_if_invalid(
+        state.store.ref().distributions,
+        0,
+        counters.buffer_size + num_track_slots,
+        stream_id);
+
+    if (counters.buffer_size > 0)
+    {
+        // If this process created photons, calculate the cumulative sum of the
+        // number of photons in the buffered distributions. This is used to
+        // determine which thread will generate photons from which
+        // distribution. The new photons were already added to the core
+        // state's pending count when the distributions were created.
+        counters.num_pending
+            = detail::inclusive_scan_photons(state.store.ref().distributions,
+                                             state.store.ref().offsets,
+                                             counters.buffer_size,
+                                             stream_id);
+    }
+
+    // Accumulate distributions and photons created during the previous step
+    CELER_ASSERT(counters.buffer_size >= prev_buffer_size);
+    CELER_ASSERT(counters.num_pending >= prev_pending);
+    state.accum.buffer_size += counters.buffer_size - prev_buffer_size;
+    state.accum.num_pending += counters.num_pending - prev_pending;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Accumulate distributions from the final step and discard all pending work.
+ *
+ * WLS interactions update the core pending count immediately, but their
+ * distributions are normally accumulated at the next generation step. After
+ * counting them, the entire buffer is cleared so that the leftover
+ * distributions aren't generated in the next transport loop.
+ */
+template<MemSpace M>
+void reset_impl(
+    WlsGeneratorState<M>& state, StreamId stream_id, size_type num_track_slots)
+{
+    update_buffer(state, stream_id, num_track_slots);
+
+    Filler<WlsDistributionData, M> fill{{}, stream_id};
+    fill(state.store.ref().distributions[AllItems<WlsDistributionData, M>{}]);
+    state.counters = {};
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with IDs, WLS model, and buffer capacity.
@@ -62,11 +147,31 @@ auto WlsGeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host, WlsGeneratorState>(id, capacity_);
+        return make_state<MemSpace::host>(id, capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device, WlsGeneratorState>(id, capacity_);
+        return make_state<MemSpace::device>(id, capacity_);
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Count and discard buffered distributions after an aborted loop.
+ */
+void WlsGeneratorAction::reset(
+    AuxStateVec& aux, StreamId stream_id, size_type num_track_slots) const
+{
+    auto& state = aux.at(this->aux_id());
+    if (auto* s = dynamic_cast<WlsGeneratorState<MemSpace::host>*>(&state))
+    {
+        return reset_impl(*s, stream_id, num_track_slots);
+    }
+    else if (
+        auto* s = dynamic_cast<WlsGeneratorState<MemSpace::device>*>(&state))
+    {
+        return reset_impl(*s, stream_id, num_track_slots);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -108,33 +213,8 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     auto& counters = aux_state.counters;
     auto& buffer = aux_state.store.ref().distributions;
 
-    // Distributions and photons remaining from the previous step
-    auto const prev_buffer_size = counters.buffer_size;
-    auto const prev_pending = counters.num_pending;
-
-    // Compact the buffer, returning the total number of valid distributions
-    counters.buffer_size = celeritas::detail::remove_if_invalid(
-        buffer, 0, counters.buffer_size + state.size(), state.stream_id());
-
-    if (counters.buffer_size > 0)
-    {
-        // If this process created photons, calculate the cumulative sum of the
-        // number of photons in the buffered distributions. This is used to
-        // determine which thread will generate photons from which
-        // distribution. The new photons were already added to the core
-        // state's pending count when the distributions were created.
-        counters.num_pending = detail::inclusive_scan_photons(
-            aux_state.store.ref().distributions,
-            aux_state.store.ref().offsets,
-            counters.buffer_size,
-            state.stream_id());
-    }
-
-    // Accumulate distributions and photons created during the previous step
-    CELER_ASSERT(counters.buffer_size >= prev_buffer_size);
-    CELER_ASSERT(counters.num_pending >= prev_pending);
-    aux_state.accum.buffer_size += counters.buffer_size - prev_buffer_size;
-    aux_state.accum.num_pending += counters.num_pending - prev_pending;
+    // Compact the buffer and count the new distributions and queued photons
+    update_buffer(aux_state, state.stream_id(), state.size());
 
     if (counters.num_pending > 0)
     {

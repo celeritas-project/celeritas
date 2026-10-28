@@ -48,5 +48,17 @@ GeneratorStateBase const& GeneratorBase::counters(AuxStateVec const& aux) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Discard pending work after an aborted loop.
+ *
+ * This clears the per-loop counters so that any buffered data is ignored. The
+ * accumulated counters are kept.
+ */
+void GeneratorBase::reset(AuxStateVec& aux, StreamId, size_type) const
+{
+    this->counters(aux).counters = {};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas

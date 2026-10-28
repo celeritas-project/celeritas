@@ -89,6 +89,9 @@ class WlsGeneratorAction final : public GeneratorBase
     UPState create_state(MemSpace, StreamId, size_type) const final;
     //!@}
 
+    // Count and discard buffered distributions after an aborted loop
+    void reset(AuxStateVec&, StreamId, size_type) const final;
+
     //!@{
     //! \name StepAction interface
 
