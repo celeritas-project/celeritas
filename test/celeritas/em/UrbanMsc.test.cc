@@ -744,21 +744,6 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     if (!Test::is_reference_rng)
     {
-        PRINT_EXPECTED(lambda_cm);
-        PRINT_EXPECTED(pstep_mfp);
-        PRINT_EXPECTED(range_mfp);
-
-        PRINT_EXPECTED(msc_range_mfp);
-        PRINT_EXPECTED(tstep_frac);
-        PRINT_EXPECTED(gstep_frac);
-        PRINT_EXPECTED(alpha_over_mfp);
-
-        PRINT_EXPECTED(angle);
-        PRINT_EXPECTED(displace_frac);
-        PRINT_EXPECTED(action);
-
-        PRINT_EXPECTED(avg_engine_samples);
-
         GTEST_SKIP() << "Not using reference RNG";
     }
 

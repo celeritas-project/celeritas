@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "TestMacros.hh"
 
-#include <algorithm>
-#include <cmath>
 #include <limits>
 #include <string>
 
@@ -15,6 +13,7 @@
 #include "corecel/io/ScopedStreamRedirect.hh"
 
 #include "celeritas_test.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 using Dbl2 = celeritas::Array<double, 2>;
 using VecInt = std::vector<int>;
@@ -44,23 +43,25 @@ std::ostream& operator<<(std::ostream& os, PrintableTestResult const& result)
 
 TEST(PrintExpected, example)
 {
+    using celeritas::testdetail::print_expected;
+
     std::string out_result = [] {
         ScopedStreamRedirect redirect_out(&std::cout);
         std::cout << '\n';
 
         std::vector<int> values = {1, 2, 3};
-        PRINT_EXPECTED(values);
+        print_expected(values);
 
         using Limits_t = std::numeric_limits<double>;
         double const more[]
             = {.5, .001, Limits_t::infinity(), Limits_t::quiet_NaN()};
-        PRINT_EXPECTED(more);
+        print_expected(more);
 
         char const* const cstrings[] = {"one", "three", "five"};
-        PRINT_EXPECTED(cstrings);
+        print_expected(cstrings);
 
         std::string const strings[] = {"a", "", "special\nchars\t"};
-        PRINT_EXPECTED(strings);
+        print_expected(strings);
 
         return redirect_out.str();
     }();

@@ -98,16 +98,8 @@ using CommonPrecision_t = typename CommonPrecision<T, U>::type;
 template<class T>
 using SoftComparator_t = EqualOr<SoftEqual<T>>;
 
-void print_expected_header();
-void print_expected_footer();
-
-template<class Result>
-void print_expected(Result const& result)
-{
-    print_expected_header();
-    std::cout << Result::class_str << " ref = " << result << ";\n";
-    print_expected_footer();
-}
+extern char const expected_result_header[];
+extern char const expected_result_footer[];
 
 //---------------------------------------------------------------------------//
 //! Whether soft equivalence can be performed on the given types.
@@ -239,6 +231,21 @@ struct IsContainer<T[N]> : std::true_type
 //! Whether a type is a container
 template<class T>
 inline constexpr bool IsContainer_v = IsContainer<T>::value;
+
+//! Whether a type is a ref result
+template<class T, class = void>
+struct IsRefResult : std::false_type
+{
+};
+
+template<class T>
+struct IsRefResult<T, std::void_t<decltype(T::class_str[0])>>
+    : std::bool_constant<std::is_same_v<decltype(T::class_str[0]), char const&>>
+{
+};
+
+template<class T>
+inline constexpr bool IsRefResult_v = IsRefResult<T>::value;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -529,16 +536,17 @@ std::string float_failure_msg(char const* expected_expr,
 //---------------------------------------------------------------------------//
 /*!
  * Print expected values.
+ * DELETEME
  */
 template<class Container>
-void print_expected(Container const& data, std::string label)
+std::enable_if_t<IsContainer_v<Container>, void> print_expected(
+    Container const& data)
 {
     using RT = ReprTraits<Container>;
     using VRT = ReprTraits<typename RT::value_type>;
 
     std::cout << "static ";
-    label.insert(0, "const expected_");
-    VRT::print_type(std::cout, label.c_str());
+    VRT::print_type(std::cout, "const ref");
     std::cout << "[] = ";
 
     std::ios orig_state(nullptr);
@@ -548,6 +556,17 @@ void print_expected(Container const& data, std::string label)
     std::cout.copyfmt(orig_state);
 
     std::cout << ";\n";
+}
+
+//---------------------------------------------------------------------------//
+
+template<class Result>
+std::enable_if_t<IsRefResult_v<Result>, void> print_expected(
+    Result const& result)
+{
+    std::cout << expected_result_header << Result::class_str
+              << " ref = " << result << ";\n"
+              << expected_result_footer;
 }
 
 //---------------------------------------------------------------------------//

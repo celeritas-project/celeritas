@@ -29,8 +29,6 @@ struct ClipResult
     BBox i = BBox::from_infinite();
     BBox x = BBox::from_infinite();
 
-    void print_expected() const;
-
     friend std::ostream& operator<<(std::ostream& os, ClipResult const& result)
     {
         return os << '{' << result.i << ", " << result.x << '}';
@@ -58,11 +56,6 @@ class SurfaceClipperTest : public ::celeritas::test::Test
         return cr;
     }
 };
-
-void ClipResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
 
 TEST_F(SurfaceClipperTest, inside)
 {

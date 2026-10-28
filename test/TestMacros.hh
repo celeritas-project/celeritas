@@ -12,6 +12,8 @@
 
 #include "testdetail/TestMacrosImpl.hh"  // IWYU pragma: export
 
+using ::celeritas::testdetail::print_expected;
+
 //---------------------------------------------------------------------------//
 // MACROS
 //---------------------------------------------------------------------------//
@@ -52,10 +54,6 @@
 #define EXPECT_VEC_NEAR(expected, actual, rel_error) \
     EXPECT_PRED_FORMAT3( \
         ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, rel_error)
-
-//! Print the given container as an array for regression testing
-#define PRINT_EXPECTED(data) \
-    ::celeritas::testdetail::print_expected(data, #data)
 
 //! Helper for printing expected values in reference structs
 #define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(ref.ATTR) << ";\n"
