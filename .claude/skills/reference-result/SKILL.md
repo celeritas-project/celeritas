@@ -42,6 +42,11 @@ patterns. For new C++ files, follow the `new-class` skill.
   comparison. Give it one clearly named tolerance per independently
   configurable comparison, or reuse one tolerance when semantics are truly
   shared.
+- When a tolerance struct supplies field-level defaults, use the matching
+  tolerance member for every soft-compared field, including fields using the
+  default value. Avoid boolean flags that switch between default and custom
+  comparisons. Set wider per-test tolerances, such as `coarse_eps`, at the test
+  call site; keep discrete fields exact.
 - Keep exact fields exact even when another field uses a tolerance.
 - Preserve existing field order and public API when modifying a result type.
 
@@ -56,6 +61,12 @@ smallest output form that is copy-pastable and fits the result type:
 - Add `operator<<` when an aggregate initializer is useful or when the existing
   test convention streams a complete expected-value snippet. Return the
   supplied stream.
+- When streaming an aggregate result, have `operator<<` emit only a valid
+  aggregate initializer in declaration order. Keep snippet framing markers and
+  the assertion in `print_expected()`, which can dispatch with `*this` to the
+  stream operator. Keep `print_expected()` parameterless and use the default
+  comparison (`EXPECT_REF_EQ`) there; per-test tolerance overrides belong at
+  the assertion call site.
 - Keep handling for omitted, sentinel, or non-deterministic fields explicit in
   the generated snippet, with a short explanation when needed.
 
@@ -114,8 +125,11 @@ default soft tolerances while checking sizes, labeling diagnostics, and
 continuing to later fields. `is_vec_eq` provides the corresponding exact
 container behavior. Follow the current `RunnerResults.cc` and
 `HistogramSampler.cc` patterns rather than duplicating these wrapper checks.
-For custom tolerance behavior, use the five-argument `is_vec_soft_eq` overload
-so size checks, field labels, and failure accumulation remain consistent.
+When a tolerance struct is used, always use the five-argument
+`is_vec_soft_eq` overload for each soft-compared field, passing that field's
+tolerance member. This keeps size checks, field labels, and failure
+accumulation consistent while making default and overridden tolerances
+explicit.
 
 ## 5. Add or update focused tests
 
