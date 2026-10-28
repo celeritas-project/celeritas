@@ -53,6 +53,7 @@ class SimpleComptonDiagnosticTest : public SimpleTestBase,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
+            result[i].primary_id = id_cast<PrimaryId>(i);
             result[i].particle_id = gamma;
         }
         return result;
@@ -97,6 +98,7 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
+            result[i].primary_id = id_cast<PrimaryId>(i);
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;
@@ -116,7 +118,7 @@ TEST_F(SimpleComptonDiagnosticTest, host)
            "geo-boundary gamma",
            "scat-klein-nishina gamma"};
     EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         static size_type const expected_nonzero_action_counts[]
             = {3780u, 525u, 3887u};
@@ -150,7 +152,7 @@ TEST_F(TestEm3DiagnosticTest, host)
                         "stuck on some builds but not others";
     }
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static char const* const expected_nonzero_action_keys[] = {
             "annihil-2-gamma e+",
@@ -202,7 +204,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
 {
     auto result = this->run<MemSpace::device>(1024, 4);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         // Check action diagnostic results
         static char const* const expected_nonzero_action_keys[] = {

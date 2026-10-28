@@ -249,6 +249,7 @@ class TestEm3CollectorTestBase : public TestEm3Base,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
+            result[i].primary_id = PrimaryId{i};
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;
@@ -417,7 +418,7 @@ TEST_F(KnMctruthTest, two_step)
     ref.event = {0, 0, 1, 1, 2, 2, 3, 3};
     ref.track = {0, 0, 0, 0, 0, 0, 0, 0};
     ref.step = {1, 2, 1, 2, 1, 2, 1, 2};
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -447,14 +448,9 @@ TEST_F(KnCaloTest, single_track)
 {
     auto result = this->run<MemSpace::host>(1, 64);
 
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         static double const expected_edep[] = {0.00043564799352598};
-        EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
-    }
-    else
-    {
-        static double const expected_edep[] = {0};
         EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
     }
 }
@@ -484,7 +480,7 @@ TEST_F(TestEm3MctruthTest, four_step)
 {
     auto result = this->run(4, 4);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         RunResult ref;
         ref.event = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
