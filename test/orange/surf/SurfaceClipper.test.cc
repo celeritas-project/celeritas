@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/SurfaceClipper.hh"
 
-#include "orange/BoundingBoxUtils.hh"
+#include "geocel/RefUtils.hh"
 #include "orange/surf/CylAligned.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/PlaneAligned.hh"
@@ -14,8 +14,8 @@
 #include "orange/surf/SphereCentered.hh"
 #include "orange/surf/VariantSurface.hh"
 
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
-#include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
 {
@@ -41,10 +41,8 @@ struct ClipResult
                              ClipResult const& actual,
                              std::nullptr_t)
     {
-        is_vec_soft_eq(helper, "i.lower", expected.i.lower(), actual.i.lower());
-        is_vec_soft_eq(helper, "i.upper", expected.i.upper(), actual.i.upper());
-        is_vec_soft_eq(helper, "x.lower", expected.x.lower(), actual.x.lower());
-        is_vec_soft_eq(helper, "x.upper", expected.x.upper(), actual.x.upper());
+        is_ref_eq(helper, "i", expected.i, actual.i, nullptr);
+        is_ref_eq(helper, "x", expected.x, actual.x, nullptr);
     }
 };
 
@@ -71,53 +69,44 @@ TEST_F(SurfaceClipperTest, inside)
     auto inf = std::numeric_limits<real_type>::infinity();
 
     ClipResult cr;
+    ClipResult ref;
     cr = this->test_clip(PlaneX{4});
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -inf}), cr.i.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{4, inf, inf}), cr.i.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -inf}), cr.x.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{4, inf, inf}), cr.x.upper());
+    print_expected(cr);
+    ref.i = BBox{Real3{-inf, -inf, -inf}, Real3{4, inf, inf}};
+    ref.x = BBox{Real3{-inf, -inf, -inf}, Real3{4, inf, inf}};
+    EXPECT_REF_EQ(ref, cr);
+
     cr = this->test_clip(CCylZ{3});
-    EXPECT_VEC_SOFT_EQ((Real3{-2.1213203435596, -2.1213203435596, -inf}),
-                       cr.i.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2.1213203435596, 2.1213203435596, inf}),
-                       cr.i.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-3, -3, -inf}), cr.x.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{3, 3, inf}), cr.x.upper());
+    ref.i = BBox{Real3{-2.1213203435596, -2.1213203435596, -inf},
+                 Real3{2.1213203435596, 2.1213203435596, inf}};
+    ref.x = BBox{Real3{-3, -3, -inf}, Real3{3, 3, inf}};
+    EXPECT_REF_EQ(ref, cr);
+
     cr = this->test_clip(SphereCentered{3});
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{-2.5980762113533, -2.5980762113533, -2.5980762113533}),
-        cr.i.lower());
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{2.5980762113533, 2.5980762113533, 2.5980762113533}),
-        cr.i.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-3, -3, -3}), cr.x.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{3, 3, 3}), cr.x.upper());
+    ref.i = BBox{Real3{-2.5980762113533, -2.5980762113533, -2.5980762113533},
+                 Real3{2.5980762113533, 2.5980762113533, 2.5980762113533}};
+    ref.x = BBox{Real3{-3, -3, -3}, Real3{3, 3, 3}};
+    EXPECT_REF_EQ(ref, cr);
+
     cr = this->test_clip(CylZ{{1, 2, 3}, 0.25});
-    EXPECT_VEC_SOFT_EQ((Real3{0.82322330470336, 1.8232233047034, -inf}),
-                       cr.i.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.1767766952966, 2.1767766952966, inf}),
-                       cr.i.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{0.75, 1.75, -inf}), cr.x.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.25, 2.25, inf}), cr.x.upper());
+    ref.i = BBox{Real3{0.82322330470336, 1.8232233047034, -inf},
+                 Real3{1.1767766952966, 2.1767766952966, inf}};
+    ref.x = BBox{Real3{0.75, 1.75, -inf}, Real3{1.25, 2.25, inf}};
+    EXPECT_REF_EQ(ref, cr);
+
     cr = this->test_clip(Sphere{{1, 2, 3}, 0.25});
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{0.78349364905389, 1.7834936490539, 2.7834936490539}),
-        cr.i.lower());
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{1.2165063509461, 2.2165063509461, 3.2165063509461}),
-        cr.i.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{0.75, 1.75, 2.75}), cr.x.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.25, 2.25, 3.25}), cr.x.upper());
+    ref.i = BBox{Real3{0.78349364905389, 1.7834936490539, 2.7834936490539},
+                 Real3{1.2165063509461, 2.2165063509461, 3.2165063509461}};
+    ref.x = BBox{Real3{0.75, 1.75, 2.75}, Real3{1.25, 2.25, 3.25}};
+    EXPECT_REF_EQ(ref, cr);
 
     // Test with variant
     VariantSurface v{CCylY{4}};
     cr = this->test_clip(v);
-    EXPECT_VEC_SOFT_EQ((Real3{-2.8284271247462, -inf, -2.8284271247462}),
-                       cr.i.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2.8284271247462, inf, 2.8284271247462}),
-                       cr.i.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-4, -inf, -4}), cr.x.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{4, inf, 4}), cr.x.upper());
+    ref.i = BBox{Real3{-2.8284271247462, -inf, -2.8284271247462},
+                 Real3{2.8284271247462, inf, 2.8284271247462}};
+    ref.x = BBox{Real3{-4, -inf, -4}, Real3{4, inf, 4}};
+    EXPECT_REF_EQ(ref, cr);
 }
 
 //---------------------------------------------------------------------------//

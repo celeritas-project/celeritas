@@ -210,6 +210,12 @@ TEST_F(BoundingBoxTest, ref_eq)
     BBoxD const expected{{0, 0, 0}, {1, 1, 1}};
     EXPECT_REF_EQ(expected, expected);
 
+    BBoxD const expected_with_infinite_bounds{{-inf, -inf, -inf},
+                                              {1, inf, inf}};
+    BBoxD const actual_with_infinite_bounds{{-inf, -inf, -inf},
+                                            {1.0000000000005, inf, inf}};
+    EXPECT_REF_EQ(expected_with_infinite_bounds, actual_with_infinite_bounds);
+
     BBoxD const null_bbox;
     EXPECT_REF_EQ(null_bbox, null_bbox);
     EXPECT_FALSE(::celeritas::testdetail::IsRefEq(

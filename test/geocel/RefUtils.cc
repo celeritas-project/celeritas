@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "RefUtils.hh"
 
+#include <cmath>
+
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/BoundingBox.hh"
@@ -59,11 +61,25 @@ bool is_ref_eq(AssertionHelper& helper,
         return true;
     }
 
-    auto const points_are_close
-        = [tol](auto const& expected_point, auto const& actual_point) {
-              return expected_point == actual_point
-                     || distance(expected_point, actual_point) <= tol;
-          };
+    auto const points_are_close = [tol](auto const& expected_point,
+                                        auto const& actual_point) {
+        T point_distance{};
+        for (size_type i = 0; i != expected_point.size(); ++i)
+        {
+            if (expected_point[i] == actual_point[i])
+            {
+                continue;
+            }
+            if (!std::isfinite(expected_point[i])
+                || !std::isfinite(actual_point[i]))
+            {
+                return false;
+            }
+            point_distance = std::hypot(point_distance,
+                                        expected_point[i] - actual_point[i]);
+        }
+        return point_distance <= tol;
+    };
     if (!points_are_close(expected.lower(), actual.lower())
         || !points_are_close(expected.upper(), actual.upper()))
     {
