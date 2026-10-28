@@ -6,13 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <functional>
+#include <iosfwd>
 
+#include "corecel/io/Repr.hh"
 #include "celeritas/io/EventIOInterface.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "AssertionHelper.hh"
 #include "Test.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
 {
@@ -39,14 +44,54 @@ class EventIOTestBase : public Test
   protected:
     struct ReadAllResult
     {
+        struct Tolerance
+        {
+            double energy{Test::fine_eps};
+            double pos{Test::fine_eps};
+            double dir{Test::fine_eps};
+            double time{Test::fine_eps};
+        };
+
         std::vector<int> pdg;
         std::vector<double> energy;
-        std::vector<double> pos;
-        std::vector<double> dir;
+        std::vector<Real3> pos;
+        std::vector<Real3> dir;
         std::vector<double> time;
         std::vector<int> event;
 
         void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream& os,
+                                        ReadAllResult const& ref)
+        {
+            return os << '{' << repr(ref.pdg) << ", " << repr(ref.energy)
+                      << ", " << repr(ref.pos) << ", " << repr(ref.dir) << ", "
+                      << repr(ref.time) << ", " << repr(ref.event) << '}';
+        }
+
+        friend void check_ref_eq(AssertionHelper& helper,
+                                 ReadAllResult const& expected,
+                                 ReadAllResult const& actual,
+                                 std::nullptr_t)
+        {
+            check_ref_eq(helper, expected, actual, Tolerance{});
+        }
+
+        friend void check_ref_eq(AssertionHelper& helper,
+                                 ReadAllResult const& expected,
+                                 ReadAllResult const& actual,
+                                 Tolerance const& tol)
+        {
+            using namespace ::celeritas::test;
+            is_vec_eq(helper, "pdg", expected.pdg, actual.pdg);
+            is_vec_soft_eq(
+                helper, "energy", expected.energy, actual.energy, tol.energy);
+            is_vec_soft_eq(helper, "pos", expected.pos, actual.pos, tol.pos);
+            is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
+            is_vec_soft_eq(
+                helper, "time", expected.time, actual.time, tol.time);
+            is_vec_eq(helper, "event", expected.event, actual.event);
+        }
     };
 
     // Create particles

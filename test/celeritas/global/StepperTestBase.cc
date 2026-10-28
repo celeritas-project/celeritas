@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <numeric>
 #include <gtest/gtest.h>
 
@@ -18,6 +19,9 @@
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+
+#include "AssertionHelper.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 using std::cout;
 
@@ -175,19 +179,29 @@ auto StepperTestBase::RunResult::calc_queue_hwm() const -> StepCount
 void StepperTestBase::SetupCheckResult::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static const char* const expected_processes[] = "
-         << repr(this->processes)
+            "SetupCheckResult ref = "
+         << *this
          << ";\n"
-            "EXPECT_VEC_EQ(expected_processes, result.processes);\n"
-            "static const char* const expected_actions[] = "
-         << repr(this->actions)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_actions, result.actions);\n"
-            "static const char* const expected_actions_desc[] = "
-         << repr(this->actions_desc)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_actions_desc, result.actions_desc);\n"
+            "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         StepperTestBase::SetupCheckResult const& ref)
+{
+    return os << '{' << repr(ref.processes) << ", " << repr(ref.actions)
+              << ", " << repr(ref.actions_desc) << '}';
+}
+
+void check_ref_eq(AssertionHelper& helper,
+                  StepperTestBase::SetupCheckResult const& expected,
+                  StepperTestBase::SetupCheckResult const& actual,
+                  std::nullptr_t)
+{
+    is_vec_eq(helper, "processes", expected.processes, actual.processes);
+    is_vec_eq(helper, "actions", expected.actions, actual.actions);
+    is_vec_eq(
+        helper, "actions_desc", expected.actions_desc, actual.actions_desc);
 }
 
 //---------------------------------------------------------------------------//

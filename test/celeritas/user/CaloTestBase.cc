@@ -13,6 +13,9 @@
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/StepCollector.hh"
 
+#include "AssertionHelper.hh"
+#include "testdetail/TestMacrosImpl.hh"
+
 namespace celeritas
 {
 namespace test
@@ -52,11 +55,33 @@ void CaloTestBase::RunResult::print_expected() const
     using std::cout;
 
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static const double expected_edep[] = "
-         << repr(this->edep)
+            "RunResult ref = "
+         << *this
          << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);\n"
+            "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
+}
+
+std::ostream& operator<<(std::ostream& os, CaloTestBase::RunResult const& ref)
+{
+    return os << '{' << repr(ref.edep) << '}';
+}
+
+void check_ref_eq(AssertionHelper& helper,
+                  CaloTestBase::RunResult const& expected,
+                  CaloTestBase::RunResult const& actual,
+                  std::nullptr_t)
+{
+    check_ref_eq(
+        helper, expected, actual, CaloTestBase::RunResult::Tolerance{});
+}
+
+void check_ref_eq(AssertionHelper& helper,
+                  CaloTestBase::RunResult const& expected,
+                  CaloTestBase::RunResult const& actual,
+                  CaloTestBase::RunResult::Tolerance const& tol)
+{
+    is_vec_soft_eq(helper, "edep", expected.edep, actual.edep, tol.edep);
 }
 
 //---------------------------------------------------------------------------//

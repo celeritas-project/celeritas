@@ -15,6 +15,9 @@
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/StepDiagnostic.hh"
 
+#include "AssertionHelper.hh"
+#include "testdetail/TestMacrosImpl.hh"
+
 using std::cout;
 
 namespace celeritas
@@ -42,21 +45,35 @@ void DiagnosticTestBase::SetUp()
 void DiagnosticTestBase::RunResult::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static char const* const expected_nonzero_action_keys[] = "
-         << repr(this->nonzero_action_keys)
+            "RunResult ref = "
+         << *this
          << ";\n"
-            "EXPECT_VEC_EQ(expected_nonzero_action_keys, "
-            "result.nonzero_action_keys);\n"
-            "static size_type const expected_nonzero_action_counts[] = "
-         << repr(this->nonzero_action_counts)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_nonzero_action_counts, "
-            "result.nonzero_action_counts);\n"
-            "static size_type const expected_steps[] = "
-         << repr(this->steps)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_steps, result.steps);\n"
+            "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         DiagnosticTestBase::RunResult const& ref)
+{
+    return os << '{' << repr(ref.nonzero_action_keys) << ", "
+              << repr(ref.nonzero_action_counts) << ", " << repr(ref.steps)
+              << '}';
+}
+
+void check_ref_eq(AssertionHelper& helper,
+                  DiagnosticTestBase::RunResult const& expected,
+                  DiagnosticTestBase::RunResult const& actual,
+                  std::nullptr_t)
+{
+    is_vec_eq(helper,
+              "nonzero_action_keys",
+              expected.nonzero_action_keys,
+              actual.nonzero_action_keys);
+    is_vec_eq(helper,
+              "nonzero_action_counts",
+              expected.nonzero_action_counts,
+              actual.nonzero_action_counts);
+    is_vec_eq(helper, "steps", expected.steps, actual.steps);
 }
 
 //---------------------------------------------------------------------------//

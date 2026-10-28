@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <memory>
 #include <vector>
 
@@ -21,6 +23,8 @@ class StepperInterface;
 
 namespace test
 {
+class AssertionHelper;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct helper action and set up stepper/primary inputs.
@@ -50,6 +54,12 @@ class StepperTestBase : virtual public GlobalTestBase
 
         // Print code for the expected attributes
         void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream&, SetupCheckResult const&);
+        friend void check_ref_eq(AssertionHelper&,
+                                 SetupCheckResult const&,
+                                 SetupCheckResult const&,
+                                 std::nullptr_t);
     };
 
     struct RunResult

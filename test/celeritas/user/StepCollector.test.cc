@@ -450,8 +450,9 @@ TEST_F(KnCaloTest, single_track)
 
     if (Test::is_reference_rng)
     {
-        static double const expected_edep[] = {0.00043564799352598};
-        EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
+        RunResult ref;
+        ref.edep = {0.00043564799352598};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
@@ -549,17 +550,22 @@ TEST_F(TestEm3CaloTest, thirtytwo_step)
     }
     auto result = this->run<MemSpace::host>(256, 32);
 
-    static double const expected_edep[]
-        = {1548.8862372467, 113.80254412772, 32.259504023678};
-    EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+    RunResult ref;
+    ref.edep = {1548.8862372467, 113.80254412772, 32.259504023678};
+    RunResult::Tolerance tol;
+    tol.edep = 0.5;
+    EXPECT_REF_NEAR(ref, result, tol);
 }
 
 TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
 {
     auto result = this->run<MemSpace::device>(1024, 4);
 
-    static double const expected_edep[] = {1557.5843684091, 0, 0};
-    EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
+    RunResult ref;
+    ref.edep = {1557.5843684091, 0, 0};
+    RunResult::Tolerance tol;
+    tol.edep = 0.5;
+    EXPECT_REF_NEAR(ref, result, tol);
 }
 
 //---------------------------------------------------------------------------//

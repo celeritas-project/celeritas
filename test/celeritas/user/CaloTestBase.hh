@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <memory>
 #include <vector>
 
@@ -24,6 +26,8 @@ class SimpleCalo;
 
 namespace test
 {
+class AssertionHelper;
+
 //---------------------------------------------------------------------------//
 class CaloTestBase : virtual public SimpleLoopTestBase
 {
@@ -33,9 +37,24 @@ class CaloTestBase : virtual public SimpleLoopTestBase
 
     struct RunResult
     {
+        struct Tolerance
+        {
+            double edep{Test::fine_eps};
+        };
+
         std::vector<double> edep;
 
         void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream&, RunResult const&);
+        friend void check_ref_eq(AssertionHelper&,
+                                 RunResult const&,
+                                 RunResult const&,
+                                 std::nullptr_t);
+        friend void check_ref_eq(AssertionHelper&,
+                                 RunResult const&,
+                                 RunResult const&,
+                                 Tolerance const&);
     };
 
   public:

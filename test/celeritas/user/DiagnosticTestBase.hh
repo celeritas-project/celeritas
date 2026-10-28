@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <memory>
 #include <vector>
 
@@ -23,6 +25,8 @@ class StepDiagnostic;
 
 namespace test
 {
+class AssertionHelper;
+
 //---------------------------------------------------------------------------//
 class DiagnosticTestBase : virtual public SimpleLoopTestBase
 {
@@ -39,6 +43,12 @@ class DiagnosticTestBase : virtual public SimpleLoopTestBase
         std::vector<size_type> steps;
 
         void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream&, RunResult const&);
+        friend void check_ref_eq(AssertionHelper&,
+                                 RunResult const&,
+                                 RunResult const&,
+                                 std::nullptr_t);
     };
 
   public:
