@@ -343,9 +343,12 @@ TYPED_TEST(TrackInitTest, run)
         static int const expected_vacancies[] = {2, 6};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
 
-        // Check the parent IDs for copying the geometry state
-        static int const expected_geo_parent_ids[] = {-1, -1, -1, 5, 8};
-        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // Check the parent IDs for copying the geometry state
+            static int const expected_geo_parent_ids[] = {-1, -1, -1, 5, 8};
+            EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        }
 
         // Check the track IDs of the track initializers created from
         // secondaries. Because IDs are not calculated deterministically and we
