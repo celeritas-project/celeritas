@@ -30,9 +30,7 @@ namespace test
 // Reference results:
 // - Double precision
 // - XORWOW
-constexpr bool reference_configuration
-    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
+// - track slots
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
@@ -155,7 +153,7 @@ TEST_F(LArSphereGeneratorTest, primary)
     run.insert();
     auto result = run();
 
-    if (reference_configuration)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(68884, result.counters.steps);
         EXPECT_EQ(6, result.counters.step_iters);
@@ -219,7 +217,7 @@ TEST_F(LArSphereGeneratorTest, direct)
     run.insert(make_span(inits));
     auto result = run();
 
-    if (reference_configuration
+    if (Test::is_reference_rng
         && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
     {
         EXPECT_EQ(135, result.counters.steps);
@@ -264,7 +262,7 @@ TEST_F(LArSphereGeneratorTest, offload)
     EXPECT_EQ(512, gen.buffer_size);
     EXPECT_EQ(gen.num_generated, gen.num_pending);
 
-    if (reference_configuration)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(51226, gen.num_generated);
         EXPECT_EQ(53439, result.counters.steps);
@@ -356,7 +354,7 @@ TEST_F(WlsGeneratorTest, primary)
     run.insert();
     auto result = run();
 
-    if (reference_configuration)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(221260, result.counters.steps);
         EXPECT_EQ(22, result.counters.step_iters);
@@ -369,7 +367,7 @@ TEST_F(WlsGeneratorTest, primary)
         auto const& gen = result.counters.generators[gen_id.get()];
         EXPECT_EQ("wls-generate", run.params()->gen_reg()->at(gen_id)->label());
         EXPECT_EQ(gen.num_generated, gen.num_pending);
-        if (reference_configuration)
+        if (Test::is_reference_rng)
         {
             EXPECT_EQ(101082, gen.buffer_size);
             EXPECT_EQ(155587, gen.num_generated);
@@ -442,7 +440,7 @@ TEST_F(WlsGeneratorTest, abort_early)
 
     // Photons were queued by both generators but not all were generated. Cut
     // photons include those not generated and any that were in flight
-    if (reference_configuration)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(932, result.counters.num_cut);
     }
@@ -457,7 +455,7 @@ TEST_F(WlsGeneratorTest, abort_early)
         GeneratorId gen_id(0);
         auto const& gen = result.counters.generators[gen_id.get()];
         EXPECT_EQ("wls-generate", run.params()->gen_reg()->at(gen_id)->label());
-        if (reference_configuration)
+        if (Test::is_reference_rng)
         {
             EXPECT_EQ(216, gen.buffer_size);
             EXPECT_EQ(318, gen.num_pending);
@@ -471,7 +469,7 @@ TEST_F(WlsGeneratorTest, abort_early)
                   run.params()->gen_reg()->at(gen_id)->label());
         EXPECT_EQ(0, gen.buffer_size);
         EXPECT_EQ(num_photons, gen.num_pending);
-        if (reference_configuration)
+        if (Test::is_reference_rng)
         {
             EXPECT_EQ(193, gen.num_generated);
         }

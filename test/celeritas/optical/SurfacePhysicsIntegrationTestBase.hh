@@ -36,11 +36,11 @@ namespace test
  * - Double precision
  * - Orange geometry (requires valid surface normals and relocation on
  *   boundary)
+ * - xorwow with track slots
  */
 constexpr bool reference_configuration
-    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-       && (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW));
+    = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+      && ::celeritas::test::Test::is_reference_rng;
 
 //---------------------------------------------------------------------------//
 /*!

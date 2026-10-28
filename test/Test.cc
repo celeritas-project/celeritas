@@ -14,6 +14,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 
 namespace celeritas
@@ -124,27 +125,16 @@ std::string Test::make_unique_filename(std::string_view ext)
  */
 bool Test::strict_testing()
 {
-    std::string const& envstr = ::celeritas::getenv("CELER_TEST_STRICT");
-    if (envstr == "0")
-    {
-        return false;
-    }
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        // Disable strict testing for Geant4
-        return false;
-    }
-    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        // Disable strict testing for single precision
-        return false;
-    }
-    if (CELERITAS_UNITS != CELERITAS_UNITS_CGS)
-    {
-        // Disable strict testing for non-CLHEP units
-        return false;
-    }
-    return !envstr.empty();
+    static bool result = [] {
+        constexpr bool is_ref = is_reference_rng && is_reference_geo
+                                && is_reference_phys;
+        auto flag = getenv_flag("CELER_TEST_STRICT", is_ref);
+        CELER_LOG(info)
+            << "Set strict_testing to " << std::boolalpha << flag.value << ' '
+            << (flag.defaulted ? "by default" : "from CELER_TEST_STRICT");
+        return flag.value;
+    }();
+    return result;
 }
 
 //---------------------------------------------------------------------------//

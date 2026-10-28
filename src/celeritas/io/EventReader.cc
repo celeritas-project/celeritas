@@ -20,6 +20,7 @@
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/Primary.hh"
 
@@ -135,8 +136,9 @@ auto EventReader::operator()() -> result_type
         // Set the registered ID of the particle
         primary.particle_id = particle_id;
 
-        // Set the event and track number
+        // Set the event and primary number
         primary.event_id = event_id;
+        primary.primary_id = id_cast<PrimaryId>(result.size());
 
         // Get the position of the vertex
         auto pos = par->production_vertex()->position();

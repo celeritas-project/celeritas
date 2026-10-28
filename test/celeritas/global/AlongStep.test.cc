@@ -466,7 +466,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         EXPECT_SOFT_NEAR(0.28579817262705, result.eloss, 5e-2);
         EXPECT_SOFT_NEAR(0.13028709259427, result.displacement, 1e-2);
         EXPECT_SOFT_NEAR(0.42060290539404, result.angle, 5e-2);
-        EXPECT_SOFT_NEAR(5.3240431819014e-12, result.time, 5e-12);
+        EXPECT_SOFT_NEAR(5.3240431819014e-12, result.time, 5e-2);
         EXPECT_SOFT_NEAR(0.1502064087009, result.step, 5e-2);
         EXPECT_EQ("msc-range", result.action);
     }
@@ -595,7 +595,7 @@ TEST_F(SimpleCmsFieldVolAlongStepTest, msc_field)
         // Without a field the electron has the same step length but a larger
         // displacement
         auto result = this->run(inp, num_tracks);
-        if (CELERITAS_CORE_RNG != CELERITAS_CORE_RNG_XORWOW)
+        if (!Test::is_reference_rng)
         {
             GTEST_SKIP() << "Not using reference RNG";
         }
@@ -669,7 +669,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         inp.direction = {0, -1, 0};
 
         auto result = this->run(inp, num_tracks);
-        if (CELERITAS_CORE_RNG != CELERITAS_CORE_RNG_XORWOW)
+        if (!Test::is_reference_rng)
         {
             GTEST_SKIP() << "Not using reference RNG";
         }
@@ -722,7 +722,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
                          0.641464235110772663,
                          -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
-        if (is_ci_build())
+        if (Test::strict_testing())
         {
             constexpr double range = 6.4161473386016025e-06;
             EXPECT_SOFT_EQ(range, result.step);
@@ -909,7 +909,7 @@ TEST_F(LeadBoxAlongStepTest, mfp_steps)
         SCOPED_TRACE("single mfp");
         inp.phys_mfp = 1;
         auto result = this->run(inp, num_tracks);
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        if (is_reference_rng)
         {
             if (geant4_version >= Version{11, 4})
             {
@@ -928,7 +928,7 @@ TEST_F(LeadBoxAlongStepTest, mfp_steps)
         SCOPED_TRACE("large mfp");
         inp.phys_mfp = 1e6;
         auto result = this->run(inp, num_tracks);
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        if (is_reference_rng)
         {
             EXPECT_SOFT_EQ(2001.409778094, result.eloss);
             EXPECT_SOFT_EQ(4.9030072611395e-09, result.time);

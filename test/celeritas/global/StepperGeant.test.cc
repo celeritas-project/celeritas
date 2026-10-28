@@ -16,6 +16,7 @@
 #include "celeritas/OneSteelSphereBase.hh"
 #include "celeritas/TestEm15Base.hh"
 #include "celeritas/TestEm3Base.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
@@ -63,6 +64,7 @@ class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = PrimaryId{i};
         }
         return result;
     }
@@ -217,6 +219,7 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = PrimaryId{i};
             result[i].direction = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
@@ -271,6 +274,7 @@ class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
 
         for (auto i : range(count))
         {
+            result[i].primary_id = PrimaryId{i};
             result[i].direction = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
@@ -296,6 +300,11 @@ class LeadBox : public LeadBoxTestBase, public StepperTestBase
         p.event_id = EventId{0};
 
         std::vector<Primary> result(count, p);
+
+        for (auto i : celeritas::range(result.size()))
+        {
+            result[i].primary_id = id_cast<PrimaryId>(i);
+        }
         return result;
     }
 
@@ -321,7 +330,7 @@ TEST_F(TestEm3Compton, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(153, result.num_step_iters());
         EXPECT_SOFT_EQ(796, result.calc_avg_steps_per_primary());
@@ -388,7 +397,7 @@ TEST_F(TestEm3NoMsc, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(63490, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(329, result.num_step_iters());
         EXPECT_SOFT_EQ(59335, result.calc_avg_steps_per_primary());
@@ -431,7 +440,7 @@ TEST_F(TestEm3NoMsc, host_multi)
     // Add some more primaries
     primaries = this->make_primaries(num_primaries);
     counts = step(make_span(primaries));
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(24, counts.active);
         EXPECT_EQ(24, counts.alive);
@@ -439,7 +448,7 @@ TEST_F(TestEm3NoMsc, host_multi)
 
     // Transport existing tracks
     counts = step();
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(36, counts.active);
         EXPECT_EQ(35, counts.alive);
@@ -456,7 +465,7 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(62756.625, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(212, result.num_step_iters());
         EXPECT_SOFT_EQ(61803.25, result.calc_avg_steps_per_primary());
@@ -542,7 +551,7 @@ TEST_F(TestEm3Msc, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(58, result.num_step_iters());
         EXPECT_LE(37.375, result.calc_avg_steps_per_primary());
@@ -571,7 +580,7 @@ TEST_F(TestEm3Msc, TEST_IF_CELER_DEVICE(device))
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(60, result.num_step_iters());
         EXPECT_SOFT_EQ(43.625, result.calc_avg_steps_per_primary());
@@ -603,7 +612,7 @@ TEST_F(TestEm3MscNofluct, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_LE(69, result.num_step_iters());
         EXPECT_GE(73, result.num_step_iters());
@@ -633,7 +642,7 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_LE(76, result.num_step_iters());
         EXPECT_GE(88, result.num_step_iters());
@@ -667,7 +676,7 @@ TEST_F(TestEm3MscNoIntegral, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_LE(68, result.num_step_iters());
         EXPECT_GE(87, result.num_step_iters());
@@ -735,7 +744,7 @@ TEST_F(TestEm15FieldMsc, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(15, result.num_step_iters());
         EXPECT_SOFT_EQ(38, result.calc_avg_steps_per_primary());
@@ -762,7 +771,7 @@ TEST_F(TestEm15FieldMsc, TEST_IF_CELER_DEVICE(device))
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(14, result.num_step_iters());
         EXPECT_SOFT_EQ(34.125, result.calc_avg_steps_per_primary());
@@ -829,7 +838,7 @@ TEST_F(OneSteelSphere, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(15.8671875, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(16, result.num_step_iters());
         EXPECT_SOFT_EQ(16.265625, result.calc_avg_steps_per_primary());

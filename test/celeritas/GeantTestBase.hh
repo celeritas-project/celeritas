@@ -30,12 +30,6 @@ class GeantTestBase : public ImportedDataTestBase
 {
     using Base = ImportedDataTestBase;
 
-  public:
-    //!@{
-    //! Whether the Geant4 configuration match a certain machine
-    static bool is_ci_build();
-    //!@}
-
   protected:
     virtual GeantPhysicsOptions build_geant_options() const;
     virtual GeantSetup::SetString build_sd_names() const;

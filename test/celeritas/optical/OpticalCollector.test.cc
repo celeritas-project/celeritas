@@ -40,7 +40,7 @@ namespace test
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
        && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM)
-       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
+       && Test::is_reference_rng);
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
@@ -159,6 +159,7 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
 
     for (auto i : range(count))
     {
+        result[i].primary_id = id_cast<PrimaryId>(i);
         result[i].direction = sample_dir(rng);
         result[i].particle_id = particles[i % particles.size()];
     }
@@ -281,8 +282,7 @@ TEST_F(LArSphereOffloadTest, host_distributions)
     static real_type const expected_scintillation_charge[] = {-1, 0, 1};
     EXPECT_VEC_EQ(expected_scintillation_charge, result.scintillation.charge);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-        && (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW))
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(228154,
                   result.cherenkov.total_num_photons
@@ -346,8 +346,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
     static real_type const expected_scintillation_charge[] = {-1, 0, 1};
     EXPECT_VEC_EQ(expected_scintillation_charge, result.scintillation.charge);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(416523,
                   result.cherenkov.total_num_photons
@@ -416,8 +415,7 @@ TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.scintillation.num_photons.size());
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(19970, result.cherenkov.total_num_photons);
         EXPECT_EQ(38, result.cherenkov.num_photons.size());
@@ -439,8 +437,7 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     EXPECT_EQ(0, result.cherenkov.total_num_photons);
     EXPECT_EQ(0, result.cherenkov.num_photons.size());
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(167469, result.scintillation.total_num_photons);
         EXPECT_EQ(48, result.scintillation.num_photons.size());

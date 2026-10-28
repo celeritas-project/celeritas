@@ -323,18 +323,21 @@ TEST_F(UrbanMscTest, step_conversion)
 
     for (char const* mat : {"G4_STAINLESS-STEEL", "G4_Galactic"})
     {
+        SCOPED_TRACE(mat);
         for (auto ptype : {pdg::electron(), pdg::positron()})
         {
-            for (real_type energy : {99.999,
-                                     51.0231,
-                                     10.0564,
-                                     5.05808,
-                                     1.01162,
-                                     0.501328,
-                                     0.102364,
-                                     0.0465336,
-                                     0.00708839,
-                                     1e-5})
+            for (real_type energy : {
+                     99.999,
+                     51.0231,
+                     10.0564,
+                     5.05808,
+                     1.01162,
+                     0.501328,
+                     0.102364,
+                     0.0465336,
+                     0.00708839,
+                     1e-5,
+                 })
             {
                 test_one(mat, ptype, MevEnergy{energy});
             }
@@ -342,7 +345,7 @@ TEST_F(UrbanMscTest, step_conversion)
     }
 }
 
-TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
+TEST_F(UrbanMscTest, step_limit)
 {
     using Algorithm = MscStepLimitAlgorithm;
 
@@ -423,95 +426,128 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
     {
         // "Minimal" algorithm, first step and not on boundary
         // step = phys_step
-        static double const expected_mean_step[] = {5.4443542524765e-05,
-                                                    0.0026634570717113,
-                                                    0.07706894630323,
-                                                    0.90591081547834,
-                                                    8.8845468955896};
-        static double const expected_range_init[] = {inf, inf, inf, inf, inf};
-        static double const expected_range_factor[] = {0.2, 0.2, 0.2, 0.2, 0.2};
-        static double const expected_limit_min[]
+        static real_type const expected_mean_step[] = {
+            5.4443542524765e-05,
+            0.0026634570717113,
+            0.07706894630323,
+            0.90591081547834,
+            8.8845468955896,
+        };
+        static real_type const expected_range_init[]
+            = {inf, inf, inf, inf, inf};
+        static real_type const expected_range_factor[]
+            = {0.2, 0.2, 0.2, 0.2, 0.2};
+        static real_type const expected_limit_min[]
             = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
 
         auto result = sample(Algorithm::minimal, false);
-        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
+        real_type tol = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+                             ? 2e-6f
+                             : 1e-11);
+        EXPECT_VEC_NEAR(expected_mean_step, result.mean_step, tol);
         EXPECT_VEC_EQ(expected_range_init, result.range_init);
         EXPECT_VEC_EQ(expected_range_factor, result.range_factor);
         EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
     }
     {
         // "Minimal" algorithm, first step and on boundary
-        static double const expected_mean_step[] = {1.0947992605048e-05,
-                                                    0.00052916041217278,
-                                                    0.015353327646933,
-                                                    0.21986948123587,
-                                                    8.8845468955896};
-        static double const expected_range_init[] = {1.0888708504953e-05,
-                                                     0.00053269141434226,
-                                                     0.015413789260646,
-                                                     0.21762788543933,
-                                                     15.553546812173};
-        static double const expected_range_factor[] = {0.2, 0.2, 0.2, 0.2, 0.2};
-        static double const expected_limit_min[]
+        static real_type const expected_mean_step[] = {
+            1.0947992605048e-05,
+            0.00052916041217278,
+            0.015353327646933,
+            0.21986948123587,
+            8.8845468955896,
+        };
+        static real_type const expected_range_init[] = {
+            1.0888708504953e-05,
+            0.00053269141434226,
+            0.015413789260646,
+            0.21762788543933,
+            15.553546812173,
+        };
+        static real_type const expected_range_factor[]
+            = {0.2, 0.2, 0.2, 0.2, 0.2};
+        static real_type const expected_limit_min[]
             = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
 
         auto result = sample(Algorithm::minimal, true);
-        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-        EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_EQ(expected_range_factor, result.range_factor);
-        EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
+        if (Test::is_reference_rng)
+        {
+            EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
+            EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
+            EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
+            EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+        }
     }
     {
         // "Use safety" algorithm
-        static double const expected_mean_step[] = {2.1774398678028e-06,
-                                                    0.00010553667369532,
-                                                    0.0030850804312135,
-                                                    0.15209571378504,
-                                                    8.8845468955896};
-        static double const expected_range_init[] = {5.4443542524765e-05,
-                                                     0.0026634570717113,
-                                                     0.07706894630323,
-                                                     1.0881394271966,
-                                                     77.767734060865};
-        static double const expected_range_factor[]
+        static real_type const expected_mean_step[] = {
+            2.1774398678028e-06,
+            0.00010553667369532,
+            0.0030850804312135,
+            0.15209571378504,
+            8.8845468955896,
+        };
+        static real_type const expected_range_init[] = {
+            5.4443542524765e-05,
+            0.0026634570717113,
+            0.07706894630323,
+            1.0881394271966,
+            77.767734060865,
+        };
+        static real_type const expected_range_factor[]
             = {0.04, 0.04, 0.04, 0.13881394271966, 7.8067734060865};
-        static double const expected_limit_min[] = {1.9688399316472e-06,
-                                                    1.0522532283188e-05,
-                                                    3.1432398888924e-05,
-                                                    4.0583539826243e-05,
-                                                    3.6094312868035e-05};
+        static real_type const expected_limit_min[] = {
+            1.9688399316472e-06,
+            1.0522532283188e-05,
+            3.1432398888924e-05,
+            4.0583539826243e-05,
+            3.6094312868035e-05,
+        };
 
         auto result = sample(Algorithm::safety, true);
-        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-        EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
-        EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+        if (Test::is_reference_rng)
+        {
+            EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
+            EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
+            EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
+            EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+        }
     }
     {
         // "Use safety plus" algorithm
-        static double const expected_mean_step[] = {2.1762412527058e-06,
-                                                    0.00010784096017973,
-                                                    0.0030577621335327,
-                                                    0.094075756535309,
-                                                    3.1108913402956};
-        static double const expected_range_init[] = {5.4443542524765e-05,
-                                                     0.0026634570717113,
-                                                     0.07706894630323,
-                                                     0.90591081547834,
-                                                     8.8845468955896};
-        static double const expected_range_factor[]
+        static real_type const expected_mean_step[] = {
+            2.1762412527058e-06,
+            0.00010784096017973,
+            0.0030577621335327,
+            0.094075756535309,
+            3.1108913402956,
+        };
+        static real_type const expected_range_init[] = {
+            5.4443542524765e-05,
+            0.0026634570717113,
+            0.07706894630323,
+            0.90591081547834,
+            8.8845468955896,
+        };
+        static real_type const expected_range_factor[]
             = {0.04, 0.04, 0.04, 0.10324092334058, 5.0107349798953};
-        static double const expected_limit_min[] = {1.9688399316472e-06,
-                                                    1.0522532283188e-05,
-                                                    3.1432398888924e-05,
-                                                    4.0583539826243e-05,
-                                                    3.6094312868035e-05};
+        static real_type const expected_limit_min[] = {
+            1.9688399316472e-06,
+            1.0522532283188e-05,
+            3.1432398888924e-05,
+            4.0583539826243e-05,
+            3.6094312868035e-05,
+        };
 
         auto result = sample(Algorithm::safety_plus, true);
-        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-        EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
-        EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+        if (Test::is_reference_rng)
+        {
+            EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
+            EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
+            EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
+            EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+        }
     }
 }
 
@@ -703,7 +739,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         }
     }
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    if (!Test::is_reference_rng)
     {
         PRINT_EXPECTED(lambda_cm);
         PRINT_EXPECTED(pstep_mfp);
@@ -720,10 +756,10 @@ TEST_F(UrbanMscTest, msc_scattering)
 
         PRINT_EXPECTED(avg_engine_samples);
 
-        GTEST_SKIP() << "Not tested for single precision";
+        GTEST_SKIP() << "Not using reference RNG";
     }
 
-    static double const expected_lambda_cm[] = {
+    static real_type const expected_lambda_cm[] = {
         20.538835907703,     20.538835907703,     20.538835907703,
         1.0971140774006,     1.0971140774006,     1.0971140774006,
         1.0881394271966,     1.0881394271966,     1.0881394271966,
@@ -747,7 +783,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.0001990403696419,  0.0001990403696419,  0.0001990403696419,
         9.8568978271595e-06, 9.8568978271595e-06, 9.8568978271595e-06,
     };
-    static double const expected_pstep_mfp[] = {
+    static real_type const expected_pstep_mfp[] = {
         0.00013592250371663, 0.00013592250371663, 0.00013592250371663,
         0.37584332248929,    0.37584332248929,    0.37584332248929,
         0.83253192820357,    0.83253192820357,    0.83253192820357,
@@ -771,7 +807,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         3.3962551216488,     3.3962551216488,     3.3962551216488,
         2.6426830904199,     2.6426830904199,     2.6426830904199,
     };
-    static double const expected_range_mfp[] = {
+    static real_type const expected_range_mfp[] = {
         0.22220936675071, 0.22220936675071, 0.22220936675071, 0.83037386174787,
         0.83037386174787, 0.83037386174787, 0.83253192820357, 0.83253192820357,
         0.83253192820357, 1.3608709008006,  1.3608709008006,  1.3608709008006,
@@ -790,7 +826,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         3.3962551216488,  3.3962551216488,  3.3962551216488,  2.6426830904199,
         2.6426830904199,  2.6426830904199,
     };
-    static double const expected_msc_range_mfp[] = {
+    static real_type const expected_msc_range_mfp[] = {
         1.7375156528881e-06,
         -1,
         -1,
@@ -858,7 +894,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.10585921743233,
         -1,
     };
-    static double const expected_tstep_frac[] = {
+    static real_type const expected_tstep_frac[] = {
         1,
         1,
         1,
@@ -926,7 +962,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.23001362050101,
         1,
     };
-    static double const expected_gstep_frac[] = {
+    static real_type const expected_gstep_frac[] = {
         0.99993204182719, 0.99993204182719, 0.99993204182719, 0.9149832761553,
         0.78950804632155, 0.78950804632155, 0.9431472456918,  0.54569308431111,
         0.54569308431111, 0.95390209023009, 0.94323702606103, 0.94323702606103,
@@ -945,7 +981,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.92192956951975, 0.73133464761437, 0.22746632584529, 0.94888968703467,
         0.73291272677833, 0.27452292037975,
     };
-    static double const expected_alpha_over_mfp[] = {
+    static real_type const expected_alpha_over_mfp[] = {
         0,
         0,
         0,
@@ -1081,7 +1117,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         {0.098, 0.1088, 0.128, 0.2176, 0.3584, 0.6104, 0.9688, 1.51},
         {0, 0, 0, 0, 0, 0, 0, 4},
     };
-    static double const expected_displace_frac[] = {
+    static real_type const expected_displace_frac[] = {
         1.1567584797188e-05,
         0,
         0,
@@ -1162,7 +1198,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         {0, 0, 1}, {0, 0, 1}, {1, 0, 0}, {0, 0, 1}, {0, 0, 1}, {1, 0, 0},
         {0, 0, 1}, {0, 0, 1}, {1, 0, 0}, {0, 0, 1}, {0, 0, 1}, {1, 0, 0},
     };
-    static double const expected_avg_engine_samples[] = {
+    static real_type const expected_avg_engine_samples[] = {
         0, 12,      0, 8,  0, 7.9998,  4, 12, 0, 6,  0, 6,       4, 12,
         0, 0,       0, 0,  4, 12,      0, 8,  0, 8,  4, 12,      4, 10,
         0, 0,       0, 12, 0, 12,      0, 8,  0, 8,  0, 8,       0, 8,

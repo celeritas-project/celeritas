@@ -55,7 +55,7 @@ void HeuristicGeoTestBase::run(
                   << "};\n"
                      "/* END REFERENCE PATH LENGTHS */\n";
     }
-    else if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    else if (Test::is_reference_rng)
     {
         EXPECT_VEC_NEAR(ref_path, host_path, tolerance)
             << "Host results differ from reference";
