@@ -426,7 +426,10 @@ TEST_F(LarSphereGeneratorCountersTest, offload)
              }},
         },
     };
-    EXPECT_REF_EQ(expected_counts, counts);
+    if (Test::is_reference_rng)
+    {
+        EXPECT_REF_EQ(expected_counts, counts);
+    }
 }
 
 TEST_F(WlsSlabGeneratorCountersTest, primary)
@@ -492,7 +495,10 @@ TEST_F(WlsSlabGeneratorCountersTest, primary)
              }},
         },
     };
-    EXPECT_REF_EQ(expected_counts, counts);
+    if (Test::is_reference_rng)
+    {
+        EXPECT_REF_EQ(expected_counts, counts);
+    }
 }
 
 TEST_F(LarSphereGeneratorCountersTest, direct)
@@ -554,7 +560,10 @@ TEST_F(LarSphereGeneratorCountersTest, direct)
              }},
         },
     };
-    EXPECT_REF_EQ(expected_counts, counts);
+    if (Test::is_reference_rng)
+    {
+        EXPECT_REF_EQ(expected_counts, counts);
+    }
 }
 
 //---------------------------------------------------------------------------//
