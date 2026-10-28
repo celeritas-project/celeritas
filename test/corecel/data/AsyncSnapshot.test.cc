@@ -9,8 +9,6 @@
 #include <atomic>
 #include <thread>
 
-#include "corecel/DeviceRuntimeApi.hh"
-
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stream.hh"
@@ -41,8 +39,7 @@ class StreamBlocker
   public:
     explicit StreamBlocker(Stream& stream) : stream_{stream}
     {
-        CELER_DEVICE_API_CALL(
-            LaunchHostFunc(stream_.get(), &StreamBlocker::spin, &released_));
+        stream.launch_host_func(&StreamBlocker::spin, &released_);
     }
 
     ~StreamBlocker()
