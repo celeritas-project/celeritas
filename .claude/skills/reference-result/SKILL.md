@@ -58,7 +58,7 @@ For example:
 
 ```cpp
 ImportXsSummary ref{{0, 0}, {0.0001, 100000000, 0.0001, 100000000}, {}};
-EXPECT_REF_EQ(ref, result);
+EXPECT_REF_EQ(ref, result) << result;
 ```
 
 or:
@@ -66,7 +66,7 @@ or:
 ImportXsSummary ref;
 ref.size = {0, 0};
 ref.energy = {0.0001, 100000000, 0.0001, 100000000};
-EXPECT_REF_EQ(ref, result);
+EXPECT_REF_EQ(ref, result) << result;
   ```
 
 ## 3. Print expected values
