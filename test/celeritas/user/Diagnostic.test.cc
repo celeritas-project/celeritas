@@ -116,7 +116,7 @@ TEST_F(SimpleComptonDiagnosticTest, host)
            "geo-boundary gamma",
            "scat-klein-nishina gamma"};
     EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         static size_type const expected_nonzero_action_counts[]
             = {3780u, 525u, 3887u};

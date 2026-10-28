@@ -178,7 +178,7 @@ TEST_F(TestEm3SlotTest, host)
 {
     auto result = this->run<MemSpace::host>(32, 64);
 
-    if (CELERITAS_CORE_RNG != CELERITAS_CORE_RNG_XORWOW)
+    if (!Test::is_reference_rng)
     {
         GTEST_SKIP() << "Reference results only apply to reference RNG";
     }
