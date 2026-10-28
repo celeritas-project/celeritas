@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <vector>
 #include <gtest/gtest.h>
@@ -28,6 +29,7 @@ struct Model;
 
 namespace test
 {
+class AssertionHelper;
 class GenericGeoTestInterface;
 
 //---------------------------------------------------------------------------//
@@ -88,22 +90,16 @@ struct GenericGeoTrackingTolerance
 };
 
 // Compare tracking results
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   char const* tol_expr,
-                                   GenericGeoTrackingResult const& expected,
-                                   GenericGeoTrackingResult const& actual,
-                                   GenericGeoTrackingTolerance const& tol);
+void check_ref_eq(AssertionHelper& helper,
+                  GenericGeoTrackingResult const& expected,
+                  GenericGeoTrackingResult const& actual,
+                  GenericGeoTrackingTolerance const& tol);
 
 //! Compare tracking results with default tolerance
-inline ::testing::AssertionResult IsRefEq(
-    char const* expected_expr,
-    char const* actual_expr,
-    GenericGeoTrackingResult const& expected,
-    GenericGeoTrackingResult const& actual)
-{
-    return IsRefEq(expected_expr, actual_expr, "default", expected, actual, {});
-}
+void check_ref_eq(AssertionHelper& helper,
+                  GenericGeoTrackingResult const& expected,
+                  GenericGeoTrackingResult const& actual,
+                  std::nullptr_t);
 
 //---------------------------------------------------------------------------//
 // STACK RESULT
@@ -124,10 +120,10 @@ struct GenericGeoVolumeStackResult
     void fail();
 };
 
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   GenericGeoVolumeStackResult const& expected,
-                                   GenericGeoVolumeStackResult const& actual);
+void check_ref_eq(AssertionHelper& helper,
+                  GenericGeoVolumeStackResult const& expected,
+                  GenericGeoVolumeStackResult const& actual,
+                  std::nullptr_t);
 
 //---------------------------------------------------------------------------//
 // MODEL INPUT RESULT
@@ -160,10 +156,10 @@ struct GenericGeoModelInp
 
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   GenericGeoModelInp const& expected,
-                                   GenericGeoModelInp const& actual);
+void check_ref_eq(AssertionHelper& helper,
+                  GenericGeoModelInp const& expected,
+                  GenericGeoModelInp const& actual,
+                  std::nullptr_t);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

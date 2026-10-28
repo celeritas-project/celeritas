@@ -1397,13 +1397,11 @@ std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
     return os;
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   FieldPropagationResult const& val1,
-                                   FieldPropagationResult const& val2)
+void check_ref_eq(AssertionHelper& result,
+                  FieldPropagationResult const& val1,
+                  FieldPropagationResult const& val2,
+                  std::nullptr_t)
 {
-    AssertionHelper result{expr1, expr2};
-
 #define IRE_COMPARE(ATTR) \
     if (val1.ATTR != val2.ATTR) \
     { \
@@ -1420,7 +1418,6 @@ std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
     IRE_COMPARE(messages);
 
 #undef IRE_COMPARE
-    return result;
 }
 
 TEST_F(CmseTest, coarse)

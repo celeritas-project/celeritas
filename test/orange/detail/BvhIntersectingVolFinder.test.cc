@@ -118,15 +118,13 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
     return os;
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   IntersectResult const& val1,
-                                   IntersectResult const& val2)
+void check_ref_eq(::celeritas::test::AssertionHelper& result,
+                  IntersectResult const& val1,
+                  IntersectResult const& val2,
+                  std::nullptr_t)
 {
     using namespace ::celeritas::test;
     using SoftEqT = SoftComparator_t<real_type>;
-
-    AssertionHelper result{expr1, expr2};
 
     is_soft_eq(result, val1.distance, val2.distance, SoftEqT());
     is_eq(result,
@@ -135,8 +133,6 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
           val2.intersect_surface);
     is_eq(result, "hit_count", val1.hit_count, val2.hit_count);
     is_eq(result, "miss_count", val1.miss_count, val2.miss_count);
-
-    return result;
 }
 
 //---------------------------------------------------------------------------//

@@ -6,13 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iterator>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "corecel/Macros.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
 
@@ -42,6 +43,18 @@ int num_digits(unsigned long val);
 
 // Return a replacement string if the given string is too long
 char const* trunc_string(int digits, char const* str, char const* trunc);
+
+template<class E, class A>
+::testing::AssertionResult IsRefEq(
+    char const* expr1, char const* expr2, E const& expected, A const& actual);
+
+template<class E, class A, class T>
+::testing::AssertionResult IsRefEq(char const* expr1,
+                                   char const* expr2,
+                                   char const* tol_expr,
+                                   E const& expected,
+                                   A const& actual,
+                                   T const& tol);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -653,20 +666,17 @@ template<class ContainerE, class ContainerA, class T>
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Compare two vectors of reference values using a tolerance.
+/*! Compare containers of reference values using a tolerance.
  */
 template<class ContainerE, class ContainerA, class Tol>
-std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>,
-                 ::testing::AssertionResult>
-IsRefEq(char const* expr1,
-        char const* expr2,
-        char const* tol_expr,
-        ContainerE const& val1,
-        ContainerA const& val2,
-        Tol const& tol)
+std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>
+                     && !std::is_same_v<Tol, std::nullptr_t>,
+                 void>
+check_ref_eq(::celeritas::test::AssertionHelper& result,
+             ContainerE const& val1,
+             ContainerA const& val2,
+             Tol const& tol)
 {
-    ::celeritas::test::AssertionHelper result{expr1, expr2};
     using std::begin;
     using std::end;
 
@@ -681,26 +691,20 @@ IsRefEq(char const* expr1,
         constexpr size_type max_printable_failures = 10;
         for (auto end1 = end(val1); iter1 != end1; ++i, ++iter1, ++iter2)
         {
-            ::testing::AssertionResult item_result
-                = ::testing::AssertionSuccess();
-            if constexpr (!std::is_same_v<Tol, std::nullptr_t>)
-            {
-                // Compare with tolerance
-                item_result
-                    = IsRefEq(expr1, expr2, tol_expr, *iter1, *iter2, tol);
-            }
-            else
-            {
-                CELER_DISCARD(tol_expr);  // Needed for GCC 8.5
-                item_result = IsRefEq(expr1, expr2, *iter1, *iter2);
-            }
+            auto item_result
+                = ::celeritas::testdetail::IsRefEq(result.expected_expr(),
+                                                   result.actual_expr(),
+                                                   result.tol_expr(),
+                                                   *iter1,
+                                                   *iter2,
+                                                   tol);
             if (!item_result)
             {
                 if (failures++ < max_printable_failures)
                 {
                     result.fail()
                         << item_result.message() << "\n(Failed in element "
-                        << i << " of " << expr2 << ")";
+                        << i << " of " << result.actual_expr() << ")";
                 }
             }
         }
@@ -711,7 +715,6 @@ IsRefEq(char const* expr1,
                           << " additional failures)";
         }
     }
-    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -719,14 +722,72 @@ IsRefEq(char const* expr1,
  * Compare two vectors of reference values without a special tolerance.
  */
 template<class ContainerE, class ContainerA>
-std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>,
-                 ::testing::AssertionResult>
-IsRefEq(char const* expr1,
-        char const* expr2,
-        ContainerE const& val1,
-        ContainerA const& val2)
+std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>, void>
+check_ref_eq(::celeritas::test::AssertionHelper& result,
+             ContainerE const& val1,
+             ContainerA const& val2,
+             std::nullptr_t)
 {
-    return IsRefEq(expr1, expr2, nullptr, val1, val2, nullptr);
+    using std::begin;
+    using std::end;
+
+    if (result.equal_size(std::distance(begin(val1), end(val1)),
+                          std::distance(begin(val2), end(val2))))
+    {
+        auto iter1 = begin(val1);
+        auto iter2 = begin(val2);
+        size_type i = 0;
+        size_type failures = 0;
+        constexpr size_type max_printable_failures = 10;
+        for (auto end1 = end(val1); iter1 != end1; ++i, ++iter1, ++iter2)
+        {
+            auto item_result = ::celeritas::testdetail::IsRefEq(
+                result.expected_expr(), result.actual_expr(), *iter1, *iter2);
+            if (!item_result)
+            {
+                if (failures++ < max_printable_failures)
+                {
+                    result.fail()
+                        << item_result.message() << "\n(Failed in element "
+                        << i << " of " << result.actual_expr() << ")";
+                }
+            }
+        }
+        if (failures > max_printable_failures)
+        {
+            result.fail() << "(Suppressed "
+                          << failures - max_printable_failures
+                          << " additional failures)";
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*! Dispatch reference comparison without a special tolerance.
+ */
+template<class E, class A>
+::testing::AssertionResult IsRefEq(
+    char const* expr1, char const* expr2, E const& expected, A const& actual)
+{
+    ::celeritas::test::AssertionHelper helper{expr1, expr2};
+    check_ref_eq(helper, expected, actual, nullptr);
+    return helper;
+}
+
+//---------------------------------------------------------------------------//
+/*! Dispatch reference comparison using a specified tolerance.
+ */
+template<class E, class A, class T>
+::testing::AssertionResult IsRefEq(char const* expr1,
+                                   char const* expr2,
+                                   char const* tol_expr,
+                                   E const& expected,
+                                   A const& actual,
+                                   T const& tol)
+{
+    ::celeritas::test::AssertionHelper helper{expr1, expr2, tol_expr};
+    check_ref_eq(helper, expected, actual, tol);
+    return helper;
 }
 
 //---------------------------------------------------------------------------//

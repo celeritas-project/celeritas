@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <string>
 
 #include "corecel/cont/Array.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
@@ -456,33 +457,28 @@ struct FooTol
     int val{0};
 };
 
-inline ::testing::AssertionResult IsRefEq(
-    char const* expr1, char const* expr2, Foo const& val1, Foo const& val2)
+inline void check_ref_eq(::celeritas::test::AssertionHelper& result,
+                         Foo const& val1,
+                         Foo const& val2,
+                         std::nullptr_t)
 {
-    ::celeritas::test::AssertionHelper result(expr1, expr2);
-
     if (val1.val != val2.val)
     {
         result.fail() << "  foo: " << val1.val << " != " << val2.val;
     }
-    return result;
 }
 
-inline ::testing::AssertionResult IsRefEq(char const* expr1,
-                                          char const* expr2,
-                                          char const* tolexpr,
-                                          Foo const& val1,
-                                          Foo const& val2,
-                                          FooTol const& tol)
+inline void check_ref_eq(::celeritas::test::AssertionHelper& result,
+                         Foo const& val1,
+                         Foo const& val2,
+                         FooTol const& tol)
 {
-    ::celeritas::test::AssertionHelper result(expr1, expr2);
-
     if (std::fabs(val1.val - val2.val) >= tol.val)
     {
         result.fail() << "  foo: " << val1.val << " != " << val2.val
-                      << " within " << tolexpr << " (" << tol.val << ")";
+                      << " within " << result.tol_expr() << " (" << tol.val
+                      << ")";
     }
-    return result;
 }
 
 TEST(IsRefEq, successes)
@@ -505,15 +501,18 @@ TEST(IsRefEq, failures)
     Foo ref;
     ref.val = 2;
 
-    EXPECT_FALSE(IsRefEq("expected", "actual", ref, Foo{1}));
-    EXPECT_FALSE(IsRefEq("expected", "actual", "tol", ref, Foo{20}, FooTol{5}));
+    EXPECT_FALSE(
+        ::celeritas::testdetail::IsRefEq("expected", "actual", ref, Foo{1}));
+    EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
+        "expected", "actual", "tol", ref, Foo{20}, FooTol{5}));
 
     // Vectors of different size
     {
         static Foo const vexpected[] = {Foo{2}, Foo{2}};
         std::vector<Foo> vactual = {ref, ref, ref};
-        EXPECT_FALSE(IsRefEq("expected", "actual", vexpected, vactual));
-        EXPECT_FALSE(IsRefEq(
+        EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
+            "expected", "actual", vexpected, vactual));
+        EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
             "expected", "actual", "tol", vexpected, vactual, FooTol{5}));
     }
 
@@ -521,9 +520,13 @@ TEST(IsRefEq, failures)
     {
         std::vector<Foo> vexpected(100, ref);
         std::vector<Foo> vactual(100, Foo{50});
-        EXPECT_FALSE(IsRefEq("expected", "actual", vexpected, vactual));
-        EXPECT_FALSE(IsRefEq(
-            "expected", "actual", "tol", vexpected, vactual, FooTol{20}));
+        EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
+            "expected", "actual", vexpected, vactual));
+        auto const tol_result = ::celeritas::testdetail::IsRefEq(
+            "expected", "actual", "tol", vexpected, vactual, FooTol{20});
+        EXPECT_FALSE(tol_result);
+        EXPECT_NE(std::string::npos,
+                  std::string(tol_result.message()).find("within tol"));
     }
 }
 

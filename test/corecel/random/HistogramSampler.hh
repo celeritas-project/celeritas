@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <iosfwd>
 #include <random>
 #include <vector>
@@ -20,6 +21,7 @@ namespace celeritas
 {
 namespace test
 {
+class AssertionHelper;
 //---------------------------------------------------------------------------//
 //! Sampled distribution
 struct SampledHistogram
@@ -98,10 +100,10 @@ class HistogramSampler
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   SampledHistogram const& val1,
-                                   SampledHistogram const& val2);
+void check_ref_eq(AssertionHelper& helper,
+                  SampledHistogram const& expected,
+                  SampledHistogram const& actual,
+                  std::nullptr_t);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

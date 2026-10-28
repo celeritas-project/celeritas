@@ -191,12 +191,12 @@ TEST_F(BoundingBoxTest, ref_near)
     BBoxD const within_tolerance{{0.06, 0, 0}, {1, 1, 1}};
     BBoxD const over_tolerance{{0.11, 0, 0}, {1, 1, 1}};
     EXPECT_REF_NEAR(expected, within_tolerance, 0.1);
-    EXPECT_FALSE(::celeritas::IsRefEq(
+    EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
         "expected", "actual", "0.1", expected, over_tolerance, 0.1));
 
     BBoxD const null_bbox;
     EXPECT_REF_NEAR(null_bbox, null_bbox, 0.1);
-    EXPECT_FALSE(::celeritas::IsRefEq(
+    EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
         "expected", "actual", "0.1", expected, null_bbox, 0.1));
 
     BBoxD const infinite_bbox = BBoxD::from_infinite();

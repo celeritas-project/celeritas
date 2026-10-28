@@ -34,7 +34,9 @@ class AssertionHelper
 {
   public:
     // Construct with expected/actual expressions
-    AssertionHelper(char const* expected_expr, char const* actual_expr);
+    AssertionHelper(char const* expected_expr,
+                    char const* actual_expr,
+                    char const* tol_expr = nullptr);
 
     // Fail and return a streamable object
     ::testing::AssertionResult& fail();
@@ -52,10 +54,14 @@ class AssertionHelper
     //! Get the actual expression string
     char const* actual_expr() const { return actual_expr_; }
 
+    //! Get the tolerance expression string, if provided
+    char const* tol_expr() const { return tol_expr_; }
+
   private:
     ::testing::AssertionResult result_;
     char const* expected_expr_;
     char const* actual_expr_;
+    char const* tol_expr_;
 };
 
 //---------------------------------------------------------------------------//

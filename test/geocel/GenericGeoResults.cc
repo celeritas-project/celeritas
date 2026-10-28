@@ -131,15 +131,11 @@ void GenericGeoTrackingResult::print_expected() const
             "/*** END CODE ***/\n";
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   char const*,
-                                   GenericGeoTrackingResult const& val1,
-                                   GenericGeoTrackingResult const& val2,
-                                   GenericGeoTrackingTolerance const& tol)
+void check_ref_eq(AssertionHelper& helper,
+                  GenericGeoTrackingResult const& val1,
+                  GenericGeoTrackingResult const& val2,
+                  GenericGeoTrackingTolerance const& tol)
 {
-    AssertionHelper helper{expr1, expr2};
-
     is_vec_eq(helper, "volumes", val1.volumes, val2.volumes);
     is_vec_eq(helper,
               "volume_instances",
@@ -169,7 +165,14 @@ void GenericGeoTrackingResult::print_expected() const
                    val1.bumps,
                    val2.bumps,
                    SoftEqual(tol.safety, tol.safety));
-    return helper;
+}
+
+void check_ref_eq(AssertionHelper& helper,
+                  GenericGeoTrackingResult const& val1,
+                  GenericGeoTrackingResult const& val2,
+                  std::nullptr_t)
+{
+    check_ref_eq(helper, val1, val2, GenericGeoTrackingTolerance{});
 }
 
 //---------------------------------------------------------------------------//
@@ -213,18 +216,15 @@ void GenericGeoVolumeStackResult::fail()
     this->volume_instances.push_back("[FAILURE]");
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   GenericGeoVolumeStackResult const& val1,
-                                   GenericGeoVolumeStackResult const& val2)
+void check_ref_eq(AssertionHelper& result,
+                  GenericGeoVolumeStackResult const& val1,
+                  GenericGeoVolumeStackResult const& val2,
+                  std::nullptr_t)
 {
-    AssertionHelper result{expr1, expr2};
-
     is_eq(result,
           "volume_instances",
           val1.volume_instances,
           val2.volume_instances);
-    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -314,13 +314,11 @@ void GenericGeoModelInp::print_expected() const
             "/*** END CODE ***/\n";
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   GenericGeoModelInp const& val1,
-                                   GenericGeoModelInp const& val2)
+void check_ref_eq(AssertionHelper& result,
+                  GenericGeoModelInp const& val1,
+                  GenericGeoModelInp const& val2,
+                  std::nullptr_t)
 {
-    AssertionHelper result{expr1, expr2};
-
 #define IRE_COMPARE(ATTR) \
     if (val1.ATTR != val2.ATTR) \
     { \
@@ -338,7 +336,6 @@ void GenericGeoModelInp::print_expected() const
     IRE_COMPARE(detector.volumes);
 
 #undef IRE_COMPARE
-    return result;
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

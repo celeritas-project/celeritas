@@ -81,19 +81,17 @@ class GeantImporterTest : public GeantTestBase
 
         void print_expected() const;
 
-        friend ::testing::AssertionResult IsRefEq(char const* expr1,
-                                                  char const* expr2,
-                                                  ImportSummary const& expected,
-                                                  ImportSummary const& actual)
+        friend void check_ref_eq(AssertionHelper& result,
+                                 ImportSummary const& expected,
+                                 ImportSummary const& actual,
+                                 std::nullptr_t)
         {
             using namespace ::celeritas::test;
-            AssertionHelper result{expr1, expr2};
             is_vec_eq(
                 result, "particles", expected.particles, actual.particles);
             is_vec_eq(
                 result, "processes", expected.processes, actual.processes);
             is_vec_eq(result, "models", expected.models, actual.models);
-            return result;
         }
     };
 
@@ -105,18 +103,15 @@ class GeantImporterTest : public GeantTestBase
 
         void print_expected() const;
 
-        friend ::testing::AssertionResult IsRefEq(
-            char const* expr1,
-            char const* expr2,
-            ImportXsSummary const& expected,
-            ImportXsSummary const& actual)
+        friend void check_ref_eq(AssertionHelper& result,
+                                 ImportXsSummary const& expected,
+                                 ImportXsSummary const& actual,
+                                 std::nullptr_t)
         {
             using namespace ::celeritas::test;
-            AssertionHelper result{expr1, expr2};
             is_vec_eq(result, "size", expected.size, actual.size);
             is_vec_soft_eq(result, "energy", expected.energy, actual.energy);
             is_vec_soft_eq(result, "xs", expected.xs, actual.xs);
-            return result;
         }
     };
 

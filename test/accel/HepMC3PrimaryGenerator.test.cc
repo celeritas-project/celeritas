@@ -43,10 +43,10 @@ struct ReadAllResult
     friend std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref);
 };
 
-::testing::AssertionResult is_ref_eq(AssertionHelper& helper,
-                                     ReadAllResult const& expected,
-                                     ReadAllResult const& actual,
-                                     ReadAllTolerance const& tol)
+void check_ref_eq(AssertionHelper& helper,
+                  ReadAllResult const& expected,
+                  ReadAllResult const& actual,
+                  ReadAllTolerance const& tol)
 {
     is_vec_soft_eq(helper, "pos", expected.pos, actual.pos);
     is_vec_soft_eq(helper, "time", expected.time, actual.time);
@@ -56,27 +56,6 @@ struct ReadAllResult
         helper, "energy", expected.energy, actual.energy, tol.energy);
     is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
     is_vec_soft_eq(helper, "mass", expected.mass, actual.mass);
-    return std::move(helper);
-}
-
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   ReadAllResult const& expected,
-                                   ReadAllResult const& actual)
-{
-    AssertionHelper helper{expr1, expr2};
-    return is_ref_eq(helper, expected, actual, {});
-}
-
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   char const*,
-                                   ReadAllResult const& expected,
-                                   ReadAllResult const& actual,
-                                   ReadAllTolerance const& tol)
-{
-    AssertionHelper helper{expr1, expr2};
-    return is_ref_eq(helper, expected, actual, tol);
 }
 
 class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase

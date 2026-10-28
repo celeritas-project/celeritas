@@ -10,7 +10,7 @@
 
 #include "corecel/Config.hh"
 
-#include "testdetail/TestMacrosImpl.hh"
+#include "testdetail/TestMacrosImpl.hh"  // IWYU pragma: export
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -18,9 +18,10 @@
 
 //! Custom comparison for Celeritas test result types, using ADL
 #define EXPECT_REF_EQ(EXPECTED, ACTUAL) \
-    EXPECT_PRED_FORMAT2(IsRefEq, EXPECTED, ACTUAL)
+    EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsRefEq, EXPECTED, ACTUAL)
 #define EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL) \
-    EXPECT_PRED_FORMAT3(IsRefEq, EXPECTED, ACTUAL, TOL)
+    EXPECT_PRED_FORMAT3( \
+        ::celeritas::testdetail::IsRefEq, EXPECTED, ACTUAL, TOL)
 
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \
@@ -97,20 +98,3 @@
 #else
 #    define TEST_IF_CELERITAS_USE_ROOT(name) DISABLED_##name
 #endif
-
-// Expose the generic container IsRefEq to the possible test namespaces so that
-// "unqualified lookup" as well as "argument-dependent" work
-namespace celeritas
-{
-namespace test
-{
-using ::celeritas::testdetail::IsRefEq;
-}
-namespace detail
-{
-namespace test
-{
-using ::celeritas::testdetail::IsRefEq;
-}
-}  // namespace detail
-}  // namespace celeritas

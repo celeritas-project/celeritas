@@ -16,24 +16,20 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 template<class T>
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   char const* tol_expr,
-                                   BoundingBox<T> const& expected,
-                                   BoundingBox<T> const& actual,
-                                   T tol)
+void check_ref_eq(test::AssertionHelper& result,
+                  BoundingBox<T> const& expected,
+                  BoundingBox<T> const& actual,
+                  T tol)
 {
-    test::AssertionHelper result{expected_expr, actual_expr};
-
     if (!expected || !actual)
     {
         if (static_cast<bool>(expected) != static_cast<bool>(actual))
         {
             result.fail() << "Expected " << repr(expected) << " but got "
-                          << repr(actual) << " (tolerance " << tol_expr << "="
-                          << tol << ')';
+                          << repr(actual) << " (tolerance "
+                          << result.tol_expr() << '=' << tol << ')';
         }
-        return result;
+        return;
     }
 
     auto const points_are_close
@@ -45,23 +41,18 @@ template<class T>
         || !points_are_close(expected.upper(), actual.upper()))
     {
         result.fail() << "Expected " << repr(expected) << " but got "
-                      << repr(actual) << " (tolerance " << tol_expr << "="
-                      << tol << ')';
+                      << repr(actual) << " (tolerance " << result.tol_expr()
+                      << '=' << tol << ')';
     }
-    return result;
 }
 
-template ::testing::AssertionResult IsRefEq<float>(char const*,
-                                                   char const*,
-                                                   char const*,
-                                                   BoundingBox<float> const&,
-                                                   BoundingBox<float> const&,
-                                                   float);
-template ::testing::AssertionResult IsRefEq<double>(char const*,
-                                                    char const*,
-                                                    char const*,
-                                                    BoundingBox<double> const&,
-                                                    BoundingBox<double> const&,
-                                                    double);
+template void check_ref_eq<float>(test::AssertionHelper&,
+                                  BoundingBox<float> const&,
+                                  BoundingBox<float> const&,
+                                  float);
+template void check_ref_eq<double>(test::AssertionHelper&,
+                                   BoundingBox<double> const&,
+                                   BoundingBox<double> const&,
+                                   double);
 
 }  // namespace celeritas

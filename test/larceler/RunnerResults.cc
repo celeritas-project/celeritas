@@ -46,14 +46,12 @@ void RunResult::print_expected() const
               << "EXPECT_REF_EQ(ref, result);\n";
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   RunResult const& val1,
-                                   RunResult const& val2)
+void check_ref_eq(AssertionHelper& helper,
+                  RunResult const& val1,
+                  RunResult const& val2,
+                  std::nullptr_t)
 {
-    AssertionHelper helper{expr1, expr2};
     is_vec_eq(helper, "num_hits", val1.num_hits, val2.num_hits);
-    return helper;
 }
 
 //---------------------------------------------------------------------------//
@@ -89,21 +87,17 @@ void DepHitResult::print_expected() const
 
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   DepHitResult const& val1,
-                                   DepHitResult const& val2)
+void check_ref_eq(AssertionHelper& helper,
+                  DepHitResult const& val1,
+                  DepHitResult const& val2,
+                  std::nullptr_t)
 {
-    AssertionHelper helper{expr1, expr2};
-
     is_eq(helper, "track_id", val1.track_id, val2.track_id);
     is_vec_soft_eq(helper, "num_photons", val1.num_photons, val2.num_photons);
     is_vec_soft_eq(helper, "energy", val1.energy, val2.energy);
     is_vec_soft_eq(helper, "x", val1.x, val2.x);
     is_vec_soft_eq(helper, "y", val1.y, val2.y);
     is_vec_soft_eq(helper, "z", val1.z, val2.z);
-
-    return helper;
 }
 
 //---------------------------------------------------------------------------//

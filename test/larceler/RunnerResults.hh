@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <vector>
 #include <gtest/gtest.h>
 
@@ -20,6 +21,7 @@ namespace celeritas
 {
 namespace test
 {
+class AssertionHelper;
 //---------------------------------------------------------------------------//
 struct RunResult
 {
@@ -33,10 +35,10 @@ struct RunResult
 
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   RunResult const& val1,
-                                   RunResult const& val2);
+void check_ref_eq(AssertionHelper& helper,
+                  RunResult const& expected,
+                  RunResult const& actual,
+                  std::nullptr_t);
 
 //---------------------------------------------------------------------------//
 struct DepHitResult
@@ -55,10 +57,10 @@ struct DepHitResult
 
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   DepHitResult const& val1,
-                                   DepHitResult const& val2);
+void check_ref_eq(AssertionHelper& helper,
+                  DepHitResult const& expected,
+                  DepHitResult const& actual,
+                  std::nullptr_t);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

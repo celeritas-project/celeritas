@@ -13,6 +13,7 @@
 #include "geocel/IsRefEq.hh"
 
 #include "AssertionHelper.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 //!@{
 //! Helper macros
@@ -63,13 +64,11 @@ void IntersectTestResult::print_expected() const
 }
 
 //---------------------------------------------------------------------------//
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   IntersectTestResult const& val1,
-                                   IntersectTestResult const& val2)
+void check_ref_eq(::celeritas::test::AssertionHelper& result,
+                  IntersectTestResult const& val1,
+                  IntersectTestResult const& val2,
+                  std::nullptr_t)
 {
-    ::celeritas::test::AssertionHelper result{expr1, expr2};
-
 #define IRE_COMPARE(ATTR) \
     if (val1.ATTR != val2.ATTR) \
     { \
@@ -85,7 +84,7 @@ void IntersectTestResult::print_expected() const
     auto check_bbox = [&result](char const* name,
                                 auto const& expected,
                                 auto const& actual) {
-        auto bbox_result = ::celeritas::IsRefEq(
+        auto bbox_result = ::celeritas::testdetail::IsRefEq(
             "expected", "actual", "auto", expected, actual, SoftEqual<>{}.rel());
         if (!bbox_result)
         {
@@ -97,7 +96,6 @@ void IntersectTestResult::print_expected() const
     check_bbox("interior", val1.interior, val2.interior);
     check_bbox("exterior", val1.exterior, val2.exterior);
 #undef IRE_COMPARE
-    return result;
 }
 
 //---------------------------------------------------------------------------//

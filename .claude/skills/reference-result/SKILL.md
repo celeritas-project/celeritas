@@ -1,13 +1,13 @@
 ---
 name: reference-result
-description: 'Define or modify printable Celeritas test reference-result structs and IsRefEq comparators for EXPECT_REF_EQ or EXPECT_REF_NEAR. Use for reference data, tolerance structs, copy-pastable expected values, and field-level assertion diagnostics.'
+description: 'Define or modify printable Celeritas test reference-result structs and check_ref_eq customizations for EXPECT_REF_EQ or EXPECT_REF_NEAR. Use for reference data, tolerance structs, copy-pastable expected values, and field-level assertion diagnostics.'
 argument-hint: 'Describe the result type, its fields, and whether comparisons need a tolerance'
 ---
 
 # Celeritas Reference Results
 
-Create or improve a test-only reference-result struct and its `IsRefEq`
-comparison and expected-value output. Reference results commonly store vectors
+Create or improve a test-only reference-result struct and its `check_ref_eq`
+customization and expected-value output. Reference results commonly store vectors
 of values collected from a simulation or geometry operation. Follow the
 implemented interfaces in the checked-in tree; distinguish existing behavior
 from proposed extensions.
@@ -17,9 +17,10 @@ from proposed extensions.
 Inspect the owning test helper and nearby call sites before editing:
 
 - `test/AssertionHelper.hh` for accumulating field-level failure messages.
-- `test/testdetail/TestMacrosImpl.hh` for `is_eq`, `is_vec_eq`,
-  `is_vec_soft_eq`, scalar/vector comparison predicates, and generic container
-  dispatch; `test/TestMacros.hh` for `EXPECT_REF_EQ` / `EXPECT_REF_NEAR`.
+- `test/testdetail/TestMacrosImpl.hh` for the central `IsRefEq` predicate
+  dispatchers, generic container `check_ref_eq`, and field-aware helpers such
+  as `is_eq`, `is_vec_eq`, and `is_vec_soft_eq`; `test/TestMacros.hh` for
+  `EXPECT_REF_EQ` / `EXPECT_REF_NEAR`.
 - `test/accel/HepMC3PrimaryGenerator.test.cc` as a canonical example.
 
 Keep the result in the existing test helper or test file that owns the data;
@@ -95,19 +96,44 @@ use C++20 designated initializers. `print_expected()` should emit a complete
 snippet for the owning test, including the right assertion macro and any
 required tolerance setup. Test the emitted text against the expected output.
 
-## 4. Implement `IsRefEq` with the current helpers
+## 4. Implement `check_ref_eq` customizations
 
-`EXPECT_REF_EQ` calls the four-argument `IsRefEq(expected_expr, actual_expr,
-expected, actual)` overload. `EXPECT_REF_NEAR` calls the six-argument overload
-`IsRefEq(expected_expr, actual_expr, tol_expr, expected, actual, tol)`. These
-are predicate-format APIs found by ADL; preserve their signatures and namespace
-placement. Provide both overloads when a tolerance type is needed. Define the
-no-explicit-tolerance behavior deliberately: a default-initialized tolerance
-does not necessarily mean exact comparison if the comparator gives it soft
-defaults.
+`EXPECT_REF_EQ` and `EXPECT_REF_NEAR` call the central predicate-format
+dispatchers in `celeritas::testdetail`; do not add result-specific `IsRefEq`
+overloads. The dispatcher creates one `celeritas::test::AssertionHelper` and
+calls a type-specific `check_ref_eq` customization. The helper is passed by
+reference and the customization returns `void`:
 
-Start with `celeritas::test::AssertionHelper helper{expr1, expr2};` and prefer
-the field-aware wrappers from `test/testdetail/TestMacrosImpl.hh`:
+```cpp
+void check_ref_eq(AssertionHelper& helper,
+                  Result const& expected,
+                  Result const& actual,
+                  std::nullptr_t);
+
+void check_ref_eq(AssertionHelper& helper,
+                  Result const& expected,
+                  Result const& actual,
+                  Tol const& tol);
+```
+
+Implement the `std::nullptr_t` overload when the result is compared with
+`EXPECT_REF_EQ`; implement the tolerance overload when it is compared with
+`EXPECT_REF_NEAR`. Provide both if both macros are used. The no-tolerance tag
+is passed explicitly by the dispatcher; do not substitute `{}` for a generic
+tolerance argument.
+
+Define the customization in a namespace associated with the result type, or as
+a hidden friend when needed for a nested/private result type, so argument-
+dependent lookup can find it. Put non-inline declarations in the owning test
+helper header and definitions in its source file. Include `AssertionHelper.hh`
+where a complete helper type is needed; include `<cstddef>` for
+`std::nullptr_t` declarations.
+
+The helper already contains the expected and actual expression strings. For
+`EXPECT_REF_NEAR`, `helper.tol_expr()` retains the tolerance expression for
+field diagnostics. Customizations should append failures to the shared helper,
+not construct or return a separate assertion result. Prefer the field-aware
+wrappers from `test/testdetail/TestMacrosImpl.hh`:
 
 - `is_eq(helper, "field", expected, actual)` for exact scalar or directly
   comparable fields.
@@ -126,15 +152,22 @@ specific behavior is needed that the field-aware wrappers cannot express; add
 the field label and protect any manual paired traversal with a size check.
 Compare discrete fields exactly, keep tolerances local to the fields they
 govern, and include tolerance context in diagnostics when useful. Return the
-helper so callers receive accumulated failures.
+helper by reference and let the central dispatcher return the accumulated
+assertion result.
 
-For library-owned template types, define the `IsRefEq` overload in the type's
-associated namespace so argument-dependent lookup can find it. Put the
-predicate-format declaration in a test helper header and define it out of line
-for explicitly supported scalar instantiations; declare those instantiations
-`extern` in the header to keep callers from requiring the implementation.
-Exercise the tolerance-taking overload with `EXPECT_REF_NEAR`, including its
-tolerance boundary and any special values or null-state behavior.
+For library-owned template types, define `check_ref_eq` in the type's
+associated namespace. If only selected template instantiations are supported,
+declare and explicitly instantiate the customization as appropriate. Exercise
+the tolerance customization with `EXPECT_REF_NEAR`, including its tolerance
+boundary and any special values or null-state behavior.
+
+The generic container customization is provided centrally. It checks size,
+recurses through the central dispatcher for each element, labels failures with
+the element index, and caps the number of printed failures. Do not write a
+result-specific container overload or recurse through an unqualified `IsRefEq`
+call, which could select an older ADL predicate instead of the central
+dispatcher. Add a focused container test when a result type is expected to be
+used inside containers.
 
 ### Preserve soft vector semantics
 

@@ -5,6 +5,7 @@
 //! \file orange/orangeinp/IntersectTestResult.hh
 //---------------------------------------------------------------------------//
 #pragma once
+#include <cstddef>
 #include <string>
 #include <vector>
 #include <gtest/gtest.h>
@@ -14,6 +15,11 @@
 
 namespace celeritas
 {
+namespace test
+{
+class AssertionHelper;
+}
+
 namespace orangeinp
 {
 namespace test
@@ -44,10 +50,10 @@ struct IntersectTestResult
 };
 
 // Compare with EXPECT_REF_EQ
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   IntersectTestResult const& val1,
-                                   IntersectTestResult const& val2);
+void check_ref_eq(::celeritas::test::AssertionHelper& helper,
+                  IntersectTestResult const& expected,
+                  IntersectTestResult const& actual,
+                  std::nullptr_t);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

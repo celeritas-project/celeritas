@@ -38,12 +38,11 @@ std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh)
 
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   SampledHistogram const& val1,
-                                   SampledHistogram const& val2)
+void check_ref_eq(AssertionHelper& result,
+                  SampledHistogram const& val1,
+                  SampledHistogram const& val2,
+                  std::nullptr_t)
 {
-    AssertionHelper result(expr1, expr2);
     is_vec_soft_eq(
         result, "distribution", val1.distribution, val2.distribution);
     if (!soft_equal(val1.rng_count, val2.rng_count))
@@ -51,8 +50,6 @@ std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh)
         result.fail() << "  rng_count: " << val1.rng_count
                       << " != " << val2.rng_count;
     }
-
-    return result;
 }
 //---------------------------------------------------------------------------//
 }  // namespace test
