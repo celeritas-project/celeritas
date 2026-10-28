@@ -385,14 +385,15 @@ TYPED_TEST(TrackInitTest, run)
             EXPECT_EQ(5, result.track_ids[3]);
             EXPECT_EQ(7, result.track_ids[5]);
             EXPECT_EQ(9, result.track_ids[7]);
-        }
 
-        // Two tracks should have the same parent ID = 10
-        int expected_parent_ids[] = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
-        std::sort(std::begin(result.parent_ids), std::end(result.parent_ids));
-        std::sort(std::begin(expected_parent_ids),
-                  std::end(expected_parent_ids));
-        EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+            // Two tracks should have the same parent ID = 10
+            int expected_parent_ids[] = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
+            std::sort(std::begin(result.parent_ids),
+                      std::end(result.parent_ids));
+            std::sort(std::begin(expected_parent_ids),
+                      std::end(expected_parent_ids));
+            EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+        }
 
         // Check the parent IDs for copying the geometry state
         static int const expected_geo_parent_ids[] = {-1, -1, -1};
