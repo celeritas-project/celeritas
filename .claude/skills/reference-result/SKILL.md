@@ -8,14 +8,14 @@ argument-hint: 'Describe the result type, its fields, and whether comparisons ne
 
 Create or improve a test-only reference-result struct, its comparison logic,
 and expected-value output. Reference results commonly store vectors of values
-collected from a simulation or geometry operation. The usual case is a
-test-specific result: define `check_ref_eq` as its ADL customization and put
-Use field-by-field `check_ref_eq` only when a particular `Result` needs special handling, such as
-ignored or conditionally compared fields. Define reusable `is_ref_eq` only
-for a class the user asks to compare as part of the result; `BoundingBox` is
-an example. Do not add a reusable policy just because a result struct exists.
-Follow the checked-in interfaces and distinguish implemented behavior from
-proposed extensions.
+collected from a simulation or geometry operation. Add a `check_ref_eq`
+customization when a `Result` needs behavior beyond its ordinary value
+comparison. Field-by-field checks are a targeted, unusual customization for
+special field semantics; do not make them the default. Define reusable
+`is_ref_eq` only for a class the user asks to compare as part of the result;
+`BoundingBox` is an example. Do not add a reusable policy just because a
+result struct exists. Follow the checked-in interfaces and distinguish
+implemented behavior from proposed extensions.
 
 ## 1. Find the local pattern
 
@@ -52,6 +52,10 @@ C++ files, follow the `new-class` skill.
   temporary or static `expected_*` arrays/vectors used only to initialize the
   reference. For version-dependent values, initialize the reference with the
   common values and assign the differing field directly, such as `ref.xs`.
+- If an existing test compares only a small subset of a newly created
+  reference class, it is acceptable to define the reference after getting
+  the actual value using `auto ref = result;` and setting only the expected
+  fields.
 
 For example:
 
@@ -84,6 +88,10 @@ smallest output form that is copy-pastable and fits the result type:
   and the assertion in parameterless `print_expected()`, which can dispatch
   with `*this` to the stream operator. Use `EXPECT_REF_EQ` there; per-test
   tolerance overrides belong at the assertion call site.
+- For a small test-local result declared at namespace scope, define a short
+  `print_expected()` inline and define `operator<<` as an inline friend when
+  that keeps the implementation local. Put substantial or shared output logic
+  in the owning test helper header/source instead.
 - Keep handling for omitted, sentinel, or non-deterministic fields explicit in
   the generated snippet, with a short explanation when needed.
 
@@ -91,7 +99,6 @@ Use C++17 aggregate syntax, `repr` or existing member stream support, and no
 designated initializers. Test that the generated snippet is valid and includes
 the assertion and any required setup.
 
-dependent lookup can find it. Put non-inline declarations in the owning test
 ## 4. Implement comparison dispatch and customizations
 
 `EXPECT_REF_EQ` and `EXPECT_REF_NEAR` use central dispatch in
@@ -180,10 +187,12 @@ fields. Keep discrete fields exact and tolerances local to their fields. Use
 `IsVecEq` or `IsVecSoftEquiv` directly only when the wrappers cannot express
 the needed behavior; label the field and check sizes before paired traversal.
 
-For a shared customization, declare it in the owning test helper header and
-define it in the corresponding source file. A test-local customization can
-follow the existing translation-unit pattern. Include `AssertionHelper.hh`
-where a complete type is needed and `<cstddef>` for `std::nullptr_t`.
+For a small test-local result declared at namespace scope, `check_ref_eq` can
+be an inline friend so ADL finds it. Friend function definitions cannot be
+placed in a local class. For substantial or shared customizations, declare
+them in the owning test helper header and define them in the corresponding
+source file. Include `AssertionHelper.hh` where a complete type is needed and
+`<cstddef>` for `std::nullptr_t`.
 
 The generic container `check_ref_eq` is provided centrally. It checks size,
 dispatches each element, labels failures by index, and limits printed
