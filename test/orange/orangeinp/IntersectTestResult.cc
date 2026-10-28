@@ -15,11 +15,6 @@
 #include "AssertionHelper.hh"
 #include "testdetail/TestMacrosImpl.hh"
 
-//!@{
-//! Helper macros
-#define ITR_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
-//!@}
-
 namespace celeritas
 {
 
@@ -54,13 +49,13 @@ namespace test
 //---------------------------------------------------------------------------//
 void IntersectTestResult::print_expected() const
 {
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "IntersectTestResult ref;\n"
-         << ITR_REF_ATTR(node) << ITR_REF_ATTR(surfaces)
-         << ITR_REF_ATTR(interior) << ITR_REF_ATTR(exterior)
-         << "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
+}
+
+std::ostream& operator<<(std::ostream& os, IntersectTestResult const& ref)
+{
+    return os << '{' << repr(ref.node) << ", " << repr(ref.surfaces) << ", "
+              << repr(ref.interior) << ", " << repr(ref.exterior) << '}';
 }
 
 //---------------------------------------------------------------------------//

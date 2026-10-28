@@ -91,6 +91,8 @@ struct SampleInit
 
 struct SampleResult
 {
+    static constexpr char class_str[] = "SampleResult";
+
     std::vector<double> inc_exit_cost;
     std::vector<double> inc_exit_e;
     std::vector<double> inc_edep;
@@ -102,9 +104,7 @@ struct SampleResult
 
 void SampleResult::print_expected() const
 {
-    std::cout << "SampleResult ref = " << *this
-              << ";\n"
-                 "EXPECT_REF_EQ(ref, result);\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 std::ostream& operator<<(std::ostream& os, SampleResult const& result)

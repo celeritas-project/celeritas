@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <iosfwd>
 #include <string>
 #include <vector>
 #include <gtest/gtest.h>
@@ -46,6 +47,8 @@ class GenericGeoTestInterface;
 //! Get detailed results from tracking from one cell to the next
 struct GenericGeoTrackingResult
 {
+    static constexpr char class_str[] = "GenericGeoTrackingResult";
+
     std::vector<std::string> volumes;
     std::vector<std::string> volume_instances;
     std::vector<real_type> distances;  //!< [cm]
@@ -79,6 +82,9 @@ struct GenericGeoTrackingResult
 
     // Print expected expression to cout
     void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream&,
+                                    GenericGeoTrackingResult const&);
 };
 
 //! Loosen strictness for tracking comparison
@@ -108,6 +114,8 @@ void check_ref_eq(AssertionHelper& helper,
 //! Get the volume instances and replica IDs from a point
 struct GenericGeoVolumeStackResult
 {
+    static constexpr char class_str[] = "GenericGeoVolumeStackResult";
+
     using LabelMap = LabelIdMultiMap<VolumeInstanceId>;
 
     std::vector<std::string> volume_instances;
@@ -115,6 +123,9 @@ struct GenericGeoVolumeStackResult
     static GenericGeoVolumeStackResult from_span(LabelMap const&,
                                                  Span<VolumeInstanceId const>);
     void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream&,
+                                    GenericGeoVolumeStackResult const&);
 
     //! Add a failure sentinel at the end
     void fail();
@@ -132,6 +143,8 @@ void check_ref_eq(AssertionHelper& helper,
 //! Get the unfolded geometry model input
 struct GenericGeoModelInp
 {
+    static constexpr char class_str[] = "GenericGeoModelInp";
+
     struct
     {
         std::vector<std::string> labels;
@@ -152,6 +165,8 @@ struct GenericGeoModelInp
 
     static GenericGeoModelInp from_model_input(inp::Model const& in);
     void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream&, GenericGeoModelInp const&);
 };
 
 //---------------------------------------------------------------------------//

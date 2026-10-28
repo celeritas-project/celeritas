@@ -17,6 +17,9 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 
+#include "AssertionHelper.hh"
+#include "testdetail/TestMacrosImpl.hh"
+
 namespace celeritas
 {
 namespace test
@@ -71,21 +74,25 @@ GeantImportVolumeResult GeantImportVolumeResult::from_import(
 //---------------------------------------------------------------------------//
 void GeantImportVolumeResult::print_expected() const
 {
-    using std::cout;
+    ::celeritas::testdetail::print_expected(*this);
+}
 
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static int const expected_volumes[] = "
-         << repr(this->volumes)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
-            "EXPECT_EQ(0, result.missing_labels.size()) << "
-            "repr(result.missing_labels);\n";
-    if (!this->missing_labels.empty())
-    {
-        cout << "/* Currently missing: " << repr(this->missing_labels)
-             << " */\n";
-    }
-    cout << "/*** END CODE ***/\n";
+std::ostream& operator<<(std::ostream& os, GeantImportVolumeResult const& ref)
+{
+    return os << '{' << repr(ref.volumes) << ", " << repr(ref.missing_labels)
+              << '}';
+}
+
+void check_ref_eq(AssertionHelper& helper,
+                  GeantImportVolumeResult const& expected,
+                  GeantImportVolumeResult const& actual,
+                  std::nullptr_t)
+{
+    is_vec_eq(helper, "volumes", expected.volumes, actual.volumes);
+    is_vec_eq(helper,
+              "missing_labels",
+              expected.missing_labels,
+              actual.missing_labels);
 }
 
 //---------------------------------------------------------------------------//

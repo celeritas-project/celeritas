@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <iosfwd>
 #include <vector>
 #include <gtest/gtest.h>
 
@@ -28,12 +29,16 @@ class AssertionHelper;
 //---------------------------------------------------------------------------//
 struct RunResult
 {
+    static constexpr char class_str[] = "RunResult";
+
     std::vector<int> num_hits;
 
     static RunResult from_btr(
         std::vector<sim::OpDetBacktrackerRecord> const& records);
 
     void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream&, RunResult const&);
 };
 
 //---------------------------------------------------------------------------//
@@ -46,6 +51,8 @@ void check_ref_eq(AssertionHelper& helper,
 //---------------------------------------------------------------------------//
 struct DepHitResult
 {
+    static constexpr char class_str[] = "DepHitResult";
+
     using Real3 = Array<float, 3>;
 
     std::vector<int> track_id;
@@ -56,6 +63,8 @@ struct DepHitResult
     static DepHitResult from_sdp(std::vector<sim::SDP> const& sdps);
 
     void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream&, DepHitResult const&);
 };
 
 //---------------------------------------------------------------------------//

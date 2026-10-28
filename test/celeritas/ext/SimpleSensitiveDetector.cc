@@ -28,35 +28,22 @@ namespace test
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
 {
-    return os << "SimpleHitsResult{\n"
-              << CELER_REF_ATTR(energy_deposition)
-              << CELER_REF_ATTR(step_length) << CELER_REF_ATTR(particle)
-              << CELER_REF_ATTR(weight) << CELER_REF_ATTR(track_id)
-              << CELER_REF_ATTR(parent_id) << CELER_REF_ATTR(pre_energy)
-              << CELER_REF_ATTR(pre_time) << CELER_REF_ATTR(pre_pos)
-              << CELER_REF_ATTR(pre_dir) << CELER_REF_ATTR(pre_physvol)
-              << CELER_REF_ATTR(post_time) << CELER_REF_ATTR(post_energy)
-              << CELER_REF_ATTR(post_pos) << CELER_REF_ATTR(post_dir)
-              << CELER_REF_ATTR(post_physvol) << CELER_REF_ATTR(post_status)
-              << "}";
+    return os << '{' << repr(ref.energy_deposition) << ", "
+              << repr(ref.step_length) << ", " << repr(ref.particle) << ", "
+              << repr(ref.weight) << ", " << repr(ref.track_id) << ", "
+              << repr(ref.parent_id) << ", " << repr(ref.pre_energy) << ", "
+              << repr(ref.pre_time) << ", " << repr(ref.pre_pos) << ", "
+              << repr(ref.pre_dir) << ", " << repr(ref.pre_physvol) << ", "
+              << repr(ref.post_time) << ", " << repr(ref.post_energy) << ", "
+              << repr(ref.post_pos) << ", " << repr(ref.post_dir) << ", "
+              << repr(ref.post_physvol) << ", " << repr(ref.post_status)
+              << '}';
 }
 
 //---------------------------------------------------------------------------//
 void print_expected(SimpleHitsResult const& ref)
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "SimpleHitsResult ref;\n"
-         << CELER_REF_ATTR(energy_deposition) << CELER_REF_ATTR(step_length)
-         << CELER_REF_ATTR(particle) << CELER_REF_ATTR(weight)
-         << CELER_REF_ATTR(track_id) << CELER_REF_ATTR(parent_id)
-         << CELER_REF_ATTR(pre_energy) << CELER_REF_ATTR(pre_time)
-         << CELER_REF_ATTR(pre_pos) << CELER_REF_ATTR(pre_dir)
-         << CELER_REF_ATTR(pre_physvol) << CELER_REF_ATTR(post_time)
-         << CELER_REF_ATTR(post_energy) << CELER_REF_ATTR(post_pos)
-         << CELER_REF_ATTR(post_dir) << CELER_REF_ATTR(post_physvol)
-         << CELER_REF_ATTR(post_status)
-         << "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(ref);
 }
 
 //---------------------------------------------------------------------------//

@@ -23,6 +23,8 @@ namespace test
 //---------------------------------------------------------------------------//
 struct SimpleHitsResult
 {
+    static constexpr char class_str[] = "SimpleHitsResult";
+
     std::vector<double> energy_deposition;  // [MeV]
     std::vector<double> step_length;  // [cm]
     std::vector<std::string> particle;

@@ -37,6 +37,8 @@ class CaloTestBase : virtual public SimpleLoopTestBase
 
     struct RunResult
     {
+        static constexpr char class_str[] = "RunResult";
+
         struct Tolerance
         {
             double edep{Test::fine_eps};

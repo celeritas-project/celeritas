@@ -26,6 +26,8 @@ class AssertionHelper;
 //! Sampled distribution
 struct SampledHistogram
 {
+    static constexpr char class_str[] = "SampledHistogram";
+
     //! Sampled distribution
     std::vector<double> distribution;
     //! Average number of RNG samples

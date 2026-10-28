@@ -44,6 +44,8 @@ class EventIOTestBase : public Test
   protected:
     struct ReadAllResult
     {
+        static constexpr char class_str[] = "ReadAllResult";
+
         struct Tolerance
         {
             double energy{Test::fine_eps};

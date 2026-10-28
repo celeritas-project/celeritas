@@ -26,15 +26,7 @@ namespace test
 //---------------------------------------------------------------------------//
 void EventIOTestBase::ReadAllResult::print_expected() const
 {
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "ReadAllResult ref = "
-         << *this
-         << ";\n"
-            "ReadAllResult::Tolerance tol;\n"
-            "tol.dir = 1e-8;\n"
-            "EXPECT_REF_NEAR(ref, result, tol);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 //---------------------------------------------------------------------------//

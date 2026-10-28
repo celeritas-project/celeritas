@@ -41,13 +41,7 @@ std::ostream& operator<<(std::ostream& os,
 //---------------------------------------------------------------------------//
 void print_expected(ExampleInstanceCalo::Result const& ref)
 {
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "ExampleInstanceCalo::Result ref = "
-         << ref
-         << ";\n"
-            "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(ref);
 }
 
 //---------------------------------------------------------------------------//

@@ -23,6 +23,8 @@
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "testdetail/TestMacrosImpl.hh"
+
 namespace celeritas
 {
 namespace test
@@ -148,33 +150,32 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 //---------------------------------------------------------------------------//
 void AlongStepTestBase::RunResult::print_expected() const
 {
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
+}
 
-    cout << "EXPECT_SOFT_EQ(" << repr(this->eloss)
-         << ", result.eloss);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->displacement)
-         << ", result.displacement);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->angle)
-         << ", result.angle);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->time)
-         << ", result.time);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->step)
-         << ", result.step);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->mfp)
-         << ", result.mfp);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->alive) << ", result.alive);\n";
-    if (!this->action.empty() && this->action.front() == '{')
-        cout << "// ";
-    cout << "EXPECT_EQ(" << repr(this->action)
-         << ", result.action);\n"
-            "/*** END CODE ***/\n";
+std::ostream& operator<<(std::ostream& os,
+                         AlongStepTestBase::RunResult const& ref)
+{
+    return os << '{' << repr(ref.eloss) << ", " << repr(ref.displacement)
+              << ", " << repr(ref.angle) << ", " << repr(ref.time) << ", "
+              << repr(ref.step) << ", " << repr(ref.mfp) << ", "
+              << repr(ref.alive) << ", " << repr(ref.action) << '}';
+}
+
+void check_ref_eq(AssertionHelper& helper,
+                  AlongStepTestBase::RunResult const& expected,
+                  AlongStepTestBase::RunResult const& actual,
+                  std::nullptr_t)
+{
+    auto const comp = SoftComparator_t<real_type>();
+    is_soft_eq(helper, expected.eloss, actual.eloss, comp);
+    is_soft_eq(helper, expected.displacement, actual.displacement, comp);
+    is_soft_eq(helper, expected.angle, actual.angle, comp);
+    is_soft_eq(helper, expected.time, actual.time, comp);
+    is_soft_eq(helper, expected.step, actual.step, comp);
+    is_soft_eq(helper, expected.mfp, actual.mfp, comp);
+    is_soft_eq(helper, expected.alive, actual.alive, comp);
+    is_eq(helper, "action", expected.action, actual.action);
 }
 
 //---------------------------------------------------------------------------//

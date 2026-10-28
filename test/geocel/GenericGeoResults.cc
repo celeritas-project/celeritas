@@ -102,33 +102,15 @@ void GenericGeoTrackingResult::fail_at(std::size_t index)
 
 void GenericGeoTrackingResult::print_expected() const
 {
-    using std::cout;
-    auto const& ref = *this;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "GenericGeoTrackingResult ref;\n"
-         << CELER_REF_ATTR(volume_instances) << CELER_REF_ATTR(distances);
-    if (this->dot_normal.empty())
-    {
-        // See clear_boring_normals
-        cout << "ref.dot_normal = {}; // All normals are along track dir\n";
-    }
-    else if (this->disabled_surface_normal())
-    {
-        cout << "// Surface normal checking is disabled\n";
-    }
-    else
-    {
-        cout << CELER_REF_ATTR(dot_normal);
-    }
-    cout << CELER_REF_ATTR(halfway_safeties);
-    if (!bumps.empty())
-    {
-        cout << CELER_REF_ATTR(bumps);
-    }
+    ::celeritas::testdetail::print_expected(*this);
+}
 
-    cout << "auto tol = test_->tracking_tol();\n"
-            "EXPECT_REF_NEAR(ref, result, tol);\n"
-            "/*** END CODE ***/\n";
+std::ostream& operator<<(std::ostream& os, GenericGeoTrackingResult const& ref)
+{
+    return os << '{' << repr(ref.volumes) << ", " << repr(ref.volume_instances)
+              << ", " << repr(ref.distances) << ", " << repr(ref.dot_normal)
+              << ", " << repr(ref.halfway_safeties) << ", " << repr(ref.bumps)
+              << '}';
 }
 
 void check_ref_eq(AssertionHelper& helper,
@@ -202,13 +184,13 @@ GenericGeoVolumeStackResult GenericGeoVolumeStackResult::from_span(
 
 void GenericGeoVolumeStackResult::print_expected() const
 {
-    using std::cout;
-    auto const& ref = *this;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "GenericGeoVolumeStackResult ref;\n"
-            << CELER_REF_ATTR(volume_instances)
-            "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         GenericGeoVolumeStackResult const& ref)
+{
+    return os << '{' << repr(ref.volume_instances) << '}';
 }
 
 void GenericGeoVolumeStackResult::fail()
@@ -291,27 +273,16 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
 
 void GenericGeoModelInp::print_expected() const
 {
-    using std::cout;
-    auto const& ref = *this;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "GenericGeoModelInp ref;\n";
+    ::celeritas::testdetail::print_expected(*this);
+}
 
-    if (!surface.labels.empty())
-    {
-        cout << CELER_REF_ATTR(surface.labels)
-             << CELER_REF_ATTR(surface.volumes);
-    }
-    if (!region.labels.empty())
-    {
-        cout << CELER_REF_ATTR(region.labels) << CELER_REF_ATTR(region.volumes);
-    }
-    if (!detector.labels.empty())
-    {
-        cout << CELER_REF_ATTR(detector.labels)
-             << CELER_REF_ATTR(detector.volumes);
-    }
-    cout << "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+std::ostream& operator<<(std::ostream& os, GenericGeoModelInp const& ref)
+{
+    return os << "{{" << repr(ref.surface.labels) << ", "
+              << repr(ref.surface.volumes) << "}, {" << repr(ref.region.labels)
+              << ", " << repr(ref.region.volumes) << "}, {"
+              << repr(ref.detector.labels) << ", "
+              << repr(ref.detector.volumes) << "}}";
 }
 
 void check_ref_eq(AssertionHelper& result,

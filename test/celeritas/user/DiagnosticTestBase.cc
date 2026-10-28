@@ -44,12 +44,7 @@ void DiagnosticTestBase::SetUp()
 //! Print the expected result
 void DiagnosticTestBase::RunResult::print_expected() const
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "RunResult ref = "
-         << *this
-         << ";\n"
-            "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 std::ostream& operator<<(std::ostream& os,

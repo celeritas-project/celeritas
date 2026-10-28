@@ -53,6 +53,8 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
   protected:
     struct RunResult
     {
+        static constexpr char class_str[] = "RunResult";
+
         std::vector<std::string> labels;
         std::vector<std::string> slots;
 
@@ -64,12 +66,7 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
 
         friend void print_expected(RunResult const& ref)
         {
-            cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-                    "RunResult ref = "
-                 << ref
-                 << ";\n"
-                    "EXPECT_REF_EQ(ref, result);\n"
-                    "/*** END CODE ***/\n";
+            ::celeritas::testdetail::print_expected(ref);
         }
 
         friend void check_ref_eq(AssertionHelper& helper,

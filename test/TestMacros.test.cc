@@ -28,6 +28,18 @@ namespace celeritas
 namespace test
 {
 
+struct PrintableTestResult
+{
+    static constexpr char class_str[] = "PrintableTestResult";
+
+    int value;
+};
+
+std::ostream& operator<<(std::ostream& os, PrintableTestResult const& result)
+{
+    return os << '{' << result.value << '}';
+}
+
 //---------------------------------------------------------------------------//
 
 TEST(PrintExpected, example)
@@ -60,6 +72,23 @@ static char const* const expected_cstrings[] = {"one", "three", "five"};
 static std::string const expected_strings[] = {"a", "", "special\nchars\t"};
 )",
               out_result);
+}
+
+TEST(PrintExpected, reference_result)
+{
+    std::string out_result = [] {
+        ScopedStreamRedirect redirect_out(&std::cout);
+        testdetail::print_expected(PrintableTestResult{42});
+        return redirect_out.str();
+    }();
+    out_result.push_back('\n');
+
+    EXPECT_EQ(
+        "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+        "PrintableTestResult ref = {42};\n"
+        "EXPECT_REF_EQ(ref, result);\n"
+        "/*** END CODE ***/\n",
+        out_result);
 }
 
 TEST(AssertionHelper, vector_soft_tolerance)

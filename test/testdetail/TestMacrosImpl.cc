@@ -16,6 +16,26 @@ namespace celeritas
 {
 namespace testdetail
 {
+namespace
+{
+constexpr char expected_result_header[]
+    = "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n";
+constexpr char expected_result_footer[]
+    = "EXPECT_REF_EQ(ref, result);\n/*** END CODE ***/\n";
+}  // namespace
+
+//---------------------------------------------------------------------------//
+void print_expected_header()
+{
+    std::cout << expected_result_header;
+}
+
+//---------------------------------------------------------------------------//
+void print_expected_footer()
+{
+    std::cout << expected_result_footer;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Number of base-10 digits in an unsigned integer.

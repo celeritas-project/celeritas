@@ -34,6 +34,8 @@ class MctruthTestBase : virtual public SimpleLoopTestBase
 
     struct RunResult
     {
+        static constexpr char class_str[] = "MctruthTestBase::RunResult";
+
         struct Tolerance
         {
             double pos{Test::fine_eps};

@@ -178,12 +178,7 @@ auto StepperTestBase::RunResult::calc_queue_hwm() const -> StepCount
 //! Print the expected result
 void StepperTestBase::SetupCheckResult::print_expected() const
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "SetupCheckResult ref = "
-         << *this
-         << ";\n"
-            "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 std::ostream& operator<<(std::ostream& os,
@@ -208,22 +203,22 @@ void check_ref_eq(AssertionHelper& helper,
 //! Print the expected result
 void StepperTestBase::RunResult::print_expected() const
 {
-    CELER_EXPECT(*this);
-    auto step_value = this->calc_queue_hwm();
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "EXPECT_EQ("
-         << this->num_step_iters()
-         << ", result.num_step_iters());\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->calc_avg_steps_per_primary())
-         << ", result.calc_avg_steps_per_primary());\n"
-            "EXPECT_EQ("
-         << this->calc_emptying_step()
-         << ", result.calc_emptying_step());\n"
-            "EXPECT_EQ(RunResult::StepCount({"
-         << step_value.first << ", " << step_value.second
-         << "}), result.calc_queue_hwm());\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         StepperTestBase::RunResult const& ref)
+{
+    return os << '{' << repr(ref.active) << ", " << repr(ref.queued) << '}';
+}
+
+void check_ref_eq(AssertionHelper& helper,
+                  StepperTestBase::RunResult const& expected,
+                  StepperTestBase::RunResult const& actual,
+                  std::nullptr_t)
+{
+    is_vec_eq(helper, "active", expected.active, actual.active);
+    is_vec_eq(helper, "queued", expected.queued, actual.queued);
 }
 
 //---------------------------------------------------------------------------//

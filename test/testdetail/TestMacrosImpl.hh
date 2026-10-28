@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <iostream>
 #include <iterator>
 #include <string>
 #include <string_view>
@@ -96,6 +97,17 @@ using CommonPrecision_t = typename CommonPrecision<T, U>::type;
 
 template<class T>
 using SoftComparator_t = EqualOr<SoftEqual<T>>;
+
+void print_expected_header();
+void print_expected_footer();
+
+template<class Result>
+void print_expected(Result const& result)
+{
+    print_expected_header();
+    std::cout << Result::class_str << " ref = " << result << ";\n";
+    print_expected_footer();
+}
 
 //---------------------------------------------------------------------------//
 //! Whether soft equivalence can be performed on the given types.

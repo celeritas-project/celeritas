@@ -75,11 +75,21 @@ class GeantImporterTest : public GeantTestBase
 
     struct ImportSummary
     {
+        static constexpr char class_str[] = "ImportSummary";
+
         std::vector<std::string> particles;
         std::vector<std::string> processes;
         std::vector<std::string> models;
 
         void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream& os,
+                                        ImportSummary const& ref)
+        {
+            return os << '{' << repr(ref.particles) << ", "
+                      << repr(ref.processes) << ", " << repr(ref.models)
+                      << '}';
+        }
 
         friend void check_ref_eq(AssertionHelper& result,
                                  ImportSummary const& expected,
@@ -97,11 +107,20 @@ class GeantImporterTest : public GeantTestBase
 
     struct ImportXsSummary
     {
+        static constexpr char class_str[] = "ImportXsSummary";
+
         std::vector<size_type> size;  //!< Number of micro XS in each material
         std::vector<double> energy;
         std::vector<double> xs;
 
         void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream& os,
+                                        ImportXsSummary const& ref)
+        {
+            return os << '{' << repr(ref.size) << ", " << repr(ref.energy)
+                      << ", " << repr(ref.xs) << '}';
+        }
 
         friend void check_ref_eq(AssertionHelper& result,
                                  ImportXsSummary const& expected,
@@ -206,13 +225,7 @@ auto GeantImporterTest::summarize(ImportData const& data) const -> ImportSummary
 
 void GeantImporterTest::ImportSummary::print_expected() const
 {
-    auto const& ref = *this;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "ImportSummary ref;\n"
-         << CELER_REF_ATTR(particles) << CELER_REF_ATTR(processes)
-         << CELER_REF_ATTR(models)
-         << "EXPECT_REF_EQ(ref, summary);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
@@ -249,12 +262,7 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
 
 void GeantImporterTest::ImportXsSummary::print_expected() const
 {
-    auto const& ref = *this;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "ImportXsSummary ref;\n"
-         << CELER_REF_ATTR(size) << CELER_REF_ATTR(energy)
-         << CELER_REF_ATTR(xs) << "EXPECT_REF_EQ(ref, result);\n"
-         << "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 //---------------------------------------------------------------------------//

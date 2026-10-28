@@ -48,6 +48,8 @@ namespace test
 
 struct RunResult
 {
+    static constexpr char class_str[] = "RunResult";
+
     std::vector<int> track_ids;
     std::vector<int> parent_ids;
     std::vector<int> init_ids;
@@ -130,12 +132,7 @@ RunResult RunResult::from_state(CoreState<M>& state)
 // Print code for the expected attributes
 void RunResult::print_expected() const
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "RunResult ref = "
-         << *this
-         << ";\n"
-            "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 //---------------------------------------------------------------------------//

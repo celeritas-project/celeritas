@@ -41,6 +41,8 @@ class ExampleInstanceCalo final : public StepInterface
 
     struct Result
     {
+        static constexpr char class_str[] = "ExampleInstanceCalo::Result";
+
         std::vector<std::string> instance;
         std::vector<double> edep;
 

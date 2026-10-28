@@ -48,6 +48,8 @@ class StepperTestBase : virtual public GlobalTestBase
   public:
     struct SetupCheckResult
     {
+        static constexpr char class_str[] = "SetupCheckResult";
+
         std::vector<std::string> processes;
         std::vector<std::string> actions;
         std::vector<std::string> actions_desc;
@@ -64,6 +66,8 @@ class StepperTestBase : virtual public GlobalTestBase
 
     struct RunResult
     {
+        static constexpr char class_str[] = "RunResult";
+
         using StepCount = std::pair<size_type, size_type>;
 
         std::vector<size_type> active;
@@ -80,6 +84,12 @@ class StepperTestBase : virtual public GlobalTestBase
 
         // Print code for the expected attributes
         void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream&, RunResult const&);
+        friend void check_ref_eq(AssertionHelper&,
+                                 RunResult const&,
+                                 RunResult const&,
+                                 std::nullptr_t);
 
         //! True if run was performed and data is consistent
         explicit operator bool() const

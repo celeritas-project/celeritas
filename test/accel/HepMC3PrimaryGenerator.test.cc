@@ -31,6 +31,8 @@ struct ReadAllTolerance
 
 struct ReadAllResult
 {
+    static constexpr char class_str[] = "ReadAllResult";
+
     std::vector<Real3> pos;
     std::vector<double> time;
     std::vector<int> vtx;
@@ -128,12 +130,7 @@ std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref)
 
 void ReadAllResult::print_expected() const
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "ReadAllResult ref = "
-         << *this
-         << ";\n"
-            "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)

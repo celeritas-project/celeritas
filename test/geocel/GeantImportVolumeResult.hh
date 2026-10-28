@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -15,12 +17,15 @@ namespace celeritas
 {
 namespace test
 {
+class AssertionHelper;
 //---------------------------------------------------------------------------//
 /*!
  * Test importing volume names for consistency.
  */
 struct GeantImportVolumeResult
 {
+    static constexpr char class_str[] = "GeantImportVolumeResult";
+
     static constexpr int empty = -1;
     static constexpr int missing = -2;
 
@@ -30,6 +35,13 @@ struct GeantImportVolumeResult
     std::vector<std::string> missing_labels;  //!< G4LV names without a match
 
     void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream&,
+                                    GeantImportVolumeResult const&);
+    friend void check_ref_eq(AssertionHelper&,
+                             GeantImportVolumeResult const&,
+                             GeantImportVolumeResult const&,
+                             std::nullptr_t);
 };
 
 //---------------------------------------------------------------------------//

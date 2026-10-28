@@ -37,6 +37,8 @@ namespace test
  */
 struct IntersectTestResult
 {
+    static constexpr char class_str[] = "IntersectTestResult";
+
     std::string node;
     std::vector<std::string> surfaces;
     BBox interior;
@@ -47,6 +49,8 @@ struct IntersectTestResult
     NodeId node_id;
 
     void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream&, IntersectTestResult const&);
 };
 
 // Compare with EXPECT_REF_EQ

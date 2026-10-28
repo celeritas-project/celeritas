@@ -53,6 +53,8 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
 
     struct HeuristicInitResult
     {
+        static constexpr char class_str[] = "HeuristicInitResult";
+
         std::vector<double> vol_fractions;  //!< Fraction per volume ID
         double failed{0};  //!< Fraction that couldn't initialize
         double walltime_per_track_ns{0};  //!< Kernel time
@@ -66,12 +68,7 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
 
         friend void print_expected(HeuristicInitResult const& result)
         {
-            cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-                 << "HeuristicInitResult ref = " << result << ";\n"
-                 << "EXPECT_REF_EQ(ref, result);\n"
-                 << "// Wall time (ns), informational only: "
-                 << result.walltime_per_track_ns << "\n"
-                 << "/*** END CODE ***/\n";
+            ::celeritas::testdetail::print_expected(result);
         }
 
         friend void check_ref_eq(AssertionHelper& result,

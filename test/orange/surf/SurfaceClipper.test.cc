@@ -15,6 +15,7 @@
 #include "orange/surf/VariantSurface.hh"
 
 #include "celeritas_test.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
 {
@@ -23,10 +24,28 @@ namespace test
 //---------------------------------------------------------------------------//
 struct ClipResult
 {
+    static constexpr char class_str[] = "ClipResult";
+
     BBox i = BBox::from_infinite();
     BBox x = BBox::from_infinite();
 
     void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream& os, ClipResult const& result)
+    {
+        return os << '{' << result.i << ", " << result.x << '}';
+    }
+
+    friend void check_ref_eq(AssertionHelper& helper,
+                             ClipResult const& expected,
+                             ClipResult const& actual,
+                             std::nullptr_t)
+    {
+        is_vec_soft_eq(helper, "i.lower", expected.i.lower(), actual.i.lower());
+        is_vec_soft_eq(helper, "i.upper", expected.i.upper(), actual.i.upper());
+        is_vec_soft_eq(helper, "x.lower", expected.x.lower(), actual.x.lower());
+        is_vec_soft_eq(helper, "x.upper", expected.x.upper(), actual.x.upper());
+    }
 };
 
 class SurfaceClipperTest : public ::celeritas::test::Test
@@ -44,15 +63,7 @@ class SurfaceClipperTest : public ::celeritas::test::Test
 
 void ClipResult::print_expected() const
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n";
-#define CR_PRINT(BOX, BOUND) \
-    cout << "EXPECT_VEC_SOFT_EQ((Real3" << repr(this->BOX.BOUND()) \
-         << "), result." #BOX "." #BOUND "());\n"
-    CR_PRINT(i, lower);
-    CR_PRINT(i, upper);
-    CR_PRINT(x, lower);
-    CR_PRINT(x, upper);
-    cout << "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 TEST_F(SurfaceClipperTest, inside)

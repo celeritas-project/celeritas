@@ -41,9 +41,12 @@ RunResult RunResult::from_btr(
 
 void RunResult::print_expected() const
 {
-    std::cout << "RunResult ref;\n"
-              << "ref.num_hits = " << repr(num_hits) << ";\n"
-              << "EXPECT_REF_EQ(ref, result);\n";
+    ::celeritas::testdetail::print_expected(*this);
+}
+
+std::ostream& operator<<(std::ostream& os, RunResult const& ref)
+{
+    return os << '{' << repr(ref.num_hits) << '}';
 }
 
 void check_ref_eq(AssertionHelper& helper,
@@ -73,12 +76,13 @@ DepHitResult DepHitResult::from_sdp(std::vector<sim::SDP> const& sdps)
 
 void DepHitResult::print_expected() const
 {
-    std::cout << "DepHitResult ref;\n"
-              << "ref.track_id = " << repr(track_id) << ";\n"
-              << "ref.num_photons = " << repr(num_photons) << ";\n"
-              << "ref.energy = " << repr(energy) << ";\n"
-              << "ref.pos = " << repr(pos) << ";\n"
-              << "EXPECT_REF_EQ(ref, result);\n";
+    ::celeritas::testdetail::print_expected(*this);
+}
+
+std::ostream& operator<<(std::ostream& os, DepHitResult const& ref)
+{
+    return os << '{' << repr(ref.track_id) << ", " << repr(ref.num_photons)
+              << ", " << repr(ref.energy) << ", " << repr(ref.pos) << '}';
 }
 
 //---------------------------------------------------------------------------//

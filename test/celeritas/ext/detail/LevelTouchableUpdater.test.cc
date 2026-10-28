@@ -35,6 +35,8 @@ namespace test
 //---------------------------------------------------------------------------//
 struct TestResult
 {
+    static constexpr char class_str[] = "TestResult";
+
     using Dbl3 = Array<double, 3>;
     std::vector<Dbl3> coords;
     std::vector<std::string> replicas;
@@ -60,13 +62,7 @@ struct TestResult
 
 void TestResult::print_expected() const
 {
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "TestResult ref = "
-         << *this
-         << ";\n"
-            "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(*this);
 }
 
 //---------------------------------------------------------------------------//

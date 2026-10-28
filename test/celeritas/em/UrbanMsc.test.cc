@@ -187,6 +187,8 @@ std::ostream& operator<<(std::ostream& os, LabeledValue<T> const& lv)
 
 struct StepLimitResult
 {
+    static constexpr char class_str[] = "StepLimitResult";
+
     std::vector<real_type> mean_step;
     std::vector<real_type> range_init;
     std::vector<real_type> range_factor;
@@ -194,9 +196,7 @@ struct StepLimitResult
 
     void print_expected() const
     {
-        std::cout << "StepLimitResult ref = " << *this
-                  << ";\n"
-                     "EXPECT_REF_EQ(ref, result);\n";
+        ::celeritas::testdetail::print_expected(*this);
     }
 
     friend std::ostream& operator<<(std::ostream& os,

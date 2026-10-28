@@ -44,22 +44,15 @@ void MctruthTestBase::SetUp()
 std::ostream& operator<<(std::ostream& os,
                          MctruthTestBase::RunResult const& ref)
 {
-    return os << "RunResult{\n"
-              << CELER_REF_ATTR(event) << CELER_REF_ATTR(track)
-              << CELER_REF_ATTR(step) << CELER_REF_ATTR(volume)
-              << CELER_REF_ATTR(pos) << CELER_REF_ATTR(dir) << "}";
+    return os << '{' << repr(ref.event) << ", " << repr(ref.track) << ", "
+              << repr(ref.step) << ", " << repr(ref.volume) << ", "
+              << repr(ref.pos) << ", " << repr(ref.dir) << '}';
 }
 
 //---------------------------------------------------------------------------//
 void print_expected(MctruthTestBase::RunResult const& ref)
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "MctruthTestBase::RunResult ref;\n"
-         << CELER_REF_ATTR(event) << CELER_REF_ATTR(track)
-         << CELER_REF_ATTR(step) << CELER_REF_ATTR(volume)
-         << CELER_REF_ATTR(pos) << CELER_REF_ATTR(dir)
-         << "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    ::celeritas::testdetail::print_expected(ref);
 }
 
 //---------------------------------------------------------------------------//

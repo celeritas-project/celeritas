@@ -38,6 +38,8 @@ class DiagnosticTestBase : virtual public SimpleLoopTestBase
 
     struct RunResult
     {
+        static constexpr char class_str[] = "RunResult";
+
         std::vector<std::string> nonzero_action_keys;
         std::vector<size_type> nonzero_action_counts;
         std::vector<size_type> steps;
