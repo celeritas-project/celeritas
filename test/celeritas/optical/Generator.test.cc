@@ -474,6 +474,33 @@ TEST_F(WlsGeneratorTest, abort_early)
             EXPECT_EQ(193, gen.num_generated);
         }
     }
+
+    // Insert more primaries and transport again. Work left over when the
+    // previous loop aborted should be cleared and not generated in this run
+    run.insert();
+    result = run();
+
+    if (Test::is_reference_rng)
+    {
+        EXPECT_EQ(858, result.counters.num_cut);
+    }
+    EXPECT_EQ(1, result.counters.flushes);
+    EXPECT_EQ(8, result.counters.step_iters);
+    EXPECT_EQ(0, result.counters.num_errored);
+    ASSERT_EQ(2, result.counters.generators.size());
+
+    auto const& primary = result.counters.generators[1];
+    EXPECT_EQ(0, primary.buffer_size);
+    EXPECT_EQ(num_photons, primary.num_pending);
+    if (Test::is_reference_rng)
+    {
+        EXPECT_EQ(172, primary.num_generated);
+
+        auto const& wls = result.counters.generators[0];
+        EXPECT_EQ(223, wls.buffer_size);
+        EXPECT_EQ(340, wls.num_pending);
+        EXPECT_EQ(340, wls.num_generated);
+    }
 }
 
 //---------------------------------------------------------------------------//
