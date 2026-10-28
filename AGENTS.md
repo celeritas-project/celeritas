@@ -34,6 +34,9 @@ Optional-dependency code is compiled into separate targets (e.g.
 `src/celeritas/ext/` → `celeritas_geant4`) and guarded by
 `CELERITAS_USE_<Pkg>` macros from the generated `corecel/Config.hh`.
 
+Includes for library and test code are relative to the library and test directories.
+(Library code uses `-I{source}/src -I{build}/include`, and test code uses `-I{source}/test`).
+
 ## Build & Test
 
 Most code relies on external user-installed packages (Geant4), so prefer to use a local environment's build directory and existing configuration files.

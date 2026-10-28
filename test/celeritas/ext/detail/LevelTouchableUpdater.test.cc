@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/detail/LevelTouchableUpdater.hh"
 
+#include <cstddef>
+#include <iostream>
 #include <G4TouchableHandle.hh>
 #include <G4TouchableHistory.hh>
 
@@ -19,6 +21,7 @@
 #include "celeritas/OnlyGeoTestBase.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 
+#include "AssertionHelper.hh"
 #include "celeritas_test.hh"
 
 using celeritas::test::InstancePathFinder;
@@ -32,24 +35,37 @@ namespace test
 //---------------------------------------------------------------------------//
 struct TestResult
 {
-    std::vector<double> coords;
+    using Dbl3 = Array<double, 3>;
+    std::vector<Dbl3> coords;
     std::vector<std::string> replicas;
 
     void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream& os, TestResult const& ref)
+    {
+        return os << '{' << repr(ref.coords) << ", " << repr(ref.replicas)
+                  << '}';
+    }
+
+    friend void check_ref_eq(::celeritas::test::AssertionHelper& helper,
+                             TestResult const& expected,
+                             TestResult const& actual,
+                             std::nullptr_t)
+    {
+        using namespace ::celeritas::test;
+        is_vec_soft_eq(helper, "coords", expected.coords, actual.coords);
+        is_vec_eq(helper, "replicas", expected.replicas, actual.replicas);
+    }
 };
 
 void TestResult::print_expected() const
 {
     using std::cout;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static double const expected_coords[] = "
-         << repr(this->coords)
+            "TestResult ref = "
+         << *this
          << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_coords, result.coords);\n"
-            "static char const* const expected_replicas[] = "
-         << repr(this->replicas)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_replicas, result.replicas);\n"
+            "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -115,12 +131,11 @@ TestResult LevelTouchableUpdaterTest::run(Span<IListSView const> names)
         if (touch->GetHistoryDepth() == 0 && touch->GetVolume() == nullptr)
         {
             // Special case: outside world
-            result.coords.insert(result.coords.end(), {0, 0, 0});
+            result.coords.push_back({0, 0, 0});
         }
         else
         {
-            result.coords.insert(result.coords.end(),
-                                 {trans.x(), trans.y(), trans.z()});
+            result.coords.push_back({trans.x(), trans.y(), trans.z()});
         }
 
         // Get the replica/copy numbers
@@ -185,44 +200,27 @@ TEST_F(ReplicaTest, all_points)
 
     auto result = run(all_level_names);
 
-    static double const expected_coords[] = {
-        -2500,
-        0,
-        4330.1270189222,
-        -4344.3747686898,
-        75,
-        5574.6778264911,
-        -4604.1823898252,
-        75,
-        5424.6778264911,
-        -3942.4038105677,
-        150,
-        6528.4437038563,
-        -4587.0190528383,
-        150,
-        6444.9500548025,
-        -4587.0190528383,
-        -150,
-        6444.9500548025,
-        -4552.211431703,
-        150,
-        6984.6614865054,
-        -0,
-        -0,
-        -0,
-    };
-    EXPECT_VEC_SOFT_EQ(expected_coords, result.coords);
-    static char const* const expected_replicas[] = {
-        "0,0",
-        "14,0,0,0",
-        "6,0,0,0",
-        "2,1,4,0,0,0",
-        "7,1,2,0,0,0",
-        "7,0,2,0,0,0",
-        "16,1,3,0,0,0",
-        "0",
-    };
-    EXPECT_VEC_EQ(expected_replicas, result.replicas);
+    TestResult ref{{
+                       {-2500, 0, 4330.1270189222},
+                       {-4344.3747686898, 75, 5574.6778264911},
+                       {-4604.1823898252, 75, 5424.6778264911},
+                       {-3942.4038105677, 150, 6528.4437038563},
+                       {-4587.0190528383, 150, 6444.9500548025},
+                       {-4587.0190528383, -150, 6444.9500548025},
+                       {-4552.211431703, 150, 6984.6614865054},
+                       {-0, -0, -0},
+                   },
+                   {
+                       "0,0",
+                       "14,0,0,0",
+                       "6,0,0,0",
+                       "2,1,4,0,0,0",
+                       "7,1,2,0,0,0",
+                       "7,0,2,0,0,0",
+                       "16,1,3,0,0,0",
+                       "0",
+                   }};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
