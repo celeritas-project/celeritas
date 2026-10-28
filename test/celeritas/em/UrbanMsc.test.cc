@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/em/msc/UrbanMsc.hh"
 
+#include <cmath>
+
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -27,6 +29,7 @@
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
+#include "AssertionHelper.hh"
 #include "MscTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
@@ -181,6 +184,45 @@ std::ostream& operator<<(std::ostream& os, LabeledValue<T> const& lv)
     os << lv.label << "=" << lv.value;
     return os;
 }
+
+struct StepLimitResult
+{
+    std::vector<real_type> mean_step;
+    std::vector<real_type> range_init;
+    std::vector<real_type> range_factor;
+    std::vector<real_type> limit_min;
+
+    void print_expected() const
+    {
+        std::cout << "StepLimitResult ref = " << *this
+                  << ";\n"
+                     "EXPECT_REF_EQ(ref, result);\n";
+    }
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    StepLimitResult const& result)
+    {
+        return os << '{' << repr(result.mean_step) << ", "
+                  << repr(result.range_init) << ", "
+                  << repr(result.range_factor) << ", "
+                  << repr(result.limit_min) << '}';
+    }
+
+    friend void check_ref_eq(::celeritas::test::AssertionHelper& helper,
+                             StepLimitResult const& expected,
+                             StepLimitResult const& actual,
+                             std::nullptr_t)
+    {
+        is_vec_soft_eq(
+            helper, "mean_step", expected.mean_step, actual.mean_step);
+        is_vec_soft_eq(
+            helper, "range_init", expected.range_init, actual.range_init);
+        is_vec_soft_eq(
+            helper, "range_factor", expected.range_factor, actual.range_factor);
+        is_vec_soft_eq(
+            helper, "limit_min", expected.limit_min, actual.limit_min);
+    }
+};
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -346,19 +388,9 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
 {
     using Algorithm = MscStepLimitAlgorithm;
 
-    struct Result
-    {
-        using VecReal = std::vector<real_type>;
-
-        VecReal mean_step;
-        VecReal range_init;
-        VecReal range_factor;
-        VecReal limit_min;
-    };
-
     auto sample = [&](Algorithm alg, bool on_boundary) {
         RandomEngine& rng = this->rng();
-        Result result;
+        StepLimitResult result;
 
         real_type const num_samples = 100;
         real_type const safety = 0;
@@ -423,95 +455,77 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
     {
         // "Minimal" algorithm, first step and not on boundary
         // step = phys_step
-        static double const expected_mean_step[] = {5.4443542524765e-05,
-                                                    0.0026634570717113,
-                                                    0.07706894630323,
-                                                    0.90591081547834,
-                                                    8.8845468955896};
-        static double const expected_range_init[] = {inf, inf, inf, inf, inf};
-        static double const expected_range_factor[] = {0.2, 0.2, 0.2, 0.2, 0.2};
-        static double const expected_limit_min[]
-            = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
-
         auto result = sample(Algorithm::minimal, false);
-        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-        EXPECT_VEC_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_EQ(expected_range_factor, result.range_factor);
-        EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
+        StepLimitResult ref{{5.4443542524765e-05,
+                             0.0026634570717113,
+                             0.07706894630323,
+                             0.90591081547834,
+                             8.8845468955896},
+                            {inf, inf, inf, inf, inf},
+                            {0.2, 0.2, 0.2, 0.2, 0.2},
+                            {1e-08, 1e-08, 1e-08, 1e-08, 1e-08}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // "Minimal" algorithm, first step and on boundary
-        static double const expected_mean_step[] = {1.0947992605048e-05,
-                                                    0.00052916041217278,
-                                                    0.015353327646933,
-                                                    0.21986948123587,
-                                                    8.8845468955896};
-        static double const expected_range_init[] = {1.0888708504953e-05,
-                                                     0.00053269141434226,
-                                                     0.015413789260646,
-                                                     0.21762788543933,
-                                                     15.553546812173};
-        static double const expected_range_factor[] = {0.2, 0.2, 0.2, 0.2, 0.2};
-        static double const expected_limit_min[]
-            = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
-
         auto result = sample(Algorithm::minimal, true);
-        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-        EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_EQ(expected_range_factor, result.range_factor);
-        EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
+        StepLimitResult ref{{1.0947992605048e-05,
+                             0.00052916041217278,
+                             0.015353327646933,
+                             0.21986948123587,
+                             8.8845468955896},
+                            {1.0888708504953e-05,
+                             0.00053269141434226,
+                             0.015413789260646,
+                             0.21762788543933,
+                             15.553546812173},
+                            {0.2, 0.2, 0.2, 0.2, 0.2},
+                            {1e-08, 1e-08, 1e-08, 1e-08, 1e-08}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // "Use safety" algorithm
-        static double const expected_mean_step[] = {2.1774398678028e-06,
-                                                    0.00010553667369532,
-                                                    0.0030850804312135,
-                                                    0.15209571378504,
-                                                    8.8845468955896};
-        static double const expected_range_init[] = {5.4443542524765e-05,
-                                                     0.0026634570717113,
-                                                     0.07706894630323,
-                                                     1.0881394271966,
-                                                     77.767734060865};
-        static double const expected_range_factor[]
-            = {0.04, 0.04, 0.04, 0.13881394271966, 7.8067734060865};
-        static double const expected_limit_min[] = {1.9688399316472e-06,
-                                                    1.0522532283188e-05,
-                                                    3.1432398888924e-05,
-                                                    4.0583539826243e-05,
-                                                    3.6094312868035e-05};
-
         auto result = sample(Algorithm::safety, true);
-        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-        EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
-        EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+        StepLimitResult ref{
+            {2.1774398678028e-06,
+             0.00010553667369532,
+             0.0030850804312135,
+             0.15209571378504,
+             8.8845468955896},
+            {5.4443542524765e-05,
+             0.0026634570717113,
+             0.07706894630323,
+             1.0881394271966,
+             77.767734060865},
+            {0.04, 0.04, 0.04, 0.13881394271966, 7.8067734060865},
+            {1.9688399316472e-06,
+             1.0522532283188e-05,
+             3.1432398888924e-05,
+             4.0583539826243e-05,
+             3.6094312868035e-05}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // "Use safety plus" algorithm
-        static double const expected_mean_step[] = {2.1762412527058e-06,
-                                                    0.00010784096017973,
-                                                    0.0030577621335327,
-                                                    0.094075756535309,
-                                                    3.1108913402956};
-        static double const expected_range_init[] = {5.4443542524765e-05,
-                                                     0.0026634570717113,
-                                                     0.07706894630323,
-                                                     0.90591081547834,
-                                                     8.8845468955896};
-        static double const expected_range_factor[]
-            = {0.04, 0.04, 0.04, 0.10324092334058, 5.0107349798953};
-        static double const expected_limit_min[] = {1.9688399316472e-06,
-                                                    1.0522532283188e-05,
-                                                    3.1432398888924e-05,
-                                                    4.0583539826243e-05,
-                                                    3.6094312868035e-05};
-
         auto result = sample(Algorithm::safety_plus, true);
-        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-        EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
-        EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+        StepLimitResult ref{
+            {2.1762412527058e-06,
+             0.00010784096017973,
+             0.0030577621335327,
+             0.094075756535309,
+             3.1108913402956},
+            {5.4443542524765e-05,
+             0.0026634570717113,
+             0.07706894630323,
+             0.90591081547834,
+             8.8845468955896},
+            {0.04, 0.04, 0.04, 0.10324092334058, 5.0107349798953},
+            {1.9688399316472e-06,
+             1.0522532283188e-05,
+             3.1432398888924e-05,
+             4.0583539826243e-05,
+             3.6094312868035e-05}};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
