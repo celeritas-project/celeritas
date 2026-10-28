@@ -153,6 +153,15 @@
       }
     },
     {
+      "name": "track",
+      "displayName": "executor: reseed by track",
+      "inherits": [".ccache", ".spackbase", ".debug", "default"],
+      "binaryDir": "${sourceDir}/build-track",
+      "cacheVariables": {
+        "CELERITAS_RESEED": "track"
+      }
+    },
+    {
       "name": "float",
       "displayName": "executor: Single-precision arithmetic",
       "inherits": [".spackbase", ".debug", "default"],

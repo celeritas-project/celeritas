@@ -26,15 +26,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-//! Whether the build uses the default real type and RNG.
-bool StepperTestBase::is_default_build()
-{
-    return CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-           && CELERITAS_UNITS == CELERITAS_UNITS_CGS
-           && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW;
-}
-
-//---------------------------------------------------------------------------//
 //! Generate a stepper construction class
 StepperInput StepperTestBase::make_stepper_input(size_type tracks)
 {
@@ -87,10 +78,6 @@ auto StepperTestBase::run(StepperInterface& step,
 {
     // Perform first step
     auto primaries = this->make_primaries(num_primaries);
-    for (auto i : celeritas::range(primaries.size()))
-    {
-        primaries[i].primary_id = id_cast<PrimaryId>(i);
-    }
 
     StepperResult counts;
     CELER_TRY_HANDLE(counts = step(make_span(primaries)),

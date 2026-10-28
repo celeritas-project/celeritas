@@ -123,7 +123,7 @@ TEST_F(KernelContextExceptionTest, typical)
         simplified_str = std::regex_replace(
             simplified_str, std::regex("@(global|world)"), "");
 
-        if (CELERITAS_CORE_RNG != CELERITAS_CORE_RNG_XORWOW)
+        if (!Test::is_reference_rng)
         {
             GTEST_SKIP() << "Reference results only apply to reference RNG";
         }

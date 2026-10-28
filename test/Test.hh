@@ -43,9 +43,10 @@ namespace test
  * - \c test_data_path : get the path to a test file at
  *   `{source}/test/{subdir}/data/{filename}` . It verifies that the path is an
  *   existing file before passing it to the code to be tested.
- * - \c is_reference_rng: whether the core RNG is the "default" used for
+ * - \c is_reference_rng, \c is_reference_geo, \c is_reference_phys: whether
+ *   the core RNG, core geometry, and G4 data are the "defaults" used for
  *   testing regression results.
- * - \c inf , \c inff:  double- and single-precision infinities
+ * - \c inf, \c inff:  double- and single-precision infinities
  */
 class Test : public ::testing::Test
 {
@@ -65,12 +66,23 @@ class Test : public ::testing::Test
     static std::string test_data_path(std::string_view subdir,
                                       std::string_view filename);
 
-    // True if CELER_TEST_STRICT is set (under CI)
+    // True if CELER_TEST_STRICT is set (under CI: standard version of G4)
     static bool strict_testing();
 
     static constexpr bool is_reference_rng
         = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-           && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
+           && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW
+           && CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT);
+
+    static constexpr bool is_reference_geo
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+           && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
+           && CELERITAS_UNITS == CELERITAS_UNITS_CGS);
+
+    static constexpr bool is_reference_phys
+        = ((CELERITAS_GEANT4_VERSION / 0x100 == 0x0b03)  // G4 11.3
+           && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+           && CELERITAS_UNITS == CELERITAS_UNITS_CGS);
 
     // Define "inf" value for subclass testing
     static constexpr double inf = HUGE_VAL;

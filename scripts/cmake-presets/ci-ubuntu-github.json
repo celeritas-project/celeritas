@@ -27,7 +27,7 @@
         "CELERITAS_USE_MPI": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_Perfetto": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_USE_PNG": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_PNG": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_TEST_XML": "$env{GITHUB_WORKSPACE}/test-output/google/",
@@ -50,6 +50,7 @@
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_PNG": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_ROOT": null
       }
     },
@@ -94,8 +95,7 @@
         "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "ON" },
         "CELERITAS_DEBUG": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_DOXYGEN_BUILD_TESTS": { "type": "BOOL", "value": "ON" },
-        "CELERITAS_USE_covfie": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_USE_PNG": { "type": "BOOL", "value": "OFF" }
+        "CELERITAS_USE_covfie": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -125,9 +125,7 @@
       "name": "fast",
       "inherits": ["tool-system"],
       "displayName": "FINAL: fast build using apt-get",
-      "cacheVariables": {
-        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" }
-      }
+      "cacheVariables": {}
     },
     {
       "name": "ultralite",
@@ -210,8 +208,8 @@
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_PNG": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic"
       }
     },
