@@ -406,8 +406,7 @@ function(celeritas_standalone_add_tests basename suite test backend)
   string(REPLACE "/" "_" _output_name "${basename}")
   set(_target "${CELERITASTEST_DIR}_${_output_name}")
 
-  if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "Geant4"
-      OR "DISABLE" IN_LIST ARGN)
+  if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "Geant4")
     list(APPEND _test_props DISABLED TRUE)
   endif()
 
@@ -458,7 +457,7 @@ endfunction()
 function(celeritas_add_standalone_tests basename suite test)
   foreach(_backend IN ITEMS cpu gpu)
     celeritas_standalone_add_tests(${basename} ${suite} ${test}
-      ${_backend} ${ARGN})
+      ${_backend})
   endforeach()
 endfunction()
 
@@ -471,9 +470,9 @@ celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest abort_early)
 celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
 celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
-celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest offload ${_needs_double})
-celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest direct ${_needs_double})
-celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary ${_needs_double})
+celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest offload)
+celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest direct)
+celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
