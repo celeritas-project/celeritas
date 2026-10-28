@@ -1,7 +1,7 @@
 ---
 name: reference-result
-description: 'Define or modify printable Celeritas test reference-result structs and is_ref_eq/check_ref_eq customizations for EXPECT_REF_EQ or EXPECT_REF_NEAR. Use for reference data, tolerance structs, copy-pastable expected values, and field-level assertion diagnostics.'
-argument-hint: 'Describe the result type, its fields, and whether comparisons need a tolerance'
+description: 'Identify, create, and use printable Celeritas test reference-result structs and comparison helpers for EXPECT_REF_EQ or EXPECT_REF_NEAR. Use when inferring a result from repeated assertions, adding tolerances, refactoring comparisons, or printing expected values.'
+argument-hint: 'Describe the test/file, result fields, and exact or tolerant comparison needs'
 ---
 
 # Celeritas Reference Results
@@ -17,7 +17,25 @@ special field semantics; do not make them the default. Define reusable
 result struct exists. Follow the checked-in interfaces and distinguish
 implemented behavior from proposed extensions.
 
-## 1. Find the local pattern
+## 1. Identify the reference result struct
+
+The reference type may be named by the user, already exist in the test, or be
+inferred from a mostly repeated set of `EXPECT_...` checks in the user-provided
+file. It may also be a simple library class from `src/` that tests should
+compare directly, such as `BoundingBox`.
+
+- Start from the provided file and nearby call sites. Identify the values
+  repeatedly constructed or asserted, then inventory their fields and any
+  intentional omissions, sentinels, or normalization behavior.
+- Decide whether to reuse an existing type, create a test-only result type, or
+  compare a library class directly. Define reusable `is_ref_eq` only when the
+  user wants that library class compared as part of the result; do not add one
+  merely because a result struct exists.
+- Determine which fields compare exactly and which need approximate or fuzzy
+  comparison. Keep discrete values exact, and note per-test tolerance
+  overrides needed at assertion sites.
+
+Inspect the owning test helper and nearby call sites before editing:
 
 Inspect the owning test helper and nearby call sites before editing:
 
@@ -31,7 +49,7 @@ Inspect the owning test helper and nearby call sites before editing:
 Keep the result in the test helper or test file that owns the data. For new
 C++ files, follow the `new-class` skill.
 
-## 2. Define or improve the result and optional tolerance
+## 2. Create missing reference, tolerance, and comparison helpers
 
 - Keep stored data simple and printable. Prefer vectors of POD or other
   already-printable values; use existing ID, units, and representation types
@@ -72,34 +90,7 @@ ref.energy = {0.0001, 100000000, 0.0001, 100000000};
 EXPECT_REF_EQ(ref, result) << result;
   ```
 
-## 3. Print expected values
-
-There is no requirement to add an initializer stream operator. Choose the
-smallest output form that is copy-pastable and fits the result type:
-
-- For field-based structs, use `CELER_REF_ATTR(field)` and `repr` in
-  `print_expected()` or an existing stream helper. This is the common pattern
-  when a result has no useful aggregate initializer.
-- Add `operator<<` when an aggregate initializer is useful or when the existing
-  test convention streams a complete expected-value snippet. Return the
-  supplied stream.
-- When streaming an aggregate result, have `operator<<` emit only a valid
-  aggregate initializer in declaration order. Keep snippet framing markers
-  and the assertion in parameterless `print_expected()`, which can dispatch
-  with `*this` to the stream operator. Use `EXPECT_REF_EQ` there; per-test
-  tolerance overrides belong at the assertion call site.
-- For a small test-local result declared at namespace scope, define a short
-  `print_expected()` inline and define `operator<<` as an inline friend when
-  that keeps the implementation local. Put substantial or shared output logic
-  in the owning test helper header/source instead.
-- Keep handling for omitted, sentinel, or non-deterministic fields explicit in
-  the generated snippet, with a short explanation when needed.
-
-Use C++17 aggregate syntax, `repr` or existing member stream support, and no
-designated initializers. Test that the generated snippet is valid and includes
-the assertion and any required setup.
-
-## 4. Implement comparison dispatch and customizations
+### Implement comparison dispatch and customizations
 
 `EXPECT_REF_EQ` and `EXPECT_REF_NEAR` use central dispatch in
 `celeritas::testdetail`; do not add result-specific `IsRefEq` overloads. The
@@ -199,7 +190,71 @@ dispatches each element, labels failures by index, and limits printed
 diagnostics. Add a focused container test only when the result is used through
 containers.
 
-## 5. Add or update focused tests
+### Compile checkpoint
+
+After creating the reference type and comparison helpers, build the owning
+test target and confirm that this scaffolding compiles. Use the local
+configured build and the `test-change` skill to identify the narrow target.
+If compilation fails, fix only this part and rebuild. Do not start Part 3
+until compilation succeeds. If the target cannot be built because of missing
+configuration or dependencies, report the blocker and stop before refactoring
+assertion call sites.
+
+## 3. Refactor existing comparisons or print expected values
+
+Once the compile checkpoint passes, update existing checks to use the result
+and its comparison helper, or print a copy-pastable expected result from the
+test. Keep the change local to the identified test behavior.
+
+### Refactor assertion call sites
+
+- At assertion call sites, put expected values directly in the reference
+  object, using an aggregate initializer or assignments to its fields. Avoid
+  temporary or static `expected_*` arrays/vectors used only to initialize the
+  reference.
+- For version-dependent values, initialize the reference with common values
+  and assign the differing field directly, such as `ref.xs`.
+- If an existing test compares only a small subset of a newly created
+  reference class, it is acceptable to define the reference after getting the
+  actual value using `auto ref = result;` and setting only expected fields.
+- Set wider per-test tolerances, such as `coarse_eps`, at the call site. Keep
+  discrete fields exact even when other fields are tolerant.
+
+For example:
+
+```cpp
+ImportXsSummary ref{{0, 0}, {0.0001, 100000000, 0.0001, 100000000}, {}};
+EXPECT_REF_EQ(ref, result) << result;
+```
+
+### Print expected values
+
+There is no requirement to add an initializer stream operator. Choose the
+smallest output form that is copy-pastable and fits the result type:
+
+- For field-based structs, use `CELER_REF_ATTR(field)` and `repr` in
+  `print_expected()` or an existing stream helper. This is the common pattern
+  when a result has no useful aggregate initializer.
+- Add `operator<<` when an aggregate initializer is useful or when the existing
+  test convention streams a complete expected-value snippet. Return the
+  supplied stream.
+- When streaming an aggregate result, have `operator<<` emit only a valid
+  aggregate initializer in declaration order. Keep snippet framing markers
+  and the assertion in parameterless `print_expected()`, which can dispatch
+  with `*this` to the stream operator. Use `EXPECT_REF_EQ` there; per-test
+  tolerance overrides belong at the assertion call site.
+- For a small test-local result declared at namespace scope, define a short
+  `print_expected()` inline and define `operator<<` as an inline friend when
+  that keeps the implementation local. Put substantial or shared output logic
+  in the owning test helper header/source instead.
+- Keep handling for omitted, sentinel, or non-deterministic fields explicit in
+  the generated snippet, with a short explanation when needed.
+
+Use C++17 aggregate syntax, `repr` or existing member stream support, and no
+designated initializers. Test that the generated snippet is valid and includes
+the assertion and any required setup.
+
+### Add or update focused tests
 
 Test each comparison policy and output path that the result uses:
 
@@ -216,7 +271,7 @@ Test each comparison policy and output path that the result uses:
 Build and run the narrow affected tests using the `test-change` skill. Report
 any required build configuration that prevents those tests from running.
 
-## 6. Plan capability extensions
+### Plan capability extensions
 
 Treat these as extension points, not current guarantees of the API. Before
 implementing a requested capability, specify the supported field shape, exact
