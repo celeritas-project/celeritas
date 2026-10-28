@@ -49,6 +49,26 @@ patterns. For new C++ files, follow the `new-class` skill.
   call site; keep discrete fields exact.
 - Keep exact fields exact even when another field uses a tolerance.
 - Preserve existing field order and public API when modifying a result type.
+- At assertion call sites, put expected values directly in the reference
+  object, using an aggregate initializer or assignments to its fields. Avoid
+  temporary or static `expected_*` arrays/vectors used only to initialize the
+  reference. For version-dependent values, initialize the reference with the
+  common values and assign the differing field directly, such as `ref.xs`.
+
+For example:
+
+```cpp
+ImportXsSummary ref{{0, 0}, {0.0001, 100000000, 0.0001, 100000000}, {}};
+EXPECT_REF_EQ(ref, result);
+```
+
+or:
+```cpp
+ImportXsSummary ref;
+ref.size = {0, 0};
+ref.energy = {0.0001, 100000000, 0.0001, 100000000};
+EXPECT_REF_EQ(ref, result);
+  ```
 
 ## 3. Print expected values
 
