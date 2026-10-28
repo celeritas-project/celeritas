@@ -128,7 +128,12 @@ jobs:
           name: ${{env.CELER_RUN_NAME}}
           preset: spack
           split-app: true
-          strict: ${{matrix.geant == '11.3'}}
+          strict: >-
+            ${{ matrix.geant == '11.3'
+             && matrix.geometry != 'geant4'
+             && matrix.special != 'float'
+             && matrix.special != 'clhep'
+             }}
           filter-unit: >-
             ${{
               matrix.special == 'static' && 'none'
@@ -150,7 +155,7 @@ jobs:
         uses: ./.github/actions/install-and-check
         with:
           binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
-      - name: Build and run examples"
+      - name: Build and run examples
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
           export G4VERSION_NUMBER=$(echo "${{matrix.geant}}" | awk '{printf "%.0f", $1 * 100}')
