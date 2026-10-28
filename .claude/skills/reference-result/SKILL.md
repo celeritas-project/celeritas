@@ -6,13 +6,16 @@ argument-hint: 'Describe the result type, its fields, and whether comparisons ne
 
 # Celeritas Reference Results
 
-Create or improve a test-only reference-result struct, its reusable comparison
-logic, and expected-value output. Reference results commonly store vectors of
-values collected from a simulation or geometry operation. Implement detailed
-type-specific comparison policy in `is_ref_eq` where it can be reused by other
-reference results; keep `check_ref_eq` as the ADL customization that dispatches
-`EXPECT_REF_EQ` and `EXPECT_REF_NEAR`. Follow the implemented interfaces in the
-checked-in tree; distinguish existing behavior from proposed extensions.
+Create or improve a test-only reference-result struct, its comparison logic,
+and expected-value output. Reference results commonly store vectors of values
+collected from a simulation or geometry operation. The usual case is a
+test-specific result: define `check_ref_eq` as its ADL customization and put
+Use field-by-field `check_ref_eq` only when a particular `Result` needs special handling, such as
+ignored or conditionally compared fields. Define reusable `is_ref_eq` only
+for a class the user asks to compare as part of the result; `BoundingBox` is
+an example. Do not add a reusable policy just because a result struct exists.
+Follow the checked-in interfaces and distinguish implemented behavior from
+proposed extensions.
 
 ## 1. Find the local pattern
 
@@ -25,9 +28,8 @@ Inspect the owning test helper and nearby call sites before editing:
   `EXPECT_REF_EQ` / `EXPECT_REF_NEAR`.
 - `test/accel/HepMC3PrimaryGenerator.test.cc` as a canonical example.
 
-Keep the result in the existing test helper or test file that owns the data;
-follow its namespace, declaration/definition split, and CMake registration
-patterns. For new C++ files, follow the `new-class` skill.
+Keep the result in the test helper or test file that owns the data. For new
+C++ files, follow the `new-class` skill.
 
 ## 2. Define or improve the result and optional tolerance
 
@@ -38,18 +40,12 @@ patterns. For new C++ files, follow the `new-class` skill.
   inventory against its construction, expected-value output, and comparator.
   Preserve intentional omissions, sentinels, and normalization behavior
   explicitly; do not silently drop fields or change comparison semantics.
-- Checks of individual fields can be omitted deliberately by clearing both
-  reference and actual results.
 - Add a separate tolerance struct only when fields need approximate or fuzzy
   comparison. Give it one clearly named tolerance per independently
   configurable comparison, or reuse one tolerance when semantics are truly
   shared.
-- When a tolerance struct supplies field-level defaults, use the matching
-  tolerance member for every soft-compared field, including fields using the
-  default value. Avoid boolean flags that switch between default and custom
-  comparisons. Set wider per-test tolerances, such as `coarse_eps`, at the test
-  call site; keep discrete fields exact.
-- Keep exact fields exact even when another field uses a tolerance.
+- Set wider per-test tolerances, such as `coarse_eps`, at the call site. Keep
+  discrete fields exact even when other fields are tolerant.
 - Preserve existing field order and public API when modifying a result type.
 - At assertion call sites, put expected values directly in the reference
   object, using an aggregate initializer or assignments to its fields. Avoid
@@ -84,145 +80,126 @@ smallest output form that is copy-pastable and fits the result type:
   test convention streams a complete expected-value snippet. Return the
   supplied stream.
 - When streaming an aggregate result, have `operator<<` emit only a valid
-  aggregate initializer in declaration order. Keep snippet framing markers and
-  the assertion in `print_expected()`, which can dispatch with `*this` to the
-  stream operator. Keep `print_expected()` parameterless and use the default
-  comparison (`EXPECT_REF_EQ`) there; per-test tolerance overrides belong at
-  the assertion call site.
+  aggregate initializer in declaration order. Keep snippet framing markers
+  and the assertion in parameterless `print_expected()`, which can dispatch
+  with `*this` to the stream operator. Use `EXPECT_REF_EQ` there; per-test
+  tolerance overrides belong at the assertion call site.
 - Keep handling for omitted, sentinel, or non-deterministic fields explicit in
   the generated snippet, with a short explanation when needed.
 
-If an aggregate initializer is chosen, it must be valid C++17, in declaration
-order, and reuse `repr` or existing stream support for member values. Do not
-use C++20 designated initializers. `print_expected()` should emit a complete
-snippet for the owning test, including the right assertion macro and any
-required tolerance setup. Test the emitted text against the expected output.
+Use C++17 aggregate syntax, `repr` or existing member stream support, and no
+designated initializers. Test that the generated snippet is valid and includes
+the assertion and any required setup.
 
-## 4. Implement reusable comparison logic and dispatch
+dependent lookup can find it. Put non-inline declarations in the owning test
+## 4. Implement comparison dispatch and customizations
 
-`EXPECT_REF_EQ` and `EXPECT_REF_NEAR` call the central predicate-format
-dispatchers in `celeritas::testdetail`; do not add result-specific `IsRefEq`
-overloads. The dispatcher creates one `celeritas::test::AssertionHelper` and
-calls a type-specific `check_ref_eq` customization. Keep this customization as
-a thin `void` adapter that delegates to the reusable `bool is_ref_eq` policy:
+`EXPECT_REF_EQ` and `EXPECT_REF_NEAR` use central dispatch in
+`celeritas::testdetail`; do not add result-specific `IsRefEq` overloads. The
+dispatcher creates an `AssertionHelper` and calls `check_ref_eq`, which must
+return `void`. A reusable `is_ref_eq` policy returns `bool`.
+
+### Reusable class comparison
+
+Define `is_ref_eq` only for a class the user asks to compare as part of a
+reference result. Keep it focused on that class's comparison; do not use it to
+traverse the fields of an enclosing `Result`. For main library classes, define
+the policy in `celeritas::test`. ADL may not find this nested namespace for a
+main-namespace class, so callers in other tests can use
+`using celeritas::test::is_ref_eq;` before calling it.
+
+Implement comparison logic once. If only exact or only tolerant comparison is
+needed, define only that policy overload. If both are needed, make the
+no-tolerance overload dispatch to the tolerance overload with a default value:
 
 ```cpp
 bool is_ref_eq(AssertionHelper& helper,
-         char const* field_name,
-         Result const& expected,
-         Result const& actual,
-         std::nullptr_t);
+               char const* field_name,
+               Result const& expected,
+               Result const& actual,
+               std::nullptr_t)
+{
+  return is_ref_eq(
+      helper, field_name, expected, actual, SoftEqual<>{}.rel());
+}
+```
 
-bool is_ref_eq(AssertionHelper& helper,
-         char const* field_name,
-         Result const& expected,
-         Result const& actual,
-         Tol const& tol);
+The `std::nullptr_t` form serves `EXPECT_REF_EQ`; the tolerance form serves
+`EXPECT_REF_NEAR`. A `check_ref_eq` adapter, when required by the dispatcher,
+is an ADL customization returning `void` and delegates to `is_ref_eq`:
 
+```cpp
 void check_ref_eq(AssertionHelper& helper,
-          Result const& expected,
-          Result const& actual,
-          std::nullptr_t)
+                  Result const& expected,
+                  Result const& actual,
+                  std::nullptr_t)
 {
   (void)is_ref_eq(helper, "Result", expected, actual, nullptr);
 }
 
 void check_ref_eq(AssertionHelper& helper,
-          Result const& expected,
-          Result const& actual,
-          Tol const& tol)
+                  Result const& expected,
+                  Result const& actual,
+                  Tol const& tol)
 {
   (void)is_ref_eq(helper, "Result", expected, actual, tol);
 }
 ```
 
-Implement the matching `is_ref_eq` policy overloads for exact comparison and
-for any supported tolerance. The `std::nullptr_t` overload corresponds to
-`EXPECT_REF_EQ`; the tolerance overload corresponds to `EXPECT_REF_NEAR`. Keep
-the `check_ref_eq` adapter overloads in the result's associated namespace so
-ADL can find them. The no-tolerance tag is passed explicitly by the dispatcher;
-do not substitute `{}` for a generic tolerance argument. Give `is_ref_eq` a
-field name so a reusable comparison can produce useful diagnostics when called
-from another result's comparator.
+Put main-library `is_ref_eq` declarations and definitions in the corresponding
+test helper header/source when shared by tests. Explicitly instantiate only
+the supported template types. Put `check_ref_eq` where the dispatcher can
+find it by ADL, following the local pattern.
 
-Define the customization in a namespace associated with the result type, or as
-a hidden friend when needed for a nested/private result type, so argument-
-dependent lookup can find it. Put non-inline declarations in the owning test
-helper header and definitions in its source file. Include `AssertionHelper.hh`
-where a complete helper type is needed; include `<cstddef>` for
-`std::nullptr_t` declarations.
+### Result-specific field comparison
 
-The helper already contains the expected and actual expression strings. For
-`EXPECT_REF_NEAR`, `helper.tol_expr()` retains the tolerance expression for
-field diagnostics. Customizations should append failures to the shared helper,
-not construct or return a separate assertion result. Prefer the field-aware
-wrappers from `test/testdetail/TestMacrosImpl.hh`:
+Field-by-field `check_ref_eq` is a targeted, unusual customization for a
+`Result` whose fields need special semantics, such as a skipped or
+conditionally compared field, or independent tolerances. It is not part of a
+reusable class's `is_ref_eq` policy. In this customization, append failures to
+the shared helper and return `void`; do not return the helper or construct a
+separate assertion result. The helper retains the expected, actual, and
+tolerance expressions for diagnostics.
 
-- `is_eq(helper, "field", expected, actual)` for exact scalar or directly
-  comparable fields.
+Implement only the comparison mode(s) the result uses. If both exact and
+tolerance comparisons are needed, have the no-tolerance `check_ref_eq` forward
+to the tolerance overload with its default tolerance (for example, `Tol{}`)
+rather than duplicating field checks. Prefer these field-aware helpers:
+
+- `is_eq(helper, "field", expected, actual)` for exact values.
 - `is_vec_eq(helper, "field", expected, actual)` for exact containers.
-- `is_vec_soft_eq(helper, "field", expected, actual)` for default soft
-  container equivalence, including its size check and field-labeled diagnostic.
-- `is_vec_soft_eq(helper, "field", expected, actual, tol)` for a field-specific
-  tolerance or comparator, with the same size check and field-labeled
-  diagnostic. The final argument can be a scalar tolerance or a soft comparator
-  such as `SoftEqual` or `EqualOr`.
+- `is_vec_soft_eq(helper, "field", expected, actual)` for default soft vector
+  equivalence.
+- `is_vec_soft_eq(helper, "field", expected, actual, tol)` for a field's
+  tolerance or comparator. When using a tolerance struct, pass the matching
+  member for every soft-compared field.
 - `is_soft_eq` with the appropriate comparator for scalar tolerant fields.
 
-These wrappers append failures to the shared helper so comparison continues
-across fields. Use `IsVecEq` or `IsVecSoftEquiv` directly only when their
-specific behavior is needed that the field-aware wrappers cannot express; add
-the field label and protect any manual paired traversal with a size check.
-Compare discrete fields exactly, keep tolerances local to the fields they
-govern, and include tolerance context in diagnostics when useful. Return the
-helper by reference and let the central dispatcher return the accumulated
-assertion result.
+These helpers check vector sizes, label failures, and continue comparing later
+fields. Keep discrete fields exact and tolerances local to their fields. Use
+`IsVecEq` or `IsVecSoftEquiv` directly only when the wrappers cannot express
+the needed behavior; label the field and check sizes before paired traversal.
 
-For library-owned template types, put their test-only `is_ref_eq` policy and
-`check_ref_eq` adapter in the type's associated test namespace. Other reference
-result comparators can call `is_ref_eq` directly for a nested field, passing
-the field name and the desired tolerance; this keeps the detailed policy in
-one place. If only selected template instantiations are supported, declare and
-explicitly instantiate the policy as appropriate. Exercise direct
-`EXPECT_REF_EQ` as well as `EXPECT_REF_NEAR`, including tolerance boundaries
-and any special values or null-state behavior.
+For a shared customization, declare it in the owning test helper header and
+define it in the corresponding source file. A test-local customization can
+follow the existing translation-unit pattern. Include `AssertionHelper.hh`
+where a complete type is needed and `<cstddef>` for `std::nullptr_t`.
 
-The generic container customization is provided centrally. It checks size,
-recurses through the central dispatcher for each element, labels failures with
-the element index, and caps the number of printed failures. Do not write a
-result-specific container overload or recurse through an unqualified `IsRefEq`
-call, which could select an older ADL predicate instead of the central
-dispatcher. Add a focused container test when a result type is expected to be
-used inside containers.
-
-### Preserve soft vector semantics
-
-When replacing an `EXPECT_VEC_SOFT_EQ` assertion with a result-struct
-comparison, use `is_vec_soft_eq` for that field. It preserves the macro's
-default soft tolerances while checking sizes, labeling diagnostics, and
-continuing to later fields. `is_vec_eq` provides the corresponding exact
-container behavior. Follow the current `RunnerResults.cc` and
-`HistogramSampler.cc` patterns rather than duplicating these wrapper checks.
-When a tolerance struct is used, always use the five-argument
-`is_vec_soft_eq` overload for each soft-compared field, passing that field's
-tolerance member. This keeps size checks, field labels, and failure
-accumulation consistent while making default and overridden tolerances
-explicit.
+The generic container `check_ref_eq` is provided centrally. It checks size,
+dispatches each element, labels failures by index, and limits printed
+diagnostics. Add a focused container test only when the result is used through
+containers.
 
 ## 5. Add or update focused tests
 
-Exercise both the comparator and the generated reference snippet workflow:
+Test each comparison policy and output path that the result uses:
 
-- Equal values pass exact and, where applicable, tolerance comparisons.
-- Mismatches fail and identify the affected fields; cover each special
-  comparison policy.
-- Different vector sizes fail cleanly without out-of-bounds access.
-- Tolerance boundary behavior matches the existing comparison helper
-  semantics.
+- Equal values pass and mismatches fail with useful diagnostics; cover each
+  custom comparison policy.
+- Different vector sizes fail cleanly when the result contains vectors.
+- Check tolerance boundaries when tolerant comparison is supported.
 - If `operator<<` is provided, its output is a valid initializer; verify that
-  `print_expected()` includes the expected assertion and tolerance setup.
-- If the type is used through `EXPECT_REF_EQ` / `EXPECT_REF_NEAR` with
-  containers, verify the existing container-dispatch behavior still applies.
+  `print_expected()` emits a usable snippet.
 - For an existing struct, add focused regression coverage for corrected
   omissions, field policies, or diagnostics without changing unrelated
   semantics.
