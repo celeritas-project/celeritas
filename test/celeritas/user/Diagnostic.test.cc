@@ -152,7 +152,7 @@ TEST_F(TestEm3DiagnosticTest, host)
                         "stuck on some builds but not others";
     }
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static char const* const expected_nonzero_action_keys[] = {
             "annihil-2-gamma e+",
@@ -204,7 +204,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
 {
     auto result = this->run<MemSpace::device>(1024, 4);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         // Check action diagnostic results
         static char const* const expected_nonzero_action_keys[] = {

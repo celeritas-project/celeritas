@@ -464,7 +464,7 @@ TEST_F(TestEm3MctruthTest, four_step)
 {
     auto result = this->run(4, 4);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static int const expected_event[]
             = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

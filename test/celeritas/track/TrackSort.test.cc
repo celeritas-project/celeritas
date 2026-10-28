@@ -607,7 +607,7 @@ TEST_F(PartitionDataTest, step_host)
         result.push_back(this->get_result_string(
             dynamic_cast<CoreState<MemSpace::host> const&>(step.state())));
     }
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static std::string const expected_result[] = {
             "N____________________________________________________________CCC",
@@ -657,7 +657,7 @@ TEST_F(PartitionDataTest, TEST_IF_CELER_DEVICE(step_device))
         result.push_back(this->get_result_string(
             dynamic_cast<CoreState<MemSpace::device> const&>(step.state())));
     }
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static std::string const expected_result[] = {
             "NNNNNNNNNN________________________________CCCCCCCCCCCCCCCCCCCCCC",

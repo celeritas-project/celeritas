@@ -14,6 +14,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 
 namespace celeritas
@@ -125,8 +126,13 @@ std::string Test::make_unique_filename(std::string_view ext)
 bool Test::strict_testing()
 {
     static bool result = [] {
-        constexpr bool is_ref = is_reference_rng && is_reference_geo;
-        return getenv_flag("CELER_TEST_STRICT", is_ref).value;
+        constexpr bool is_ref = is_reference_rng && is_reference_geo
+                                && is_reference_phys;
+        auto flag = getenv_flag("CELER_TEST_STRICT", is_ref);
+        CELER_LOG(info)
+            << "Set strict_testing to " << std::boolalpha << flag.value << ' '
+            << (flag.defaulted ? "by default" : "from CELER_TEST_STRICT");
+        return flag.value;
     }();
     return result;
 }

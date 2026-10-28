@@ -48,26 +48,6 @@ struct GeantTestBase::ImportSetup
 };
 
 //---------------------------------------------------------------------------//
-//! Whether results should be equivalent to the main CI build
-bool GeantTestBase::is_ci_build()
-{
-    if constexpr (!(Test::is_reference_rng && Test::is_reference_geo))
-    {
-        // Config options are different
-        return false;
-    }
-    // Check clhep/g4 versions
-    static auto const clhep = Version::from_package("CLHEP");
-    static auto const g4 = Version::from_package("Geant4");
-    if (g4 && !clhep)
-    {
-        // G4 build with a built-in CLHEP = non-CI build
-        return false;
-    }
-    return clhep >= Version{2, 4, 6} && clhep < Version{2, 5}
-           && g4 >= Version{11, 3} && g4 < Version{11, 4};
-}
-//---------------------------------------------------------------------------//
 // PROTECTED MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 auto GeantTestBase::build_geant_options() const -> GeantPhysicsOptions

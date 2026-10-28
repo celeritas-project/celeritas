@@ -722,7 +722,7 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
                          0.641464235110772663,
                          -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
-        if (is_ci_build())
+        if (Test::strict_testing())
         {
             constexpr double range = 6.4161473386016025e-06;
             EXPECT_SOFT_EQ(range, result.step);
