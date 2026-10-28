@@ -15,6 +15,7 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include "ExampleMctruth.hh"
+#include "TestMacros.hh"
 
 using std::cout;
 
@@ -40,35 +41,50 @@ void MctruthTestBase::SetUp()
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void MctruthTestBase::RunResult::print_expected() const
+std::ostream& operator<<(std::ostream& os,
+                         MctruthTestBase::RunResult const& ref)
+{
+    return os << "RunResult{\n"
+              << CELER_REF_ATTR(event) << CELER_REF_ATTR(track)
+              << CELER_REF_ATTR(step) << CELER_REF_ATTR(volume)
+              << CELER_REF_ATTR(pos) << CELER_REF_ATTR(dir) << "}";
+}
+
+//---------------------------------------------------------------------------//
+void print_expected(MctruthTestBase::RunResult const& ref)
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static int const expected_event[] = "
-         << repr(this->event)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_event, result.event);\n"
-            "static int const expected_track[] = "
-         << repr(this->track)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_track, result.track);\n"
-            "static int const expected_step[] = "
-         << repr(this->step)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_step, result.step);\n"
-            "static int const expected_volume[] = "
-         << repr(this->volume)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_volume, result.volume);\n"
-            "static double const expected_pos[] = "
-         << repr(this->pos)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);\n"
-            "static double const expected_dir[] = "
-         << repr(this->dir)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);\n"
+            "MctruthTestBase::RunResult ref;\n"
+         << CELER_REF_ATTR(event) << CELER_REF_ATTR(track)
+         << CELER_REF_ATTR(step) << CELER_REF_ATTR(volume)
+         << CELER_REF_ATTR(pos) << CELER_REF_ATTR(dir)
+         << "EXPECT_REF_EQ(ref, result);\n"
             "/*** END CODE ***/\n";
+}
+
+//---------------------------------------------------------------------------//
+void check_ref_eq(AssertionHelper& helper,
+                  MctruthTestBase::RunResult const& expected,
+                  MctruthTestBase::RunResult const& actual,
+                  std::nullptr_t)
+{
+    check_ref_eq(
+        helper, expected, actual, MctruthTestBase::RunResult::Tolerance{});
+}
+
+//---------------------------------------------------------------------------//
+void check_ref_eq(AssertionHelper& helper,
+                  MctruthTestBase::RunResult const& expected,
+                  MctruthTestBase::RunResult const& actual,
+                  MctruthTestBase::RunResult::Tolerance const& tol)
+{
+    using namespace ::celeritas::test;
+    is_vec_eq(helper, "event", expected.event, actual.event);
+    is_vec_eq(helper, "track", expected.track, actual.track);
+    is_vec_eq(helper, "step", expected.step, actual.step);
+    is_vec_eq(helper, "volume", expected.volume, actual.volume);
+    is_vec_soft_eq(helper, "pos", expected.pos, actual.pos, tol.pos);
+    is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
 }
 
 //---------------------------------------------------------------------------//
@@ -89,11 +105,9 @@ auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
         result.track.push_back(s.track);
         result.step.push_back(s.step);  // Step *counter* not *length*
         result.volume.push_back(s.volume);
-        for (auto pos_v : s.pos)
-        {
-            result.pos.push_back(to_cm(pos_v));
-        }
-        result.dir.insert(result.dir.end(), std::begin(s.dir), std::end(s.dir));
+        result.pos.push_back(
+            {to_cm(s.pos[0]), to_cm(s.pos[1]), to_cm(s.pos[2])});
+        result.dir.push_back({s.dir[0], s.dir[1], s.dir[2]});
     }
     return result;
 }

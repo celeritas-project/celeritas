@@ -47,7 +47,10 @@ Inventory the fields first, then declare only what the result needs:
   units, and representation types. Preserve field order and public API when
   extending an existing result.
 - A tolerance struct only when approximate comparisons need independently
-  configurable values. Name each tolerance for its field or shared semantics.
+  configurable values. Use plain floating-point members initialized to the
+  normal default tolerance (for example, `Test::fine_eps`); do not use optional
+  members to select between default and custom comparison behavior. Name each
+  tolerance for its field or shared semantics.
 - ADL-visible friend declarations for `operator<<`,
   `print_expected(Result const&)`, and `check_ref_eq`. Every reference-result
   class has these; `check_ref_eq` returns `void`.
@@ -72,11 +75,13 @@ Implement comparison once, using the existing dispatcher and field helpers:
   tolerance.
 - For field-specific semantics, implement `check_ref_eq` field by field.
   Forward the no-tolerance overload to the default tolerance overload when
-  needed, rather than duplicating comparisons. Use `is_eq` for exact scalars,
-  `is_vec_eq` for exact containers, `is_vec_soft_eq` for tolerant containers,
-  and `is_soft_eq` for tolerant scalars. Keep field labels and continue checking
-  later fields after a mismatch. Use lower-level vector predicates only when
-  wrappers cannot express the behavior, and then check sizes before traversal.
+  needed, rather than duplicating comparisons. Pass tolerance members directly
+  to soft-comparison helpers, including the defaulted values. Use `is_eq` for
+  exact scalars, `is_vec_eq` for exact containers, `is_vec_soft_eq` for tolerant
+  containers, and `is_soft_eq` for tolerant scalars. Keep field labels and
+  continue checking later fields after a mismatch. Use lower-level vector
+  predicates only when wrappers cannot express the behavior, and then check
+  sizes before traversal.
 - Keep discrete fields exact. Pass each soft-compared field its matching
   tolerance member; set wider test-specific tolerances at the assertion site.
   Preserve omitted, sentinel, and normalized field behavior explicitly.

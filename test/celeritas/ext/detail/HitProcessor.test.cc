@@ -746,15 +746,24 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     process_pending(process_hits);
     EXPECT_FALSE(process_hits.has_pending_steps());
     EXPECT_EQ(3, process_hits.exchange_hits());
-    static real_type const expected_si_edep[] = {0.1, 0.2};
-    EXPECT_VEC_SOFT_EQ(expected_si_edep,
-                       this->get_hits("si_tracker").energy_deposition);
-    static real_type const expected_em_edep[] = {0.2, 0.4};
-    EXPECT_VEC_SOFT_EQ(expected_em_edep,
-                       this->get_hits("em_calorimeter").energy_deposition);
-    static real_type const expected_had_edep[] = {0.3, 0.6};
-    EXPECT_VEC_SOFT_EQ(expected_had_edep,
-                       this->get_hits("had_calorimeter").energy_deposition);
+    {
+        auto const& result = this->get_hits("si_tracker");
+        SimpleHitsResult ref = result;
+        ref.energy_deposition = {real_type{0.1}, real_type{0.2}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        auto const& result = this->get_hits("em_calorimeter");
+        SimpleHitsResult ref = result;
+        ref.energy_deposition = {real_type{0.2}, real_type{0.4}};
+        EXPECT_REF_EQ(ref, result);
+    }
+    {
+        auto const& result = this->get_hits("had_calorimeter");
+        SimpleHitsResult ref = result;
+        ref.energy_deposition = {real_type{0.3}, real_type{0.6}};
+        EXPECT_REF_EQ(ref, result);
+    }
     EXPECT_TRUE(this->get_hits("world").energy_deposition.empty());
 
     // An empty batch must clear the previous output, not deliver it again.
@@ -827,10 +836,16 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     process_hits.process_copied_steps_if_ready();
     EXPECT_FALSE(process_hits.has_pending_steps());
     EXPECT_EQ(6, process_hits.exchange_hits());
-    static real_type const expected_lagged_em_edep[]
-        = {0.2, 0.4, 0.4, 0.6, 0.8};
-    EXPECT_VEC_SOFT_EQ(expected_lagged_em_edep,
-                       this->get_hits("em_calorimeter").energy_deposition);
+    {
+        auto const& result = this->get_hits("em_calorimeter");
+        SimpleHitsResult ref = result;
+        ref.energy_deposition = {real_type{0.2},
+                                 real_type{0.4},
+                                 real_type{0.4},
+                                 real_type{0.6},
+                                 real_type{0.8}};
+        EXPECT_REF_EQ(ref, result);
+    }
 
     // Processing without a pending copy is a null-op
     process_hits.process_copied_steps();
@@ -983,22 +998,19 @@ TEST_F(SimpleCmsTest, touchable_exiting)
 
     {
         auto& result = this->get_hits("si_tracker");
-        static char const* const expected_pre_physvol[] = {"si_tracker_pv"};
-        EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
-        static char const* const expected_post_physvol[] = {"world_PV"};
-        EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
-        static char const* const expected_post_status[] = {"geo"};
-        EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        SimpleHitsResult ref = result;
+        ref.pre_physvol = {"si_tracker_pv"};
+        ref.post_physvol = {"world_PV"};
+        ref.post_status = {"geo"};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         auto& result = this->get_hits("world");
-
-        static char const* const expected_pre_physvol[] = {"world_PV"};
-        EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
-        static char const* const expected_post_physvol[] = {"<nullptr>"};
-        EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
-        static char const* const expected_post_status[] = {"world"};
-        EXPECT_VEC_EQ(expected_post_status, result.post_status);
+        SimpleHitsResult ref = result;
+        ref.pre_physvol = {"world_PV"};
+        ref.post_physvol = {"<nullptr>"};
+        ref.post_status = {"world"};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
@@ -1045,27 +1057,27 @@ TEST_F(SimpleCmsTest, with_primary_id)
     {
         // si_tracker -> PrimaryId{0} -> track_id=10, parent_id=0
         auto& result = this->get_hits("si_tracker");
-        static int const expected_track_id[] = {10};
-        EXPECT_VEC_EQ(expected_track_id, result.track_id);
-        static int const expected_parent_id[] = {0};
-        EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
+        SimpleHitsResult ref = result;
+        ref.track_id = {10};
+        ref.parent_id = {0};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // em_calorimeter -> PrimaryId{1} -> track_id=20, parent_id=5
         auto& result = this->get_hits("em_calorimeter");
-        static int const expected_track_id[] = {20};
-        EXPECT_VEC_EQ(expected_track_id, result.track_id);
-        static int const expected_parent_id[] = {5};
-        EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
+        SimpleHitsResult ref = result;
+        ref.track_id = {20};
+        ref.parent_id = {5};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // had_calorimeter -> secondary (Celeritas track 4) of PrimaryId{1}:
         // its own mapped ID, with the offloaded track as parent
         auto& result = this->get_hits("had_calorimeter");
-        int const expected_track_id[] = {std::numeric_limits<int>::max() - 4};
-        EXPECT_VEC_EQ(expected_track_id, result.track_id);
-        static int const expected_parent_id[] = {20};
-        EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
+        SimpleHitsResult ref = result;
+        ref.track_id = {std::numeric_limits<int>::max() - 4};
+        ref.parent_id = {20};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
