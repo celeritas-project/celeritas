@@ -10,7 +10,7 @@
 
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "geocel/IsRefEq.hh"
+#include "geocel/RefUtils.hh"
 
 #include "AssertionHelper.hh"
 #include "testdetail/TestMacrosImpl.hh"
@@ -81,20 +81,8 @@ void check_ref_eq(::celeritas::test::AssertionHelper& result,
     IRE_COMPARE(node);
     IRE_COMPARE(surfaces);
 
-    auto check_bbox = [&result](char const* name,
-                                auto const& expected,
-                                auto const& actual) {
-        auto bbox_result = ::celeritas::testdetail::IsRefEq(
-            "expected", "actual", "auto", expected, actual, SoftEqual<>{}.rel());
-        if (!bbox_result)
-        {
-            result.fail() << "Expected " << name << ": " << repr(expected)
-                          << " but got " << repr(actual);
-        }
-    };
-
-    check_bbox("interior", val1.interior, val2.interior);
-    check_bbox("exterior", val1.exterior, val2.exterior);
+    check_ref_eq(result, "interior", val1.interior, val2.interior);
+    check_ref_eq(result, "exterior", val1.exterior, val2.exterior);
 #undef IRE_COMPARE
 }
 

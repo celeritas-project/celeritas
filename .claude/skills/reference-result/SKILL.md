@@ -1,16 +1,18 @@
 ---
 name: reference-result
-description: 'Define or modify printable Celeritas test reference-result structs and check_ref_eq customizations for EXPECT_REF_EQ or EXPECT_REF_NEAR. Use for reference data, tolerance structs, copy-pastable expected values, and field-level assertion diagnostics.'
+description: 'Define or modify printable Celeritas test reference-result structs and is_ref_eq/check_ref_eq customizations for EXPECT_REF_EQ or EXPECT_REF_NEAR. Use for reference data, tolerance structs, copy-pastable expected values, and field-level assertion diagnostics.'
 argument-hint: 'Describe the result type, its fields, and whether comparisons need a tolerance'
 ---
 
 # Celeritas Reference Results
 
-Create or improve a test-only reference-result struct and its `check_ref_eq`
-customization and expected-value output. Reference results commonly store vectors
-of values collected from a simulation or geometry operation. Follow the
-implemented interfaces in the checked-in tree; distinguish existing behavior
-from proposed extensions.
+Create or improve a test-only reference-result struct, its reusable comparison
+logic, and expected-value output. Reference results commonly store vectors of
+values collected from a simulation or geometry operation. Implement detailed
+type-specific comparison policy in `is_ref_eq` where it can be reused by other
+reference results; keep `check_ref_eq` as the ADL customization that dispatches
+`EXPECT_REF_EQ` and `EXPECT_REF_NEAR`. Follow the implemented interfaces in the
+checked-in tree; distinguish existing behavior from proposed extensions.
 
 ## 1. Find the local pattern
 
@@ -96,31 +98,52 @@ use C++20 designated initializers. `print_expected()` should emit a complete
 snippet for the owning test, including the right assertion macro and any
 required tolerance setup. Test the emitted text against the expected output.
 
-## 4. Implement `check_ref_eq` customizations
+## 4. Implement reusable comparison logic and dispatch
 
 `EXPECT_REF_EQ` and `EXPECT_REF_NEAR` call the central predicate-format
 dispatchers in `celeritas::testdetail`; do not add result-specific `IsRefEq`
 overloads. The dispatcher creates one `celeritas::test::AssertionHelper` and
-calls a type-specific `check_ref_eq` customization. The helper is passed by
-reference and the customization returns `void`:
+calls a type-specific `check_ref_eq` customization. Keep this customization as
+a thin `void` adapter that delegates to the reusable `bool is_ref_eq` policy:
 
 ```cpp
-void check_ref_eq(AssertionHelper& helper,
-                  Result const& expected,
-                  Result const& actual,
-                  std::nullptr_t);
+bool is_ref_eq(AssertionHelper& helper,
+         char const* field_name,
+         Result const& expected,
+         Result const& actual,
+         std::nullptr_t);
+
+bool is_ref_eq(AssertionHelper& helper,
+         char const* field_name,
+         Result const& expected,
+         Result const& actual,
+         Tol const& tol);
 
 void check_ref_eq(AssertionHelper& helper,
-                  Result const& expected,
-                  Result const& actual,
-                  Tol const& tol);
+          Result const& expected,
+          Result const& actual,
+          std::nullptr_t)
+{
+  (void)is_ref_eq(helper, "Result", expected, actual, nullptr);
+}
+
+void check_ref_eq(AssertionHelper& helper,
+          Result const& expected,
+          Result const& actual,
+          Tol const& tol)
+{
+  (void)is_ref_eq(helper, "Result", expected, actual, tol);
+}
 ```
 
-Implement the `std::nullptr_t` overload when the result is compared with
-`EXPECT_REF_EQ`; implement the tolerance overload when it is compared with
-`EXPECT_REF_NEAR`. Provide both if both macros are used. The no-tolerance tag
-is passed explicitly by the dispatcher; do not substitute `{}` for a generic
-tolerance argument.
+Implement the matching `is_ref_eq` policy overloads for exact comparison and
+for any supported tolerance. The `std::nullptr_t` overload corresponds to
+`EXPECT_REF_EQ`; the tolerance overload corresponds to `EXPECT_REF_NEAR`. Keep
+the `check_ref_eq` adapter overloads in the result's associated namespace so
+ADL can find them. The no-tolerance tag is passed explicitly by the dispatcher;
+do not substitute `{}` for a generic tolerance argument. Give `is_ref_eq` a
+field name so a reusable comparison can produce useful diagnostics when called
+from another result's comparator.
 
 Define the customization in a namespace associated with the result type, or as
 a hidden friend when needed for a nested/private result type, so argument-
@@ -155,11 +178,14 @@ govern, and include tolerance context in diagnostics when useful. Return the
 helper by reference and let the central dispatcher return the accumulated
 assertion result.
 
-For library-owned template types, define `check_ref_eq` in the type's
-associated namespace. If only selected template instantiations are supported,
-declare and explicitly instantiate the customization as appropriate. Exercise
-the tolerance customization with `EXPECT_REF_NEAR`, including its tolerance
-boundary and any special values or null-state behavior.
+For library-owned template types, put their test-only `is_ref_eq` policy and
+`check_ref_eq` adapter in the type's associated test namespace. Other reference
+result comparators can call `is_ref_eq` directly for a nested field, passing
+the field name and the desired tolerance; this keeps the detailed policy in
+one place. If only selected template instantiations are supported, declare and
+explicitly instantiate the policy as appropriate. Exercise direct
+`EXPECT_REF_EQ` as well as `EXPECT_REF_NEAR`, including tolerance boundaries
+and any special values or null-state behavior.
 
 The generic container customization is provided centrally. It checks size,
 recurses through the central dispatcher for each element, labels failures with

@@ -11,7 +11,7 @@
 #include "corecel/Config.hh"
 
 #include "geocel/BoundingBoxIO.json.hh"
-#include "geocel/IsRefEq.hh"
+#include "geocel/RefUtils.hh"
 
 #include "celeritas_test.hh"
 
@@ -201,6 +201,19 @@ TEST_F(BoundingBoxTest, ref_near)
 
     BBoxD const infinite_bbox = BBoxD::from_infinite();
     EXPECT_REF_NEAR(infinite_bbox, infinite_bbox, 0.1);
+}
+
+TEST_F(BoundingBoxTest, ref_eq)
+{
+    using BBoxD = BoundingBox<double>;
+
+    BBoxD const expected{{0, 0, 0}, {1, 1, 1}};
+    EXPECT_REF_EQ(expected, expected);
+
+    BBoxD const null_bbox;
+    EXPECT_REF_EQ(null_bbox, null_bbox);
+    EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
+        "expected", "actual", expected, null_bbox));
 }
 
 //---------------------------------------------------------------------------//
