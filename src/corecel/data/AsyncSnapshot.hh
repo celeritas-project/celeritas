@@ -42,8 +42,7 @@ namespace celeritas
     AsyncSnapshot<Counters> snapshot;
     snapshot.load_async(device_counters, stream_id);
     // ... enqueue more work or do host work ...
-    snapshot.sync();
-    use(snapshot.value());
+    use(snapshot.wait());
    \endcode
  */
 template<class T>
@@ -74,6 +73,9 @@ class AsyncSnapshot
 
     // Access the most recently loaded value
     inline T const& value() const;
+
+    // Wait for the most recent load and access its value
+    inline T const& wait() const;
 
   private:
     struct PinnedDeleter
@@ -158,12 +160,25 @@ void AsyncSnapshot<T>::assign(T const& value)
  * Access the most recently loaded value.
  *
  * The most recent load must have completed: call \c sync or check \c ready
- * first.
+ * first, or use \c wait instead.
  */
 template<class T>
 T const& AsyncSnapshot<T>::value() const
 {
     CELER_EXPECT(this->ready());
+    return *storage_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for the most recent load and access its value.
+ *
+ * This blocks the host until the load completes.
+ */
+template<class T>
+T const& AsyncSnapshot<T>::wait() const
+{
+    this->sync();
     return *storage_;
 }
 

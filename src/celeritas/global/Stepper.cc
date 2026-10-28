@@ -354,7 +354,7 @@ bool Stepper<M>::ready() const
     CELER_VALIDATE(
         has_outstanding_result_,
         << R"(cannot query whether step has completed without an outstanding step result)");
-    return state_->counters_ready();
+    return state_->host_counters().ready();
 }
 
 //---------------------------------------------------------------------------//
@@ -367,7 +367,7 @@ void Stepper<M>::wait() const
     CELER_VALIDATE(
         has_outstanding_result_,
         << R"(cannot wait for step to complete without an outstanding step result)");
-    state_->wait_counters();
+    state_->host_counters().sync();
 }
 
 //---------------------------------------------------------------------------//
@@ -385,7 +385,7 @@ auto Stepper<M>::get() -> result_type
         << "cannot get the result without an outstanding step result");
 
     this->wait();
-    auto result = make_stepper_result(state_->host_counters());
+    auto result = make_stepper_result(state_->host_counters().value());
     has_outstanding_result_ = false;
     this->reclaim_submitted_primaries();
     return result;
@@ -539,7 +539,7 @@ size_type Stepper<M>::calc_max_initializers() const
 {
     CELER_EXPECT(!has_outstanding_result_);
 
-    auto const& counters = state_->host_counters();
+    auto const& counters = state_->host_counters().value();
 
     // Number of initializers before initializing new tracks
     size_type pre_init_size = counters.num_initializers
