@@ -81,8 +81,9 @@ void check_ref_eq(::celeritas::test::AssertionHelper& result,
     IRE_COMPARE(node);
     IRE_COMPARE(surfaces);
 
-    check_ref_eq(result, "interior", val1.interior, val2.interior);
-    check_ref_eq(result, "exterior", val1.exterior, val2.exterior);
+    using celeritas::test::check_ref_eq;
+    is_ref_eq(result, "interior", val1.interior, val2.interior, nullptr);
+    is_ref_eq(result, "exterior", val1.exterior, val2.exterior, nullptr);
 #undef IRE_COMPARE
 }
 
