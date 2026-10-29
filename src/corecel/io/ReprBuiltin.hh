@@ -17,21 +17,22 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-inline std::ostream& operator<<(std::ostream& os, Repr<float> const& value)
+inline std::ostream& operator<<(std::ostream& os, ReprValue<float> const& value)
 {
     ScopedStreamFormat save_fmt(&os);
     os.precision(7);
     return os << value.obj << 'f';
 }
 
-inline std::ostream& operator<<(std::ostream& os, Repr<double> const& value)
+inline std::ostream& operator<<(std::ostream& os,
+                                ReprValue<double> const& value)
 {
     ScopedStreamFormat save_fmt(&os);
     os.precision(14);
     return os << value.obj;
 }
 
-inline std::ostream& operator<<(std::ostream& os, Repr<char> const& value)
+inline std::ostream& operator<<(std::ostream& os, ReprValue<char> const& value)
 {
     ScopedStreamFormat save_fmt(&os);
     os << '\'';
@@ -40,48 +41,47 @@ inline std::ostream& operator<<(std::ostream& os, Repr<char> const& value)
 }
 
 inline std::ostream& operator<<(std::ostream& os,
-                                Repr<unsigned char> const& value)
+                                ReprValue<unsigned char> const& value)
 {
-    ScopedStreamFormat save_fmt(&os);
     return os << "'\\x" << char_to_hex_string(value.obj) << '\'';
 }
 
-inline std::ostream& operator<<(std::ostream& os, Repr<bool> const& value)
+inline std::ostream& operator<<(std::ostream& os, ReprValue<bool> const& value)
 {
-    ScopedStreamFormat save_fmt(&os);
     return os << std::boolalpha << value.obj;
 }
 
 inline std::ostream& operator<<(std::ostream& os,
-                                Repr<unsigned int> const& value)
+                                ReprValue<unsigned int> const& value)
 {
     return os << value.obj << 'u';
 }
 
-inline std::ostream& operator<<(std::ostream& os, Repr<long> const& value)
+inline std::ostream& operator<<(std::ostream& os, ReprValue<long> const& value)
 {
     return os << value.obj << 'l';
 }
 
 inline std::ostream& operator<<(std::ostream& os,
-                                Repr<unsigned long> const& value)
+                                ReprValue<unsigned long> const& value)
 {
     return os << value.obj << "ul";
 }
 
-inline std::ostream& operator<<(std::ostream& os, Repr<long long> const& value)
+inline std::ostream& operator<<(std::ostream& os,
+                                ReprValue<long long> const& value)
 {
     return os << value.obj << "ll";
 }
 
 inline std::ostream& operator<<(std::ostream& os,
-                                Repr<unsigned long long> const& value)
+                                ReprValue<unsigned long long> const& value)
 {
     return os << value.obj << "ull";
 }
 
 inline std::ostream& operator<<(std::ostream& os,
-                                Repr<char const*> const& value)
+                                ReprValue<char const*> const& value)
 {
     if (value.obj)
     {
@@ -91,20 +91,21 @@ inline std::ostream& operator<<(std::ostream& os,
     return os << "nullptr";
 }
 
-inline std::ostream& operator<<(std::ostream& os, Repr<char*> const& value)
+inline std::ostream& operator<<(std::ostream& os, ReprValue<char*> const& value)
 {
-    return os << Repr<char const*>{value.obj};
+    return os << ReprValue<char const*>{value.obj};
 }
 
 template<std::size_t N>
-std::ostream& operator<<(std::ostream& os, Repr<char[N]> const& value)
+std::ostream& operator<<(std::ostream& os, ReprValue<char[N]> const& value)
 {
     write_string_repr(os, value.obj);
     return os;
 }
 
 template<std::size_t N>
-std::ostream& operator<<(std::ostream& os, Repr<char const[N]> const& value)
+std::ostream& operator<<(std::ostream& os,
+                         ReprValue<char const[N]> const& value)
 {
     write_string_repr(os, value.obj);
     return os;
@@ -113,20 +114,11 @@ std::ostream& operator<<(std::ostream& os, Repr<char const[N]> const& value)
 template<class T,
          std::size_t N,
          std::enable_if_t<!std::is_same_v<std::remove_cv_t<T>, char>, bool> = true>
-std::ostream& operator<<(std::ostream& os, Repr<T[N]> const& value)
+std::ostream& operator<<(std::ostream& os, ReprValue<T[N]> const& value)
 {
-    ScopedStreamFormat save_fmt(&os);
-    os << '{';
-    for (std::size_t i = 0; i < N; ++i)
-    {
-        if (i != 0)
-        {
-            os << ", ";
-        }
-        os << repr(value.obj[i]);
-    }
-    return os << '}';
+    return os << ReprContainer{value.obj, value.obj + N, N > 8};
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

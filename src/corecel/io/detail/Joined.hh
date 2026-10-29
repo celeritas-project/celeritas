@@ -88,6 +88,11 @@ struct Joined
     }
 };
 
+// CTAD
+template<class InputIterator, class Conjunction, class StreamOp>
+Joined(InputIterator&&, InputIterator&&, Conjunction&&, StreamOp&&)
+    -> Joined<InputIterator, Conjunction, StreamOp>;
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

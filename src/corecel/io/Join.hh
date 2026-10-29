@@ -64,16 +64,15 @@ join(InputIterator first,
  * Join using a functor that takes (ostream&, value).
  */
 template<class InputIterator, class Conjunction, class StreamOp>
-detail::Joined<InputIterator, Conjunction, StreamOp> join_stream(
-    InputIterator first,
-    InputIterator last,
-    Conjunction&& conjunction,
-    StreamOp&& op)
+auto join_stream(InputIterator first,
+                 InputIterator last,
+                 Conjunction&& conjunction,
+                 StreamOp&& op)
 {
-    return {first,
-            last,
-            std::forward<Conjunction>(conjunction),
-            std::forward<StreamOp>(op)};
+    return detail::Joined{first,
+                          last,
+                          std::forward<Conjunction>(conjunction),
+                          std::forward<StreamOp>(op)};
 }
 
 //---------------------------------------------------------------------------//

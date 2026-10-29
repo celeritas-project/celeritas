@@ -10,6 +10,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -21,65 +22,51 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 inline std::ostream& operator<<(std::ostream& os,
-                                Repr<std::string_view> const& value)
+                                ReprValue<std::string_view> const& value)
 {
     write_string_repr(os, value.obj);
     return os;
 }
 
 inline std::ostream& operator<<(std::ostream& os,
-                                Repr<std::string> const& value)
+                                ReprValue<std::string> const& value)
 {
     write_string_repr(os, value.obj);
     return os;
 }
 
 template<class T1, class T2>
-std::ostream& operator<<(std::ostream& os, Repr<std::pair<T1, T2>> const& value)
+std::ostream& operator<<(std::ostream& os,
+                         ReprValue<std::pair<T1, T2>> const& value)
 {
-    ScopedStreamFormat save_fmt(&os);
     os << '{' << repr(value.obj.first) << ',' << repr(value.obj.second) << '}';
     return os;
 }
 
 template<class T, class A>
-std::ostream& operator<<(std::ostream& os, Repr<std::vector<T, A>> const& value)
+std::ostream& operator<<(std::ostream& os,
+                         ReprValue<std::vector<T, A>> const& value)
 {
-    ScopedStreamFormat save_fmt(&os);
-    os << '{';
-    std::size_t count = 0;
-    for (auto const& item : value.obj)
+    auto const& vec = value.obj;
+    if constexpr (std::is_same_v<T, bool>)
     {
-        if (count++ != 0)
-        {
-            os << ", ";
-        }
-        os << repr(item);
+        return os << ReprContainer{vec.begin(), vec.end(), vec.size() > 8};
     }
-    if (value.obj.size() > 8)
+    else
     {
-        os << ',';
+        auto const* data = vec.data();
+        return os << ReprContainer{data, data + vec.size(), vec.size() > 8};
     }
-    return os << '}';
 }
 
 template<class T, class C, class A>
-std::ostream& operator<<(std::ostream& os, Repr<std::set<T, C, A>> const& value)
+std::ostream& operator<<(std::ostream& os,
+                         ReprValue<std::set<T, C, A>> const& value)
 {
-    ScopedStreamFormat save_fmt(&os);
-    os << '{';
-    bool first = true;
-    for (auto const& item : value.obj)
-    {
-        if (!first)
-        {
-            os << ", ";
-        }
-        first = false;
-        os << repr(item);
-    }
-    return os << '}';
+    auto const& obj = value.obj;
+    return os << ReprContainer{obj.begin(), obj.end(), obj.size() > 8};
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

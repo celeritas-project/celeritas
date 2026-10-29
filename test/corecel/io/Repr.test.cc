@@ -108,6 +108,8 @@ TEST(ReprTest, container)
 {
     EXPECT_EQ("{1, 2, 3, 4}", repr_to_string(std::vector<int>{1, 2, 3, 4}));
     EXPECT_EQ("{100l, 200l}", repr_to_string(Array<long, 2>{100, 200}));
+    EXPECT_EQ("{0, 1, 2, 3, 4, 5, 6, 7, 8,}",
+              repr_to_string(Array<int, 9>{0, 1, 2, 3, 4, 5, 6, 7, 8}));
     EXPECT_EQ("{-1, 0, 1}", repr_to_string(std::set<int>{-1, 0, 1}));
 
     unsigned int uints[] = {11, 22};

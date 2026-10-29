@@ -14,27 +14,30 @@
 #include "corecel/io/ScopedStreamFormat.hh"
 #include "corecel/io/StreamUtils.hh"
 
+#include "Joined.hh"
+
 namespace celeritas
 {
 namespace detail
 {
 template<class T>
-struct Repr;
+struct ReprValue;
 }
 
 template<class T>
-detail::Repr<T> repr(T const& obj);
+detail::ReprValue<T> repr(T const& obj);
 
 namespace detail
 {
 //---------------------------------------------------------------------------//
 // STREAMABLE
 //---------------------------------------------------------------------------//
+
 /*!
  * Lightweight wrapper for printing an object with repr-specific formatting.
  */
 template<class T>
-struct Repr
+struct ReprValue
 {
     T const& obj;
 };
@@ -42,24 +45,44 @@ struct Repr
 //---------------------------------------------------------------------------//
 /*!
  * Write a streamable object to a stream.
+ *
+ * This must be a free function so it can be overridden by std types.
  */
 template<class T>
-inline std::ostream& operator<<(std::ostream& os, Repr<T> const& s)
+inline std::ostream& operator<<(std::ostream& os, ReprValue<T> const& s)
 {
-    ScopedStreamFormat save_fmt(&os);
     return os << s.obj;
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Convert a streamable object to a string.
- */
+//! Implementation for ReprContainer
 template<class T>
-inline std::string to_string(Repr<T> const& s)
+void generic_repr(std::ostream& os, T const& value)
 {
-    return stream_to_string(s);
+    using celeritas::repr;
+    os << repr(value);
 }
 
+//! Stream a range using repr for each element.
+template<class Iter>
+struct ReprContainer
+{
+    Iter begin;
+    Iter end;
+    bool trailing_comma{false};
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    ReprContainer const& value)
+    {
+        using ValueT = decltype(*value.begin);
+
+        os << '{'
+           << Joined{value.begin, value.end, ", ", &generic_repr<ValueT>};
+        if (value.trailing_comma)
+            os << ',';
+        os << '}';
+        return os;
+    }
+};
 //---------------------------------------------------------------------------//
 // HELPER FUNCTION DECLARATIONS
 //---------------------------------------------------------------------------//
@@ -74,8 +97,9 @@ void write_string_repr(std::ostream& os, std::string_view value);
 //---------------------------------------------------------------------------//
 }  // namespace detail
 
+//! Default "repr" allows overriding via detail class.
 template<class T>
-detail::Repr<T> repr(T const& obj)
+detail::ReprValue<T> repr(T const& obj)
 {
     return {obj};
 }
