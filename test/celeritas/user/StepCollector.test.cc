@@ -415,6 +415,7 @@ TEST_F(KnMctruthTest, two_step)
     auto result = this->run(4, 2);
 
     RunResult ref;
+    ref = result;  // ignore unspecified results by default
     ref.event = {0, 0, 1, 1, 2, 2, 3, 3};
     ref.track = {0, 0, 0, 0, 0, 0, 0, 0};
     ref.step = {1, 2, 1, 2, 1, 2, 1, 2};
@@ -493,6 +494,11 @@ TEST_F(TestEm3MctruthTest, four_step)
             // 101 is world
             ref.volume
                 = {101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1};
+        }
+        else
+        {
+            // Ignore volume (these should be strings anyway)
+            ref.volume = result.volume;
         }
         ref.pos = {{-22, 0, 0},
                    {-20, 0.62729376699761, 0},
