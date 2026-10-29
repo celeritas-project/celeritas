@@ -382,7 +382,7 @@ TEST_F(KnMctruthTest, single_step)
 {
     auto result = this->run(8, 1);
 
-    RunResult ref;
+    RunResult ref = result;  // ignore unspecified results by default
     ref.event = {0, 1, 2, 3, 4, 5, 6, 7};
     ref.track = {0, 0, 0, 0, 0, 0, 0, 0};
     ref.step = {1, 1, 1, 1, 1, 1, 1, 1};
@@ -414,8 +414,7 @@ TEST_F(KnMctruthTest, two_step)
 {
     auto result = this->run(4, 2);
 
-    RunResult ref;
-    ref = result;  // ignore unspecified results by default
+    RunResult ref = result;  // ignore unspecified results by default
     ref.event = {0, 0, 1, 1, 2, 2, 3, 3};
     ref.track = {0, 0, 0, 0, 0, 0, 0, 0};
     ref.step = {1, 2, 1, 2, 1, 2, 1, 2};
@@ -451,7 +450,7 @@ TEST_F(KnCaloTest, single_track)
 
     if (Test::is_reference_rng)
     {
-        RunResult ref;
+        RunResult ref = result;
         ref.edep = {0.00043564799352598};
         EXPECT_REF_EQ(ref, result);
     }
@@ -481,13 +480,13 @@ TEST_F(TestEm3ParentTest, generation)
 TEST_F(TestEm3MctruthTest, four_step)
 {
     auto result = this->run(4, 4);
+    RunResult ref = result;  // ignore unspecified results by default
+    ref.event = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    ref.track = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3};
+    ref.step = {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
 
     if (Test::strict_testing())
     {
-        RunResult ref;
-        ref.event = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        ref.track = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3};
-        ref.step = {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             // 1 is gap_0
@@ -532,20 +531,9 @@ TEST_F(TestEm3MctruthTest, four_step)
                    {0.82087264698458, -0.57111128287973, 0},
                    {0.45731722153539, -0.78666386310568, 0.41475405407399},
                    {-0.062196556823295, -0.95423613503651, -0.29251493450746}};
-        EXPECT_REF_NEAR(ref, result, (RunResult::Tolerance{1e-11, 1e-10}));
     }
-    else
-    {
-        cout << "No output saved for combination of "
-             << test::StreamableBuildConf{} << std::endl;
-        print_expected(result);
 
-        if (this->strict_testing())
-        {
-            FAIL()
-                << "Updated step collector results are required for CI tests";
-        }
-    }
+    EXPECT_REF_NEAR(ref, result, (RunResult::Tolerance{1e-11, 1e-10}));
 }
 
 TEST_F(TestEm3CaloTest, thirtytwo_step)
@@ -556,7 +544,7 @@ TEST_F(TestEm3CaloTest, thirtytwo_step)
     }
     auto result = this->run<MemSpace::host>(256, 32);
 
-    RunResult ref;
+    RunResult ref = result;
     ref.edep = {1548.8862372467, 113.80254412772, 32.259504023678};
     RunResult::Tolerance tol;
     tol.edep = 0.5;
@@ -567,7 +555,7 @@ TEST_F(TestEm3CaloTest, TEST_IF_CELER_DEVICE(step_device))
 {
     auto result = this->run<MemSpace::device>(1024, 4);
 
-    RunResult ref;
+    RunResult ref = result;
     ref.edep = {1557.5843684091, 0, 0};
     RunResult::Tolerance tol;
     tol.edep = 0.5;
