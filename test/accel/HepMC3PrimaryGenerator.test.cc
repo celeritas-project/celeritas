@@ -17,6 +17,7 @@
 #include "celeritas/SimpleCmsTestBase.hh"
 
 #include "celeritas_test.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
 {
@@ -24,7 +25,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-struct ReadAllResult
+struct EventResult
 {
     //// DATA ////
 
@@ -46,10 +47,10 @@ struct ReadAllResult
     };
 
     //! Implement \c EXPECT_REF_NEAR and mark as a reference result via traits
-    static constexpr char class_str[] = "ReadAllResult";
+    static constexpr char class_str[] = "EventResult";
 
     //! Implement \c print_expected
-    friend std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref)
+    friend std::ostream& operator<<(std::ostream& os, EventResult const& ref)
     {
         return os << '{' << CELER_ATTR_REPR(ref, pos) << ", "
                   << CELER_ATTR_REPR(ref, time) << ", "
@@ -61,25 +62,34 @@ struct ReadAllResult
     }
 
     //! Implement \c EXPECT_REF_NEAR
-    friend void check_ref_eq(AssertionHelper& helper,
-                             ReadAllResult const& expected,
-                             ReadAllResult const& actual,
+    friend bool check_ref_eq(AssertionHelper& helper,
+                             EventResult const& expected,
+                             EventResult const& actual,
                              Tol const& tol)
     {
-        is_vec_soft_eq(helper, "pos", expected.pos, actual.pos);
-        is_vec_soft_eq(helper, "time", expected.time, actual.time);
-        is_vec_eq(helper, "vtx", expected.vtx, actual.vtx);
-        is_vec_eq(helper, "pdg", expected.pdg, actual.pdg);
-        is_vec_soft_eq(
-            helper, "energy", expected.energy, actual.energy, tol.energy);
-        is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
-        is_vec_soft_eq(helper, "mass", expected.mass, actual.mass);
+        bool result{true};
+        result = is_vec_soft_eq(helper, "pos", expected.pos, actual.pos)
+                 && result;
+        result = is_vec_soft_eq(helper, "time", expected.time, actual.time)
+                 && result;
+        result = is_vec_eq(helper, "vtx", expected.vtx, actual.vtx) && result;
+        result = is_vec_eq(helper, "pdg", expected.pdg, actual.pdg) && result;
+        result
+            = is_vec_soft_eq(
+                  helper, "energy", expected.energy, actual.energy, tol.energy)
+              && result;
+        result
+            = is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir)
+              && result;
+        result = is_vec_soft_eq(helper, "mass", expected.mass, actual.mass)
+                 && result;
+        return result;
     }
 
     //! Implement \c EXPECT_REF_EQ
-    friend void check_ref_eq(AssertionHelper& helper,
-                             ReadAllResult const& expected,
-                             ReadAllResult const& actual)
+    friend bool check_ref_eq(AssertionHelper& helper,
+                             EventResult const& expected,
+                             EventResult const& actual)
     {
         return check_ref_eq(helper, expected, actual, {});
     }
@@ -88,16 +98,17 @@ struct ReadAllResult
 class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
 {
   protected:
-    ReadAllResult read_all(G4VPrimaryGenerator& gen, int num_events)
+    std::vector<EventResult> read_all(G4VPrimaryGenerator& gen, int num_events)
     {
         CELER_EXPECT(num_events > 0);
-        ReadAllResult result;
+        std::vector<EventResult> result;
         for (auto ev_id : range(num_events))
         {
             G4Event event;
             event.SetEventID(ev_id);
             EXPECT_EQ(0, event.GetNumberOfPrimaryVertex());
             gen.GeneratePrimaryVertex(&event);
+            EventResult& event_result = result.emplace_back();
             size_type num_primaries{0};
             for (auto vtx_id : range(event.GetNumberOfPrimaryVertex()))
             {
@@ -106,8 +117,8 @@ class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
                 auto pos = to_cm(
                     native_from_geant<lengthunits::ClhepLength, real_type>(
                         vtx->GetPosition()));
-                result.pos.push_back(pos);
-                result.time.push_back(
+                event_result.pos.push_back(pos);
+                event_result.time.push_back(
                     native_from_geant<units::ClhepTime>(vtx->GetT0())
                     / units::nanosecond);
                 num_primaries += vtx->GetNumberOfParticle();
@@ -115,13 +126,13 @@ class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
                 {
                     G4PrimaryParticle* p = vtx->GetPrimary(j);
                     CELER_ASSERT(p);
-                    result.vtx.push_back(vtx_id);
-                    result.pdg.push_back(p->GetPDGcode());
-                    result.energy.push_back(p->GetKineticEnergy());
-                    result.mass.push_back(p->GetMass());
+                    event_result.vtx.push_back(vtx_id);
+                    event_result.pdg.push_back(p->GetPDGcode());
+                    event_result.energy.push_back(p->GetKineticEnergy());
+                    event_result.mass.push_back(p->GetMass());
 
                     auto dir = to_array(p->GetMomentumDirection());
-                    result.dir.push_back(dir);
+                    event_result.dir.push_back(dir);
                 }
             }
             // Check that primaries are converted to Geant4 tracks without
@@ -151,45 +162,49 @@ TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)
         this->test_data_path("celeritas", "event-novtx.hepmc3"));
     EXPECT_EQ(3, generator.NumEvents());
     auto result = this->read_all(generator, generator.NumEvents());
-    ReadAllResult ref;
-    ref.pos = {{0, 0, 50}, {0, 0, 50}, {0, 0, 50}};
-    ref.time = {4.1028383709373, 4.1028383709373, 4.1028383709373};
-    ref.vtx = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    ref.pdg = {22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22};
-    ref.energy = {
-        1000,
-        1000,
-        1000.0000107896,
-        999.99998921041,
-        1000,
-        999.99998921041,
-        1000.0000107896,
-        999.99998921041,
-        999.99998921041,
-        1000,
-        1000,
-        999.99998921041,
-        1000.0000107896,
-        1000.0000107896,
-        999.99998474121,
-    };
-    ref.dir = {{0.51986662883182, -0.42922054653912, -0.7385854118893},
-               {0.73395459362461, 0.18726575230281, 0.65287226354916},
-               {-0.40053358241289, -0.081839341451527, 0.91261994913013},
-               {-0.51571621404849, 0.125780323886, 0.84747631040084},
-               {-0.50829382297518, 0.51523183959, -0.69005328852051},
-               {0.25183128938865, -0.20216120822227, -0.94642054477646},
-               {-0.25247976713164, 0.94617275706344, -0.20251192799469},
-               {0.34066344768752, -0.90517210955886, 0.25418864547108},
-               {0.83192692739206, -0.5433000688087, 0.11279460409292},
-               {0.23445050379268, -0.36984950141989, -0.89902408620171},
-               {0.17562103525404, -0.47618127524474, 0.86163138585047},
-               {-0.60694965222664, 0.69697036165837, 0.38189584264792},
-               {0.51336099422575, 0.54197742781709, 0.66537279576514},
-               {-0.36655746358148, 0.80035990693978, 0.47440451647941},
-               {-0.78969793730749, -0.54961247282688, -0.27258631206541}};
-    ref.mass = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    ReadAllResult::Tol tol;
+    std::vector<EventResult> ref = {
+        {/* pos = */ {{0, 0, 50}},
+         /* time = */ {4.1028383709373},
+         /* vtx = */ {0, 0, 0, 0, 0},
+         /* pdg = */ {22, 22, 22, 22, 22},
+         /* energy = */ {1000, 1000, 1000.0000107896, 999.99998921041, 1000},
+         /* dir = */
+         {{0.51986662883182, -0.42922054653912, -0.7385854118893},
+          {0.73395459362461, 0.18726575230281, 0.65287226354916},
+          {-0.40053358241289, -0.081839341451527, 0.91261994913013},
+          {-0.51571621404849, 0.125780323886, 0.84747631040084},
+          {-0.50829382297518, 0.51523183959, -0.69005328852051}},
+         /* mass = */ {0, 0, 0, 0, 0}},
+        {/* pos = */ {{0, 0, 50}},
+         /* time = */ {4.1028383709373},
+         /* vtx = */ {0, 0, 0, 0, 0},
+         /* pdg = */ {22, 22, 22, 22, 22},
+         /* energy = */
+         {999.99998921041,
+          1000.0000107896,
+          999.99998921041,
+          999.99998474121,
+          1000},
+         /* dir = */
+         {{0.25183128938865, -0.20216120822227, -0.94642054477646},
+          {-0.25247976713164, 0.94617275706344, -0.20251192799469},
+          {0.34066344768752, -0.90517210955886, 0.25418864547108},
+          {0.83192692739206, -0.5433000688087, 0.11279460409292},
+          {0.23445050379268, -0.36984950141989, -0.89902408620171}},
+         /* mass = */ {0, 0, 0, 0, 0}},
+        {/* pos = */ {{0, 0, 50}},
+         /* time = */ {4.1028383709373},
+         /* vtx = */ {0, 0, 0, 0, 0},
+         /* pdg = */ {22, 22, 22, 22, 22},
+         /* energy = */ {1000, 999.99998921041, 1000, 1000.0000152588, 999.99998474121},
+         /* dir = */
+         {{0.17562103525404, -0.47618127524474, 0.86163138585047},
+          {-0.60694965222664, 0.69697036165837, 0.38189584264792},
+          {0.51336099422575, 0.54197742781709, 0.66537279576514},
+          {-0.36655746358148, 0.80035990693978, 0.47440451647941},
+          {-0.78969793730749, -0.54961247282688, -0.27258631206541}},
+         /* mass = */ {0, 0, 0, 0, 0}}};
+    EventResult::Tol tol;
     tol.energy = coarse_eps;
     tol.dir = coarse_eps;
     EXPECT_REF_NEAR(ref, result, tol);
@@ -201,34 +216,39 @@ TEST_F(HepMC3PrimaryGeneratorTest, multiple_vertex)
         this->test_data_path("celeritas", "event-variety.hepmc3"));
     EXPECT_EQ(3, generator.NumEvents());
     auto result = this->read_all(generator, generator.NumEvents());
+    // print_expected(result);
 
-    ReadAllResult ref;
-    ref.pos
-        = {{0, 0, 0}, {0, 0, 0}, {0, 0, 1}, {0, 0, 1}, {1, 2, 3}, {1, 2, 3}};
-    ref.time = {0, 0, 0, 0, 0.13342563807926, 0.13342563807926};
-    ref.vtx = {0, 1, 1, 0, 1, 1, 0, 1, 1};
-    ref.pdg = {22, 1, -2, 22, 1, -2, 22, 1, -2};
-    ref.energy = {
-        4151.3789242904,
-        29651.503768773,
-        56547.034479342,
-        4151.3789242904,
-        29651.503768773,
-        56547.034479342,
-        4151.3789242904,
-        29651.503768773,
-        56547.034479342,
-    };
-    ref.dir = {{-0.90094709007965, 0.02669997932835, -0.43310674432625},
-               {-0.082735048064663, 0.97508922087171, 0.20580554696494},
-               {0.0702815376096, -0.87804026971226, -0.47339813078935},
-               {-0.90094709007965, 0.02669997932835, -0.43310674432625},
-               {-0.082735048064663, 0.97508922087171, 0.20580554696494},
-               {0.0702815376096, -0.87804026971226, -0.47339813078935},
-               {-0.90094709007965, 0.02669997932835, -0.43310674432625},
-               {-0.082735048064663, 0.97508922087171, 0.20580554696494},
-               {0.0702815376096, -0.87804026971226, -0.47339813078935}};
-    ref.mass = {0, -1, -1, 0, -1, -1, 0, -1, -1};
+    std::vector<EventResult> ref
+        = {{/* pos = */ {{0, 0, 0}, {0, 0, 0}},
+            /* time = */ {0, 0},
+            /* vtx = */ {0, 1, 1},
+            /* pdg = */ {22, 1, -2},
+            /* energy = */ {4151.3789242904, 29651.503768773, 56547.034479342},
+            /* dir = */
+            {{-0.90094709007965, 0.02669997932835, -0.43310674432625},
+             {-0.082735048064663, 0.97508922087171, 0.20580554696494},
+             {0.0702815376096, -0.87804026971226, -0.47339813078935}},
+            /* mass = */ {0, -1, -1}},
+           {/* pos = */ {{0, 0, 1}, {0, 0, 1}},
+            /* time = */ {0, 0},
+            /* vtx = */ {0, 1, 1},
+            /* pdg = */ {22, 1, -2},
+            /* energy = */ {4151.3789242904, 29651.503768773, 56547.034479342},
+            /* dir = */
+            {{-0.90094709007965, 0.02669997932835, -0.43310674432625},
+             {-0.082735048064663, 0.97508922087171, 0.20580554696494},
+             {0.0702815376096, -0.87804026971226, -0.47339813078935}},
+            /* mass = */ {0, -1, -1}},
+           {/* pos = */ {{1, 2, 3}, {1, 2, 3}},
+            /* time = */ {0.13342563807926, 0.13342563807926},
+            /* vtx = */ {0, 1, 1},
+            /* pdg = */ {22, 1, -2},
+            /* energy = */ {4151.3789242904, 29651.503768773, 56547.034479342},
+            /* dir = */
+            {{-0.90094709007965, 0.02669997932835, -0.43310674432625},
+             {-0.082735048064663, 0.97508922087171, 0.20580554696494},
+             {0.0702815376096, -0.87804026971226, -0.47339813078935}},
+            /* mass = */ {0, -1, -1}}};
     EXPECT_REF_EQ(ref, result);
 }
 
