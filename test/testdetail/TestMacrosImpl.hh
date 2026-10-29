@@ -132,6 +132,28 @@ template<class T>
 StreamableAttr(char const*, T const&) -> StreamableAttr<T>;
 
 //---------------------------------------------------------------------------//
+// CELER_ATTR_REPR IMPLEMENTATION
+//---------------------------------------------------------------------------//
+
+//! Print an attribute with CELER_ATTR_REPR
+template<class T>
+struct StreamableAttr
+{
+    char const* name;
+    T const& value;
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    StreamableAttr const& attr)
+    {
+        return os << "/* " << attr.name << " = */ " << repr(attr.value);
+    }
+};
+
+// CTAD for C++17
+template<class T>
+StreamableAttr(char const*, T const&) -> StreamableAttr<T>;
+
+//---------------------------------------------------------------------------//
 // EXPECTED RESULT PRINTING
 //---------------------------------------------------------------------------//
 
@@ -764,11 +786,11 @@ bool is_soft_eq(
 /*!
  * Perform vector equality comparison, appending error details on failure.
  */
-template<class ContainerE, class ContainerA>
+template<class Container>
 bool is_vec_eq(AssertionHelper& helper,
                char const* field,
-               ContainerE const& expected,
-               ContainerA const& actual)
+               Container const& expected,
+               Container const& actual)
 {
     if (!helper.equal_size(expected.size(), actual.size()))
     {
@@ -792,11 +814,11 @@ bool is_vec_eq(AssertionHelper& helper,
  * Perform vector soft equality comparison with a tolerance, appending error
  * details on failure.
  */
-template<class ContainerE, class ContainerA, class Tol>
+template<class Container, class Tol>
 bool is_vec_soft_eq(AssertionHelper& helper,
                     char const* field,
-                    ContainerE const& expected,
-                    ContainerA const& actual,
+                    Container const& expected,
+                    Container const& actual,
                     Tol const& tol)
 {
     using namespace ::celeritas::testdetail;
@@ -824,20 +846,17 @@ bool is_vec_soft_eq(AssertionHelper& helper,
 /*!
  * Perform vector soft equality comparison, appending error details on failure.
  */
-template<class ContainerE, class ContainerA>
+template<class Container>
 inline bool is_vec_soft_eq(AssertionHelper& helper,
                            char const* field,
-                           ContainerE const& expected,
-                           ContainerA const& actual)
+                           Container const& expected,
+                           Container const& actual)
 {
     using namespace ::celeritas::testdetail;
     // Use default tolerance
-    using VE = ScalarValueType_t<ContainerE>;
-    using VA = ScalarValueType_t<ContainerA>;
-    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
-    using common_type = CommonPrecision_t<VE, VA>;
+    using value_type = ScalarValueType_t<Container>;
     return is_vec_soft_eq(
-        helper, field, expected, actual, SoftComparator_t<common_type>());
+        helper, field, expected, actual, SoftComparator_t<value_type>());
 }
 
 //---------------------------------------------------------------------------//
