@@ -210,10 +210,8 @@ class HitProcessor
 
     //! Device step data compacted in the scratch space, awaiting a copy
     StepStateDeviceRef pending_device_steps_;
-    //! Number of compacted device steps, loaded into pinned host memory
+    //! Number of compacted device steps, whose load completes the compaction
     AsyncSnapshot<size_type> num_selected_;
-    //! Completion of the pending device step compaction
-    DeviceEvent compacted_{nullptr};
     //! Completion of the copy of compacted steps to \c steps_
     DeviceEvent copied_{nullptr};
     //! Whether \c steps_ holds copied device steps awaiting processing

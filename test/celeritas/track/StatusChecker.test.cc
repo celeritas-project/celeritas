@@ -65,6 +65,7 @@ class StatusCheckerTest : public SimpleTestBase
             p.direction = {0, 0, 1};
             p.time = 0;
             p.event_id = EventId{0};
+            p.primary_id = id_cast<PrimaryId>(i);
             result.push_back(p);
         }
         return result;

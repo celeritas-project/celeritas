@@ -118,6 +118,7 @@ class TestEm3NoMsc : public TrackSortTestBase, public TestEm3Base
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = id_cast<PrimaryId>(i);
             result[i].particle_id = particles[i % particles.size()];
         }
         return result;
@@ -606,7 +607,7 @@ TEST_F(PartitionDataTest, step_host)
         result.push_back(this->get_result_string(
             dynamic_cast<CoreState<MemSpace::host> const&>(step.state())));
     }
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static std::string const expected_result[] = {
             "N____________________________________________________________CCC",
@@ -656,7 +657,7 @@ TEST_F(PartitionDataTest, TEST_IF_CELER_DEVICE(step_device))
         result.push_back(this->get_result_string(
             dynamic_cast<CoreState<MemSpace::device> const&>(step.state())));
     }
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static std::string const expected_result[] = {
             "NNNNNNNNNN________________________________CCCCCCCCCCCCCCCCCCCCCC",

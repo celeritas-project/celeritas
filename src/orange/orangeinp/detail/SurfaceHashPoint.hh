@@ -57,7 +57,7 @@ struct SurfaceHashPoint
 
     real_type operator()(Plane const& p) const { return p.displacement(); }
 
-    real_type operator()(Sphere const& s) const
+    real_type operator()(celeritas::Sphere const& s) const
     {
         return std::sqrt(s.radius_sq());
     }
@@ -68,7 +68,7 @@ struct SurfaceHashPoint
         return s.origin()[to_int(s.u_axis())];
     }
 
-    real_type operator()(Involute const& s) const
+    real_type operator()(celeritas::Involute const& s) const
     {
         return s.displacement_angle();
     }

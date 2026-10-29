@@ -97,7 +97,6 @@ Stepper<M>::Stepper(Input input)
     {
         // Allocate reusable asynchronous state before stepping begins
         primary_copy_done_ = DeviceEvent{celeritas::device()};
-        step_done_ = DeviceEvent{celeritas::device()};
     }
 
     // Execute beginning-of-run action
@@ -191,13 +190,10 @@ void Stepper<M>::async()
         primary_phase_ = PrimaryPhase::submitted;
     }
 
-    // Queue an asynchronous copy of the counters after the step actions
-    // complete, then record the completion event.
+    // Queue an asynchronous copy of the counters after the step actions.
+    // This must be the last work enqueued for the step: its completion is
+    // what ready() and wait() report as the completion of the step.
     state_->async_copy_counters();
-    if constexpr (M == MemSpace::device)
-    {
-        step_done_.record(celeritas::device().stream(state_->stream_id()));
-    }
 
     has_outstanding_result_ = true;
     CELER_ENSURE(primary_phase_ != PrimaryPhase::staged);
@@ -358,7 +354,7 @@ bool Stepper<M>::ready() const
     CELER_VALIDATE(
         has_outstanding_result_,
         << R"(cannot query whether step has completed without an outstanding step result)");
-    return step_done_.ready();
+    return state_->host_counters().ready();
 }
 
 //---------------------------------------------------------------------------//
@@ -371,7 +367,7 @@ void Stepper<M>::wait() const
     CELER_VALIDATE(
         has_outstanding_result_,
         << R"(cannot wait for step to complete without an outstanding step result)");
-    step_done_.sync();
+    state_->host_counters().sync();
 }
 
 //---------------------------------------------------------------------------//
@@ -389,7 +385,7 @@ auto Stepper<M>::get() -> result_type
         << "cannot get the result without an outstanding step result");
 
     this->wait();
-    auto result = make_stepper_result(state_->host_counters());
+    auto result = make_stepper_result(state_->host_counters().value());
     has_outstanding_result_ = false;
     this->reclaim_submitted_primaries();
     return result;
@@ -543,7 +539,7 @@ size_type Stepper<M>::calc_max_initializers() const
 {
     CELER_EXPECT(!has_outstanding_result_);
 
-    auto const& counters = state_->host_counters();
+    auto const& counters = state_->host_counters().value();
 
     // Number of initializers before initializing new tracks
     size_type pre_init_size = counters.num_initializers

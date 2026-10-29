@@ -276,18 +276,20 @@ list(APPEND SOURCES
   random/data/RanluxppRngData.cc
   random/distribution/DistributionInserter.cc
   random/params/CuHipRngParams.cc
+  # DeviceEvent.cc must be listed before ActionRegistry.cc for ordering in Unity builds.
+  sys/DeviceEvent.cc
   random/params/RanluxppRngParams.cc
   random/params/XorwowRngParams.cc
   sys/ActionInterface.cc
   sys/ActionRegistry.cc
   sys/ActionRegistryOutput.cc
   sys/DeviceIO.json.cc
-  sys/DeviceEvent.cc
   sys/Environment.cc
+  # Stream.cc must be listed before KernelRegistry.cc for ordering in Unity builds.
+  sys/Stream.cc
   sys/KernelRegistry.cc
   sys/KernelRegistryIO.json.cc
   sys/ScopedSignalHandler.cc
-  sys/Stream.cc
   sys/TypeDemangler.cc
   sys/Version.cc
 )

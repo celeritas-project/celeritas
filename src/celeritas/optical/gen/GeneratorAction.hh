@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
@@ -25,6 +26,21 @@ class ScintillationParams;
 namespace optical
 {
 class CoreStateBase;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a generator state for the given memory space and stream.
+ */
+template<MemSpace M, template<MemSpace> class GenerateState>
+auto make_state(StreamId stream, size_type size)
+{
+    auto result = std::make_unique<GenerateState<M>>();
+    using StoreT = decltype(result->store);
+    result->store = StoreT{stream, size};
+
+    CELER_ENSURE(*result);
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 /*!

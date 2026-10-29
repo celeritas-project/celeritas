@@ -7,6 +7,7 @@
 #include "orange/transform/Translation.hh"
 
 #include <sstream>
+#include <type_traits>
 
 #include "corecel/cont/LdgSpan.hh"
 #include "orange/transform/TransformIO.hh"
@@ -43,6 +44,9 @@ TEST_F(TranslatorTest, translation)
 TEST_F(TranslatorTest, rotation)
 {
     Translation tr(Real3{1, 2, 3});
+
+    static_assert(std::is_same_v<Real3, decltype(tr.rotate_down(Real3{}))>);
+    static_assert(std::is_same_v<Real3, decltype(tr.rotate_up(Real3{}))>);
 
     Real3 dir{0, 0, 1};
     EXPECT_VEC_SOFT_EQ(dir, tr.rotate_down(dir));

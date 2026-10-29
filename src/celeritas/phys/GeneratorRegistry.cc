@@ -50,6 +50,18 @@ GeneratorId GeneratorRegistry::find(std::string const& label) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Clear the generated counts at the start of a transport loop.
+ */
+void GeneratorRegistry::clear_generated(AuxStateVec& aux) const
+{
+    for (auto id : range(GeneratorId{this->size()}))
+    {
+        this->at(id)->counters(aux).counters.num_generated = 0;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Reset the generator counters if the loop aborted early.
  */
 void GeneratorRegistry::reset(AuxStateVec& aux) const

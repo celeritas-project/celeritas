@@ -62,6 +62,9 @@ class GeneratorRegistry
     // Find the ID corresponding to an label
     GeneratorId find(std::string const& label) const;
 
+    // Clear the generated counts at the start of a transport loop
+    void clear_generated(AuxStateVec&) const;
+
     // Reset the generator counters if the loop aborted early
     void reset(AuxStateVec&) const;
 

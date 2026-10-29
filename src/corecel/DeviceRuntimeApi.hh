@@ -69,7 +69,14 @@
  * This macro informs downstream Celeritas code (namely, Stream and
  * DeviceEvent) that it's safe to use types from the device APIs.
  */
-#define CELER_DEVICE_RUNTIME_INCLUDED
+#define CELER_DEVICE_RUNTIME_INCLUDED 1
+
+#if defined(CELER_DEVICE_RUNTIME_NEEDED) \
+    && defined(CELER_DEVICE_RUNTIME_INCLUDE_ERROR)
+static_assert(false,
+              "A file that requires DeviceRuntimeApi.hh was included before "
+              "this: " CELER_DEVICE_RUNTIME_NEEDED);
+#endif
 
 /*!
  * \def CELER_DEVICE_API_CALL

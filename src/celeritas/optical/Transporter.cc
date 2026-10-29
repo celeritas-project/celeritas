@@ -65,6 +65,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
 
     // Reset the counts that are accumulated during the loop
     state.clear_tallies();
+    this->params()->gen_reg()->clear_generated(*state.aux());
     auto counters = state.sync_get_counters();
 
     // Store a pointer to aux data for timing results
@@ -126,7 +127,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
                 << counters.num_pending << " queued, " << counters.num_cut
                 << " cut, and " << counters.num_errored << " errored";
             // Add all untransported tracks to 'cut' counter
-            counters.num_cut += counters.num_active + counters.num_pending;
+            counters.num_cut += counters.num_alive + counters.num_pending;
 
             this->params()->gen_reg()->reset(*state.aux());
             state.reset();

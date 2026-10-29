@@ -52,6 +52,7 @@ void log_png_error(png_structp png_ptr, png_const_charp msg)
 }  // namespace
 
 //---------------------------------------------------------------------------//
+//! PIMPL implementation for a PNG file.
 struct ImageWriter::Impl
 {
     std::unique_ptr<std::FILE, FileDeleter> file{nullptr};

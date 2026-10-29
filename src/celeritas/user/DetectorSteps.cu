@@ -131,9 +131,10 @@ void reserve_field(DetectorStepOutput::PinnedVec<T>* dst, SrcRef const& src)
  * - an asynchronous load of the number of selected tracks into
  *   \c num_selected .
  *
- * The snapshot must not be read or destroyed until the stream reaches this
- * point, and the scratch space must not be overwritten until the copy
- * enqueued by \c copy_compacted_steps_async completes.
+ * The snapshot must not be destroyed until its load completes, which also
+ * implies that the compaction has completed. The scratch space must not be
+ * overwritten until the copy enqueued by \c copy_compacted_steps_async
+ * completes.
  *
  * \warning The scratch space is shared by all \c StepInterface callbacks of a
  * \c StepCollector, but nothing tracks its outstanding copies: each caller
@@ -177,12 +178,11 @@ void compact_steps_async(StepStateDeviceRef const& state,
 /*!
  * Enqueue a copy of compacted device step data to the host.
  *
- * The number of selected tracks must have been copied to the host already,
- * i.e., the state's stream must have reached the end of
- * \c compact_steps_async . The output is resized immediately, and copies from
- * the state's scratch space are enqueued on the given stream without
- * synchronizing. If \c stream is not the state's stream, it must wait on an
- * event recorded after the compaction.
+ * The number of selected tracks must have been loaded to the host already,
+ * i.e., the snapshot passed to \c compact_steps_async must be ready. Since
+ * that load follows the compaction, the copies may be enqueued on any stream.
+ * The output is resized immediately, and copies from the state's scratch
+ * space are enqueued on the given stream without synchronizing.
  *
  * The output must not be read or resized, and the scratch space must not be
  * overwritten, until the stream reaches this point.
