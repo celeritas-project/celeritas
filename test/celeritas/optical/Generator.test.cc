@@ -163,7 +163,7 @@ TEST_F(LArSphereGeneratorTest, primary)
 
     auto const& gen = result.counters.generators.front();
     EXPECT_EQ(0, gen.buffer_size);
-    EXPECT_EQ(0, gen.num_pending);
+    EXPECT_EQ(gen.num_generated, gen.num_pending);
     EXPECT_EQ(65536, gen.num_generated);
 }
 
@@ -228,7 +228,7 @@ TEST_F(LArSphereGeneratorTest, direct)
 
     auto const& gen = result.counters.generators.front();
     EXPECT_EQ(128, gen.buffer_size);
-    EXPECT_EQ(0, gen.num_pending);
+    EXPECT_EQ(gen.num_generated, gen.num_pending);
     EXPECT_EQ(128, gen.num_generated);
 }
 
@@ -260,7 +260,7 @@ TEST_F(LArSphereGeneratorTest, offload)
 
     auto const& gen = result.counters.generators.front();
     EXPECT_EQ(512, gen.buffer_size);
-    EXPECT_EQ(0, gen.num_pending);
+    EXPECT_EQ(gen.num_generated, gen.num_pending);
 
     if (Test::is_reference_rng)
     {
@@ -366,10 +366,10 @@ TEST_F(WlsGeneratorTest, primary)
         GeneratorId gen_id(0);
         auto const& gen = result.counters.generators[gen_id.get()];
         EXPECT_EQ("wls-generate", run.params()->gen_reg()->at(gen_id)->label());
-        EXPECT_EQ(0, gen.buffer_size);
-        EXPECT_EQ(0, gen.num_pending);
+        EXPECT_EQ(gen.num_generated, gen.num_pending);
         if (Test::is_reference_rng)
         {
+            EXPECT_EQ(101082, gen.buffer_size);
             EXPECT_EQ(155587, gen.num_generated);
         }
     }
@@ -379,7 +379,7 @@ TEST_F(WlsGeneratorTest, primary)
         EXPECT_EQ("primary-generate",
                   run.params()->gen_reg()->at(gen_id)->label());
         EXPECT_EQ(0, gen.buffer_size);
-        EXPECT_EQ(0, gen.num_pending);
+        EXPECT_EQ(gen.num_generated, gen.num_pending);
         EXPECT_EQ(65536, gen.num_generated);
     }
 
@@ -407,6 +407,73 @@ TEST_F(WlsGeneratorTest, primary)
         "wls2",
     };
     EXPECT_VEC_EQ(expected_labels, labels);
+}
+
+TEST_F(WlsGeneratorTest, abort_early)
+{
+    size_type const num_photons = 1024;
+    size_type const num_track_slots = 64;
+
+    osi_.problem.capacity.tracks = num_track_slots;
+    osi_.problem.capacity.generators = 2 * num_track_slots;
+
+    // Abort the loop before all the photons can be generated
+    osi_.problem.limits.step_iters = 8;
+
+    osi_.geant_setup.wavelength_shifting.emplace();
+    osi_.geant_setup.wavelength_shifting2.emplace();
+    osi_.geant_setup.rayleigh_scattering = true;
+
+    osi_.problem.generator = [] {
+        inp::OpticalPrimaryGenerator gen;
+        gen.primaries = num_photons;
+        gen.energy = inp::MonoenergeticDistribution{9.5e-6};
+        gen.angle = inp::IsotropicDistribution{};
+        gen.shape = inp::PointDistribution{{0, 0, 0}};
+        return gen;
+    }();
+
+    // Construct the runner and transport optical primaries
+    optical::Runner run(std::move(osi_));
+    run.insert();
+    auto result = run();
+
+    // Photons were queued by both generators but not all were generated. Cut
+    // photons include those not generated and any that were in flight
+    if (Test::is_reference_rng)
+    {
+        EXPECT_EQ(932, result.counters.num_cut);
+    }
+    EXPECT_EQ(1, result.counters.flushes);
+    EXPECT_EQ(8, result.counters.step_iters);
+    EXPECT_EQ(0, result.counters.num_errored);
+    ASSERT_EQ(2, result.counters.generators.size());
+
+    {
+        // \todo WLS photons created during the last step are cut but never
+        // accumulated in the WLS generator's pending count
+        GeneratorId gen_id(0);
+        auto const& gen = result.counters.generators[gen_id.get()];
+        EXPECT_EQ("wls-generate", run.params()->gen_reg()->at(gen_id)->label());
+        if (Test::is_reference_rng)
+        {
+            EXPECT_EQ(216, gen.buffer_size);
+            EXPECT_EQ(318, gen.num_pending);
+            EXPECT_EQ(318, gen.num_generated);
+        }
+    }
+    {
+        GeneratorId gen_id(1);
+        auto const& gen = result.counters.generators[gen_id.get()];
+        EXPECT_EQ("primary-generate",
+                  run.params()->gen_reg()->at(gen_id)->label());
+        EXPECT_EQ(0, gen.buffer_size);
+        EXPECT_EQ(num_photons, gen.num_pending);
+        if (Test::is_reference_rng)
+        {
+            EXPECT_EQ(193, gen.num_generated);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -65,6 +65,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
 
     // Reset the counts that are accumulated during the loop
     state.clear_tallies();
+    this->params()->gen_reg()->clear_generated(*state.aux());
     auto counters = state.sync_get_counters();
 
     // Store a pointer to aux data for timing results

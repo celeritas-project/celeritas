@@ -480,7 +480,7 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
         auto const& generator = result.accum.generators[0];
         EXPECT_EQ(2, generator.buffer_size);
-        EXPECT_EQ(0, generator.num_pending);
+        EXPECT_EQ(generator.num_generated, generator.num_pending);
         EXPECT_EQ(109, generator.num_generated);
     }
 }
@@ -508,7 +508,7 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
         auto const& generator = result.accum.generators[0];
         EXPECT_EQ(7, generator.buffer_size);
-        EXPECT_EQ(0, generator.num_pending);
+        EXPECT_EQ(generator.num_generated, generator.num_pending);
         EXPECT_EQ(18214, generator.num_generated);
 
         EXPECT_EQ(2033, result.scintillation.total_num_photons);
@@ -545,7 +545,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
         auto const& generator = result.accum.generators[0];
         EXPECT_EQ(50, generator.buffer_size);
-        EXPECT_EQ(0, generator.num_pending);
+        EXPECT_EQ(generator.num_generated, generator.num_pending);
         EXPECT_EQ(55684, generator.num_generated);
     }
     EXPECT_EQ(0, result.scintillation.total_num_photons);

@@ -64,6 +64,11 @@ class GeneratorInterface
 //---------------------------------------------------------------------------//
 /*!
  * Manage counters for generation states.
+ *
+ * The accumulated counters record the total number of queued distributions (\c
+ * buffer_size), queued tracks (\c num_pending), and generated tracks (\c
+ * num_generated). A difference between the accumulated pending and generated
+ * counts indicates there were photons that were queued but never generated.
  */
 struct GeneratorStateBase : public AuxStateInterface
 {

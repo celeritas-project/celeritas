@@ -94,9 +94,6 @@ void WlsGeneratorAction::step(CoreParams const& params,
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical WLS photons from distribution data.
- *
- * \todo Accumulate the total number of steps (distributions) in \c
- * accum.buffer_size
  */
 template<MemSpace M>
 void WlsGeneratorAction::step_impl(CoreParams const& params,
@@ -110,6 +107,10 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     auto& aux_state = get<WlsGeneratorState<M>>(*state.aux(), this->aux_id());
     auto& counters = aux_state.counters;
     auto& buffer = aux_state.store.ref().distributions;
+
+    // Distributions and photons remaining from the previous step
+    auto const prev_buffer_size = counters.buffer_size;
+    auto const prev_pending = counters.num_pending;
 
     // Compact the buffer, returning the total number of valid distributions
     counters.buffer_size = celeritas::detail::remove_if_invalid(
@@ -128,6 +129,12 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
             counters.buffer_size,
             state.stream_id());
     }
+
+    // Accumulate distributions and photons created during the previous step
+    CELER_ASSERT(counters.buffer_size >= prev_buffer_size);
+    CELER_ASSERT(counters.num_pending >= prev_pending);
+    aux_state.accum.buffer_size += counters.buffer_size - prev_buffer_size;
+    aux_state.accum.num_pending += counters.num_pending - prev_pending;
 
     if (counters.num_pending > 0)
     {
