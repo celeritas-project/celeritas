@@ -137,8 +137,6 @@ if [ -z "${CELER_SPACK_ENV_LOADED}" ]; then
     mv "${_spack_src_file}" "${_spack_src_file}.old"
     return ${_errcode}
   fi
-elif [ "${CELER_SPACK_ENV}" != "${CELER_SPACK_ENV_LOADED}" ]; then
-  celerlog info "Spack build environment ${CELER_SPACK_ENV_LOADED} already loaded"
 fi
 
 if [ ! command -v lar >/dev/null 2>&1 ]; then
