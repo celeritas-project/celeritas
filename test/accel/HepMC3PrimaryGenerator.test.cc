@@ -23,14 +23,14 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-struct ReadAllTolerance
-{
-    double energy{Test::fine_eps};
-    double dir{Test::fine_eps};
-};
-
 struct ReadAllResult
 {
+    struct Tolerance
+    {
+        double energy{Test::fine_eps};
+        double dir{Test::fine_eps};
+    };
+
     static constexpr char class_str[] = "ReadAllResult";
 
     std::vector<Real3> pos;
@@ -41,23 +41,32 @@ struct ReadAllResult
     std::vector<Real3> dir;
     std::vector<double> mass;
 
-    friend std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref);
-};
+    friend std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref)
+    {
+        return os << '{' << CELER_ATTR_REPR(ref, pos) << ", "
+                  << CELER_ATTR_REPR(ref, time) << ", "
+                  << CELER_ATTR_REPR(ref, vtx) << ", "
+                  << CELER_ATTR_REPR(ref, pdg) << ", "
+                  << CELER_ATTR_REPR(ref, energy) << ", "
+                  << CELER_ATTR_REPR(ref, dir) << ", "
+                  << CELER_ATTR_REPR(ref, mass) << '}';
+    }
 
-void check_ref_eq(AssertionHelper& helper,
-                  ReadAllResult const& expected,
-                  ReadAllResult const& actual,
-                  ReadAllTolerance const& tol)
-{
-    is_vec_soft_eq(helper, "pos", expected.pos, actual.pos);
-    is_vec_soft_eq(helper, "time", expected.time, actual.time);
-    is_vec_eq(helper, "vtx", expected.vtx, actual.vtx);
-    is_vec_eq(helper, "pdg", expected.pdg, actual.pdg);
-    is_vec_soft_eq(
-        helper, "energy", expected.energy, actual.energy, tol.energy);
-    is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
-    is_vec_soft_eq(helper, "mass", expected.mass, actual.mass);
-}
+    friend void check_ref_eq(AssertionHelper& helper,
+                             ReadAllResult const& expected,
+                             ReadAllResult const& actual,
+                             Tolerance const& tol)
+    {
+        is_vec_soft_eq(helper, "pos", expected.pos, actual.pos);
+        is_vec_soft_eq(helper, "time", expected.time, actual.time);
+        is_vec_eq(helper, "vtx", expected.vtx, actual.vtx);
+        is_vec_eq(helper, "pdg", expected.pdg, actual.pdg);
+        is_vec_soft_eq(
+            helper, "energy", expected.energy, actual.energy, tol.energy);
+        is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
+        is_vec_soft_eq(helper, "mass", expected.mass, actual.mass);
+    }
+};
 
 class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
 {
@@ -118,16 +127,6 @@ class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
         this->imported_data();
     }
 };
-
-std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref)
-{
-    return os << '{' << CELER_ATTR_REPR(ref, pos) << ", "
-              << CELER_ATTR_REPR(ref, time) << ", "
-              << CELER_ATTR_REPR(ref, vtx) << ", " << CELER_ATTR_REPR(ref, pdg)
-              << ", " << CELER_ATTR_REPR(ref, energy) << ", "
-              << CELER_ATTR_REPR(ref, dir) << ", "
-              << CELER_ATTR_REPR(ref, mass) << '}';
-}
 
 TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)
 {

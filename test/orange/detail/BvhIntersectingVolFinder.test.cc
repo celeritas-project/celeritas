@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/detail/BvhIntersectingVolFinder.hh"
 
+#include <cstddef>
 #include <limits>
 #include <unordered_map>
 #include <vector>
@@ -103,32 +104,33 @@ struct IntersectResult
      */
     std::vector<int> hit_count;
     std::vector<int> miss_count;
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    IntersectResult const& ref)
+    {
+        return os << '{' << CELER_ATTR_REPR(ref, distance) << ", "
+                  << CELER_ATTR_REPR(ref, intersect_surface) << ", "
+                  << CELER_ATTR_REPR(ref, hit_count) << ", "
+                  << CELER_ATTR_REPR(ref, miss_count) << '}';
+    }
+
+    friend void check_ref_eq(::celeritas::test::AssertionHelper& result,
+                             IntersectResult const& val1,
+                             IntersectResult const& val2,
+                             std::nullptr_t)
+    {
+        using namespace ::celeritas::test;
+        using SoftEqT = SoftComparator_t<real_type>;
+
+        is_soft_eq(result, val1.distance, val2.distance, SoftEqT());
+        is_eq(result,
+              "intersect_surface",
+              val1.intersect_surface,
+              val2.intersect_surface);
+        is_eq(result, "hit_count", val1.hit_count, val2.hit_count);
+        is_eq(result, "miss_count", val1.miss_count, val2.miss_count);
+    }
 };
-
-std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
-{
-    return os << '{' << CELER_ATTR_REPR(ref, distance) << ", "
-              << CELER_ATTR_REPR(ref, intersect_surface) << ", "
-              << CELER_ATTR_REPR(ref, hit_count) << ", "
-              << CELER_ATTR_REPR(ref, miss_count) << '}';
-}
-
-void check_ref_eq(::celeritas::test::AssertionHelper& result,
-                  IntersectResult const& val1,
-                  IntersectResult const& val2,
-                  std::nullptr_t)
-{
-    using namespace ::celeritas::test;
-    using SoftEqT = SoftComparator_t<real_type>;
-
-    is_soft_eq(result, val1.distance, val2.distance, SoftEqT());
-    is_eq(result,
-          "intersect_surface",
-          val1.intersect_surface,
-          val2.intersect_surface);
-    is_eq(result, "hit_count", val1.hit_count, val2.hit_count);
-    is_eq(result, "miss_count", val1.miss_count, val2.miss_count);
-}
 
 //---------------------------------------------------------------------------//
 /*!
