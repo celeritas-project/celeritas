@@ -119,6 +119,12 @@ class SimTrackView
     // Update along-step action to take
     inline CELER_FUNCTION void along_step_action(ActionId action);
 
+    // Kill the track and mark it to be handed back to the host application
+    inline CELER_FUNCTION void hand_back(HandBackReason reason);
+
+    // Why the track is handed back (none if it is not)
+    inline CELER_FUNCTION HandBackReason hand_back_reason() const;
+
     //// PARAMETER DATA ////
 
     // Particle-dependent parameters for killing looping tracks
@@ -169,6 +175,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.step_length[track_slot_] = {};
     states_.post_step_action[track_slot_] = {};
     states_.along_step_action[track_slot_] = {};
+    states_.hand_back[track_slot_] = HandBackReason::none;
     return *this;
 }
 
@@ -328,6 +335,40 @@ CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Kill the track and mark it to be handed back to the host application.
+ *
+ * The track is killed immediately, without changing its kinematic state or
+ * depositing energy, so that its end-of-step state can be gathered (see \c
+ * StepInterface::Filters::hand_back) and transported further by the host
+ * application.
+ *
+ * This must only be called on an alive track, once its post-step action for
+ * the step has been applied: either by that action itself (e.g., an
+ * interaction that must be sampled on the host) or by a \c post order action
+ * that runs after it (actions of the same order run by increasing action ID).
+ * Since the track must be alive, it can be marked only once.
+ *
+ * Marking a track at any other time is not supported:
+ * - Before the post-step actions, the killed track would still be processed
+ *   as a valid track: the pre-step action expects it to be alive (and would
+ *   revive it in a release build), and post-step actions select tracks by
+ *   their post-step action ID rather than their status, so the track would
+ *   still interact.
+ * - In a later order (e.g., \c user_post ), the mark may come after the
+ *   hand-back step data is gathered: the track would then be killed without
+ *   being handed back.
+ */
+CELER_FUNCTION void SimTrackView::hand_back(HandBackReason reason)
+{
+    CELER_EXPECT(reason != HandBackReason::none
+                 && reason != HandBackReason::size_);
+    CELER_EXPECT(this->status() == TrackStatus::alive);
+    states_.hand_back[track_slot_] = reason;
+    this->status(TrackStatus::killed);
+}
+
+//---------------------------------------------------------------------------//
 // DYNAMIC PROPERTIES
 //---------------------------------------------------------------------------//
 /*!
@@ -418,6 +459,18 @@ CELER_FORCEINLINE_FUNCTION real_type SimTrackView::time() const
 CELER_FORCEINLINE_FUNCTION TrackStatus SimTrackView::status() const
 {
     return states_.status[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Why the track is handed back to the host application.
+ *
+ * The reason is reset only when a track is initialized in the slot: it is
+ * meaningless for an inactive slot.
+ */
+CELER_FORCEINLINE_FUNCTION HandBackReason SimTrackView::hand_back_reason() const
+{
+    return states_.hand_back[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

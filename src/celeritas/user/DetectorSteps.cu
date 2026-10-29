@@ -273,6 +273,7 @@ void reserve_compacted_steps(DetectorStepOutput* output,
 
     DS_RESERVE(event_id);
     DS_RESERVE(parent_id);
+    DS_RESERVE(generation);
     DS_RESERVE(primary_id);
     DS_RESERVE(post_step_action_id);
     DS_RESERVE(track_step_count);

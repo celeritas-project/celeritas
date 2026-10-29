@@ -57,12 +57,7 @@ class StepGatherAction final : public CoreStepActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string_view label() const final
-    {
-        return P == StepPoint::pre    ? "step-gather-pre"
-               : P == StepPoint::post ? "step-gather-post"
-                                      : std::string_view{};
-    }
+    std::string_view label() const final { return label_; }
 
     // Name of the action (for user output)
     std::string_view description() const final { return description_; }
@@ -81,6 +76,7 @@ class StepGatherAction final : public CoreStepActionInterface
     ActionId id_;
     SPConstStepParams params_;
     VecInterface callbacks_;
+    std::string label_;
     std::string description_;
 };
 
