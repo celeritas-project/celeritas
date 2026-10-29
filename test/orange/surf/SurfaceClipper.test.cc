@@ -38,8 +38,10 @@ struct ClipResult
                              ClipResult const& expected,
                              ClipResult const& actual)
     {
-        is_ref_eq(helper, "i", expected.i, actual.i, nullptr);
-        is_ref_eq(helper, "x", expected.x, actual.x, nullptr);
+        check_ref_eq(helper, expected.i, actual.i)
+            || helper.fail() << "in member: i";
+        check_ref_eq(helper, expected.x, actual.x)
+            || helper.fail() << "in member: x";
     }
 };
 

@@ -56,26 +56,27 @@ std::ostream& operator<<(std::ostream& os, IntersectTestResult const& ref)
 }
 
 //---------------------------------------------------------------------------//
-void check_ref_eq(::celeritas::test::AssertionHelper& helper,
+bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
                   IntersectTestResult const& val1,
                   IntersectTestResult const& val2)
 {
-#define IRE_COMPARE(ATTR) \
-    if (val1.ATTR != val2.ATTR) \
-    { \
-        helper.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR); \
-    } \
-    else \
-        (void)sizeof(char)
+    using namespace celeritas::test;
 
-    IRE_COMPARE(node);
-    IRE_COMPARE(surfaces);
+    bool result = true;
 
-    using celeritas::test::check_ref_eq;
-    is_ref_eq(helper, "interior", val1.interior, val2.interior, nullptr);
-    is_ref_eq(helper, "exterior", val1.exterior, val2.exterior, nullptr);
-#undef IRE_COMPARE
+    result = is_eq(helper, "node", val1.node, val2.node) && result;
+    result = is_eq(helper, "surfaces", val1.surfaces, val2.surfaces) && result;
+    if (!check_ref_eq(helper, val1.interior, val2.interior))
+    {
+        helper.fail() << "in interior";
+        result = false;
+    }
+    if (!check_ref_eq(helper, val1.exterior, val2.exterior))
+    {
+        helper.fail() << "in exterior";
+        result = false;
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

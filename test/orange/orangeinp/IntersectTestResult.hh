@@ -48,12 +48,12 @@ struct IntersectTestResult
     NodeId node_id;
 
     friend std::ostream& operator<<(std::ostream&, IntersectTestResult const&);
-};
 
-// Compare with EXPECT_REF_EQ
-void check_ref_eq(::celeritas::test::AssertionHelper& helper,
-                  IntersectTestResult const& expected,
-                  IntersectTestResult const& actual);
+    // Compare with EXPECT_REF_EQ
+    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
+                             IntersectTestResult const& expected,
+                             IntersectTestResult const& actual);
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace test

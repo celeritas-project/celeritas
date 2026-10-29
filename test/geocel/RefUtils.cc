@@ -20,27 +20,22 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 template<class T>
-bool is_ref_eq(AssertionHelper& helper,
-               char const* field_name,
-               BoundingBox<T> const& expected,
-               BoundingBox<T> const& actual,
-               std::nullptr_t)
+bool check_ref_eq(AssertionHelper& helper,
+                  BoundingBox<T> const& expected,
+                  BoundingBox<T> const& actual)
 {
-    return is_ref_eq(
-        helper, field_name, expected, actual, SoftEqual<T>{}.rel());
+    return check_ref_eq(helper, expected, actual, SoftEqual<T>{}.rel());
 }
 
 template<class T>
-bool is_ref_eq(AssertionHelper& helper,
-               char const* field_name,
-               BoundingBox<T> const& expected,
-               BoundingBox<T> const& actual,
-               T tol)
+bool check_ref_eq(AssertionHelper& helper,
+                  BoundingBox<T> const& expected,
+                  BoundingBox<T> const& actual,
+                  T tol)
 {
     auto fail = [&] {
         auto&& msg = helper.fail();
-        msg << "Expected " << field_name << ": " << repr(expected)
-            << " but got " << repr(actual);
+        msg << "Expected " << repr(expected) << " but got " << repr(actual);
         if (helper.tol_expr())
         {
             msg << " (tolerance " << helper.tol_expr() << '=' << tol << ')';
@@ -89,26 +84,18 @@ bool is_ref_eq(AssertionHelper& helper,
     return true;
 }
 
-template bool is_ref_eq<float>(AssertionHelper&,
-                               char const*,
-                               BoundingBox<float> const&,
-                               BoundingBox<float> const&,
-                               std::nullptr_t);
-template bool is_ref_eq<double>(AssertionHelper&,
-                                char const*,
-                                BoundingBox<double> const&,
-                                BoundingBox<double> const&,
-                                std::nullptr_t);
-template bool is_ref_eq<float>(AssertionHelper&,
-                               char const*,
-                               BoundingBox<float> const&,
-                               BoundingBox<float> const&,
-                               float);
-template bool is_ref_eq<double>(AssertionHelper&,
-                                char const*,
-                                BoundingBox<double> const&,
-                                BoundingBox<double> const&,
-                                double);
+template bool check_ref_eq<float>(
+    AssertionHelper&, BoundingBox<float> const&, BoundingBox<float> const&);
+template bool check_ref_eq<double>(
+    AssertionHelper&, BoundingBox<double> const&, BoundingBox<double> const&);
+template bool check_ref_eq<float>(AssertionHelper&,
+                                  BoundingBox<float> const&,
+                                  BoundingBox<float> const&,
+                                  float);
+template bool check_ref_eq<double>(AssertionHelper&,
+                                   BoundingBox<double> const&,
+                                   BoundingBox<double> const&,
+                                   double);
 
 //---------------------------------------------------------------------------//
 }  // namespace test
