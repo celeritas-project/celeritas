@@ -71,19 +71,42 @@ struct GenCounterResult
         accum_generated.push_back(gen.accum.num_generated);
     }
 
-    //! Print the result
-    void print_expected() const
+    //// REFERENCE RESULT ////
+
+    static constexpr char class_str[] = "GenCounterResult";
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    GenCounterResult const& ref)
     {
-        auto print = [](char const* field, auto const& values) {
-            std::cout << " /* " << field << " */ " << repr(values) << ",";
+        return os << '{' << CELER_ATTR_REPR(ref, buffer_size) << ", "
+                  << CELER_ATTR_REPR(ref, pending) << ", "
+                  << CELER_ATTR_REPR(ref, generated) << ", "
+                  << CELER_ATTR_REPR(ref, accum_buffer_size) << ", "
+                  << CELER_ATTR_REPR(ref, accum_pending) << ", "
+                  << CELER_ATTR_REPR(ref, accum_generated) << '}';
+    }
+
+    friend bool check_ref_eq(AssertionHelper& helper,
+                             GenCounterResult const& expected,
+                             GenCounterResult const& actual,
+                             std::nullptr_t = {})
+    {
+        bool result{true};
+        auto check = [&](char const* field, auto const& exp, auto const& act) {
+            result = is_vec_eq(helper, field, exp, act) && result;
         };
 
-        print("buffer_size", buffer_size);
-        print("pending", pending);
-        print("generated", generated);
-        print("accum_buffer_size", accum_buffer_size);
-        print("accum_pending", accum_pending);
-        print("accum_generated", accum_generated);
+        check("buffer_size", expected.buffer_size, actual.buffer_size);
+        check("pending", expected.pending, actual.pending);
+        check("generated", expected.generated, actual.generated);
+        check("accum_buffer_size",
+              expected.accum_buffer_size,
+              actual.accum_buffer_size);
+        check("accum_pending", expected.accum_pending, actual.accum_pending);
+        check("accum_generated",
+              expected.accum_generated,
+              actual.accum_generated);
+        return result;
     }
 };
 
@@ -118,100 +141,81 @@ struct CounterResult
         errored.push_back(core.num_errored);
     }
 
-    //! Print the result
-    void print_expected() const
+    //// REFERENCE RESULT ////
+
+    static constexpr char class_str[] = "CounterResult";
+
+    friend std::ostream& operator<<(std::ostream& os, CounterResult const& ref)
     {
-        auto print = [](char const* field, auto const& values) {
-            std::cout << " /* " << field << " */ " << repr(values) << ",";
+        os << '{' << CELER_ATTR_REPR(ref, pending) << ", "
+           << CELER_ATTR_REPR(ref, generated) << ", "
+           << CELER_ATTR_REPR(ref, initializers) << ", "
+           << CELER_ATTR_REPR(ref, vacancies) << ", "
+           << CELER_ATTR_REPR(ref, active) << ", "
+           << CELER_ATTR_REPR(ref, secondaries) << ", "
+           << CELER_ATTR_REPR(ref, alive) << ", " << CELER_ATTR_REPR(ref, cut)
+           << ", " << CELER_ATTR_REPR(ref, errored) << ", "
+           << "/* gen = */ {";
+        for (auto const& [label, gen_result] : ref.gen)
+        {
+            os << '{' << repr(label) << ", " << gen_result << "},";
+        }
+        return os << "}}";
+    }
+
+    friend bool check_ref_eq(AssertionHelper& helper,
+                             CounterResult const& expected,
+                             CounterResult const& actual,
+                             std::nullptr_t = {})
+    {
+        bool result{true};
+        auto check = [&helper, &result](
+                         char const* field, auto const& exp, auto const& act) {
+            result = is_vec_eq(helper, field, exp, act) && result;
         };
 
-        std::cout << "CounterResult const expected_counts{";
-        print("pending", pending);
-        print("generated", generated);
-        print("initializers", initializers);
-        print("vacancies", vacancies);
-        print("active", active);
-        print("secondaries", secondaries);
-        print("alive", alive);
-        print("cut", cut);
-        print("errored", errored);
-        std::cout << " /* gen */ {";
-        for (auto const& [gen_label, gen_result] : gen)
+        check("pending", expected.pending, actual.pending);
+        check("generated", expected.generated, actual.generated);
+        check("initializers", expected.initializers, actual.initializers);
+        check("vacancies", expected.vacancies, actual.vacancies);
+        check("active", expected.active, actual.active);
+        check("secondaries", expected.secondaries, actual.secondaries);
+        check("alive", expected.alive, actual.alive);
+        check("cut", expected.cut, actual.cut);
+        check("errored", expected.errored, actual.errored);
+
+        std::vector<std::string> expected_labels;
+        std::vector<std::string> actual_labels;
+        for (auto const& item : expected.gen)
         {
-            std::cout << "{\"" << gen_label << "\",{";
-            gen_result.print_expected();
-            std::cout << "}},";
+            expected_labels.push_back(item.first);
         }
-        std::cout << "},};\n";
+        for (auto const& item : actual.gen)
+        {
+            actual_labels.push_back(item.first);
+        }
+        result = is_vec_eq(helper, "gen", expected_labels, actual_labels)
+                 && result;
+
+        for (auto const& [label, expected_gen] : expected.gen)
+        {
+            auto iter = actual.gen.find(label);
+            if (iter != actual.gen.end())
+            {
+                if (!check_ref_eq(helper, expected_gen, iter->second))
+                {
+                    helper.fail() << "...in gen[\"" << label << "\"]";
+                    result = false;
+                }
+            }
+            else
+            {
+                helper.fail() << "Missing label " << label;
+            }
+        }
+        return result;
     }
 };
-
-//! Compare the counters and report where they differ
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   CounterResult const& val1,
-                                   CounterResult const& val2)
-{
-    AssertionHelper result{expr1, expr2};
-
-    auto check = [&result](std::string const& name,
-                           auto const& expected,
-                           auto const& actual) {
-        if (auto r = ::celeritas::testdetail::IsVecEq(
-                name.c_str(), name.c_str(), expected, actual);
-            !static_cast<bool>(r))
-        {
-            result.fail() << "\n" << name << ": " << r.message();
-        }
-    };
-
-    // Check the core counters
-    check("pending", val1.pending, val2.pending);
-    check("generated", val1.generated, val2.generated);
-    check("initializers", val1.initializers, val2.initializers);
-    check("vacancies", val1.vacancies, val2.vacancies);
-    check("active", val1.active, val2.active);
-    check("secondaries", val1.secondaries, val2.secondaries);
-    check("alive", val1.alive, val2.alive);
-    check("cut", val1.cut, val2.cut);
-    check("errored", val1.errored, val2.errored);
-
-    // Check that the same generators are present
-    std::vector<std::string> labels1;
-    std::vector<std::string> labels2;
-    for (auto const& kv : val1.gen)
-    {
-        labels1.push_back(kv.first);
-    }
-    for (auto const& kv : val2.gen)
-    {
-        labels2.push_back(kv.first);
-    }
-    check("gen", labels1, labels2);
-
-    // Check the counters for each generator
-    for (auto const& [label, gen1] : val1.gen)
-    {
-        auto iter = val2.gen.find(label);
-        if (iter == val2.gen.end())
-        {
-            continue;
-        }
-        auto const& gen2 = iter->second;
-        check(label + ".buffer_size", gen1.buffer_size, gen2.buffer_size);
-        check(label + ".pending", gen1.pending, gen2.pending);
-        check(label + ".generated", gen1.generated, gen2.generated);
-        check(label + ".accum_buffer_size",
-              gen1.accum_buffer_size,
-              gen2.accum_buffer_size);
-        check(label + ".accum_pending", gen1.accum_pending, gen2.accum_pending);
-        check(label + ".accum_generated",
-              gen1.accum_generated,
-              gen2.accum_generated);
-    }
-
-    return result;
-}
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
