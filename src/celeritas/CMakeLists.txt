@@ -128,6 +128,7 @@ list(APPEND SOURCES
   optical/gen/ScintillationParams.cc
   optical/gen/GeneratorDataIO.json.cc
   optical/gen/GeneratorBase.cc
+  optical/gen/GeneratorCounterState.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/PhysicsParams.cc
@@ -430,6 +431,7 @@ celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/DirectGeneratorAction)
 celeritas_polysource(optical/gen/WlsGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
+celeritas_polysource(optical/gen/detail/GeneratorCounterAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
 celeritas_polysource(optical/surface/model/DielectricInteractionModel)

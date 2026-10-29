@@ -56,7 +56,7 @@ GeneratorStateBase const& GeneratorBase::counters(AuxStateVec const& aux) const
  */
 void GeneratorBase::reset(AuxStateVec& aux) const
 {
-    this->counters(aux).counters = {};
+    this->counters(aux).reset_counters();
 }
 
 //---------------------------------------------------------------------------//
