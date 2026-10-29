@@ -66,9 +66,6 @@ class DiagnosticTestBase : virtual public SimpleLoopTestBase
     // Get JSON output from the step diagnostic
     std::string step_output() const;
 
-    // Print expected results
-    void print_expected() const;
-
   protected:
     std::shared_ptr<ActionDiagnostic> action_diagnostic_;
     std::shared_ptr<StepDiagnostic> step_diagnostic_;

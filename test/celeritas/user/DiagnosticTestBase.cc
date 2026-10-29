@@ -66,18 +66,6 @@ void check_ref_eq(AssertionHelper& helper,
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void DiagnosticTestBase::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-         << "EXPECT_EQ(R\"json(" << this->action_output()
-         << ")json\",this->action_output());\n"
-         << "EXPECT_EQ(R\"json(" << this->step_output()
-         << ")json\",this->step_output());\n"
-            "/*** END CODE ***/\n";
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Run a number of tracks.
  */
