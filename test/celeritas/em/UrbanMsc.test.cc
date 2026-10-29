@@ -194,11 +194,6 @@ struct StepLimitResult
     std::vector<real_type> range_factor;
     std::vector<real_type> limit_min;
 
-    void print_expected() const
-    {
-        ::celeritas::testdetail::print_expected(*this);
-    }
-
     friend std::ostream& operator<<(std::ostream& os,
                                     StepLimitResult const& result)
     {

@@ -33,9 +33,6 @@ struct SampledHistogram
     //! Average number of RNG samples
     double rng_count{};
 
-    // Print expected code to cout
-    void print_expected() const;
-
     // Print to a stream
     friend std::ostream& operator<<(std::ostream&, SampledHistogram const&);
 };

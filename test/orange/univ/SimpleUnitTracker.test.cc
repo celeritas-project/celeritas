@@ -66,11 +66,6 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
                       << result.failed << '}';
         }
 
-        friend void print_expected(HeuristicInitResult const& result)
-        {
-            ::celeritas::testdetail::print_expected(result);
-        }
-
         friend void check_ref_eq(AssertionHelper& result,
                                  HeuristicInitResult const& val1,
                                  HeuristicInitResult const& val2,

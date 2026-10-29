@@ -61,8 +61,6 @@ class EventIOTestBase : public Test
         std::vector<double> time;
         std::vector<int> event;
 
-        void print_expected() const;
-
         friend std::ostream& operator<<(std::ostream& os,
                                         ReadAllResult const& ref)
         {

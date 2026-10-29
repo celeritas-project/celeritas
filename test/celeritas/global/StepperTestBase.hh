@@ -54,9 +54,6 @@ class StepperTestBase : virtual public GlobalTestBase
         std::vector<std::string> actions;
         std::vector<std::string> actions_desc;
 
-        // Print code for the expected attributes
-        void print_expected() const;
-
         friend std::ostream& operator<<(std::ostream&, SetupCheckResult const&);
         friend void check_ref_eq(AssertionHelper&,
                                  SetupCheckResult const&,
@@ -81,9 +78,6 @@ class StepperTestBase : virtual public GlobalTestBase
         size_type calc_emptying_step() const;
         // Step index and value of the high water mark of the initializer queue
         StepCount calc_queue_hwm() const;
-
-        // Print code for the expected attributes
-        void print_expected() const;
 
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
         friend void check_ref_eq(AssertionHelper&,

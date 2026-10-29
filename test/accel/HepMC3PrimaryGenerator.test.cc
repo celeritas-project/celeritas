@@ -41,7 +41,6 @@ struct ReadAllResult
     std::vector<Real3> dir;
     std::vector<double> mass;
 
-    void print_expected() const;
     friend std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref);
 };
 
@@ -126,11 +125,6 @@ std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref)
               << repr(ref.vtx) << ", " << repr(ref.pdg) << ", "
               << repr(ref.energy) << ", " << repr(ref.dir) << ", "
               << repr(ref.mass) << '}';
-}
-
-void ReadAllResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
 }
 
 TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)

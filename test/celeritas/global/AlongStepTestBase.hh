@@ -73,8 +73,6 @@ class AlongStepTestBase : virtual public GlobalTestBase
         real_type alive{};  //!< Fraction of tracks alive at end of step
         std::string action;  //!< Most likely action to take next
 
-        void print_expected() const;
-
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
         friend void check_ref_eq(AssertionHelper&,
                                  RunResult const&,

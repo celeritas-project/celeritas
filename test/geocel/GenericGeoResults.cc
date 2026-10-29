@@ -100,11 +100,6 @@ void GenericGeoTrackingResult::fail_at(std::size_t index)
     volumes.push_back("[FAILURE]");
 }
 
-void GenericGeoTrackingResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
 std::ostream& operator<<(std::ostream& os, GenericGeoTrackingResult const& ref)
 {
     return os << '{' << repr(ref.volumes) << ", " << repr(ref.volume_instances)
@@ -180,11 +175,6 @@ GenericGeoVolumeStackResult GenericGeoVolumeStackResult::from_span(
     }
 
     return result;
-}
-
-void GenericGeoVolumeStackResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
 }
 
 std::ostream& operator<<(std::ostream& os,
@@ -269,11 +259,6 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
     }
 
     return result;
-}
-
-void GenericGeoModelInp::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
 }
 
 std::ostream& operator<<(std::ostream& os, GenericGeoModelInp const& ref)

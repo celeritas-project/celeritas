@@ -175,12 +175,6 @@ auto StepperTestBase::RunResult::calc_queue_hwm() const -> StepCount
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void StepperTestBase::SetupCheckResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
 std::ostream& operator<<(std::ostream& os,
                          StepperTestBase::SetupCheckResult const& ref)
 {
@@ -200,12 +194,6 @@ void check_ref_eq(AssertionHelper& helper,
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void StepperTestBase::RunResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
 std::ostream& operator<<(std::ostream& os,
                          StepperTestBase::RunResult const& ref)
 {

@@ -34,8 +34,6 @@ struct GeantImportVolumeResult
     std::vector<int> volumes;  //!< Volume ID for each Geant4 instance ID
     std::vector<std::string> missing_labels;  //!< G4LV names without a match
 
-    void print_expected() const;
-
     friend std::ostream& operator<<(std::ostream&,
                                     GeantImportVolumeResult const&);
     friend void check_ref_eq(AssertionHelper&,

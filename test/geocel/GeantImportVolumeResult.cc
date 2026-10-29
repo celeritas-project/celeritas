@@ -72,11 +72,6 @@ GeantImportVolumeResult GeantImportVolumeResult::from_import(
 }
 
 //---------------------------------------------------------------------------//
-void GeantImportVolumeResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
 std::ostream& operator<<(std::ostream& os, GeantImportVolumeResult const& ref)
 {
     return os << '{' << repr(ref.volumes) << ", " << repr(ref.missing_labels)

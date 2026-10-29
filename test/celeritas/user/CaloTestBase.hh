@@ -46,8 +46,6 @@ class CaloTestBase : virtual public SimpleLoopTestBase
 
         std::vector<double> edep;
 
-        void print_expected() const;
-
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
         friend void check_ref_eq(AssertionHelper&,
                                  RunResult const&,

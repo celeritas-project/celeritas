@@ -13,7 +13,6 @@
 #include "geocel/RefUtils.hh"
 
 #include "AssertionHelper.hh"
-#include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
 {
@@ -47,11 +46,6 @@ namespace orangeinp
 namespace test
 {
 //---------------------------------------------------------------------------//
-void IntersectTestResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
 std::ostream& operator<<(std::ostream& os, IntersectTestResult const& ref)
 {
     return os << '{' << repr(ref.node) << ", " << repr(ref.surfaces) << ", "

@@ -41,8 +41,6 @@ struct TestResult
     std::vector<Dbl3> coords;
     std::vector<std::string> replicas;
 
-    void print_expected() const;
-
     friend std::ostream& operator<<(std::ostream& os, TestResult const& ref)
     {
         return os << '{' << repr(ref.coords) << ", " << repr(ref.replicas)
@@ -59,11 +57,6 @@ struct TestResult
         is_vec_eq(helper, "replicas", expected.replicas, actual.replicas);
     }
 };
-
-void TestResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
 
 //---------------------------------------------------------------------------//
 /*!

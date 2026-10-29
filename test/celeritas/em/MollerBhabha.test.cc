@@ -98,14 +98,8 @@ struct SampleResult
     std::vector<double> inc_edep;
     std::vector<double> sec_cost;
     std::vector<double> sec_e;
-    void print_expected() const;
     friend std::ostream& operator<<(std::ostream&, SampleResult const&);
 };
-
-void SampleResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
 
 std::ostream& operator<<(std::ostream& os, SampleResult const& result)
 {

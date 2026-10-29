@@ -148,11 +148,6 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 }
 
 //---------------------------------------------------------------------------//
-void AlongStepTestBase::RunResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
 std::ostream& operator<<(std::ostream& os,
                          AlongStepTestBase::RunResult const& ref)
 {

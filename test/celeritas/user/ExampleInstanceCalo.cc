@@ -39,18 +39,6 @@ std::ostream& operator<<(std::ostream& os,
 }
 
 //---------------------------------------------------------------------------//
-void print_expected(ExampleInstanceCalo::Result const& ref)
-{
-    ::celeritas::testdetail::print_expected(ref);
-}
-
-//---------------------------------------------------------------------------//
-void ExampleInstanceCalo::Result::print_expected() const
-{
-    ::celeritas::test::print_expected(*this);
-}
-
-//---------------------------------------------------------------------------//
 void check_ref_eq(AssertionHelper& helper,
                   ExampleInstanceCalo::Result const& expected,
                   ExampleInstanceCalo::Result const& actual,

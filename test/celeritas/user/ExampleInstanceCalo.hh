@@ -46,10 +46,7 @@ class ExampleInstanceCalo final : public StepInterface
         std::vector<std::string> instance;
         std::vector<double> edep;
 
-        void print_expected() const;
-
         friend std::ostream& operator<<(std::ostream&, Result const&);
-        friend void print_expected(Result const&);
         friend void check_ref_eq(
             AssertionHelper&, Result const&, Result const&, std::nullptr_t);
     };
@@ -89,8 +86,6 @@ class ExampleInstanceCalo final : public StepInterface
     //! Number of compacted device steps, loaded into pinned host memory
     AsyncSnapshot<size_type> num_selected_;
 };
-
-void print_expected(ExampleInstanceCalo::Result const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

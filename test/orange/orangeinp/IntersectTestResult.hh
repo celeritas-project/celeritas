@@ -31,9 +31,8 @@ namespace test
  * It embeds all the meaningful output from constructing an intersect region:
  * the logical definition, surfaces, and bounding boxes.
  *
- * Use \c print_expected to generate output to copy-paste into a test; this
- * output defines a \c IntersectTestResult that can be compared using \c
- * EXPECT_REF_EQ.
+ * Use the imported \c print_expected function to generate a copy-pastable
+ * \c IntersectTestResult that can be compared using \c EXPECT_REF_EQ.
  */
 struct IntersectTestResult
 {
@@ -47,8 +46,6 @@ struct IntersectTestResult
     // Note: resulting node is for additional test harness diagnostics, not ref
     // comparison
     NodeId node_id;
-
-    void print_expected() const;
 
     friend std::ostream& operator<<(std::ostream&, IntersectTestResult const&);
 };

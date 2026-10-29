@@ -50,12 +50,6 @@ std::ostream& operator<<(std::ostream& os,
 }
 
 //---------------------------------------------------------------------------//
-void print_expected(MctruthTestBase::RunResult const& ref)
-{
-    ::celeritas::testdetail::print_expected(ref);
-}
-
-//---------------------------------------------------------------------------//
 void check_ref_eq(AssertionHelper& helper,
                   MctruthTestBase::RunResult const& expected,
                   MctruthTestBase::RunResult const& actual,

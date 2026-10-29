@@ -18,12 +18,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-void SampledHistogram::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Print to a stream.
  */

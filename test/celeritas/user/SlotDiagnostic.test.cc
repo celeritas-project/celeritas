@@ -64,11 +64,6 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
                       << '}';
         }
 
-        friend void print_expected(RunResult const& ref)
-        {
-            ::celeritas::testdetail::print_expected(ref);
-        }
-
         friend void check_ref_eq(AssertionHelper& helper,
                                  RunResult const& expected,
                                  RunResult const& actual,

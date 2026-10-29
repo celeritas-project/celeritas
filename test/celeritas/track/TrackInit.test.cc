@@ -59,9 +59,6 @@ struct RunResult
     template<MemSpace M>
     static RunResult from_state(CoreState<M>&);
 
-    // Print code for the expected attributes
-    void print_expected() const;
-
     friend std::ostream& operator<<(std::ostream& os, RunResult const& ref)
     {
         return os << '{' << repr(ref.track_ids) << ", " << repr(ref.parent_ids)
@@ -127,12 +124,6 @@ RunResult RunResult::from_state(CoreState<M>& state)
     }
 
     return result;
-}
-
-// Print code for the expected attributes
-void RunResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
 }
 
 //---------------------------------------------------------------------------//

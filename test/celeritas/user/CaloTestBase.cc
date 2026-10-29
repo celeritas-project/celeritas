@@ -49,12 +49,6 @@ void CaloTestBase::SetUp()
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void CaloTestBase::RunResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
 std::ostream& operator<<(std::ostream& os, CaloTestBase::RunResult const& ref)
 {
     return os << '{' << repr(ref.edep) << '}';

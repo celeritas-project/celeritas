@@ -41,12 +41,6 @@ std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
 }
 
 //---------------------------------------------------------------------------//
-void print_expected(SimpleHitsResult const& ref)
-{
-    ::celeritas::testdetail::print_expected(ref);
-}
-
-//---------------------------------------------------------------------------//
 void check_ref_eq(AssertionHelper& result,
                   SimpleHitsResult const& expected,
                   SimpleHitsResult const& actual,

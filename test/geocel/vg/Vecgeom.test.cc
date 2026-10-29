@@ -682,7 +682,7 @@ class ArbitraryGeantTest : public ArbitraryVecgeomTest
 TEST_F(ArbitraryGeantTest, DISABLED_convert)
 {
     auto result = GeantImportVolumeResult::from_import(*this->geometry());
-    result.print_expected();
+    print_expected(result);
     EXPECT_EQ(0, result.missing_labels.size());
 }
 

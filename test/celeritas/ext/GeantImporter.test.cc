@@ -81,8 +81,6 @@ class GeantImporterTest : public GeantTestBase
         std::vector<std::string> processes;
         std::vector<std::string> models;
 
-        void print_expected() const;
-
         friend std::ostream& operator<<(std::ostream& os,
                                         ImportSummary const& ref)
         {
@@ -112,8 +110,6 @@ class GeantImporterTest : public GeantTestBase
         std::vector<size_type> size;  //!< Number of micro XS in each material
         std::vector<double> energy;
         std::vector<double> xs;
-
-        void print_expected() const;
 
         friend std::ostream& operator<<(std::ostream& os,
                                         ImportXsSummary const& ref)
@@ -223,11 +219,6 @@ auto GeantImporterTest::summarize(ImportData const& data) const -> ImportSummary
     return s;
 }
 
-void GeantImporterTest::ImportSummary::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
 auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
     -> ImportXsSummary
 {
@@ -258,11 +249,6 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
         }
     }
     return result;
-}
-
-void GeantImporterTest::ImportXsSummary::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
 }
 
 //---------------------------------------------------------------------------//

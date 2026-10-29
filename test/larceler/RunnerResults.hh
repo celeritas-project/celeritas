@@ -36,8 +36,6 @@ struct RunResult
     static RunResult from_btr(
         std::vector<sim::OpDetBacktrackerRecord> const& records);
 
-    void print_expected() const;
-
     friend std::ostream& operator<<(std::ostream&, RunResult const&);
 };
 
@@ -61,8 +59,6 @@ struct DepHitResult
     std::vector<Real3> pos;
 
     static DepHitResult from_sdp(std::vector<sim::SDP> const& sdps);
-
-    void print_expected() const;
 
     friend std::ostream& operator<<(std::ostream&, DepHitResult const&);
 };

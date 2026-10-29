@@ -24,12 +24,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-void EventIOTestBase::ReadAllResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
-//---------------------------------------------------------------------------//
 void EventIOTestBase::SetUp()
 {
     using namespace constants;

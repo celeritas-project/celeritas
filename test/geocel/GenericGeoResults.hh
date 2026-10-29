@@ -80,9 +80,6 @@ struct GenericGeoTrackingResult
     // Add a failure sentinel at a certain index
     void fail_at(std::size_t index);
 
-    // Print expected expression to cout
-    void print_expected() const;
-
     friend std::ostream& operator<<(std::ostream&,
                                     GenericGeoTrackingResult const&);
 };
@@ -122,7 +119,6 @@ struct GenericGeoVolumeStackResult
 
     static GenericGeoVolumeStackResult from_span(LabelMap const&,
                                                  Span<VolumeInstanceId const>);
-    void print_expected() const;
 
     friend std::ostream& operator<<(std::ostream&,
                                     GenericGeoVolumeStackResult const&);
@@ -164,7 +160,6 @@ struct GenericGeoModelInp
     } detector;
 
     static GenericGeoModelInp from_model_input(inp::Model const& in);
-    void print_expected() const;
 
     friend std::ostream& operator<<(std::ostream&, GenericGeoModelInp const&);
 };

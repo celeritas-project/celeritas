@@ -41,12 +41,6 @@ void DiagnosticTestBase::SetUp()
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void DiagnosticTestBase::RunResult::print_expected() const
-{
-    ::celeritas::testdetail::print_expected(*this);
-}
-
 std::ostream& operator<<(std::ostream& os,
                          DiagnosticTestBase::RunResult const& ref)
 {

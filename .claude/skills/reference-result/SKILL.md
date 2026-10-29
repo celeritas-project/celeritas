@@ -51,9 +51,10 @@ Inventory the fields first, then declare only what the result needs:
   normal default tolerance (for example, `Test::fine_eps`); do not use optional
   members to select between default and custom comparison behavior. Name each
   tolerance for its field or shared semantics.
-- ADL-visible friend declarations for `operator<<`,
-  `print_expected(Result const&)`, and `check_ref_eq`. Every reference-result
-  class has these; `check_ref_eq` returns `void`.
+- ADL-visible friend declarations for `operator<<` and `check_ref_eq`.
+  `check_ref_eq` returns `void`. The generic `print_expected` overload is
+  imported into the global namespace by `test/TestMacros.hh`; do not add a
+  result-specific member, friend, or free-function forwarding wrapper.
 - For a nestable result class, an ADL-visible `is_ref_eq` comparison policy.
   A test-local, one-off result can compare fields directly in `check_ref_eq`.
 
@@ -95,10 +96,13 @@ Provide printable output:
 - `operator<<` emits the result representation. For field-based structs, use
   `CELER_REF_ATTR(field)` and `repr`. For aggregates, emit only a valid
   aggregate initializer in declaration order.
-- `print_expected(Result const&)` uses the stream representation to print a
-  copy-pastable initializer, assertion, and any required setup. Keep framing and
-  `EXPECT_REF_EQ` in this function; put per-test tolerance overrides at the
-  assertion call site.
+- Call the imported `print_expected(result)` overload from test code. It uses
+  the stream representation to print a copy-pastable initializer and assertion;
+  the result type must provide `class_str` and an ADL-visible `operator<<`.
+  Keep per-test tolerance overrides at the assertion call site.
+- Add a separate printer only when the output needs genuinely custom setup or
+  domain-specific assertions; do not add a pass-through wrapper around the
+  generic overload.
 - Make any omitted or non-deterministic fields explicit in the generated
   snippet, with a short explanation if needed.
 

@@ -50,7 +50,6 @@ class MctruthTestBase : virtual public SimpleLoopTestBase
         std::vector<Real3> dir;
 
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
-        friend void print_expected(RunResult const&);
         friend void check_ref_eq(AssertionHelper&,
                                  RunResult const&,
                                  RunResult const&,
