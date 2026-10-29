@@ -127,6 +127,8 @@ void DirectGeneratorAction::insert_impl(CoreState<M>& state,
     // Update counters and copy distributions to aux state storage
     aux_state.counters.buffer_size = data.size();
     aux_state.counters.num_pending = data.size();
+    aux_state.accum.buffer_size += data.size();
+    aux_state.accum.num_pending += data.size();
     state.add_pending(data.size());
     Copier<TrackInitializer, M> copy_to_aux{aux_state.initializers(),
                                             state.stream_id()};
@@ -176,12 +178,10 @@ void DirectGeneratorAction::step_impl(CoreParams const& params,
     // Update the generator and optical core state counters
     this->update_counters(state);
 
-    // If there are no more tracks to generate, reset the buffer size and
-    // number of photons generated
+    // If there are no more tracks to generate, reset the buffer size
     if (counters.num_pending == 0)
     {
-        aux_state.accum.buffer_size += counters.buffer_size;
-        counters = {};
+        counters.buffer_size = 0;
     }
 }
 

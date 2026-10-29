@@ -90,6 +90,7 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
  */
 void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
 {
+    size_type num_photons{0};
     for (auto const& d : data)
     {
         CELER_VALIDATE(d, << "invalid optical step distribution " << d);
@@ -103,17 +104,27 @@ void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
                    "direction due to coincident start/stop points: "
                 << d;
         }
+        num_photons += d.num_photons;
     }
 
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
     {
-        return this->insert_impl(*s, data);
+        this->insert_impl(*s, data);
     }
     else if (auto* s = dynamic_cast<CoreState<MemSpace::device>*>(&state))
     {
-        return this->insert_impl(*s, data);
+        this->insert_impl(*s, data);
     }
-    CELER_ASSERT_UNREACHABLE();
+    else
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+    // Update the number of photons waiting to be generated
+    if (num_photons > 0)
+    {
+        state.add_pending(num_photons);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -178,7 +189,7 @@ void GeneratorAction::step_impl(CoreParams const& params,
     auto& aux_state = get<GeneratorState<M>>(*state.aux(), this->aux_id());
     auto& counters = aux_state.counters;
 
-    if (counters.num_generated == 0 && counters.buffer_size > 0)
+    if (counters.num_pending == 0 && counters.buffer_size > 0)
     {
         // If this process created photons, on the first step iteration
         // calculate the cumulative sum of the number of photons in the
@@ -189,6 +200,10 @@ void GeneratorAction::step_impl(CoreParams const& params,
             aux_state.store.ref().offsets,
             counters.buffer_size,
             state.stream_id());
+
+        // Accumulate the queued distributions and photons
+        aux_state.accum.buffer_size += counters.buffer_size;
+        aux_state.accum.num_pending += counters.num_pending;
     }
 
     if (counters.num_pending > 0)
@@ -201,12 +216,10 @@ void GeneratorAction::step_impl(CoreParams const& params,
     // Update the generator and optical core state counters
     this->update_counters(state);
 
-    // If there are no more tracks to generate, reset the buffer size and
-    // number of photons generated
+    // If there are no more tracks to generate, reset the buffer size
     if (counters.num_pending == 0)
     {
-        aux_state.accum.buffer_size += counters.buffer_size;
-        counters = {};
+        counters.buffer_size = 0;
     }
 }
 
