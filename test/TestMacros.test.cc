@@ -31,7 +31,7 @@ struct PrintableTestResult
 {
     static constexpr char class_str[] = "PrintableTestResult";
 
-    int value;
+    int value{};
 };
 
 std::ostream& operator<<(std::ostream& os, PrintableTestResult const& result)
@@ -480,40 +480,35 @@ TEST(IsVecEq, failures)
 struct Foo
 {
     int val{0};
-};
 
-struct FooTol
-{
-    int val{0};
-};
-
-inline bool check_ref_eq(::celeritas::test::AssertionHelper& result,
-                         Foo const& val1,
-                         Foo const& val2,
-                         std::nullptr_t)
-{
-    if (val1.val != val2.val)
+    static constexpr char class_str[] = "Foo";
+    struct Tol
     {
-        result.fail() << "  foo: " << val1.val << " != " << val2.val;
-        return true;
-    }
-    return false;
-}
+        int val{0};
+    };
 
-inline bool check_ref_eq(::celeritas::test::AssertionHelper& result,
-                         Foo const& val1,
-                         Foo const& val2,
-                         FooTol const& tol)
-{
-    if (std::abs(val1.val - val2.val) >= tol.val)
+    friend bool check_ref_eq(::celeritas::test::AssertionHelper& result,
+                             Foo const& val1,
+                             Foo const& val2,
+                             Tol const& tol)
     {
-        result.fail() << "  foo: " << val1.val << " != " << val2.val
-                      << " within " << result.tol_expr() << " (" << tol.val
-                      << ")";
-        return true;
+        if (std::abs(val1.val - val2.val) >= tol.val)
+        {
+            result.fail() << "  foo: " << val1.val << " != " << val2.val
+                          << " within " << result.tol_expr() << " (" << tol.val
+                          << ")";
+            return true;
+        }
+        return false;
     }
-    return false;
-}
+    friend bool check_ref_eq(::celeritas::test::AssertionHelper& result,
+                             Foo const& val1,
+                             Foo const& val2,
+                             nullptr_t)
+    {
+        return check_ref_eq(result, val1, val2, Tol{});
+    }
+};
 
 TEST(IsRefEq, successes)
 {
@@ -521,13 +516,13 @@ TEST(IsRefEq, successes)
     ref.val = 2;
 
     EXPECT_REF_EQ(ref, ref);
-    EXPECT_REF_NEAR(ref, ref, FooTol{123});
+    EXPECT_REF_NEAR(ref, ref, Foo::Tol{123});
 
     // Vectors
     static Foo const vexpected[] = {Foo{2}, Foo{2}};
     std::vector<Foo> vactual = {ref, ref};
     EXPECT_REF_EQ(vexpected, vactual);
-    EXPECT_REF_NEAR(vexpected, vactual, FooTol{123});
+    EXPECT_REF_NEAR(vexpected, vactual, Foo::Tol{123});
 }
 
 TEST(IsRefEq, failures)
@@ -538,7 +533,7 @@ TEST(IsRefEq, failures)
     EXPECT_FALSE(
         ::celeritas::testdetail::IsRefEq("expected", "actual", ref, Foo{1}));
     EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
-        "expected", "actual", "tol", ref, Foo{20}, FooTol{5}));
+        "expected", "actual", "tol", ref, Foo{20}, Foo::Tol{5}));
 
     // Vectors of different size
     {
@@ -547,7 +542,7 @@ TEST(IsRefEq, failures)
         EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
             "expected", "actual", vexpected, vactual));
         EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
-            "expected", "actual", "tol", vexpected, vactual, FooTol{5}));
+            "expected", "actual", "tol", vexpected, vactual, Foo::Tol{5}));
     }
 
     // Vectors of same size
@@ -557,7 +552,7 @@ TEST(IsRefEq, failures)
         EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
             "expected", "actual", vexpected, vactual));
         auto const tol_result = ::celeritas::testdetail::IsRefEq(
-            "expected", "actual", "tol", vexpected, vactual, FooTol{20});
+            "expected", "actual", "tol", vexpected, vactual, Foo::Tol{20});
         EXPECT_FALSE(tol_result);
         EXPECT_NE(std::string::npos,
                   std::string(tol_result.message()).find("within tol"));
