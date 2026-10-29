@@ -608,12 +608,12 @@ TEST_F(SimpleCmsTest, no_touchable)
         ref.weight = {1.0, 1.0};
         ref.pre_energy = {0, 0};
         ref.pre_time = {0.5, 0.5};
-        ref.pre_pos = {100, 0, 0, 100, 0, 0};
-        ref.pre_dir = {1, 0, 0, 1, 0, 0};
+        ref.pre_pos = {{100, 0, 0}, {100, 0, 0}};
+        ref.pre_dir = {{1, 0, 0}, {1, 0, 0}};
         ref.post_time = {1, 1};
         ref.post_energy = {0.9, 0.9};
-        ref.post_pos = {105, 0, 0, 105, 0, 0};
-        ref.post_dir = {1, 0, 0, 1, 0, 0};
+        ref.post_pos = {{105, 0, 0}, {105, 0, 0}};
+        ref.post_dir = {{1, 0, 0}, {1, 0, 0}};
         EXPECT_REF_EQ(ref, result);
     }
     {
@@ -624,12 +624,12 @@ TEST_F(SimpleCmsTest, no_touchable)
         ref.weight = {0.5, 0.5};
         ref.pre_energy = {0, 0};
         ref.pre_time = {0.15, 0.15};
-        ref.pre_pos = {0, 150, 10, 0, 150, 10};
-        ref.pre_dir = {0, 1, 0, 0, 1, 0};
+        ref.pre_pos = {{0, 150, 10}, {0, 150, 10}};
+        ref.pre_dir = {{0, 1, 0}, {0, 1, 0}};
         ref.post_time = {0.2, 0.2};
         ref.post_energy = {1.8, 1.8};
-        ref.post_pos = {0, 155, 10, 0, 155, 10};
-        ref.post_dir = {0, 1, 0, 0, 1, 0};
+        ref.post_pos = {{0, 155, 10}, {0, 155, 10}};
+        ref.post_dir = {{0, 1, 0}, {0, 1, 0}};
         EXPECT_REF_EQ(ref, result);
     }
     {
@@ -640,12 +640,12 @@ TEST_F(SimpleCmsTest, no_touchable)
         ref.weight = {0.8, 0.8};
         ref.pre_energy = {0, 0};
         ref.pre_time = {25, 25};
-        ref.pre_pos = {0, 200, -20, 0, 200, -20};
-        ref.pre_dir = {0, 0, -1, 0, 0, -1};
+        ref.pre_pos = {{0, 200, -20}, {0, 200, -20}};
+        ref.pre_dir = {{0, 0, -1}, {0, 0, -1}};
         ref.post_time = {30, 30};
         ref.post_energy = {2.7, 2.7};
-        ref.post_pos = {0, 205, -20, 0, 205, -20};
-        ref.post_dir = {0, 0, -1, 0, 0, -1};
+        ref.post_pos = {{0, 205, -20}, {0, 205, -20}};
+        ref.post_dir = {{0, 0, -1}, {0, 0, -1}};
         EXPECT_REF_EQ(ref, result);
     }
 }

@@ -564,7 +564,7 @@ TEST_F(SolidsTest, geant_volumes)
         };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_labels.size())
-            << repr(result.missing_labels);
+            << CELER_ATTR_REPR(result, missing_labels);
     }
 }
 

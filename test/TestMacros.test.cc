@@ -67,10 +67,10 @@ TEST(PrintExpected, example)
     }();
     out_result.push_back('\n');
     EXPECT_EQ(R"(
-static int const expected_values[] = {1, 2, 3};
-static double const expected_more[] = {0.5, 0.001, inf, nan};
-static char const* const expected_cstrings[] = {"one", "three", "five"};
-static std::string const expected_strings[] = {"a", "", "special\nchars\t"};
+static int const ref[] = {1, 2, 3};
+static double const ref[] = {0.5, 0.001, inf, nan};
+static char const* const ref[] = {"one", "three", "five"};
+static std::string const ref[] = {"a", "", "special\nchars\t"};
 )",
               out_result);
 }
@@ -86,7 +86,7 @@ TEST(PrintExpected, reference_result)
 
     EXPECT_EQ(
         "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-        "PrintableTestResult ref = {42};\n"
+        "PrintableTestResult ref = {/* value = */ 42};\n"
         "EXPECT_REF_EQ(ref, result);\n"
         "/*** END CODE ***/\n",
         out_result);

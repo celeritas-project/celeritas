@@ -22,7 +22,7 @@
 #include "geocel/VolumeParams.hh"
 
 #include "AssertionHelper.hh"
-#include "testdetail/TestMacrosImpl.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {

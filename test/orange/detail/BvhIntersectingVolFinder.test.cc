@@ -88,6 +88,8 @@ class MockIntersector
 
 struct IntersectResult
 {
+    static constexpr char class_str[] = "IntersectResult";
+
     real_type distance{};
     LocalSurfaceId intersect_surface;
 
@@ -105,17 +107,10 @@ struct IntersectResult
 
 std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
 {
-    // clang-format off
-    os << "/*** INTERSECT RESULT ***/\n"
-          "IntersectResult ref;\n"
-       << CELER_REF_ATTR(distance)
-       << CELER_REF_ATTR(intersect_surface)
-       << CELER_REF_ATTR(hit_count)
-       << CELER_REF_ATTR(miss_count)
-       << "EXPECT_REF_EQ(ref, result) << result;\n"
-          "/*** END CODE ***/\n";
-    // clang-format on
-    return os;
+    return os << '{' << CELER_ATTR_REPR(ref, distance) << ", "
+              << CELER_ATTR_REPR(ref, intersect_surface) << ", "
+              << CELER_ATTR_REPR(ref, hit_count) << ", "
+              << CELER_ATTR_REPR(ref, miss_count) << '}';
 }
 
 void check_ref_eq(::celeritas::test::AssertionHelper& result,

@@ -13,6 +13,7 @@
 #include "geocel/RefUtils.hh"
 
 #include "AssertionHelper.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {

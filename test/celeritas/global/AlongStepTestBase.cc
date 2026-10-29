@@ -23,7 +23,7 @@
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-#include "testdetail/TestMacrosImpl.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {

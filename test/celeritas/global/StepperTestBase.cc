@@ -21,7 +21,7 @@
 #include "celeritas/phys/PhysicsParams.hh"
 
 #include "AssertionHelper.hh"
-#include "testdetail/TestMacrosImpl.hh"
+#include "TestMacros.hh"
 
 using std::cout;
 

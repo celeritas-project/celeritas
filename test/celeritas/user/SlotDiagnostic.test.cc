@@ -238,7 +238,7 @@ TEST_F(TestEm3SlotTest, host)
         s->erase(s->begin() + max_check_count, s->end());
     }
 
-    EXPECT_REF_EQ(expected, result) << repr(result.slots);
+    EXPECT_REF_EQ(expected, result) << CELER_ATTR_REPR(result, slots);
 }
 
 TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))

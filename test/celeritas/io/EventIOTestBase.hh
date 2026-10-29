@@ -17,7 +17,7 @@
 
 #include "AssertionHelper.hh"
 #include "Test.hh"
-#include "testdetail/TestMacrosImpl.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {

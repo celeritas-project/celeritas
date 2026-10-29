@@ -93,14 +93,18 @@ Implement comparison once, using the existing dispatcher and field helpers:
 
 Provide printable output:
 
-- `operator<<` emits the result representation. For field-based structs, use
-  `CELER_REF_ATTR(field)` and `repr`. For aggregates, emit only a valid
-  aggregate initializer in declaration order.
+- Give the result type a `class_str` and an ADL-visible `operator<<`. For a
+  field-based aggregate, emit a braced initializer in declaration order using
+  `CELER_ATTR_REPR(ref, field)` for each field, as in
+  `test/accel/HepMC3PrimaryGenerator.test.cc`'s `ReadAllResult`. This prints
+  each field's name as a comment alongside its `repr` value while keeping the
+  output valid as an aggregate initializer. Do not use `CELER_REF_ATTR` here:
+  it prints assignment statements, not an initializer.
 - Call the imported `print_expected(result)` overload from test code. It uses
-  the stream representation to print a copy-pastable initializer and assertion;
-  the result type must provide `class_str` and an ADL-visible `operator<<`.
-  Keep per-test tolerance overrides at the assertion call site.
-- Add a separate printer only when the output needs genuinely custom setup or
+  the stream representation to print a copy-pastable `Type ref = {...};`
+  initializer and assertion. Keep per-test tolerance overrides at the
+  assertion call site.
+- Use a separate printer only when the output needs genuinely custom setup or
   domain-specific assertions; do not add a pass-through wrapper around the
   generic overload.
 - Make any omitted or non-deterministic fields explicit in the generated

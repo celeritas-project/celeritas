@@ -62,7 +62,7 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
         friend std::ostream& operator<<(std::ostream& os,
                                         HeuristicInitResult const& result)
         {
-            return os << '{' << repr(result.vol_fractions) << ", "
+            return os << '{' << CELER_ATTR_REPR(result, vol_fractions) << ", "
                       << result.failed << '}';
         }
 

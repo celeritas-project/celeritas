@@ -1362,6 +1362,8 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 //! Get detailed results from field propagation with multiple radii
 struct FieldPropagationResult
 {
+    static constexpr char class_str[] = "FieldPropagationResult";
+
     std::vector<int> num_boundary;
     std::vector<int> num_step;
     std::vector<int> num_intercept;
@@ -1383,18 +1385,11 @@ void FieldPropagationResult::fail_at(std::size_t index)
 
 std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
 {
-    // clang-format off
-    os << "/*** FIELD PROPAGATION RESULT ***/\n"
-          "FieldPropagationResult ref;\n"
-       << CELER_REF_ATTR(num_boundary)
-       << CELER_REF_ATTR(num_step)
-       << CELER_REF_ATTR(num_intercept)
-       << CELER_REF_ATTR(num_integration)
-       << CELER_REF_ATTR(messages)
-       << "EXPECT_REF_EQ(ref, result) << result;\n"
-          "/*** END CODE ***/\n";
-    // clang-format on
-    return os;
+    return os << '{' << CELER_ATTR_REPR(ref, num_boundary) << ", "
+              << CELER_ATTR_REPR(ref, num_step) << ", "
+              << CELER_ATTR_REPR(ref, num_intercept) << ", "
+              << CELER_ATTR_REPR(ref, num_integration) << ", "
+              << CELER_ATTR_REPR(ref, messages) << '}';
 }
 
 void check_ref_eq(AssertionHelper& result,
