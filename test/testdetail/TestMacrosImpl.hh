@@ -45,18 +45,6 @@ int num_digits(unsigned long val);
 // Return a replacement string if the given string is too long
 char const* trunc_string(int digits, char const* str, char const* trunc);
 
-template<class E, class A>
-::testing::AssertionResult IsRefEq(
-    char const* expr1, char const* expr2, E const& expected, A const& actual);
-
-template<class E, class A, class T>
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   char const* tol_expr,
-                                   E const& expected,
-                                   A const& actual,
-                                   T const& tol);
-
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
@@ -812,7 +800,9 @@ check_ref_eq(::celeritas::test::AssertionHelper& result,
 }
 
 //---------------------------------------------------------------------------//
-/*! Dispatch reference comparison without a special tolerance.
+
+/*!
+ * Dispatch reference comparison without a special tolerance.
  */
 template<class E, class A>
 ::testing::AssertionResult IsRefEq(
@@ -824,7 +814,9 @@ template<class E, class A>
 }
 
 //---------------------------------------------------------------------------//
-/*! Dispatch reference comparison using a specified tolerance.
+
+/*!
+ * Dispatch reference comparison using a specified tolerance.
  */
 template<class E, class A, class T>
 ::testing::AssertionResult IsRefEq(char const* expr1,
