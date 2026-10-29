@@ -62,13 +62,13 @@ void GeneratorRegistry::clear_generated(AuxStateVec& aux) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Reset the generator counters if the loop aborted early.
+ * Reset the generators if the loop aborted early.
  */
 void GeneratorRegistry::reset(AuxStateVec& aux) const
 {
     for (auto id : range(GeneratorId{this->size()}))
     {
-        this->at(id)->counters(aux).counters = {};
+        this->at(id)->reset(aux);
     }
 }
 
