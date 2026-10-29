@@ -1,5 +1,5 @@
 ---
-name: reference-result-2
+name: reference-result
 description: 'Identify, create, and refactor printable Celeritas test reference-result structs for EXPECT_REF_EQ and EXPECT_REF_NEAR.'
 argument-hint: 'Describe the test/file, expected fields, and comparison needs'
 ---
@@ -12,15 +12,81 @@ the test/helper that owns the data. Follow checked-in interfaces and preserve
 existing comparison behavior.
 
 A reference result groups the expected values, comparison policy, and printable
-output in one type. For example:
+output in one type. Use the test-local `EventResult` in
+`test/accel/HepMC3PrimaryGenerator.test.cc` as the canonical example: it keeps
+the result fields together, uses `Array<double, 3>` for positions and
+directions, defines its tolerance policy alongside the data, and provides
+printable output and comparison friends after the fields.
 
 ```cpp
-auto result = run_test(1);
-ImportXsSummary ref{{0, 0}, {0.0001, 100000000, 0.0001, 100000000}, {}};
-EXPECT_REF_EQ(ref, result) << result;
+struct EventResult
+{
+  using Real3 = Array<double, 3>;
+
+  std::vector<Real3> pos;
+  std::vector<double> time;
+  std::vector<int> vtx;
+  std::vector<int> pdg;
+  std::vector<double> energy;
+  std::vector<Real3> dir;
+  std::vector<double> mass;
+
+  struct Tol
+  {
+    double energy{Test::fine_eps};
+    double dir{Test::coarse_eps};
+  };
+
+  static constexpr char class_str[] = "EventResult";
+
+  friend std::ostream& operator<<(std::ostream& os, EventResult const& ref)
+  {
+    return os << '{' << CELER_ATTR_REPR(ref, pos) << ", "
+          << CELER_ATTR_REPR(ref, time) << ", "
+          << CELER_ATTR_REPR(ref, vtx) << ", "
+          << CELER_ATTR_REPR(ref, pdg) << ", "
+          << CELER_ATTR_REPR(ref, energy) << ", "
+          << CELER_ATTR_REPR(ref, dir) << ", "
+          << CELER_ATTR_REPR(ref, mass) << '}';
+  }
+
+  friend bool check_ref_eq(AssertionHelper& helper,
+               EventResult const& expected,
+               EventResult const& actual,
+               Tol const& tol)
+  {
+    bool result{true};
+    result = is_vec_soft_eq(helper, "pos", expected.pos, actual.pos)
+         && result;
+    result = is_vec_soft_eq(helper, "time", expected.time, actual.time)
+         && result;
+    result = is_vec_eq(helper, "vtx", expected.vtx, actual.vtx) && result;
+    result = is_vec_eq(helper, "pdg", expected.pdg, actual.pdg) && result;
+    result = is_vec_soft_eq(
+           helper, "energy", expected.energy, actual.energy, tol.energy)
+         && result;
+    result = is_vec_soft_eq(
+           helper, "dir", expected.dir, actual.dir, tol.dir)
+         && result;
+    result = is_vec_soft_eq(helper, "mass", expected.mass, actual.mass)
+         && result;
+    return result;
+  }
+
+  friend bool check_ref_eq(AssertionHelper& helper,
+               EventResult const& expected,
+               EventResult const& actual)
+  {
+    return check_ref_eq(helper, expected, actual, {});
+  }
+};
+
+auto result = run_test();
+EventResult ref{};
+EXPECT_REF_NEAR(ref, result, EventResult::Tol{});
 
 // Capture updated expected values as a copy-pastable initializer and assertion.
-print_expected(run_test(2));
+print_expected(result);
 ```
 
 ## 1. Identify the reference result
@@ -43,54 +109,65 @@ print_expected(run_test(2));
 
 Inventory the fields first, then declare only what the result needs:
 
-- A simple, printable result struct. Prefer POD-like fields and existing ID,
-  units, and representation types. Preserve field order and public API when
-  extending an existing result.
+- A printable result struct with the data fields first and reference-result
+  functions after them. Non-POD and custom domain fields are allowed; use
+  useful types such as `Array<double, 3>` (`Real3`) for positions and directions
+  rather than flattening them solely to make the result POD-like. Preserve
+  field order and public API when extending an existing result.
 - A tolerance struct only when approximate comparisons need independently
   configurable values. Use plain floating-point members initialized to the
   normal default tolerance (for example, `Test::fine_eps`); do not use optional
-  members to select between default and custom comparison behavior. Name each
+  members to select between default and custom comparison behavior. Nest the
+  tolerance struct in the result when it is specific to that result. Name each
   tolerance for its field or shared semantics.
-- ADL-visible friend declarations for `operator<<` and `check_ref_eq`.
-  `check_ref_eq` returns `void`. The generic `print_expected` overload is
-  imported into the global namespace by `test/TestMacros.hh`; do not add a
-  result-specific member, friend, or free-function forwarding wrapper.
-- For a nestable result class, an ADL-visible `is_ref_eq` comparison policy.
-  A test-local, one-off result can compare fields directly in `check_ref_eq`.
+- ADL-visible friends for `operator<<` and `check_ref_eq`. Return `bool` from
+  `check_ref_eq`, especially when the result is reusable or can be an element
+  of a container. Keep small test-local implementations inline in the test
+  header/source; for a reusable test library, declare the friend in the result
+  type and define it in the corresponding `.cc` file.
+- The generic `print_expected` overload is imported into the global namespace
+  by `test/TestMacros.hh`; do not add a result-specific member, friend, or
+  free-function forwarding wrapper.
 
-For a main-library class, place reusable comparison declarations in the
-corresponding test helper. ADL may not find `celeritas::test::is_ref_eq` for a
-class in the main namespace; callers may need
-`using celeritas::test::is_ref_eq;`.
+For a main-library class, place reusable `check_ref_eq` declarations in the
+corresponding test helper. Ensure the comparison friend is discoverable by ADL
+from the result type; callers may need a using-declaration for test helper
+functions when the type is in the main namespace.
 
 ## 3. Implement the reference result.
 
 Implement comparison once, using the existing dispatcher and field helpers:
 
-- `EXPECT_REF_EQ` dispatches to a three-argument `check_ref_eq`;
+- `EXPECT_REF_EQ` dispatches to `check_ref_eq` without a tolerance;
   `EXPECT_REF_NEAR` dispatches with the supplied tolerance. Do not add
   result-specific `IsRefEq` overloads.
-- For a nestable result, define `is_ref_eq` and have the friend `check_ref_eq`
-  delegate to it. If there is no custom tolerance, provide only the
-  three-argument friend. If there is a tolerance, provide the four-argument
-  comparison and a three-argument overload that forwards with the default
-  tolerance. A default argument on the tolerance parameter is also suitable
-  when the declaration context allows it.
+- For a result with a nested tolerance type, define a four-argument friend that
+  accepts `Tol const&`, then define the three-argument friend to create and
+  forward with the default tolerance (`return check_ref_eq(..., {});`). Do not
+  use a default argument of the nested tolerance type on the friend; that
+  default argument is prohibited in this context.
+- For a result with no tolerance policy, a four-argument friend may use
+  `std::nullptr_t = {}` as its final parameter. This supports ordinary
+  three-argument comparison while also allowing container comparison dispatch
+  to pass an explicit no-tolerance argument; include `<cstddef>` for
+  `std::nullptr_t`.
 - For field-specific semantics, implement `check_ref_eq` field by field.
-  Forward the no-tolerance overload to the default tolerance overload when
-  needed, rather than duplicating comparisons. Pass tolerance members directly
-  to soft-comparison helpers, including the defaulted values. Use `is_eq` for
-  exact scalars, `is_vec_eq` for exact containers, `is_vec_soft_eq` for tolerant
-  containers, and `is_soft_eq` for tolerant scalars. Keep field labels and
-  continue checking later fields after a mismatch. Use lower-level vector
-  predicates only when wrappers cannot express the behavior, and then check
-  sizes before traversal.
+  Pass tolerance members directly to soft-comparison helpers, including the
+  defaulted values. Use `is_eq` for exact scalars, `is_vec_eq` for exact
+  containers, `is_vec_soft_eq` for tolerant containers, and `is_soft_eq` for
+  tolerant scalars. Keep field labels and continue checking later fields after
+  a mismatch. For a vector of reference-result objects, call the
+  container-overloaded `check_ref_eq(helper, expected.items, actual.items)` (or
+  pass its tolerance when applicable). It recursively dispatches to each
+  element's ADL-visible friend; do not write a second element-comparison loop.
+  Use lower-level vector predicates only when wrappers cannot express the
+  behavior, and then check sizes before traversal.
 - Keep discrete fields exact. Pass each soft-compared field its matching
   tolerance member; set wider test-specific tolerances at the assertion site.
   Preserve omitted, sentinel, and normalized field behavior explicitly.
-- Define small test-local results at namespace scope with inline friend
-  definitions; local classes cannot define friend functions. Put substantial or
-  shared definitions in the owning helper source. Include `AssertionHelper.hh`
+- Define small test-local results at namespace scope; local classes cannot
+  define friend functions. Put substantial or shared comparison definitions in
+  the owning reusable test library's `.cc` file. Include `AssertionHelper.hh`
   where a complete type is needed.
 
 Provide printable output:
@@ -98,7 +175,7 @@ Provide printable output:
 - Give the result type a `class_str` and an ADL-visible `operator<<`. For a
   field-based aggregate, emit a braced initializer in declaration order using
   `CELER_ATTR_REPR(ref, field)` for each field, as in
-  `test/accel/HepMC3PrimaryGenerator.test.cc`'s `ReadAllResult`. This prints
+  `test/accel/HepMC3PrimaryGenerator.test.cc`'s `EventResult`. This prints
   each field's name as a comment alongside its `repr` value while keeping the
   output valid as an aggregate initializer. Do not use `CELER_REF_ATTR` here:
   it prints assignment statements, not an initializer.

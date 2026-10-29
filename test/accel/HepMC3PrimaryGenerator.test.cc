@@ -27,6 +27,11 @@ namespace test
 
 struct EventResult
 {
+    //// TYPES ////
+
+    // For this Geant4 result, all reals are double-precision
+    using Real3 = Array<double, 3>;
+
     //// DATA ////
 
     std::vector<Real3> pos;
