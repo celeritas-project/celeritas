@@ -66,10 +66,11 @@ class ShiftTrackerTest : public OrangeGeoTestBase
         track.move_internal(distance);
     }
 
-    void move_across_surface(BoundaryState& boundary_state, unsigned int& cell)
+    void move_across_surface(
+        real_type distance, BoundaryState& boundary_state, unsigned int& cell)
     {
         auto track = this->make_geo_track_view();
-        track.move_to_boundary();
+        track.move_to_boundary(distance);
         track.cross_boundary();
 
         if (!track.is_outside())
@@ -132,7 +133,7 @@ TEST_F(ShiftTrackerTest, host)
         while (bnd_state == BoundaryState::INSIDE)
         {
             this->distance_to_boundary(dbnd);
-            this->move_across_surface(bnd_state, cell);
+            this->move_across_surface(dbnd, bnd_state, cell);
 
             ++steps[n];
         }

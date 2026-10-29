@@ -195,7 +195,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         }
 
         // Move to the boundary and attempt to cross
-        GGTI_EXPECT_NO_THROW(geo.move_to_boundary());
+        GGTI_EXPECT_NO_THROW(geo.move_to_boundary(next.distance));
         GGTI_EXPECT_NO_THROW(geo.cross_boundary());
         if (geo.check_normal() && !geo.is_outside())
         {

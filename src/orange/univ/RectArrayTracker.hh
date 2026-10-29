@@ -99,6 +99,10 @@ class RectArrayTracker
     inline CELER_FUNCTION real_type safety(Real3 const& pos,
                                            LocalVolumeId vol) const;
 
+    // Calculate the distance along a direction to a single surface
+    inline CELER_FUNCTION real_type intersect_surface(
+        Real3 const& pos, Real3 const& dir, LocalSurfaceId surf) const;
+
     // Calculate the local surface normal
     inline CELER_FUNCTION Real3 normal(Real3 const& pos,
                                        LocalSurfaceId surf) const;
@@ -292,6 +296,31 @@ CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
     CELER_ENSURE(min_dist >= 0
                  && min_dist < numeric_limits<real_type>::infinity());
     return min_dist;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance along a direction to a single surface.
+ *
+ * The result is \c no_intersection() if the surface is behind the position
+ * or parallel to the direction.
+ */
+CELER_FUNCTION real_type RectArrayTracker::intersect_surface(
+    Real3 const& pos, Real3 const& dir, LocalSurfaceId surf) const
+{
+    CELER_EXPECT(surf && surf.get() < this->num_surfaces());
+
+    SurfaceInverseIndexer to_coords(record_.surface_indexer_data);
+    auto ax_coord = to_coords(surf.unchecked_get());
+    auto ax = to_axis(static_cast<int>(ax_coord[0]));
+    if (dir[to_int(ax)] == 0)
+    {
+        return no_intersection();
+    }
+
+    real_type target = this->make_grid(ax)[ax_coord[1]];
+    real_type dist = (target - pos[to_int(ax)]) / dir[to_int(ax)];
+    return dist > 0 ? dist : no_intersection();
 }
 
 //---------------------------------------------------------------------------//
