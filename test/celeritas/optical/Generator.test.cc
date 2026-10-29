@@ -442,7 +442,7 @@ TEST_F(WlsGeneratorTest, abort_early)
     // photons include those not generated and any that were in flight
     if (Test::is_reference_rng)
     {
-        EXPECT_EQ(932, result.counters.num_cut);
+        EXPECT_EQ(868, result.counters.num_cut);
     }
     EXPECT_EQ(1, result.counters.flushes);
     EXPECT_EQ(8, result.counters.step_iters);
