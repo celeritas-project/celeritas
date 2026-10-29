@@ -36,14 +36,7 @@ bool check_ref_eq(AssertionHelper& helper,
     auto fail = [&] {
         auto&& msg = helper.fail();
         msg << "Expected " << repr(expected) << " but got " << repr(actual);
-        if (helper.tol_expr())
-        {
-            msg << " (tolerance " << helper.tol_expr() << '=' << tol << ')';
-        }
-        else
-        {
-            msg << " (tolerance " << tol << ')';
-        }
+        msg << " (" << helper.tol_expr() << '=' << tol << ')';
     };
 
     if (!expected || !actual)
