@@ -704,6 +704,9 @@ template<class E, class A, class T>
 namespace test
 {
 //---------------------------------------------------------------------------//
+// Note these are in the same namespace as assertion helper. This should be
+// refactored to clean up recursive testing.
+//---------------------------------------------------------------------------//
 
 // Expose soft comparator type alias (to be refactored)
 using testdetail::SoftComparator_t;
