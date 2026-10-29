@@ -18,23 +18,19 @@ the result fields together, uses `Array<double, 3>` for positions and
 directions, defines its tolerance policy alongside the data, and provides
 printable output and comparison friends after the fields.
 
+The result type is summarized here:
 ```cpp
 struct EventResult
 {
-  using Real3 = Array<double, 3>;
-
   std::vector<Real3> pos;
-  std::vector<double> time;
-  std::vector<int> vtx;
-  std::vector<int> pdg;
-  std::vector<double> energy;
   std::vector<Real3> dir;
-  std::vector<double> mass;
+  std::vector<double> energy;
+  std::vector<int> vtx;
 
   struct Tol
   {
-    double energy{Test::fine_eps};
     double dir{Test::coarse_eps};
+    double energy{Test::fine_eps};
   };
 
   static constexpr char class_str[] = "EventResult";
@@ -42,12 +38,9 @@ struct EventResult
   friend std::ostream& operator<<(std::ostream& os, EventResult const& ref)
   {
     return os << '{' << CELER_ATTR_REPR(ref, pos) << ", "
-          << CELER_ATTR_REPR(ref, time) << ", "
-          << CELER_ATTR_REPR(ref, vtx) << ", "
-          << CELER_ATTR_REPR(ref, pdg) << ", "
-          << CELER_ATTR_REPR(ref, energy) << ", "
           << CELER_ATTR_REPR(ref, dir) << ", "
-          << CELER_ATTR_REPR(ref, mass) << '}';
+          << CELER_ATTR_REPR(ref, energy) << ", "
+          << CELER_ATTR_REPR(ref, vtx) << '}';
   }
 
   friend bool check_ref_eq(AssertionHelper& helper,
@@ -56,20 +49,10 @@ struct EventResult
                Tol const& tol)
   {
     bool result{true};
-    result = is_vec_soft_eq(helper, "pos", expected.pos, actual.pos)
-         && result;
-    result = is_vec_soft_eq(helper, "time", expected.time, actual.time)
-         && result;
+    result = is_vec_soft_eq(helper, "pos", expected.pos, actual.pos) && result;
+    result = is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir) && result;
+    result = is_vec_soft_eq(helper, "energy", expected.energy, actual.energy, tol.energy) && result;
     result = is_vec_eq(helper, "vtx", expected.vtx, actual.vtx) && result;
-    result = is_vec_eq(helper, "pdg", expected.pdg, actual.pdg) && result;
-    result = is_vec_soft_eq(
-           helper, "energy", expected.energy, actual.energy, tol.energy)
-         && result;
-    result = is_vec_soft_eq(
-           helper, "dir", expected.dir, actual.dir, tol.dir)
-         && result;
-    result = is_vec_soft_eq(helper, "mass", expected.mass, actual.mass)
-         && result;
     return result;
   }
 
@@ -82,11 +65,15 @@ struct EventResult
 };
 
 auto result = run_test();
-EventResult ref{};
-EXPECT_REF_NEAR(ref, result, EventResult::Tol{});
 
 // Capture updated expected values as a copy-pastable initializer and assertion.
 print_expected(result);
+
+EventResult ref{};
+EXPECT_REF_EQ(ref, result);
+// OR
+EventResult::Tol tol{};
+EXPECT_REF_NEAR(ref, result, tol);
 ```
 
 ## 1. Identify the reference result
@@ -98,10 +85,10 @@ print_expected(result);
   test helper and comparison conventions before adding customization.
 - Classify each field as exact or tolerant. Keep discrete fields exact; identify
   per-test tolerance overrides and any fields needing independent tolerances.
-- Check `test/AssertionHelper.hh`, `test/testdetail/TestMacrosImpl.hh`, and
-  `test/TestMacros.hh` for comparison dispatch and helper APIs. See
-  `test/accel/HepMC3PrimaryGenerator.test.cc` for a representative
+- See `test/accel/HepMC3PrimaryGenerator.test.cc` for a representative
   test-local result or `test/geocel/RefUtils.hh` for a library-based result.
+  Review `test/AssertionHelper.hh`, `test/testdetail/TestMacrosImpl.hh`, and
+  `test/TestMacros.hh` for comparison dispatch and helper APIs if further details are needed.
 - Keep the implementation in the owning test/helper for local tests or in a new file
   if reusing across multiple tests.
 
