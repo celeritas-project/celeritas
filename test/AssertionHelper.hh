@@ -29,6 +29,10 @@ namespace test
     is_vec_soft_eq(result, "bar", a.bar, b.bar);
     return result;
  *  \endcode
+ *
+ * \todo This class is currently shared by standalone and nested class types,
+ * and it really needs to be refactored into a local result plus a nested stack
+ * of context.
  */
 class AssertionHelper
 {

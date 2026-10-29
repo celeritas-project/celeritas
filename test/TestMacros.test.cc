@@ -487,7 +487,7 @@ struct FooTol
     int val{0};
 };
 
-inline void check_ref_eq(::celeritas::test::AssertionHelper& result,
+inline bool check_ref_eq(::celeritas::test::AssertionHelper& result,
                          Foo const& val1,
                          Foo const& val2,
                          std::nullptr_t)
@@ -495,20 +495,24 @@ inline void check_ref_eq(::celeritas::test::AssertionHelper& result,
     if (val1.val != val2.val)
     {
         result.fail() << "  foo: " << val1.val << " != " << val2.val;
+        return true;
     }
+    return false;
 }
 
-inline void check_ref_eq(::celeritas::test::AssertionHelper& result,
+inline bool check_ref_eq(::celeritas::test::AssertionHelper& result,
                          Foo const& val1,
                          Foo const& val2,
                          FooTol const& tol)
 {
-    if (std::fabs(val1.val - val2.val) >= tol.val)
+    if (std::abs(val1.val - val2.val) >= tol.val)
     {
         result.fail() << "  foo: " << val1.val << " != " << val2.val
                       << " within " << result.tol_expr() << " (" << tol.val
                       << ")";
+        return true;
     }
+    return false;
 }
 
 TEST(IsRefEq, successes)

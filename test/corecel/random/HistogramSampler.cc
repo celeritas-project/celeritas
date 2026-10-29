@@ -18,30 +18,30 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-/*!
- * Print to a stream.
- */
+//! Print to a stream
 std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh)
 {
     os << "{" << repr(sh.distribution) << ", " << repr(sh.rng_count) << "}";
     return os;
 }
 
-//---------------------------------------------------------------------------//
-
-void check_ref_eq(AssertionHelper& result,
+//! Check against a reference histogram
+bool check_ref_eq(AssertionHelper& helper,
                   SampledHistogram const& val1,
                   SampledHistogram const& val2,
                   std::nullptr_t)
 {
-    is_vec_soft_eq(
-        result, "distribution", val1.distribution, val2.distribution);
+    bool result = is_vec_soft_eq(
+        helper, "distribution", val1.distribution, val2.distribution);
     if (!soft_equal(val1.rng_count, val2.rng_count))
     {
-        result.fail() << "  rng_count: " << val1.rng_count
+        helper.fail() << "  rng_count: " << val1.rng_count
                       << " != " << val2.rng_count;
+        result = false;
     }
+    return result;
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

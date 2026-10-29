@@ -35,6 +35,12 @@ struct SampledHistogram
 
     // Print to a stream
     friend std::ostream& operator<<(std::ostream&, SampledHistogram const&);
+
+    // Check against a reference histogram
+    friend bool check_ref_eq(AssertionHelper& helper,
+                             SampledHistogram const& expected,
+                             SampledHistogram const& actual,
+                             std::nullptr_t);
 };
 
 //---------------------------------------------------------------------------//
@@ -94,15 +100,6 @@ class HistogramSampler
     size_type num_samples_;
     DiagnosticRngEngine<std::mt19937> rng_;
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-
-void check_ref_eq(AssertionHelper& helper,
-                  SampledHistogram const& expected,
-                  SampledHistogram const& actual,
-                  std::nullptr_t);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
