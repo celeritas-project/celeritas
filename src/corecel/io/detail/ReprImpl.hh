@@ -8,6 +8,7 @@
 
 #include <ostream>
 #include <string>
+#include <string_view>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/ScopedStreamFormat.hh"
@@ -15,8 +16,14 @@
 
 namespace celeritas
 {
+namespace detail
+{
 template<class T>
-struct ReprTraits;
+struct Repr;
+}
+
+template<class T>
+detail::Repr<T> repr(T const& obj);
 
 namespace detail
 {
@@ -24,13 +31,12 @@ namespace detail
 // STREAMABLE
 //---------------------------------------------------------------------------//
 /*!
- * Thin temporary wrapper for printing a complex class to a stream.
+ * Lightweight wrapper for printing an object with repr-specific formatting.
  */
 template<class T>
 struct Repr
 {
     T const& obj;
-    char const* name = nullptr;
 };
 
 //---------------------------------------------------------------------------//
@@ -41,18 +47,7 @@ template<class T>
 inline std::ostream& operator<<(std::ostream& os, Repr<T> const& s)
 {
     ScopedStreamFormat save_fmt(&os);
-    ReprTraits<T>::init(os);
-    if (s.name)
-    {
-        ReprTraits<T>::print_type(os, s.name);
-        os << '{';
-    }
-    ReprTraits<T>::print_value(os, s.obj);
-    if (s.name)
-    {
-        os << '}';
-    }
-    return os;
+    return os << s.obj;
 }
 
 //---------------------------------------------------------------------------//
@@ -74,21 +69,15 @@ void repr_char(std::ostream& os, char value);
 
 std::string char_to_hex_string(unsigned char value);
 
-void print_simple_type(std::ostream& os, char const* type, char const* name);
-
-template<class T>
-inline void print_container_type(
-    std::ostream& os, char const* type, char const* name)
-{
-    os << type << '<';
-    ReprTraits<T>::print_type(os);
-    os << '>';
-    if (name)
-    {
-        os << ' ' << name;
-    }
-}
+void write_string_repr(std::ostream& os, std::string_view value);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+
+template<class T>
+detail::Repr<T> repr(T const& obj)
+{
+    return {obj};
+}
+
 }  // namespace celeritas

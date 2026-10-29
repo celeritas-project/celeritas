@@ -17,6 +17,7 @@
 #if !CELER_DEVICE_COMPILE
 #    include <ostream>
 
+#    include "corecel/io/Repr.hh"
 #    include "corecel/io/StreamableContainer.hh"
 #endif
 
@@ -62,6 +63,35 @@ class Array
 
     using CArrayConstRef = T const (&)[N];
     //!@}
+
+#if !CELER_DEVICE_COMPILE
+    //! Streamable representation using repr for each element.
+    struct Repr
+    {
+        Array const& obj;
+
+        friend std::ostream& operator<<(std::ostream& os, Repr const& value)
+        {
+            using celeritas::repr;
+            os << '{';
+            for (size_type i = 0; i < N; ++i)
+            {
+                if (i != 0)
+                {
+                    os << ", ";
+                }
+                os << repr(value.obj[i]);
+            }
+            if (N > 8)
+            {
+                os << ',';
+            }
+            return os << '}';
+        }
+    };
+
+    friend Repr repr(Array const& obj) { return {obj}; }
+#endif
 
   public:
     //! Default construction initializes to zero

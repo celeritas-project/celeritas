@@ -45,6 +45,26 @@ std::ostream& operator<<(std::ostream& os, MatId const& mat)
     return os;
 }
 
+struct MatIdRepr
+{
+    MatId const& obj;
+
+    friend std::ostream& operator<<(std::ostream& os, MatIdRepr const& value)
+    {
+        os << "MatId{";
+        if (value.obj)
+        {
+            os << value.obj.unchecked_get();
+        }
+        return os << '}';
+    }
+};
+
+inline MatIdRepr repr(MatId const& obj)
+{
+    return {obj};
+}
+
 namespace detail
 {
 namespace test

@@ -13,6 +13,10 @@
 #include "corecel/data/Ldg.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Repr.hh"
+#endif
+
 #include "detail/CollectionImpl.hh"
 
 namespace celeritas
@@ -349,6 +353,42 @@ class Collection
 
     static constexpr Ownership ownership = W;
     static constexpr MemSpace memspace = M;
+
+#if !CELER_DEVICE_COMPILE
+    //! Streamable representation of host data or a device placeholder.
+    struct Repr
+    {
+        Collection const& obj;
+
+        friend std::ostream& operator<<(std::ostream& os, Repr const& value)
+        {
+            if constexpr (M == MemSpace::device)
+            {
+                return os << "<device collection, size=" << value.obj.size()
+                          << '>';
+            }
+            else
+            {
+                using celeritas::repr;
+                auto view = value.obj[AllItemsT{}];
+                os << '{';
+                bool first = true;
+                for (auto const& item : view)
+                {
+                    if (!first)
+                    {
+                        os << ", ";
+                    }
+                    first = false;
+                    os << repr(item);
+                }
+                return os << '}';
+            }
+        }
+    };
+
+    friend Repr repr(Collection const& obj) { return {obj}; }
+#endif
 
   public:
     //// CONSTRUCTION ////

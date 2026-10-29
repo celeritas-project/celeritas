@@ -13,26 +13,24 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-template<>
-struct ReprTraits<G4ThreeVector>
+struct G4ThreeVectorRepr
 {
-    using value_type = std::decay_t<G4ThreeVector>;
+    G4ThreeVector const& obj;
 
-    static void print_type(std::ostream& os, char const* name = nullptr)
+    friend std::ostream& operator<<(std::ostream& os,
+                                    G4ThreeVectorRepr const& value)
     {
-        os << "G4ThreeVector";
-        if (name)
-        {
-            os << ' ' << name;
-        }
-    }
-    static void init(std::ostream& os) { ReprTraits<double>::init(os); }
-
-    static void print_value(std::ostream& os, G4ThreeVector const& vec)
-    {
-        os << '{' << vec[0] << ", " << vec[1] << ", " << vec[2] << '}';
+        ScopedStreamFormat save_fmt(&os);
+        os.precision(14);
+        return os << '{' << value.obj[0] << ", " << value.obj[1] << ", "
+                  << value.obj[2] << '}';
     }
 };
+
+inline G4ThreeVectorRepr repr(G4ThreeVector const& vec)
+{
+    return {vec};
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

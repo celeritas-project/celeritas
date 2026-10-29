@@ -13,6 +13,7 @@
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayOperators.hh"

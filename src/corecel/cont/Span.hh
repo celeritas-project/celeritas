@@ -14,6 +14,7 @@
 #include "detail/SpanImpl.hh"
 
 #if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Repr.hh"
 #    include "corecel/io/StreamableContainer.hh"
 #endif
 
@@ -104,6 +105,33 @@ class Span
 
     //! Size (may be dynamic)
     static constexpr std::size_t extent = Extent;
+
+#if !CELER_DEVICE_COMPILE
+    //! Streamable representation using repr for each element.
+    struct Repr
+    {
+        Span const& obj;
+
+        friend std::ostream& operator<<(std::ostream& os, Repr const& value)
+        {
+            using celeritas::repr;
+            os << '{';
+            bool first = true;
+            for (auto const& item : value.obj)
+            {
+                if (!first)
+                {
+                    os << ", ";
+                }
+                first = false;
+                os << repr(item);
+            }
+            return os << '}';
+        }
+    };
+
+    friend Repr repr(Span const& obj) { return {obj}; }
+#endif
 
   public:
     //// CONSTRUCTION ////

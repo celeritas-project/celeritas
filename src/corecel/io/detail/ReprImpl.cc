@@ -85,17 +85,34 @@ std::string char_to_hex_string(unsigned char value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Print a type string to the stream.
+ * Write a string using escaped or raw C++ string literal syntax.
  */
-void print_simple_type(std::ostream& os, char const* type, char const* name)
+void write_string_repr(std::ostream& os, std::string_view value)
 {
-    os << type;
-    if (name)
+    ScopedStreamFormat save_fmt(&os);
+    using ssize = std::streamsize;
+    ssize width = os.width();
+    os.width(std::max(width - static_cast<ssize>(value.size()) - 2, ssize{0}));
+
+    if (all_printable(value)
+        && (value.size() > 70
+            || std::count(value.begin(), value.end(), '"') > 2))
     {
-        os << ' ' << name;
+        os << "R\"(" << value << ")\"";
+        return;
     }
+
+    os << '"';
+    for (char c : value)
+    {
+        if (c == '"')
+        {
+            os << '\\';
+        }
+        repr_char(os, c);
+    }
+    os << '"';
 }
 
-//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
