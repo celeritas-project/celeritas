@@ -64,9 +64,12 @@ class EventIOTestBase : public Test
         friend std::ostream& operator<<(std::ostream& os,
                                         ReadAllResult const& ref)
         {
-            return os << '{' << repr(ref.pdg) << ", " << repr(ref.energy)
-                      << ", " << repr(ref.pos) << ", " << repr(ref.dir) << ", "
-                      << repr(ref.time) << ", " << repr(ref.event) << '}';
+            return os << '{' << CELER_ATTR_REPR(ref, pdg) << ", "
+                      << CELER_ATTR_REPR(ref, energy) << ", "
+                      << CELER_ATTR_REPR(ref, pos) << ", "
+                      << CELER_ATTR_REPR(ref, dir) << ", "
+                      << CELER_ATTR_REPR(ref, time) << ", "
+                      << CELER_ATTR_REPR(ref, event) << '}';
         }
 
         friend void check_ref_eq(AssertionHelper& helper,

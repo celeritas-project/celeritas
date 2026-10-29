@@ -48,8 +48,10 @@ namespace test
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, IntersectTestResult const& ref)
 {
-    return os << '{' << repr(ref.node) << ", " << repr(ref.surfaces) << ", "
-              << repr(ref.interior) << ", " << repr(ref.exterior) << '}';
+    return os << '{' << CELER_ATTR_REPR(ref, node) << ", "
+              << CELER_ATTR_REPR(ref, surfaces) << ", "
+              << CELER_ATTR_REPR(ref, interior) << ", "
+              << CELER_ATTR_REPR(ref, exterior) << '}';
 }
 
 //---------------------------------------------------------------------------//

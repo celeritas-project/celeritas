@@ -51,7 +51,7 @@ void CaloTestBase::SetUp()
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, CaloTestBase::RunResult const& ref)
 {
-    return os << '{' << repr(ref.edep) << '}';
+    return os << '{' << CELER_ATTR_REPR(ref, edep) << '}';
 }
 
 void check_ref_eq(AssertionHelper& helper,

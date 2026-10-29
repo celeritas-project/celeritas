@@ -18,7 +18,7 @@
 #include "geocel/GeantGeoUtils.hh"
 
 #include "AssertionHelper.hh"
-#include "testdetail/TestMacrosImpl.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -74,8 +74,8 @@ GeantImportVolumeResult GeantImportVolumeResult::from_import(
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, GeantImportVolumeResult const& ref)
 {
-    return os << '{' << repr(ref.volumes) << ", " << repr(ref.missing_labels)
-              << '}';
+    return os << '{' << CELER_ATTR_REPR(ref, volumes) << ", "
+              << CELER_ATTR_REPR(ref, missing_labels) << '}';
 }
 
 void check_ref_eq(AssertionHelper& helper,

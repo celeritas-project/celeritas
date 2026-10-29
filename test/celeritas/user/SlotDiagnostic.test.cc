@@ -60,8 +60,8 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
 
         friend std::ostream& operator<<(std::ostream& os, RunResult const& ref)
         {
-            return os << '{' << repr(ref.labels) << ", " << repr(ref.slots)
-                      << '}';
+            return os << '{' << CELER_ATTR_REPR(ref, labels) << ", "
+                      << CELER_ATTR_REPR(ref, slots) << '}';
         }
 
         friend void check_ref_eq(AssertionHelper& helper,

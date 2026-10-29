@@ -44,9 +44,9 @@ void DiagnosticTestBase::SetUp()
 std::ostream& operator<<(std::ostream& os,
                          DiagnosticTestBase::RunResult const& ref)
 {
-    return os << '{' << repr(ref.nonzero_action_keys) << ", "
-              << repr(ref.nonzero_action_counts) << ", " << repr(ref.steps)
-              << '}';
+    return os << '{' << CELER_ATTR_REPR(ref, nonzero_action_keys) << ", "
+              << CELER_ATTR_REPR(ref, nonzero_action_counts) << ", "
+              << CELER_ATTR_REPR(ref, steps) << '}';
 }
 
 void check_ref_eq(AssertionHelper& helper,

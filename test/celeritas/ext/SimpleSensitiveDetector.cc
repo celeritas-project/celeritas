@@ -28,16 +28,23 @@ namespace test
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
 {
-    return os << '{' << repr(ref.energy_deposition) << ", "
-              << repr(ref.step_length) << ", " << repr(ref.particle) << ", "
-              << repr(ref.weight) << ", " << repr(ref.track_id) << ", "
-              << repr(ref.parent_id) << ", " << repr(ref.pre_energy) << ", "
-              << repr(ref.pre_time) << ", " << repr(ref.pre_pos) << ", "
-              << repr(ref.pre_dir) << ", " << repr(ref.pre_physvol) << ", "
-              << repr(ref.post_time) << ", " << repr(ref.post_energy) << ", "
-              << repr(ref.post_pos) << ", " << repr(ref.post_dir) << ", "
-              << repr(ref.post_physvol) << ", " << repr(ref.post_status)
-              << '}';
+    return os << '{' << CELER_ATTR_REPR(ref, energy_deposition) << ", "
+              << CELER_ATTR_REPR(ref, step_length) << ", "
+              << CELER_ATTR_REPR(ref, particle) << ", "
+              << CELER_ATTR_REPR(ref, weight) << ", "
+              << CELER_ATTR_REPR(ref, track_id) << ", "
+              << CELER_ATTR_REPR(ref, parent_id) << ", "
+              << CELER_ATTR_REPR(ref, pre_energy) << ", "
+              << CELER_ATTR_REPR(ref, pre_time) << ", "
+              << CELER_ATTR_REPR(ref, pre_pos) << ", "
+              << CELER_ATTR_REPR(ref, pre_dir) << ", "
+              << CELER_ATTR_REPR(ref, pre_physvol) << ", "
+              << CELER_ATTR_REPR(ref, post_time) << ", "
+              << CELER_ATTR_REPR(ref, post_energy) << ", "
+              << CELER_ATTR_REPR(ref, post_pos) << ", "
+              << CELER_ATTR_REPR(ref, post_dir) << ", "
+              << CELER_ATTR_REPR(ref, post_physvol) << ", "
+              << CELER_ATTR_REPR(ref, post_status) << '}';
 }
 
 //---------------------------------------------------------------------------//

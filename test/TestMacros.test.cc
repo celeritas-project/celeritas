@@ -36,7 +36,7 @@ struct PrintableTestResult
 
 std::ostream& operator<<(std::ostream& os, PrintableTestResult const& result)
 {
-    return os << '{' << result.value << '}';
+    return os << '{' << CELER_ATTR_REPR(result, value) << '}';
 }
 
 //---------------------------------------------------------------------------//

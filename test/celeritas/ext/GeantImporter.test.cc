@@ -84,9 +84,9 @@ class GeantImporterTest : public GeantTestBase
         friend std::ostream& operator<<(std::ostream& os,
                                         ImportSummary const& ref)
         {
-            return os << '{' << repr(ref.particles) << ", "
-                      << repr(ref.processes) << ", " << repr(ref.models)
-                      << '}';
+            return os << '{' << CELER_ATTR_REPR(ref, particles) << ", "
+                      << CELER_ATTR_REPR(ref, processes) << ", "
+                      << CELER_ATTR_REPR(ref, models) << '}';
         }
 
         friend void check_ref_eq(AssertionHelper& result,
@@ -114,8 +114,9 @@ class GeantImporterTest : public GeantTestBase
         friend std::ostream& operator<<(std::ostream& os,
                                         ImportXsSummary const& ref)
         {
-            return os << '{' << repr(ref.size) << ", " << repr(ref.energy)
-                      << ", " << repr(ref.xs) << '}';
+            return os << '{' << CELER_ATTR_REPR(ref, size) << ", "
+                      << CELER_ATTR_REPR(ref, energy) << ", "
+                      << CELER_ATTR_REPR(ref, xs) << '}';
         }
 
         friend void check_ref_eq(AssertionHelper& result,

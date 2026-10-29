@@ -35,7 +35,8 @@ namespace test
 std::ostream& operator<<(std::ostream& os,
                          ExampleInstanceCalo::Result const& ref)
 {
-    return os << '{' << repr(ref.instance) << ", " << repr(ref.edep) << '}';
+    return os << '{' << CELER_ATTR_REPR(ref, instance) << ", "
+              << CELER_ATTR_REPR(ref, edep) << '}';
 }
 
 //---------------------------------------------------------------------------//

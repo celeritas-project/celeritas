@@ -121,10 +121,12 @@ class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
 
 std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref)
 {
-    return os << '{' << repr(ref.pos) << ", " << repr(ref.time) << ", "
-              << repr(ref.vtx) << ", " << repr(ref.pdg) << ", "
-              << repr(ref.energy) << ", " << repr(ref.dir) << ", "
-              << repr(ref.mass) << '}';
+    return os << '{' << CELER_ATTR_REPR(ref, pos) << ", "
+              << CELER_ATTR_REPR(ref, time) << ", "
+              << CELER_ATTR_REPR(ref, vtx) << ", " << CELER_ATTR_REPR(ref, pdg)
+              << ", " << CELER_ATTR_REPR(ref, energy) << ", "
+              << CELER_ATTR_REPR(ref, dir) << ", "
+              << CELER_ATTR_REPR(ref, mass) << '}';
 }
 
 TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)

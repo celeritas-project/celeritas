@@ -56,7 +56,11 @@ using ::celeritas::testdetail::print_expected;
         ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, rel_error)
 
 //! Helper for printing expected values in reference structs
-#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(ref.ATTR) << ";\n"
+#define CELER_ATTR_REPR(REF, ATTR) \
+    ::celeritas::testdetail::StreamableAttr \
+    { \
+        #ATTR, REF.ATTR \
+    }
 
 //! JSON string equality (soft equal for floats)
 #define EXPECT_JSON_EQ(expected, actual) \

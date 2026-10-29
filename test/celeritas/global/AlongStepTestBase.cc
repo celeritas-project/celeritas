@@ -151,10 +151,13 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 std::ostream& operator<<(std::ostream& os,
                          AlongStepTestBase::RunResult const& ref)
 {
-    return os << '{' << repr(ref.eloss) << ", " << repr(ref.displacement)
-              << ", " << repr(ref.angle) << ", " << repr(ref.time) << ", "
-              << repr(ref.step) << ", " << repr(ref.mfp) << ", "
-              << repr(ref.alive) << ", " << repr(ref.action) << '}';
+    return os
+           << '{' << CELER_ATTR_REPR(ref, eloss) << ", "
+           << CELER_ATTR_REPR(ref, displacement) << ", "
+           << CELER_ATTR_REPR(ref, angle) << ", " << CELER_ATTR_REPR(ref, time)
+           << ", " << CELER_ATTR_REPR(ref, step) << ", "
+           << CELER_ATTR_REPR(ref, mfp) << ", " << CELER_ATTR_REPR(ref, alive)
+           << ", " << CELER_ATTR_REPR(ref, action) << '}';
 }
 
 void check_ref_eq(AssertionHelper& helper,

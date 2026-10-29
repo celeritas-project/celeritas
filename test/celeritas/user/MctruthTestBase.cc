@@ -44,9 +44,12 @@ void MctruthTestBase::SetUp()
 std::ostream& operator<<(std::ostream& os,
                          MctruthTestBase::RunResult const& ref)
 {
-    return os << '{' << repr(ref.event) << ", " << repr(ref.track) << ", "
-              << repr(ref.step) << ", " << repr(ref.volume) << ", "
-              << repr(ref.pos) << ", " << repr(ref.dir) << '}';
+    return os << '{' << CELER_ATTR_REPR(ref, event) << ", "
+              << CELER_ATTR_REPR(ref, track) << ", "
+              << CELER_ATTR_REPR(ref, step) << ", "
+              << CELER_ATTR_REPR(ref, volume) << ", "
+              << CELER_ATTR_REPR(ref, pos) << ", " << CELER_ATTR_REPR(ref, dir)
+              << '}';
 }
 
 //---------------------------------------------------------------------------//

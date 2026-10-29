@@ -569,6 +569,24 @@ std::enable_if_t<IsRefResult_v<Result>, void> print_expected(
               << expected_result_footer;
 }
 
+//! Print an attribute with CELER_ATTR_REPR
+template<class T>
+struct StreamableAttr
+{
+    char const* name;
+    T const& value;
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    StreamableAttr const& attr)
+    {
+        return os << "/* " << attr.name << " = */ " << repr(attr.value);
+    }
+};
+
+// CTAD for C++17
+template<class T>
+StreamableAttr(char const*, T const&) -> StreamableAttr<T>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Compare two containers.
