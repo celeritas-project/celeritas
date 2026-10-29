@@ -492,13 +492,13 @@ struct Foo
                              Foo const& val2,
                              Tol const& tol)
     {
-        if (std::abs(val1.val - val2.val) >= tol.val)
+        if (std::abs(val1.val - val2.val) <= tol.val)
         {
-            helper.fail() << "  foo: " << val1.val << " != " << val2.val
-                          << " within " << helper.tol_expr() << " (" << tol.val
-                          << ")";
             return true;
         }
+        helper.fail() << "  foo: " << val1.val << " != " << val2.val
+                      << " within " << helper.tol_expr() << " (" << tol.val
+                      << ")";
         return false;
     }
     // NOTE: this overload is necessary because `Tol` is a nested class.
