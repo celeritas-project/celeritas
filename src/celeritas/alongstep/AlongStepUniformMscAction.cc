@@ -20,7 +20,7 @@
 
 #include "detail/ElossApplier.hh"
 #include "detail/FieldFunctors.hh"
-#include "detail/FieldTrackPropagator.hh"
+#include "detail/FieldPropagationLauncher.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/LinearTrackPropagator.hh"
 #include "detail/MeanELoss.hh"
@@ -46,7 +46,8 @@ AlongStepUniformMscAction::from_params(ActionId id,
                                        ParticleParams const& particles,
                                        Input const& field_input,
                                        SPConstMsc msc,
-                                       bool eloss_fluctuation)
+                                       bool eloss_fluctuation,
+                                       SPConstFieldDiagnostic field_diag)
 {
     SPConstFluctuations fluct;
     if (eloss_fluctuation)
@@ -55,23 +56,28 @@ AlongStepUniformMscAction::from_params(ActionId id,
     }
 
     return std::make_shared<AlongStepUniformMscAction>(
-        id, geometry, field_input, std::move(fluct), msc);
+        id, geometry, field_input, std::move(fluct), msc, std::move(field_diag));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with MSC data and field driver options.
+ *
+ * If a field diagnostic is given, the field propagation kernel is
+ * instrumented.
  */
 AlongStepUniformMscAction::AlongStepUniformMscAction(
     ActionId id,
     CoreGeoParams const& geometry,
     Input const& input,
     SPConstFluctuations fluct,
-    SPConstMsc msc)
+    SPConstMsc msc,
+    SPConstFieldDiagnostic field_diag)
     : id_(id)
     , field_{std::make_shared<UniformFieldParams>(geometry, input)}
     , fluct_(std::move(fluct))
     , msc_(std::move(msc))
+    , field_diag_(std::move(field_diag))
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(field_);
@@ -89,6 +95,9 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
                                      CoreStateHost& state) const
 {
     using namespace ::celeritas::detail;
+    auto propagate_field = make_host_field_propagation<UniformField>(
+        field_->ref<MemSpace::native>(), field_diag_.get(), state);
+
     auto execute_track = [&](CoreTrackView& track) {
         if (this->has_msc())
         {
@@ -96,8 +105,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
         }
         if (IsInUniformField{field_->ref<MemSpace::native>()}(track))
         {
-            PropagationApplier{FieldTrackPropagator<UniformField>{
-                field_->ref<MemSpace::native>()}}(track);
+            propagate_field(track);
         }
         else
         {

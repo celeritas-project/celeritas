@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -16,6 +17,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Diagnostics.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/inp/Tracking.hh"
@@ -273,6 +275,15 @@ struct SetupOptions
 
     //! Filename base for slot diagnostics
     std::string slot_diagnostic_prefix;
+
+    /*!
+     * Instrument charged particle propagation in a magnetic field.
+     *
+     * This can also be enabled with the \c CELER_FIELD_DIAGNOSTIC environment
+     * variable, and its oracle safety calculation with
+     * \c CELER_FIELD_DIAGNOSTIC_ORACLE .
+     */
+    std::optional<inp::FieldDiagnostic> field_diagnostic;
 
     //! Add additional diagnostic user actions [EXPERIMENTAL]
     std::function<void(CoreParams const&)> add_user_actions;

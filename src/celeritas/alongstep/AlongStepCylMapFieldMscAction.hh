@@ -21,6 +21,7 @@
 namespace celeritas
 {
 class UrbanMscParams;
+class FieldDiagnostic;
 class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
@@ -44,6 +45,7 @@ class AlongStepCylMapFieldMscAction final : public CoreStepActionInterface
     using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
     using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
     using SPConstFieldParams = std::shared_ptr<CylMapFieldParams const>;
+    using SPConstFieldDiagnostic = std::shared_ptr<FieldDiagnostic const>;
     //!@}
 
   public:
@@ -53,13 +55,15 @@ class AlongStepCylMapFieldMscAction final : public CoreStepActionInterface
         ParticleParams const& particles,
         Input const& field_input,
         SPConstMsc const& msc,
-        bool eloss_fluctuation);
+        bool eloss_fluctuation,
+        SPConstFieldDiagnostic field_diag = {});
 
     // Construct with next action ID and physics properties
     AlongStepCylMapFieldMscAction(ActionId id,
                                   Input const& input,
                                   SPConstFluctuations fluct,
-                                  SPConstMsc msc);
+                                  SPConstMsc msc,
+                                  SPConstFieldDiagnostic field_diag = {});
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -93,11 +97,18 @@ class AlongStepCylMapFieldMscAction final : public CoreStepActionInterface
     //! Field map data
     SPConstFieldParams const& field() const { return field_; }
 
+    //! Field propagation diagnostic (may be null)
+    SPConstFieldDiagnostic const& field_diagnostic() const
+    {
+        return field_diag_;
+    }
+
   private:
     ActionId id_;
     SPConstFieldParams field_;
     SPConstFluctuations fluct_;
     SPConstMsc msc_;
+    SPConstFieldDiagnostic field_diag_;
 };
 
 //---------------------------------------------------------------------------//

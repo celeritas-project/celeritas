@@ -21,6 +21,7 @@
 namespace celeritas
 {
 class UrbanMscParams;
+class FieldDiagnostic;
 class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
@@ -44,6 +45,7 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
     using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
     using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
     using SPConstFieldParams = std::shared_ptr<UniformFieldParams const>;
+    using SPConstFieldDiagnostic = std::shared_ptr<FieldDiagnostic const>;
     //!@}
 
   public:
@@ -55,14 +57,16 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
         ParticleParams const& particles,
         Input const& field_input,
         SPConstMsc msc,
-        bool eloss_fluctuation);
+        bool eloss_fluctuation,
+        SPConstFieldDiagnostic field_diag = {});
 
     // Construct with next action ID, optional MSC, magnetic field
     AlongStepUniformMscAction(ActionId id,
                               CoreGeoParams const& geometry,
                               Input const& field_input,
                               SPConstFluctuations fluct,
-                              SPConstMsc msc);
+                              SPConstMsc msc,
+                              SPConstFieldDiagnostic field_diag = {});
 
     // Default destructor
     ~AlongStepUniformMscAction() final;
@@ -96,11 +100,18 @@ class AlongStepUniformMscAction final : public CoreStepActionInterface
     //! Whether MSC is in use
     bool has_msc() const { return static_cast<bool>(msc_); }
 
+    //! Field propagation diagnostic (may be null)
+    SPConstFieldDiagnostic const& field_diagnostic() const
+    {
+        return field_diag_;
+    }
+
   private:
     ActionId id_;
     SPConstFieldParams field_;
     SPConstFluctuations fluct_;
     SPConstMsc msc_;
+    SPConstFieldDiagnostic field_diag_;
 };
 
 //---------------------------------------------------------------------------//
