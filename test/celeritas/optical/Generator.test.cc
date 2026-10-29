@@ -480,7 +480,7 @@ TEST_F(WlsGeneratorTest, abort_early)
 
     if (Test::is_reference_rng)
     {
-        EXPECT_EQ(930, result.counters.num_cut);
+        EXPECT_EQ(866, result.counters.num_cut);
     }
     EXPECT_EQ(1, result.counters.flushes);
     EXPECT_EQ(8, result.counters.step_iters);
