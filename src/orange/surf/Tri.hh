@@ -9,6 +9,7 @@
 #include <limits>
 #include <corecel/Macros.hh>
 #include <corecel/cont/Array.hh>
+#include <corecel/io/Logger.hh>  // Remove when done
 #include <corecel/math/ArrayOperators.hh>
 #include <corecel/math/ArrayUtils.hh>
 #include <orange/OrangeTypes.hh>
@@ -38,9 +39,18 @@ class Tri
     // Construct from 3 vertices
     inline Tri(Vertex const& a, Vertex const& b, Vertex const& c);
 
+    //! Vertex a
+    CELER_FUNCTION Vertex const& a() const { return a_; }
+
+    //! Vertex b
+    CELER_FUNCTION Vertex const& b() const { return b_; }
+
+    //! Vertex c
+    CELER_FUNCTION Vertex const& c() const { return c_; }
+
     // Calculate possible straight-line intersections with this triangle
     inline CELER_FUNCTION Intersections calc_intersections(
-        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
+        Vertex const& pos, Vertex const& dir, SurfaceState on_surface) const;
 
   private:
     // Calculate the centroid of the triangle
@@ -91,7 +101,7 @@ CELER_FUNCTION Tri<T>::Tri(Vertex const& a, Vertex const& b, Vertex const& c)
  */
 template<typename T>
 CELER_FUNCTION auto Tri<T>::calc_intersections(
-    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    Vertex const& pos, Vertex const& dir, SurfaceState on_surface) const
     -> Intersections
 {
     constexpr T epsilon = std::numeric_limits<T>::epsilon();
@@ -102,11 +112,13 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
 
     // Calculate the normal vector
     auto normal = cross_product(edge1, edge2);
+    CELER_LOG(diagnostic) << "normal: " << normal;
 
-    if (dot_product(dir, normal) > 0.0)
-    {
-        return {no_intersection()};
-    }
+    // if (dot_product(dir, normal) > 0.0)
+    //{
+    //     CELER_LOG(diagnostic) << "dot_product: " << dot_product(dir,
+    //     normal); return {no_intersection()};
+    // }
 
     auto rayCrossEdge2 = cross_product(dir, edge2);
     T det = dot_product(edge1, rayCrossEdge2);
@@ -119,7 +131,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
 
     T inv_det = 1.0 / det;
     auto s = pos - a_;
-    T u = inv_det * dot(s, rayCrossEdge2);
+    T u = inv_det * dot_product(s, rayCrossEdge2);
 
     // Ray passes outside edge2's bounds
     if (u < -epsilon || (u - 1) > epsilon)
