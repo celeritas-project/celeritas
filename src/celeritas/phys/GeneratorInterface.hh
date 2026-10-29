@@ -54,8 +54,7 @@ class GeneratorInterface
     virtual GeneratorStateBase const& counters(AuxStateVec const&) const = 0;
 
     //! Discard pending work after an aborted loop, keeping accumulated counts
-    virtual void reset(AuxStateVec&, StreamId, size_type num_track_slots) const
-        = 0;
+    virtual void reset(AuxStateVec&) const = 0;
 
   protected:
     //!@{

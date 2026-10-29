@@ -129,8 +129,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
             // Add all untransported tracks to 'cut' counter
             counters.num_cut += counters.num_alive + counters.num_pending;
 
-            this->params()->gen_reg()->reset(
-                *state.aux(), state.stream_id(), state.size());
+            this->params()->gen_reg()->reset(*state.aux());
             state.reset();
             break;
         }

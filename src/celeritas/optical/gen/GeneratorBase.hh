@@ -69,7 +69,7 @@ class GeneratorBase : virtual public optical::OpticalStepActionInterface,
     // Get generator counters
     GeneratorStateBase const& counters(AuxStateVec const&) const final;
     // Discard pending work after an aborted loop
-    void reset(AuxStateVec&, StreamId, size_type) const override;
+    void reset(AuxStateVec&) const override;
     //!@}
 
     // Update the generator and state counters

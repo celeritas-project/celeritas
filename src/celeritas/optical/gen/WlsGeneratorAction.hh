@@ -90,7 +90,7 @@ class WlsGeneratorAction final : public GeneratorBase
     //!@}
 
     // Count and discard buffered distributions after an aborted loop
-    void reset(AuxStateVec&, StreamId, size_type) const final;
+    void reset(AuxStateVec&) const final;
 
     //!@{
     //! \name StepAction interface

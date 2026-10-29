@@ -66,7 +66,7 @@ class GeneratorRegistry
     void clear_generated(AuxStateVec&) const;
 
     // Reset the generators if the loop aborted early
-    void reset(AuxStateVec&, StreamId, size_type num_track_slots) const;
+    void reset(AuxStateVec&) const;
 
   private:
     std::vector<SPGenerator> generators_;

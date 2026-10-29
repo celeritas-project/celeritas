@@ -64,12 +64,11 @@ void GeneratorRegistry::clear_generated(AuxStateVec& aux) const
 /*!
  * Reset the generators if the loop aborted early.
  */
-void GeneratorRegistry::reset(
-    AuxStateVec& aux, StreamId stream, size_type num_track_slots) const
+void GeneratorRegistry::reset(AuxStateVec& aux) const
 {
     for (auto id : range(GeneratorId{this->size()}))
     {
-        this->at(id)->reset(aux, stream, num_track_slots);
+        this->at(id)->reset(aux);
     }
 }
 

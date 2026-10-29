@@ -43,10 +43,12 @@ namespace
  * of the buffer, at most one per track slot. This compacts them into the
  * buffer, computes the cumulative photon counts, and accumulates the new
  * distributions and photons.
+ *
+ * \todo \c remove_if_invalid and \c inclusive_scan_photons will synchronize
+ * the stream.
  */
 template<MemSpace M>
-void update_buffer(
-    WlsGeneratorState<M>& state, StreamId stream_id, size_type num_track_slots)
+void update_buffer(WlsGeneratorState<M>& state, StreamId stream_id)
 {
     auto& counters = state.counters;
 
@@ -58,7 +60,7 @@ void update_buffer(
     counters.buffer_size = celeritas::detail::remove_if_invalid(
         state.store.ref().distributions,
         0,
-        counters.buffer_size + num_track_slots,
+        counters.buffer_size + state.size,
         stream_id);
 
     if (counters.buffer_size > 0)
@@ -83,6 +85,9 @@ void update_buffer(
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
 /*!
  * Accumulate distributions from the final step and discard all pending work.
  *
@@ -90,20 +95,22 @@ void update_buffer(
  * distributions are normally accumulated at the next generation step. After
  * counting them, the entire buffer is cleared so that the leftover
  * distributions aren't generated in the next transport loop.
+ *
+ * This synchronizes the stream but is only called when the transport loop
+ * aborts.
  */
 template<MemSpace M>
-void reset_impl(
-    WlsGeneratorState<M>& state, StreamId stream_id, size_type num_track_slots)
+void WlsGeneratorState<M>::reset(StreamId stream_id)
 {
-    update_buffer(state, stream_id, num_track_slots);
+    update_buffer(*this, stream_id);
 
     Filler<WlsDistributionData, M> fill{{}, stream_id};
-    fill(state.store.ref().distributions[AllItems<WlsDistributionData, M>{}]);
-    state.counters = {};
+    fill(this->store.ref().distributions[AllItems<WlsDistributionData, M>{}]);
+    this->counters = {};
 }
 
-//---------------------------------------------------------------------------//
-}  // namespace
+template struct WlsGeneratorState<MemSpace::host>;
+template struct WlsGeneratorState<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -129,38 +136,30 @@ WlsGeneratorAction::WlsGeneratorAction(Input&& input)
 /*!
  * Build state data for a stream.
  */
-auto WlsGeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
-    -> UPState
+auto WlsGeneratorAction::create_state(
+    MemSpace m, StreamId id, size_type size) const -> UPState
 {
+    std::unique_ptr<WlsGeneratorStateBase> result;
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host, WlsGeneratorState>(id, capacity_);
+        result = make_state<MemSpace::host, WlsGeneratorState>(id, capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device, WlsGeneratorState>(id, capacity_);
+        result = make_state<MemSpace::device, WlsGeneratorState>(id, capacity_);
     }
-    CELER_ASSERT_UNREACHABLE();
+    CELER_ASSERT(result);
+    result->size = size;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Count and discard buffered distributions after an aborted loop.
  */
-void WlsGeneratorAction::reset(
-    AuxStateVec& aux, StreamId stream_id, size_type num_track_slots) const
+void WlsGeneratorAction::reset(AuxStateVec& aux) const
 {
-    auto& state = aux.at(this->aux_id());
-    if (auto* s = dynamic_cast<WlsGeneratorState<MemSpace::host>*>(&state))
-    {
-        return reset_impl(*s, stream_id, num_track_slots);
-    }
-    else if (
-        auto* s = dynamic_cast<WlsGeneratorState<MemSpace::device>*>(&state))
-    {
-        return reset_impl(*s, stream_id, num_track_slots);
-    }
-    CELER_ASSERT_UNREACHABLE();
+    get<WlsGeneratorStateBase>(aux, this->aux_id()).reset(aux.stream_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -201,7 +200,8 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     auto& buffer = aux_state.store.ref().distributions;
 
     // Compact the buffer and count the new distributions and queued photons
-    update_buffer(aux_state, state.stream_id(), state.size());
+    CELER_ASSERT(aux_state.size == state.size());
+    update_buffer(aux_state, state.stream_id());
 
     if (counters.num_pending > 0)
     {

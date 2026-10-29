@@ -156,15 +156,31 @@ struct WlsGeneratorStateData
 
 //---------------------------------------------------------------------------//
 /*!
+ * Optical WLS generation state.
+ */
+struct WlsGeneratorStateBase : public GeneratorStateBase
+{
+    //! Number of track slots (or, possible new distributions created per step)
+    size_type size{};
+
+    // Count and discard buffered distributions after an aborted loop
+    virtual void reset(StreamId) = 0;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store optical WLS generation states in aux data.
  */
 template<MemSpace M>
-struct WlsGeneratorState : public GeneratorStateBase
+struct WlsGeneratorState final : public WlsGeneratorStateBase
 {
     StateDataStore<WlsGeneratorStateData, M> store;
 
     //! True if states have been allocated
     explicit operator bool() const { return static_cast<bool>(store); }
+
+    // Count and discard buffered distributions after an aborted loop
+    void reset(StreamId) final;
 };
 
 //---------------------------------------------------------------------------//
