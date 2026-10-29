@@ -11,6 +11,7 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GenericGeoResults.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
@@ -25,13 +26,7 @@ namespace test
 
 struct ReadAllResult
 {
-    struct Tolerance
-    {
-        double energy{Test::fine_eps};
-        double dir{Test::fine_eps};
-    };
-
-    static constexpr char class_str[] = "ReadAllResult";
+    //// DATA ////
 
     std::vector<Real3> pos;
     std::vector<double> time;
@@ -41,6 +36,19 @@ struct ReadAllResult
     std::vector<Real3> dir;
     std::vector<double> mass;
 
+    //// REFERENCE RESULT ////
+
+    //! Tolerances for comparison with defaults
+    struct Tol
+    {
+        double energy{Test::fine_eps};
+        double dir{Test::coarse_eps};
+    };
+
+    //! Implement \c EXPECT_REF_NEAR and mark as a reference result via traits
+    static constexpr char class_str[] = "ReadAllResult";
+
+    //! Implement \c print_expected
     friend std::ostream& operator<<(std::ostream& os, ReadAllResult const& ref)
     {
         return os << '{' << CELER_ATTR_REPR(ref, pos) << ", "
@@ -52,10 +60,11 @@ struct ReadAllResult
                   << CELER_ATTR_REPR(ref, mass) << '}';
     }
 
+    //! Implement \c EXPECT_REF_NEAR
     friend void check_ref_eq(AssertionHelper& helper,
                              ReadAllResult const& expected,
                              ReadAllResult const& actual,
-                             Tolerance const& tol)
+                             Tol const& tol)
     {
         is_vec_soft_eq(helper, "pos", expected.pos, actual.pos);
         is_vec_soft_eq(helper, "time", expected.time, actual.time);
@@ -65,6 +74,14 @@ struct ReadAllResult
             helper, "energy", expected.energy, actual.energy, tol.energy);
         is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
         is_vec_soft_eq(helper, "mass", expected.mass, actual.mass);
+    }
+
+    //! Implement \c EXPECT_REF_EQ
+    friend void check_ref_eq(AssertionHelper& helper,
+                             ReadAllResult const& expected,
+                             ReadAllResult const& actual)
+    {
+        return check_ref_eq(helper, expected, actual, {});
     }
 };
 
@@ -172,7 +189,7 @@ TEST_F(HepMC3PrimaryGeneratorTest, no_vertex)
                {-0.36655746358148, 0.80035990693978, 0.47440451647941},
                {-0.78969793730749, -0.54961247282688, -0.27258631206541}};
     ref.mass = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    ReadAllTolerance tol;
+    ReadAllResult::Tol tol;
     tol.energy = coarse_eps;
     tol.dir = coarse_eps;
     EXPECT_REF_NEAR(ref, result, tol);
@@ -212,9 +229,7 @@ TEST_F(HepMC3PrimaryGeneratorTest, multiple_vertex)
                {-0.082735048064663, 0.97508922087171, 0.20580554696494},
                {0.0702815376096, -0.87804026971226, -0.47339813078935}};
     ref.mass = {0, -1, -1, 0, -1, -1, 0, -1, -1};
-    ReadAllTolerance tol;
-    tol.dir = coarse_eps;
-    EXPECT_REF_NEAR(ref, result, tol);
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
