@@ -171,6 +171,93 @@ std::enable_if_t<IsRefResult_v<Result>, void> print_expected(
 }
 
 //---------------------------------------------------------------------------//
+// CHECK_REF_EQ
+//---------------------------------------------------------------------------//
+
+/*!
+ * Compare containers of reference values using a tolerance.
+ */
+template<class ContainerE, class ContainerA, class Tol>
+std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>, bool>
+check_ref_eq(::celeritas::test::AssertionHelper& helper,
+             ContainerE const& val1,
+             ContainerA const& val2,
+             Tol&& tol)
+{
+    using std::begin;
+    using std::end;
+
+    if (!helper.equal_size(std::distance(begin(val1), end(val1)),
+                           std::distance(begin(val2), end(val2))))
+    {
+        return false;
+    }
+
+    // Check each element
+    auto iter1 = begin(val1);
+    auto iter2 = begin(val2);
+    size_type i = 0;
+    size_type failures = 0;
+    constexpr size_type max_printable_failures = 10;
+    for (auto end1 = end(val1); iter1 != end1; ++i, ++iter1, ++iter2)
+    {
+        if (!check_ref_eq(helper, *iter1, *iter2, tol))
+        {
+            if (failures++ < max_printable_failures)
+            {
+                helper.fail() << "\n(Failed in element " << i << " of "
+                              << helper.actual_expr() << ")";
+            }
+        }
+    }
+    if (failures > max_printable_failures)
+    {
+        helper.fail() << "(Suppressed " << failures - max_printable_failures
+                      << " additional failures)";
+    }
+    return failures == 0;
+}
+
+template<class ContainerE, class ContainerA>
+std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>, bool>
+check_ref_eq(::celeritas::test::AssertionHelper& helper,
+             ContainerE const& val1,
+             ContainerA const& val2)
+{
+    using std::begin;
+    using std::end;
+
+    if (!helper.equal_size(std::distance(begin(val1), end(val1)),
+                           std::distance(begin(val2), end(val2))))
+    {
+        return false;
+    }
+
+    auto iter1 = begin(val1);
+    auto iter2 = begin(val2);
+    size_type i = 0;
+    size_type failures = 0;
+    constexpr size_type max_printable_failures = 10;
+    for (auto end1 = end(val1); iter1 != end1; ++i, ++iter1, ++iter2)
+    {
+        if (!check_ref_eq(helper, *iter1, *iter2))
+        {
+            if (failures++ < max_printable_failures)
+            {
+                helper.fail() << "\n(Failed in element " << i << " of "
+                              << helper.actual_expr() << ")";
+            }
+        }
+    }
+    if (failures > max_printable_failures)
+    {
+        helper.fail() << "(Suppressed " << failures - max_printable_failures
+                      << " additional failures)";
+    }
+    return failures == 0;
+}
+
+//---------------------------------------------------------------------------//
 // VECTOR FAILURE IMPLEMENTATION
 //---------------------------------------------------------------------------//
 
@@ -591,7 +678,7 @@ template<class E, class A>
     char const* expr1, char const* expr2, E const& expected, A const& actual)
 {
     ::celeritas::test::AssertionHelper helper{expr1, expr2};
-    check_ref_eq(helper, expected, actual, nullptr);
+    check_ref_eq(helper, expected, actual);
     return helper;
 }
 
@@ -609,54 +696,6 @@ template<class E, class A, class T>
     ::celeritas::test::AssertionHelper helper{expr1, expr2, tol_expr};
     check_ref_eq(helper, expected, actual, tol);
     return helper;
-}
-
-//---------------------------------------------------------------------------//
-// CHECK_REF_EQ
-//---------------------------------------------------------------------------//
-
-/*!
- * Compare containers of reference values using a tolerance.
- */
-template<class ContainerE, class ContainerA, class Tol>
-std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>, bool>
-check_ref_eq(::celeritas::test::AssertionHelper& result,
-             ContainerE const& val1,
-             ContainerA const& val2,
-             Tol&& tol)
-{
-    using std::begin;
-    using std::end;
-
-    if (!result.equal_size(std::distance(begin(val1), end(val1)),
-                           std::distance(begin(val2), end(val2))))
-    {
-        return false;
-    }
-
-    // Check each element
-    auto iter1 = begin(val1);
-    auto iter2 = begin(val2);
-    size_type i = 0;
-    size_type failures = 0;
-    constexpr size_type max_printable_failures = 10;
-    for (auto end1 = end(val1); iter1 != end1; ++i, ++iter1, ++iter2)
-    {
-        if (!check_ref_eq(result, *iter1, *iter2, tol))
-        {
-            if (failures++ < max_printable_failures)
-            {
-                result.fail() << "\n(Failed in element " << i << " of "
-                              << result.actual_expr() << ")";
-            }
-        }
-    }
-    if (failures > max_printable_failures)
-    {
-        result.fail() << "(Suppressed " << failures - max_printable_failures
-                      << " additional failures)";
-    }
-    return failures == 0;
 }
 
 //---------------------------------------------------------------------------//

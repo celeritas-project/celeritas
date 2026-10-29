@@ -42,8 +42,7 @@ std::ostream& operator<<(std::ostream& os,
 //---------------------------------------------------------------------------//
 void check_ref_eq(AssertionHelper& helper,
                   ExampleInstanceCalo::Result const& expected,
-                  ExampleInstanceCalo::Result const& actual,
-                  std::nullptr_t)
+                  ExampleInstanceCalo::Result const& actual)
 {
     using namespace ::celeritas::test;
     is_vec_eq(helper, "instance", expected.instance, actual.instance);

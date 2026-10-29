@@ -57,8 +57,7 @@ class StepperTestBase : virtual public GlobalTestBase
         friend std::ostream& operator<<(std::ostream&, SetupCheckResult const&);
         friend void check_ref_eq(AssertionHelper&,
                                  SetupCheckResult const&,
-                                 SetupCheckResult const&,
-                                 std::nullptr_t);
+                                 SetupCheckResult const&);
     };
 
     struct RunResult
@@ -80,10 +79,8 @@ class StepperTestBase : virtual public GlobalTestBase
         StepCount calc_queue_hwm() const;
 
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
-        friend void check_ref_eq(AssertionHelper&,
-                                 RunResult const&,
-                                 RunResult const&,
-                                 std::nullptr_t);
+        friend void check_ref_eq(
+            AssertionHelper&, RunResult const&, RunResult const&);
 
         //! True if run was performed and data is consistent
         explicit operator bool() const

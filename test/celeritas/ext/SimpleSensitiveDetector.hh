@@ -44,10 +44,8 @@ struct SimpleHitsResult
     std::vector<std::string> post_status;
 
     friend std::ostream& operator<<(std::ostream&, SimpleHitsResult const&);
-    friend void check_ref_eq(AssertionHelper&,
-                             SimpleHitsResult const&,
-                             SimpleHitsResult const&,
-                             std::nullptr_t);
+    friend void check_ref_eq(
+        AssertionHelper&, SimpleHitsResult const&, SimpleHitsResult const&);
 };
 
 //---------------------------------------------------------------------------//

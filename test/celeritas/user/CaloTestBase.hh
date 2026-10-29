@@ -50,11 +50,13 @@ class CaloTestBase : virtual public SimpleLoopTestBase
         friend void check_ref_eq(AssertionHelper&,
                                  RunResult const&,
                                  RunResult const&,
-                                 std::nullptr_t);
-        friend void check_ref_eq(AssertionHelper&,
-                                 RunResult const&,
-                                 RunResult const&,
                                  Tolerance const&);
+        friend void check_ref_eq(AssertionHelper& helper,
+                                 RunResult const& expected,
+                                 RunResult const& actual)
+        {
+            check_ref_eq(helper, expected, actual, Tolerance{});
+        }
     };
 
   public:

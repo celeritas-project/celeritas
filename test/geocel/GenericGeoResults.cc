@@ -146,14 +146,6 @@ void check_ref_eq(AssertionHelper& helper,
                    SoftEqual(tol.safety, tol.safety));
 }
 
-void check_ref_eq(AssertionHelper& helper,
-                  GenericGeoTrackingResult const& val1,
-                  GenericGeoTrackingResult const& val2,
-                  std::nullptr_t)
-{
-    check_ref_eq(helper, val1, val2, GenericGeoTrackingTolerance{});
-}
-
 //---------------------------------------------------------------------------//
 // STACK RESULT
 //---------------------------------------------------------------------------//
@@ -190,12 +182,11 @@ void GenericGeoVolumeStackResult::fail()
     this->volume_instances.push_back("[FAILURE]");
 }
 
-void check_ref_eq(AssertionHelper& result,
+void check_ref_eq(AssertionHelper& helper,
                   GenericGeoVolumeStackResult const& val1,
-                  GenericGeoVolumeStackResult const& val2,
-                  std::nullptr_t)
+                  GenericGeoVolumeStackResult const& val2)
 {
-    is_eq(result,
+    is_eq(helper,
           "volume_instances",
           val1.volume_instances,
           val2.volume_instances);
@@ -273,15 +264,14 @@ std::ostream& operator<<(std::ostream& os, GenericGeoModelInp const& ref)
               << CELER_ATTR_REPR(ref, detector.volumes) << "}}";
 }
 
-void check_ref_eq(AssertionHelper& result,
+void check_ref_eq(AssertionHelper& helper,
                   GenericGeoModelInp const& val1,
-                  GenericGeoModelInp const& val2,
-                  std::nullptr_t)
+                  GenericGeoModelInp const& val2)
 {
 #define IRE_COMPARE(ATTR) \
     if (val1.ATTR != val2.ATTR) \
     { \
-        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+        helper.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
                       << " but got " << repr(val2.ATTR); \
     } \
     else \

@@ -56,15 +56,14 @@ std::ostream& operator<<(std::ostream& os, IntersectTestResult const& ref)
 }
 
 //---------------------------------------------------------------------------//
-void check_ref_eq(::celeritas::test::AssertionHelper& result,
+void check_ref_eq(::celeritas::test::AssertionHelper& helper,
                   IntersectTestResult const& val1,
-                  IntersectTestResult const& val2,
-                  std::nullptr_t)
+                  IntersectTestResult const& val2)
 {
 #define IRE_COMPARE(ATTR) \
     if (val1.ATTR != val2.ATTR) \
     { \
-        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+        helper.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
                       << " but got " << repr(val2.ATTR); \
     } \
     else \
@@ -74,8 +73,8 @@ void check_ref_eq(::celeritas::test::AssertionHelper& result,
     IRE_COMPARE(surfaces);
 
     using celeritas::test::check_ref_eq;
-    is_ref_eq(result, "interior", val1.interior, val2.interior, nullptr);
-    is_ref_eq(result, "exterior", val1.exterior, val2.exterior, nullptr);
+    is_ref_eq(helper, "interior", val1.interior, val2.interior, nullptr);
+    is_ref_eq(helper, "exterior", val1.exterior, val2.exterior, nullptr);
 #undef IRE_COMPARE
 }
 

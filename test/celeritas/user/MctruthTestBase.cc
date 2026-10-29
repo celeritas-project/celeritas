@@ -53,15 +53,6 @@ std::ostream& operator<<(std::ostream& os,
 }
 
 //---------------------------------------------------------------------------//
-void check_ref_eq(AssertionHelper& helper,
-                  MctruthTestBase::RunResult const& expected,
-                  MctruthTestBase::RunResult const& actual,
-                  std::nullptr_t)
-{
-    check_ref_eq(
-        helper, expected, actual, MctruthTestBase::RunResult::Tolerance{});
-}
-
 //---------------------------------------------------------------------------//
 void check_ref_eq(AssertionHelper& helper,
                   MctruthTestBase::RunResult const& expected,

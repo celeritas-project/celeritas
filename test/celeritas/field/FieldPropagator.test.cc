@@ -1392,15 +1392,14 @@ std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
               << CELER_ATTR_REPR(ref, messages) << '}';
 }
 
-void check_ref_eq(AssertionHelper& result,
+void check_ref_eq(AssertionHelper& helper,
                   FieldPropagationResult const& val1,
-                  FieldPropagationResult const& val2,
-                  std::nullptr_t)
+                  FieldPropagationResult const& val2)
 {
 #define IRE_COMPARE(ATTR) \
     if (val1.ATTR != val2.ATTR) \
     { \
-        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+        helper.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
                       << " but got " << repr(val2.ATTR); \
     } \
     else \

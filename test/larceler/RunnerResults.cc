@@ -44,10 +44,8 @@ std::ostream& operator<<(std::ostream& os, RunResult const& ref)
     return os << '{' << CELER_ATTR_REPR(ref, num_hits) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
-                  RunResult const& val1,
-                  RunResult const& val2,
-                  std::nullptr_t)
+void check_ref_eq(
+    AssertionHelper& helper, RunResult const& val1, RunResult const& val2)
 {
     is_vec_eq(helper, "num_hits", val1.num_hits, val2.num_hits);
 }
@@ -81,8 +79,7 @@ std::ostream& operator<<(std::ostream& os, DepHitResult const& ref)
 
 void check_ref_eq(AssertionHelper& helper,
                   DepHitResult const& val1,
-                  DepHitResult const& val2,
-                  std::nullptr_t)
+                  DepHitResult const& val2)
 {
     is_eq(helper, "track_id", val1.track_id, val2.track_id);
     is_vec_soft_eq(helper, "num_photons", val1.num_photons, val2.num_photons);

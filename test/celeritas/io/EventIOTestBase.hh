@@ -74,8 +74,7 @@ class EventIOTestBase : public Test
 
         friend void check_ref_eq(AssertionHelper& helper,
                                  ReadAllResult const& expected,
-                                 ReadAllResult const& actual,
-                                 std::nullptr_t)
+                                 ReadAllResult const& actual)
         {
             check_ref_eq(helper, expected, actual, Tolerance{});
         }

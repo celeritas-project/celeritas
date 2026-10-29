@@ -48,36 +48,35 @@ std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
 }
 
 //---------------------------------------------------------------------------//
-void check_ref_eq(AssertionHelper& result,
+void check_ref_eq(AssertionHelper& helper,
                   SimpleHitsResult const& expected,
-                  SimpleHitsResult const& actual,
-                  std::nullptr_t)
+                  SimpleHitsResult const& actual)
 {
     using namespace ::celeritas::test;
-    is_vec_soft_eq(result,
+    is_vec_soft_eq(helper,
                    "energy_deposition",
                    expected.energy_deposition,
                    actual.energy_deposition);
     is_vec_soft_eq(
-        result, "step_length", expected.step_length, actual.step_length);
-    is_vec_eq(result, "particle", expected.particle, actual.particle);
-    is_vec_soft_eq(result, "weight", expected.weight, actual.weight);
-    is_vec_eq(result, "track_id", expected.track_id, actual.track_id);
-    is_vec_eq(result, "parent_id", expected.parent_id, actual.parent_id);
+        helper, "step_length", expected.step_length, actual.step_length);
+    is_vec_eq(helper, "particle", expected.particle, actual.particle);
+    is_vec_soft_eq(helper, "weight", expected.weight, actual.weight);
+    is_vec_eq(helper, "track_id", expected.track_id, actual.track_id);
+    is_vec_eq(helper, "parent_id", expected.parent_id, actual.parent_id);
     is_vec_soft_eq(
-        result, "pre_energy", expected.pre_energy, actual.pre_energy);
-    is_vec_soft_eq(result, "pre_time", expected.pre_time, actual.pre_time);
-    is_vec_soft_eq(result, "pre_pos", expected.pre_pos, actual.pre_pos);
-    is_vec_soft_eq(result, "pre_dir", expected.pre_dir, actual.pre_dir);
-    is_vec_eq(result, "pre_physvol", expected.pre_physvol, actual.pre_physvol);
-    is_vec_soft_eq(result, "post_time", expected.post_time, actual.post_time);
+        helper, "pre_energy", expected.pre_energy, actual.pre_energy);
+    is_vec_soft_eq(helper, "pre_time", expected.pre_time, actual.pre_time);
+    is_vec_soft_eq(helper, "pre_pos", expected.pre_pos, actual.pre_pos);
+    is_vec_soft_eq(helper, "pre_dir", expected.pre_dir, actual.pre_dir);
+    is_vec_eq(helper, "pre_physvol", expected.pre_physvol, actual.pre_physvol);
+    is_vec_soft_eq(helper, "post_time", expected.post_time, actual.post_time);
     is_vec_soft_eq(
-        result, "post_energy", expected.post_energy, actual.post_energy);
-    is_vec_soft_eq(result, "post_pos", expected.post_pos, actual.post_pos);
-    is_vec_soft_eq(result, "post_dir", expected.post_dir, actual.post_dir);
+        helper, "post_energy", expected.post_energy, actual.post_energy);
+    is_vec_soft_eq(helper, "post_pos", expected.post_pos, actual.post_pos);
+    is_vec_soft_eq(helper, "post_dir", expected.post_dir, actual.post_dir);
     is_vec_eq(
-        result, "post_physvol", expected.post_physvol, actual.post_physvol);
-    is_vec_eq(result, "post_status", expected.post_status, actual.post_status);
+        helper, "post_physvol", expected.post_physvol, actual.post_physvol);
+    is_vec_eq(helper, "post_status", expected.post_status, actual.post_status);
 }
 
 //---------------------------------------------------------------------------//

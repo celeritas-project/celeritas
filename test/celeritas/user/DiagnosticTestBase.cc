@@ -51,8 +51,7 @@ std::ostream& operator<<(std::ostream& os,
 
 void check_ref_eq(AssertionHelper& helper,
                   DiagnosticTestBase::RunResult const& expected,
-                  DiagnosticTestBase::RunResult const& actual,
-                  std::nullptr_t)
+                  DiagnosticTestBase::RunResult const& actual)
 {
     is_vec_eq(helper,
               "nonzero_action_keys",

@@ -80,8 +80,7 @@ std::ostream& operator<<(std::ostream& os, GeantImportVolumeResult const& ref)
 
 void check_ref_eq(AssertionHelper& helper,
                   GeantImportVolumeResult const& expected,
-                  GeantImportVolumeResult const& actual,
-                  std::nullptr_t)
+                  GeantImportVolumeResult const& actual)
 {
     is_vec_eq(helper, "volumes", expected.volumes, actual.volumes);
     is_vec_eq(helper,

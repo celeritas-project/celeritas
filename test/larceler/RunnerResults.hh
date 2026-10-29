@@ -43,8 +43,7 @@ struct RunResult
 
 void check_ref_eq(AssertionHelper& helper,
                   RunResult const& expected,
-                  RunResult const& actual,
-                  std::nullptr_t);
+                  RunResult const& actual);
 
 //---------------------------------------------------------------------------//
 struct DepHitResult
@@ -67,8 +66,7 @@ struct DepHitResult
 
 void check_ref_eq(AssertionHelper& helper,
                   DepHitResult const& expected,
-                  DepHitResult const& actual,
-                  std::nullptr_t);
+                  DepHitResult const& actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

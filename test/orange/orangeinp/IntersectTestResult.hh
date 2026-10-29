@@ -53,8 +53,7 @@ struct IntersectTestResult
 // Compare with EXPECT_REF_EQ
 void check_ref_eq(::celeritas::test::AssertionHelper& helper,
                   IntersectTestResult const& expected,
-                  IntersectTestResult const& actual,
-                  std::nullptr_t);
+                  IntersectTestResult const& actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

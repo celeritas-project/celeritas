@@ -96,13 +96,7 @@ struct GenericGeoTrackingTolerance
 void check_ref_eq(AssertionHelper& helper,
                   GenericGeoTrackingResult const& expected,
                   GenericGeoTrackingResult const& actual,
-                  GenericGeoTrackingTolerance const& tol);
-
-//! Compare tracking results with default tolerance
-void check_ref_eq(AssertionHelper& helper,
-                  GenericGeoTrackingResult const& expected,
-                  GenericGeoTrackingResult const& actual,
-                  std::nullptr_t);
+                  GenericGeoTrackingTolerance const& tol = {});
 
 //---------------------------------------------------------------------------//
 // STACK RESULT
@@ -129,8 +123,7 @@ struct GenericGeoVolumeStackResult
 
 void check_ref_eq(AssertionHelper& helper,
                   GenericGeoVolumeStackResult const& expected,
-                  GenericGeoVolumeStackResult const& actual,
-                  std::nullptr_t);
+                  GenericGeoVolumeStackResult const& actual);
 
 //---------------------------------------------------------------------------//
 // MODEL INPUT RESULT
@@ -168,8 +161,7 @@ struct GenericGeoModelInp
 
 void check_ref_eq(AssertionHelper& helper,
                   GenericGeoModelInp const& expected,
-                  GenericGeoModelInp const& actual,
-                  std::nullptr_t);
+                  GenericGeoModelInp const& actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

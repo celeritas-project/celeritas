@@ -399,36 +399,36 @@ TEST_F(LarSphereGeneratorCountersTest, offload)
     generator->insert(*state, make_span(distributions));
 
     auto counts = this->run(params, *state);
-    // counts.print_expected();
+    // print_expected(counts);
 
-    CounterResult const expected_counts{
-        /* pending */ {200ul, 168ul, 137ul, 106ul, 74ul, 46ul, 16ul, 0ul},
-        /* generated */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
-        /* initializers */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
-        /* vacancies */ {32ul, 31ul, 31ul, 32ul, 28ul, 30ul, 31ul, 32ul},
-        /* active */ {0ul, 32ul, 32ul, 32ul, 32ul, 32ul, 32ul, 17ul},
-        /* secondaries */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
-        /* alive */ {0ul, 1ul, 1ul, 0ul, 4ul, 2ul, 1ul, 0ul},
-        /* cut */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
-        /* errored */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
-        /* gen */
+    CounterResult const ref{
+        /* pending = */ {200ul, 168ul, 137ul, 106ul, 74ul, 46ul, 16ul, 0ul},
+        /* generated = */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
+        /* initializers = */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
+        /* vacancies = */ {32ul, 31ul, 31ul, 32ul, 28ul, 30ul, 31ul, 32ul},
+        /* active = */ {0ul, 32ul, 32ul, 32ul, 32ul, 32ul, 32ul, 17ul},
+        /* secondaries = */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
+        /* alive = */ {0ul, 1ul, 1ul, 0ul, 4ul, 2ul, 1ul, 0ul},
+        /* cut = */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
+        /* errored = */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
+        /* gen = */
         {
             {"generate",
              {
-                 /* buffer_size */ {5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 0ul},
-                 /* pending */ {0ul, 168ul, 137ul, 106ul, 74ul, 46ul, 16ul, 0ul},
-                 /* generated */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
-                 /* accum_buffer_size */ {0ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul},
-                 /* accum_pending */
+                 /* buffer_size = */ {5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 0ul},
+                 /* pending = */ {0ul, 168ul, 137ul, 106ul, 74ul, 46ul, 16ul, 0ul},
+                 /* generated = */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
+                 /* accum_buffer_size = */ {0ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul},
+                 /* accum_pending = */
                  {0ul, 200ul, 200ul, 200ul, 200ul, 200ul, 200ul, 200ul},
-                 /* accum_generated */
+                 /* accum_generated = */
                  {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
              }},
         },
     };
     if (Test::is_reference_rng)
     {
-        EXPECT_REF_EQ(expected_counts, counts);
+        EXPECT_REF_EQ(ref, counts);
     }
 }
 

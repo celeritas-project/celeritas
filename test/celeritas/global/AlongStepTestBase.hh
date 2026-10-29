@@ -74,10 +74,8 @@ class AlongStepTestBase : virtual public GlobalTestBase
         std::string action;  //!< Most likely action to take next
 
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
-        friend void check_ref_eq(AssertionHelper&,
-                                 RunResult const&,
-                                 RunResult const&,
-                                 std::nullptr_t);
+        friend void check_ref_eq(
+            AssertionHelper&, RunResult const&, RunResult const&);
     };
 
     RunResult run(Input const&, size_type num_tracks = 1);

@@ -34,8 +34,7 @@ bool is_ref_eq(AssertionHelper& helper,
 template<class T>
 void check_ref_eq(AssertionHelper& helper,
                   BoundingBox<T> const& expected,
-                  BoundingBox<T> const& actual,
-                  std::nullptr_t)
+                  BoundingBox<T> const& actual)
 {
     (void)is_ref_eq(helper, "BoundingBox", expected, actual, nullptr);
 }

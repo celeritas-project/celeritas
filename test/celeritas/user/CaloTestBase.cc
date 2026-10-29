@@ -57,15 +57,6 @@ std::ostream& operator<<(std::ostream& os, CaloTestBase::RunResult const& ref)
 void check_ref_eq(AssertionHelper& helper,
                   CaloTestBase::RunResult const& expected,
                   CaloTestBase::RunResult const& actual,
-                  std::nullptr_t)
-{
-    check_ref_eq(
-        helper, expected, actual, CaloTestBase::RunResult::Tolerance{});
-}
-
-void check_ref_eq(AssertionHelper& helper,
-                  CaloTestBase::RunResult const& expected,
-                  CaloTestBase::RunResult const& actual,
                   CaloTestBase::RunResult::Tolerance const& tol)
 {
     is_vec_soft_eq(helper, "edep", expected.edep, actual.edep, tol.edep);

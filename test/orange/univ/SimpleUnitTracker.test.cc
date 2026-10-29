@@ -66,18 +66,17 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
                       << result.failed << '}';
         }
 
-        friend void check_ref_eq(AssertionHelper& result,
+        friend void check_ref_eq(AssertionHelper& helper,
                                  HeuristicInitResult const& val1,
-                                 HeuristicInitResult const& val2,
-                                 std::nullptr_t)
+                                 HeuristicInitResult const& val2)
         {
             using namespace ::celeritas::test;
-            is_vec_soft_eq(result,
+            is_vec_soft_eq(helper,
                            "vol_fractions",
                            val1.vol_fractions,
                            val2.vol_fractions);
             is_soft_eq(
-                result, val1.failed, val2.failed, SoftComparator_t<double>());
+                helper, val1.failed, val2.failed, SoftComparator_t<double>());
         }
     };
 

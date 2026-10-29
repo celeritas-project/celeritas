@@ -110,17 +110,16 @@ std::ostream& operator<<(std::ostream& os, SampleResult const& result)
               << CELER_ATTR_REPR(result, sec_e) << '}';
 }
 
-void check_ref_eq(AssertionHelper& result,
+void check_ref_eq(AssertionHelper& helper,
                   SampleResult const& val1,
-                  SampleResult const& val2,
-                  std::nullptr_t)
+                  SampleResult const& val2)
 {
     is_vec_soft_eq(
-        result, "inc_exit_cost", val1.inc_exit_cost, val2.inc_exit_cost);
-    is_vec_soft_eq(result, "inc_exit_e", val1.inc_exit_e, val2.inc_exit_e);
-    is_vec_soft_eq(result, "inc_edep", val1.inc_edep, val2.inc_edep);
-    is_vec_soft_eq(result, "sec_cost", val1.sec_cost, val2.sec_cost);
-    is_vec_soft_eq(result, "sec_e", val1.sec_e, val2.sec_e);
+        helper, "inc_exit_cost", val1.inc_exit_cost, val2.inc_exit_cost);
+    is_vec_soft_eq(helper, "inc_exit_e", val1.inc_exit_e, val2.inc_exit_e);
+    is_vec_soft_eq(helper, "inc_edep", val1.inc_edep, val2.inc_edep);
+    is_vec_soft_eq(helper, "sec_cost", val1.sec_cost, val2.sec_cost);
+    is_vec_soft_eq(helper, "sec_e", val1.sec_e, val2.sec_e);
 }
 
 //---------------------------------------------------------------------------//

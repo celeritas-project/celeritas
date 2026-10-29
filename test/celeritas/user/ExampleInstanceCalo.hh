@@ -48,7 +48,7 @@ class ExampleInstanceCalo final : public StepInterface
 
         friend std::ostream& operator<<(std::ostream&, Result const&);
         friend void check_ref_eq(
-            AssertionHelper&, Result const&, Result const&, std::nullptr_t);
+            AssertionHelper&, Result const&, Result const&);
     };
 
   public:

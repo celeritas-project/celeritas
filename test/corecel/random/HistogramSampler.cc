@@ -29,15 +29,13 @@ std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh)
 bool check_ref_eq(AssertionHelper& helper,
                   SampledHistogram const& val1,
                   SampledHistogram const& val2,
-                  std::nullptr_t)
+                  double tol)
 {
     bool result = is_vec_soft_eq(
-        helper, "distribution", val1.distribution, val2.distribution);
-    if (!soft_equal(val1.rng_count, val2.rng_count))
+        helper, "distribution", val1.distribution, val2.distribution, tol);
+    if (!is_soft_eq(helper, val1.rng_count, val2.rng_count, {tol}))
     {
-        helper.fail() << "  rng_count: " << val1.rng_count
-                      << " != " << val2.rng_count;
-        result = false;
+        return false;
     }
     return result;
 }

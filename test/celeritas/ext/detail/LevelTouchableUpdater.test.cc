@@ -49,8 +49,7 @@ struct TestResult
 
     friend void check_ref_eq(::celeritas::test::AssertionHelper& helper,
                              TestResult const& expected,
-                             TestResult const& actual,
-                             std::nullptr_t)
+                             TestResult const& actual)
     {
         using namespace ::celeritas::test;
         is_vec_soft_eq(helper, "coords", expected.coords, actual.coords);

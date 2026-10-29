@@ -487,26 +487,26 @@ struct Foo
         int val{0};
     };
 
-    friend bool check_ref_eq(::celeritas::test::AssertionHelper& result,
+    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
                              Foo const& val1,
                              Foo const& val2,
                              Tol const& tol)
     {
         if (std::abs(val1.val - val2.val) >= tol.val)
         {
-            result.fail() << "  foo: " << val1.val << " != " << val2.val
-                          << " within " << result.tol_expr() << " (" << tol.val
+            helper.fail() << "  foo: " << val1.val << " != " << val2.val
+                          << " within " << helper.tol_expr() << " (" << tol.val
                           << ")";
             return true;
         }
         return false;
     }
-    friend bool check_ref_eq(::celeritas::test::AssertionHelper& result,
+    // NOTE: this overload is necessary because `Tol` is a nested class.
+    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
                              Foo const& val1,
-                             Foo const& val2,
-                             nullptr_t)
+                             Foo const& val2)
     {
-        return check_ref_eq(result, val1, val2, Tol{});
+        return check_ref_eq(helper, val1, val2, Tol{});
     }
 };
 

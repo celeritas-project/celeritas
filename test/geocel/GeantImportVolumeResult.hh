@@ -38,8 +38,7 @@ struct GeantImportVolumeResult
                                     GeantImportVolumeResult const&);
     friend void check_ref_eq(AssertionHelper&,
                              GeantImportVolumeResult const&,
-                             GeantImportVolumeResult const&,
-                             std::nullptr_t);
+                             GeantImportVolumeResult const&);
 };
 
 //---------------------------------------------------------------------------//

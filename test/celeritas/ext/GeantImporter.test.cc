@@ -89,17 +89,16 @@ class GeantImporterTest : public GeantTestBase
                       << CELER_ATTR_REPR(ref, models) << '}';
         }
 
-        friend void check_ref_eq(AssertionHelper& result,
+        friend void check_ref_eq(AssertionHelper& helper,
                                  ImportSummary const& expected,
-                                 ImportSummary const& actual,
-                                 std::nullptr_t)
+                                 ImportSummary const& actual)
         {
             using namespace ::celeritas::test;
             is_vec_eq(
-                result, "particles", expected.particles, actual.particles);
+                helper, "particles", expected.particles, actual.particles);
             is_vec_eq(
-                result, "processes", expected.processes, actual.processes);
-            is_vec_eq(result, "models", expected.models, actual.models);
+                helper, "processes", expected.processes, actual.processes);
+            is_vec_eq(helper, "models", expected.models, actual.models);
         }
     };
 
@@ -119,15 +118,14 @@ class GeantImporterTest : public GeantTestBase
                       << CELER_ATTR_REPR(ref, xs) << '}';
         }
 
-        friend void check_ref_eq(AssertionHelper& result,
+        friend void check_ref_eq(AssertionHelper& helper,
                                  ImportXsSummary const& expected,
-                                 ImportXsSummary const& actual,
-                                 std::nullptr_t)
+                                 ImportXsSummary const& actual)
         {
             using namespace ::celeritas::test;
-            is_vec_eq(result, "size", expected.size, actual.size);
-            is_vec_soft_eq(result, "energy", expected.energy, actual.energy);
-            is_vec_soft_eq(result, "xs", expected.xs, actual.xs);
+            is_vec_eq(helper, "size", expected.size, actual.size);
+            is_vec_soft_eq(helper, "energy", expected.energy, actual.energy);
+            is_vec_soft_eq(helper, "xs", expected.xs, actual.xs);
         }
     };
 

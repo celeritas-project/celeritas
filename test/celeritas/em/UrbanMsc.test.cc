@@ -222,8 +222,7 @@ struct StepLimitResult
     }
     friend void check_ref_eq(::celeritas::test::AssertionHelper& helper,
                              StepLimitResult const& expected,
-                             StepLimitResult const& actual,
-                             std::nullptr_t)
+                             StepLimitResult const& actual)
     {
         return check_ref_eq(helper, expected, actual, UrbanMscTest::fine_eps);
     }

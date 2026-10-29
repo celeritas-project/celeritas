@@ -185,8 +185,7 @@ std::ostream& operator<<(std::ostream& os,
 
 void check_ref_eq(AssertionHelper& helper,
                   StepperTestBase::SetupCheckResult const& expected,
-                  StepperTestBase::SetupCheckResult const& actual,
-                  std::nullptr_t)
+                  StepperTestBase::SetupCheckResult const& actual)
 {
     is_vec_eq(helper, "processes", expected.processes, actual.processes);
     is_vec_eq(helper, "actions", expected.actions, actual.actions);
@@ -204,8 +203,7 @@ std::ostream& operator<<(std::ostream& os,
 
 void check_ref_eq(AssertionHelper& helper,
                   StepperTestBase::RunResult const& expected,
-                  StepperTestBase::RunResult const& actual,
-                  std::nullptr_t)
+                  StepperTestBase::RunResult const& actual)
 {
     is_vec_eq(helper, "active", expected.active, actual.active);
     is_vec_eq(helper, "queued", expected.queued, actual.queued);

@@ -70,8 +70,7 @@ struct RunResult
 
     friend void check_ref_eq(AssertionHelper& helper,
                              RunResult const& expected,
-                             RunResult const& actual,
-                             std::nullptr_t)
+                             RunResult const& actual)
     {
         using namespace ::celeritas::test;
         is_vec_eq(helper, "track_ids", expected.track_ids, actual.track_ids);

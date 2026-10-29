@@ -162,8 +162,7 @@ std::ostream& operator<<(std::ostream& os,
 
 void check_ref_eq(AssertionHelper& helper,
                   AlongStepTestBase::RunResult const& expected,
-                  AlongStepTestBase::RunResult const& actual,
-                  std::nullptr_t)
+                  AlongStepTestBase::RunResult const& actual)
 {
     auto const comp = SoftComparator_t<real_type>();
     is_soft_eq(helper, expected.eloss, actual.eloss, comp);

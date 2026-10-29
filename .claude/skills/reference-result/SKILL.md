@@ -67,13 +67,15 @@ class in the main namespace; callers may need
 
 Implement comparison once, using the existing dispatcher and field helpers:
 
-- `EXPECT_REF_EQ` dispatches with `std::nullptr_t`; `EXPECT_REF_NEAR` dispatches
-  with the supplied tolerance. Do not add result-specific `IsRefEq` overloads.
+- `EXPECT_REF_EQ` dispatches to a three-argument `check_ref_eq`;
+  `EXPECT_REF_NEAR` dispatches with the supplied tolerance. Do not add
+  result-specific `IsRefEq` overloads.
 - For a nestable result, define `is_ref_eq` and have the friend `check_ref_eq`
   delegate to it. If there is no custom tolerance, provide only the
-  `std::nullptr_t` policy and matching friend. If there is a tolerance, provide
-  its policy and let the `std::nullptr_t` form forward with the default
-  tolerance.
+  three-argument friend. If there is a tolerance, provide the four-argument
+  comparison and a three-argument overload that forwards with the default
+  tolerance. A default argument on the tolerance parameter is also suitable
+  when the declaration context allows it.
 - For field-specific semantics, implement `check_ref_eq` field by field.
   Forward the no-tolerance overload to the default tolerance overload when
   needed, rather than duplicating comparisons. Pass tolerance members directly
@@ -89,7 +91,7 @@ Implement comparison once, using the existing dispatcher and field helpers:
 - Define small test-local results at namespace scope with inline friend
   definitions; local classes cannot define friend functions. Put substantial or
   shared definitions in the owning helper source. Include `AssertionHelper.hh`
-  where a complete type is needed and `<cstddef>` for `std::nullptr_t`.
+  where a complete type is needed.
 
 Provide printable output:
 

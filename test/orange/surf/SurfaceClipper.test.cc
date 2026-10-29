@@ -36,8 +36,7 @@ struct ClipResult
 
     friend void check_ref_eq(AssertionHelper& helper,
                              ClipResult const& expected,
-                             ClipResult const& actual,
-                             std::nullptr_t)
+                             ClipResult const& actual)
     {
         is_ref_eq(helper, "i", expected.i, actual.i, nullptr);
         is_ref_eq(helper, "x", expected.x, actual.x, nullptr);
