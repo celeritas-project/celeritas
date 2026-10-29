@@ -124,7 +124,7 @@ template<class VE, class VA>
                static_cast<common_type>(expected),
                static_cast<common_type>(actual),
                SoftComparator_t<common_type>());
-    return std::move(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -147,7 +147,7 @@ template<class VE, class VA, class T>
                static_cast<common_type>(expected),
                static_cast<common_type>(actual),
                SoftComparator_t<common_type>(std::forward<T>(cmp_or_tol)));
-    return std::move(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
