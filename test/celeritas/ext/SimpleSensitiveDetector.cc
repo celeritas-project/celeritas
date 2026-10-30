@@ -22,8 +22,8 @@
 #include "celeritas/ext/GeantStepView.hh"
 #include "celeritas/ext/GeantTrackView.hh"
 
+#include "Comparer.hh"
 #include "TestMacros.hh"
-#include "testdetail/TestMacrosImpl.hh"
 
 using std::cout;
 
@@ -31,44 +31,6 @@ namespace celeritas
 {
 namespace test
 {
-namespace
-{
-template<class T>
-class Comparer
-{
-  public:
-    Comparer(AssertionHelper& helper, T const& expected, T const& actual)
-        : helper_{helper}, expected_{expected}, actual_{actual}
-    {
-    }
-
-    template<class M>
-    bool is_soft_eq(char const* attr, M T::* member) const
-    {
-        // Geant4 reference data is double precision, but Celeritas may use
-        // 32-bit real values.
-        constexpr auto tol
-            = static_cast<double>(SoftEqual<celeritas::real_type>{}.rel());
-        return celeritas::test::is_vec_soft_eq(
-            helper_, attr, expected_.*member, actual_.*member, tol);
-    }
-
-    template<class M>
-    bool is_vec_soft_eq(char const* attr, M T::* member) const
-    {
-        return celeritas::test::is_vec_eq(
-            helper_, attr, expected_.*member, actual_.*member);
-    }
-
-  private:
-    AssertionHelper& helper_;
-    T const& expected_;
-    T const& actual_;
-};
-}  // namespace
-
-#define CELER_INVOKE_ATTR(func, type, attr) func(#attr, &type::attr)
-
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
 {
@@ -97,25 +59,27 @@ void check_ref_eq(AssertionHelper& helper,
                   SimpleHitsResult const& actual)
 {
     Comparer<SimpleHitsResult> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, energy_deposition);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, step_length);
-    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, particle);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, weight);
-    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, track_id);
-    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, parent_id);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_energy);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_time);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_pos);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_dir);
-    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, pre_physvol);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_time);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_energy);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_pos);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_dir);
-    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, post_physvol);
-    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, post_status);
+    constexpr auto tol
+        = static_cast<double>(SoftEqual<celeritas::real_type>{}.rel());
+    CELER_INVOKE_ATTR(
+        compare.is_soft_eq, SimpleHitsResult, energy_deposition, tol);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, step_length, tol);
+    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, particle);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, weight, tol);
+    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, track_id);
+    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, parent_id);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_energy, tol);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_time, tol);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_pos, tol);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_dir, tol);
+    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, pre_physvol);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_time, tol);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_energy, tol);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_pos, tol);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_dir, tol);
+    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, post_physvol);
+    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, post_status);
 }
-#undef CELER_INVOKE_ATTR
 
 //---------------------------------------------------------------------------//
 SimpleSensitiveDetector::SimpleSensitiveDetector(std::string const& name)

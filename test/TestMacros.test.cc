@@ -8,10 +8,12 @@
 
 #include <limits>
 #include <string>
+#include <vector>
 
 #include "corecel/cont/Array.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
 
+#include "Comparer.hh"
 #include "celeritas_test.hh"
 #include "testdetail/TestMacrosImpl.hh"
 
@@ -32,6 +34,12 @@ struct PrintableTestResult
     static constexpr char class_str[] = "PrintableTestResult";
 
     int value{};
+};
+
+struct ComparerTestResult
+{
+    std::vector<int> ids;
+    std::vector<double> distances;
 };
 
 std::ostream& operator<<(std::ostream& os, PrintableTestResult const& result)
@@ -106,6 +114,27 @@ TEST(AssertionHelper, vector_soft_tolerance)
     ::testing::AssertionResult const& result = rejected;
     EXPECT_NE(std::string(result.message()).find("distances"),
               std::string::npos);
+}
+
+TEST(Comparer, invoke_attribute)
+{
+    ComparerTestResult const expected{{1, 2}, {1.0}};
+    ComparerTestResult const actual_default{{1, 2}, {1.0 + 1e-13}};
+    ComparerTestResult const actual_tolerant{{1, 2}, {1.01}};
+
+    AssertionHelper helper{"expected", "actual"};
+    Comparer<ComparerTestResult> compare_default{
+        helper, expected, actual_default};
+    EXPECT_TRUE(
+        CELER_INVOKE_ATTR(compare_default.is_eq, ComparerTestResult, ids));
+    EXPECT_TRUE(CELER_INVOKE_ATTR(
+        compare_default.is_soft_eq, ComparerTestResult, distances));
+
+    AssertionHelper tolerant_helper{"expected", "actual"};
+    Comparer<ComparerTestResult> compare_tolerant{
+        tolerant_helper, expected, actual_tolerant};
+    EXPECT_TRUE(CELER_INVOKE_ATTR(
+        compare_tolerant.is_soft_eq, ComparerTestResult, distances, 0.02));
 }
 }  // namespace test
 

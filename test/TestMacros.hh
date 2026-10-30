@@ -62,6 +62,16 @@ using ::celeritas::testdetail::print_expected;
         #ATTR, REF.ATTR \
     }
 
+//! Invoke an attribute comparison with an optional tolerance
+#define CELER_INVOKE_ATTR_3(func, type, attr) func(#attr, &type::attr)
+#define CELER_INVOKE_ATTR_4(func, type, attr, tol) \
+    func(#attr, &type::attr, tol)
+#define CELER_INVOKE_ATTR_IMPL(_1, _2, _3, _4, NAME, ...) NAME
+#define CELER_INVOKE_ATTR(...) \
+    CELER_INVOKE_ATTR_IMPL( \
+        __VA_ARGS__, CELER_INVOKE_ATTR_4, CELER_INVOKE_ATTR_3, unused)( \
+        __VA_ARGS__)
+
 //! JSON string equality (soft equal for floats)
 #define EXPECT_JSON_EQ(expected, actual) \
     EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsJsonEq, expected, actual)
