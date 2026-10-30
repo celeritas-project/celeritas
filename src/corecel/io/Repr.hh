@@ -18,17 +18,17 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 template<class T, std::size_t N>
-detail::ReprContainer<T const*> repr(Array<T, N> const& obj)
+auto repr(Array<T, N> const& obj)
 {
     auto const* data = obj.data();
-    return {data, data + N, N > 8};
+    return detail::ReprContainer<T const*>{data, data + N, N > 8};
 }
 
 //---------------------------------------------------------------------------//
 template<class T, std::size_t Extent>
 auto repr(Span<T, Extent> const& obj)
 {
-    return detail::ReprContainer{obj.begin(), obj.end()};
+    return detail::ReprContainer<T*>{obj.begin(), obj.end(), obj.size() > 8};
 }
 
 }  // namespace celeritas
