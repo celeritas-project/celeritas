@@ -25,14 +25,13 @@ namespace celeritas
  *
  * This provides a uniform interface to G4StepPoint data using Celeritas types
  * and units. Geant4 data are all in double precision.
- *
- * \sa
  */
 class GeantStepPointView
 {
   public:
     //!@{
     //! \name Type aliases
+    using real_type = double;
     using Energy = units::ClhepEnergy;
     using Length = lengthunits::ClhepLength;
     using Time = units::ClhepTime;

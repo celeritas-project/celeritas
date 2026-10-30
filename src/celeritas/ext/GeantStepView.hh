@@ -22,7 +22,6 @@ namespace celeritas
  *
  * This provides a uniform, lossless interface to \c G4Step data using
  * Celeritas type and unit helper classes.
- * and units.
  *
  * \sa GeantStepPointView
  * \sa GeantTrackView
@@ -44,9 +43,9 @@ class GeantStepView
   public:
     //!@{
     //! \name Type aliases
+    using real_type = double;
     using Energy = units::ClhepEnergy;
     using Length = lengthunits::ClhepLength;
-    using real_type = double;
     //!@}
 
   public:

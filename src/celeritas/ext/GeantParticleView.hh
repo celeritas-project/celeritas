@@ -28,11 +28,11 @@ class GeantParticleView
   public:
     //!@{
     //! \name Type aliases
+    using real_type = double;
     using Charge = Quantity<units::EElectron, double>;
     using Mass = Quantity<units::MevPerCsq, double>;
     using Energy = units::ClhepEnergy;
     using InvTime = Quantity<UnitInverse<units::Nanosecond>, double>;
-    using real_type = double;
     //!@}
 
   public:
