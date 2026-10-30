@@ -131,6 +131,7 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/PhysicsParams.cc
+  optical/ResponseTallyData.cc
   optical/Runner.cc
   optical/SimParams.cc
   optical/Transporter.cc
@@ -419,6 +420,7 @@ celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/DetectorAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/PreStepAction)
+celeritas_polysource(optical/action/ResponseTallyAction)
 celeritas_polysource(optical/action/StepDiagnostic)
 celeritas_polysource(optical/action/TrackingCutAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
