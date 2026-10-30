@@ -11,11 +11,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Quantity.hh"
-#include "geocel/g4/Convert.hh"
+#include "geocel/g4/Convert.hh"  // IWYU pragma: keep
+#include "celeritas/Quantities.hh"
 #include "celeritas/UnitTypes.hh"
 
 #include "GeantParticleView.hh"
-#include "GeantUnits.hh"
 
 namespace celeritas
 {
@@ -25,6 +25,8 @@ namespace celeritas
  *
  * This provides a uniform interface to G4StepPoint data using Celeritas types
  * and units. Geant4 data are all in double precision.
+ *
+ * \sa
  */
 class GeantStepPointView
 {
@@ -35,7 +37,9 @@ class GeantStepPointView
     using Length = lengthunits::ClhepLength;
     using Time = units::ClhepTime;
     using Speed = Quantity<units::CLight, double>;
-    using real_type = double;
+
+    using Length3 = Array<Length, 3>;
+    using Real3 = Array<double, 3>;
     //!@}
 
   public:
@@ -46,10 +50,10 @@ class GeantStepPointView
     //! \name Accessors
 
     // Position in CLHEP length units (mm)
-    inline Array<Length, 3> pos() const;
+    inline Length3 pos() const;
 
     // Momentum direction (unit vector)
-    inline Array<double, 3> dir() const;
+    inline Real3 dir() const;
 
     // Kinetic energy [MeV]
     inline Energy energy() const;
@@ -68,10 +72,10 @@ class GeantStepPointView
     //! \name Mutators
 
     // Set position in CLHEP length units (mm)
-    inline void pos(Array<Length, 3> const& position);
+    inline void pos(Length3 const& position);
 
     // Set momentum direction (unit vector)
-    inline void dir(Array<double, 3> const& direction);
+    inline void dir(Real3 const& direction);
 
     // Set kinetic energy [MeV]
     inline void energy(Energy kinetic_energy);
@@ -109,7 +113,7 @@ class GeantStepPointView
 /*!
  * Get position in native Celeritas length units.
  */
-Array<GeantStepPointView::Length, 3> GeantStepPointView::pos() const
+GeantStepPointView::Length3 GeantStepPointView::pos() const
 {
     return make_quantity_array<Length>(to_array(sp_.GetPosition()));
 }
@@ -118,7 +122,7 @@ Array<GeantStepPointView::Length, 3> GeantStepPointView::pos() const
 /*!
  * Get momentum direction.
  */
-Array<double, 3> GeantStepPointView::dir() const
+GeantStepPointView::Real3 GeantStepPointView::dir() const
 {
     return to_array(sp_.GetMomentumDirection());
 }
@@ -156,7 +160,7 @@ GeantStepPointView::Speed GeantStepPointView::speed() const
 /*!
  * Set position in native Celeritas length units.
  */
-void GeantStepPointView::pos(Array<Length, 3> const& position)
+void GeantStepPointView::pos(Length3 const& position)
 {
     sp_.SetPosition(to_g4vector(value_as<Length>(position)));
 }
@@ -165,7 +169,7 @@ void GeantStepPointView::pos(Array<Length, 3> const& position)
 /*!
  * Set momentum direction.
  */
-void GeantStepPointView::dir(Array<double, 3> const& direction)
+void GeantStepPointView::dir(Real3 const& direction)
 {
     sp_.SetMomentumDirection(to_g4vector(direction));
 }
