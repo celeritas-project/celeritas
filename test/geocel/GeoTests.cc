@@ -375,10 +375,10 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
 
         // Find next boundary
         auto next = geo.find_next_step(from_cm(2.0));
-        EXPECT_SOFT_NEAR(1.0, to_cm(next.distance), 1e-5);
+        EXPECT_SOFT_NEAR(1.0_r, to_cm(next.distance), 1e-5_r);
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
-        EXPECT_SOFT_EQ(344.45, to_cm(geo.pos()[2]));
+        EXPECT_SOFT_EQ(344.45_r, to_cm(geo.pos()[2]));
         EXPECT_EQ("SPlate", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
         geo.cross_boundary();
@@ -387,14 +387,14 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
 
         // Suppose safety distance results in small step limit
         next = geo.find_next_step(from_cm(5e-9));
-        EXPECT_SOFT_EQ(5e-9, to_cm(next.distance));
+        EXPECT_SOFT_EQ(5e-9_r, to_cm(next.distance));
         geo.move_internal(from_cm(5e-9));
         EXPECT_EQ(GeoStatus::interior, geo.geo_status());
         EXPECT_EQ("HGTD", test_->volume_name(geo));
 
         // Should be able to continue stepping as normal
-        next = geo.find_next_step(from_cm(1e-6));
-        EXPECT_SOFT_EQ(1e-6, to_cm(next.distance));
+        next = geo.find_next_step(from_cm(1e-6_r));
+        EXPECT_SOFT_EQ(1e-6_r, to_cm(next.distance));
         EXPECT_FALSE(next.boundary);
         EXPECT_EQ(GeoStatus::interior, geo.geo_status());
         EXPECT_EQ("HGTD", test_->volume_name(geo));
@@ -411,7 +411,7 @@ void CmsEeBackDeeGeoTest::test_accessors() const
     auto expected_bbox = calc_expected_bbox(
         test_->geometry_type(), {0., -177.5, 359.5}, {177.5, 177.5, 399.6});
     auto const& bbox = geo.bbox();
-    EXPECT_VEC_NEAR(expected_bbox.lower(), to_cm(bbox.lower()), 1e-10);
+    EXPECT_VEC_NEAR(expected_bbox.lower(), to_cm(bbox.lower()), 1e-10_r);
     EXPECT_VEC_SOFT_EQ(expected_bbox.upper(), to_cm(bbox.upper()));
 }
 
@@ -585,15 +585,15 @@ void FourLevelsGeoTest::test_consecutive_compute() const
 
     auto next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), 1e-5);
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), 1e-5_r);
 
     next = geo.find_next_step(from_cm(10.0));
     EXPECT_SOFT_EQ(4.0, to_cm(next.distance));
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), 1e-5);
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), 1e-5_r);
 
     // Find safety from a freshly initialized state
     geo = {from_cm({-9, -10, -10}), {1, 0, 0}};
-    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), 1e-5);
+    EXPECT_SOFT_NEAR(4.0, to_cm(geo.find_safety()), 1e-5_r);
 }
 
 //---------------------------------------------------------------------------//
@@ -765,7 +765,7 @@ void FourLevelsGeoTest::test_reentrant() const
     // Exit the sphere after the opposite-direction bump
     geo.set_dir({1, 0, 0});
     ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1)));
-    EXPECT_LE(next.distance, from_cm(1e-5));
+    EXPECT_LE(next.distance, from_cm(1e-5_r));
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     if (geo.check_normal())
@@ -2936,7 +2936,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     geo.set_dir({-1, 0, 0});
     next = geo.find_next_step(from_cm(1000));
     EXPECT_TRUE(next.boundary);
-    EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
+    EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4_r);
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     if (geo.check_normal())
@@ -3179,7 +3179,7 @@ void TwoBoxesGeoTest::test_substep_retry() const
         geo.set_dir(dir);
         auto next = geo.find_next_step(from_cm(1.0));
         EXPECT_TRUE(next.boundary);
-        EXPECT_LT(to_cm(next.distance), 1e-6);
+        EXPECT_LT(to_cm(next.distance), 1e-6_r);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_EQ("world", test_->volume_name(geo));
     }
@@ -3211,7 +3211,7 @@ void TwoBoxesGeoTest::test_substep_retry_backscatter() const
     auto geo = this->approach_with_substeps();
 
     // Scattering on the boundary points the track back inside
-    geo.set_dir({-dx, dx, 0});
+    geo.set_dir({-dx, dx, 0_r});
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("inner", test_->volume_name(geo));
 
@@ -3238,7 +3238,7 @@ void TwoBoxesGeoTest::test_substep_retry_backscatter() const
     else
     {
         // Reentrant/zero distance/bump for VecGeom
-        EXPECT_LT(to_cm(next.distance), 1e-5);
+        EXPECT_LT(to_cm(next.distance), 1e-5_r);
     }
 }
 
@@ -3260,7 +3260,7 @@ void TwoBoxesGeoTest::test_tangent() const
     auto geo = test_->make_checked_track_view();
     {
         SCOPED_TRACE("in first volume");
-        geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
+        geo = test_->make_initializer({5_r - dx, dx, 0}, {dx, -dx, 0});
         ASSERT_FALSE(geo.is_outside());
         ASSERT_EQ(GeoStatus::interior, geo.geo_status());
         EXPECT_EQ("inner", test_->volume_name(geo));
@@ -3318,12 +3318,12 @@ void TwoBoxesGeoTest::test_tangent() const
         if ("inner" == test_->volume_name(geo))
         {
             // Typical case
-            EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
+            EXPECT_SOFT_EQ(10.0_r * dx, to_cm(next.distance));
         }
         else
         {
             // Reentrant/zero distance/bump for VecGeom
-            EXPECT_LT(to_cm(next.distance), 1e-5);
+            EXPECT_LT(to_cm(next.distance), 1e-5_r);
         }
         EXPECT_TRUE(next.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
@@ -3353,13 +3353,14 @@ void ZnenvGeoTest::test_trace() const
 {
     // NOTE: This tests the capability of the G4PVDivision conversion based on
     // an ALICE component
-    static char const* const expected_mid_volumes[] = {
+    GenericGeoTrackingResult ref;
+    ref.volumes = {
         "World", "ZNENV", "ZNST", "ZNST",  "ZNST",  "ZNST", "ZNST",
         "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST",  "ZNST", "ZNST",
         "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST",  "ZNST", "ZNST",
         "ZNST",  "ZNST",  "ZNST", "ZNENV", "World",
     };
-    static real_type const expected_mid_distances[] = {
+    ref.distances = {
         6.38, 0.1,  0.32, 0.32, 0.32, 0.32, 0.32, 0.32,  0.32,
         0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,  0.32,
         0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.1,  46.38,
@@ -3367,11 +3368,6 @@ void ZnenvGeoTest::test_trace() const
     {
         auto result = test_->track({-10, 0.0001, 0}, {1, 0, 0});
 
-        GenericGeoTrackingResult ref;
-        ref.volumes.assign(std::begin(expected_mid_volumes),
-                           std::end(expected_mid_volumes));
-        ref.distances.assign(std::begin(expected_mid_distances),
-                             std::end(expected_mid_distances));
         ref.volume_instances = {
             "World_PV",   "WorldBoxPV", "ZNST_PV@0", "ZNST_PV@1",
             "ZNST_PV@2",  "ZNST_PV@3",  "ZNST_PV@4", "ZNST_PV@5",
@@ -3386,7 +3382,6 @@ void ZnenvGeoTest::test_trace() const
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
         };
-        ref.bumps = {};
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
@@ -3395,11 +3390,6 @@ void ZnenvGeoTest::test_trace() const
     {
         auto result = test_->track({0.0001, -10, 0}, {0, 1, 0});
 
-        GenericGeoTrackingResult ref;
-        ref.volumes.assign(std::begin(expected_mid_volumes),
-                           std::end(expected_mid_volumes));
-        ref.distances.assign(std::begin(expected_mid_distances),
-                             std::end(expected_mid_distances));
         ref.volume_instances = {
             "World_PV",  "WorldBoxPV", "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
             "ZNST_PV@0", "ZNST_PV@0",  "ZNST_PV@0", "ZNST_PV@0", "ZNST_PV@0",
@@ -3413,7 +3403,6 @@ void ZnenvGeoTest::test_trace() const
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4,  1e-4,
             1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 0.05, 23.19,
         };
-        ref.bumps = {};
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
