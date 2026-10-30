@@ -25,8 +25,11 @@ namespace optical
  * Tally optical photon detector hits on a grid of detector, x, y, z, and time.
  *
  * After the detector action has killed photons that reached a sensitive
- * detector, this action computes each hit's compressed bin ID (see \c
- * ResponseTallyView) and increments the per-stream hit count. Hits that lie
+ * detector, this action completes each hit's compressed bin ID (see \c
+ * ResponseTallyView) and increments the per-stream hit count. The spatial
+ * (x, y, z) part of the bin is that of the photon's \em starting point,
+ * which is saved by the companion \c ResponseTallyStartAction when the
+ * track is created; the detector and time are those of the hit. Hits that lie
  * outside the grids are discarded.
  *
  * At the end of the run, \c calc_counts reduces the hit counts over all
@@ -98,9 +101,58 @@ class ResponseTallyAction final : public OpticalStepActionInterface,
         return store_.params<MemSpace::host>();
     }
 
+    //! Access the storage
+    StoreT& store() const { return store_; }
+
   private:
     ActionId id_;
     mutable StoreT store_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Save the spatial bin of newly created photons for the response tally.
+ *
+ * This runs after track initialization and before the first step, so the
+ * photon is still at its emission point (for wavelength-shifted secondaries,
+ * the point where the secondary is emitted). It writes into the state of the
+ * \c ResponseTallyAction that owns the tally data.
+ */
+class ResponseTallyStartAction final : public OpticalStepActionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using SPTally = std::shared_ptr<ResponseTallyAction>;
+    //!@}
+
+  public:
+    // Construct with ID and the tally to fill
+    ResponseTallyStartAction(ActionId id, SPTally tally);
+
+    //!@{
+    //! \name StepAction interface
+
+    // Launch kernel with host data
+    void step(CoreParams const&, CoreStateHost&) const final;
+    // Launch kernel with device data
+    void step(CoreParams const&, CoreStateDevice&) const final;
+    //! ID of the action
+    ActionId action_id() const final { return id_; }
+    //! Short name for the action
+    std::string_view label() const final
+    {
+        return "optical-response-tally-start";
+    }
+    // Description of the action for user interaction
+    std::string_view description() const final;
+    //! Runs after initialization, before the first step
+    StepActionOrder order() const final { return StepActionOrder::user_start; }
+    //!@}
+
+  private:
+    ActionId id_;
+    SPTally tally_;
 };
 
 //---------------------------------------------------------------------------//

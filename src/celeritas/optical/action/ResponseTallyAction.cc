@@ -43,6 +43,8 @@ nlohmann::json grid_to_json(UniformGridData const& grid)
 }  // namespace
 
 //---------------------------------------------------------------------------//
+// RESPONSE_TALLY_ACTION
+//---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
  */
@@ -55,6 +57,10 @@ std::shared_ptr<ResponseTallyAction> ResponseTallyAction::make_and_insert(
         actions.next_id(), std::move(params), core.sizes().streams);
     actions.insert(result);
     out.insert(result);
+
+    // Also add the action that saves the starting bin of new tracks
+    actions.insert(
+        std::make_shared<ResponseTallyStartAction>(actions.next_id(), result));
     return result;
 }
 
@@ -176,6 +182,53 @@ void ResponseTallyAction::clear()
     apply_to_all_streams(store_,
                          [](auto& state) { fill(0_sz, &state.counts); });
 }
+
+//---------------------------------------------------------------------------//
+// RESPONSE_TALLY_START_ACTION
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with ID and the tally to fill.
+ */
+ResponseTallyStartAction::ResponseTallyStartAction(ActionId id, SPTally tally)
+    : id_(id), tally_(std::move(tally))
+{
+    CELER_EXPECT(id_);
+    CELER_EXPECT(tally_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a long description of the action.
+ */
+std::string_view ResponseTallyStartAction::description() const
+{
+    return "save the starting response tally bin of new optical photons";
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute action with host data.
+ */
+void ResponseTallyStartAction::step(CoreParams const& params,
+                                    CoreStateHost& state) const
+{
+    auto& store = tally_->store();
+    TrackSlotExecutor execute{
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::ResponseTallyStartExecutor{
+            store.params<MemSpace::native>(),
+            store.state<MemSpace::native>(state.stream_id(), state.size())}};
+    return launch_action(state, execute);
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void ResponseTallyStartAction::step(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

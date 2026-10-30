@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/OpaqueId.hh"
 #include "corecel/math/Atomics.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
@@ -21,14 +22,37 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Save the spatial bin of newly initialized tracks.
+ *
+ * This must execute after track initialization and before the first
+ * along-step, when a new track is in the \c initializing state and still at
+ * its starting position. For a secondary (e.g., wavelength shifted) photon,
+ * this is the point where the secondary is emitted. The detector and time
+ * parts of the bin are added by \c ResponseTallyExecutor when the track hits
+ * a detector.
+ */
+struct ResponseTallyStartExecutor
+{
+    NativeCRef<ResponseTallyParamsData> const params;
+    NativeRef<ResponseTallyStateData> const state;
+
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Accumulate detector hits into the response tally.
  *
  * A photon is scored if it was killed by the detector action this step: it
  * has \c killed status, is not in the middle of a boundary crossing, is
  * inside the geometry, and is in a volume mapped to a detector. These are the
  * same criteria used by \c DetectorExecutor to register a hit, so this must
- * execute \em after the detector action. The compressed bin ID is saved in
- * the per-track state, and the stream's bin count is atomically incremented.
+ * execute \em after the detector action. The detector and time of the hit
+ * complete the starting bin saved by \c ResponseTallyStartExecutor, and the
+ * stream's bin count is atomically incremented.
+ *
+ * The saved bin is cleared once a track has been scored, so a track can never
+ * be counted more than once.
  */
 struct ResponseTallyExecutor
 {
@@ -37,6 +61,26 @@ struct ResponseTallyExecutor
 
     inline CELER_FUNCTION void operator()(CoreTrackView const& track);
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Save the spatial bin of a newly initialized track.
+ */
+CELER_FUNCTION void ResponseTallyStartExecutor::operator()(
+    CoreTrackView const& track)
+{
+    CELER_EXPECT(params);
+    CELER_EXPECT(state);
+
+    if (track.sim().status() != TrackStatus::initializing)
+    {
+        return;
+    }
+
+    ResponseTallyView view(params);
+    state.bin_ids[track.track_slot_id()]
+        = view.start_bin(track.geometry().pos());
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -49,9 +93,6 @@ CELER_FUNCTION void ResponseTallyExecutor::operator()(
     CELER_EXPECT(state);
 
     using namespace celeritas::literals;
-
-    auto& bin = state.bin_ids[track.track_slot_id()];
-    bin = ResponseTallyView::invalid_bin();
 
     auto sim = track.sim();
     if (sim.status() != TrackStatus::killed)
@@ -75,11 +116,16 @@ CELER_FUNCTION void ResponseTallyExecutor::operator()(
         return;
     }
 
+    auto& start_bin = state.bin_ids[track.track_slot_id()];
     ResponseTallyView view(params);
-    bin = view.bin_id(detector_id.unchecked_get(), geo.pos(), sim.time());
-    if (bin != ResponseTallyView::invalid_bin())
+    auto bin = view.end_bin(start_bin, detector_id, sim.time());
+
+    // Always clear so the track cannot be scored twice
+    start_bin = nullid;
+
+    if (bin)
     {
-        atomic_add(&state.counts[ItemId<size_type>(bin)], 1_sz);
+        atomic_add(&state.counts[bin], 1_sz);
     }
 }
 

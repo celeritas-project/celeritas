@@ -31,8 +31,7 @@ void resize(ResponseTallyStateData<Ownership::value, M>* state,
     CELER_EXPECT(size > 0);
 
     resize(&state->bin_ids, size);
-    fill(ResponseTallyStateData<Ownership::value, M>::invalid_bin(),
-         &state->bin_ids);
+    fill(ResponseBinId{}, &state->bin_ids);
 
     resize(&state->counts, params.num_bins());
     fill(0_sz, &state->counts);

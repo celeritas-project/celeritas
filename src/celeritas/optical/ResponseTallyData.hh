@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
@@ -17,6 +18,10 @@ namespace celeritas
 {
 namespace optical
 {
+//---------------------------------------------------------------------------//
+//! Compressed (flattened) index of a {detector, x, y, z, time} tally bin
+using ResponseBinId = OpaqueId<struct ResponseBin_>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Shared data for tallying detector response on a regular spatial/time grid.
@@ -78,10 +83,15 @@ struct ResponseTallyParamsData
 /*!
  * Per-stream state data for the response tally.
  *
- * \c bin_ids has the compressed (flattened) bin ID of the last hit scored by
- * each track slot, or \c ResponseTallyStateData::invalid_bin() if the track
- * did not score. \c counts is the number of hits in each bin accumulated
- * over the stream's lifetime.
+ * \c bin_ids holds each track's \em partial bin ID: when the track is
+ * initialized, only the spatial (x, y, z) coordinates of its starting point
+ * are filled in, and the detector and time coordinates are zero. The
+ * detector and time contributions are added when the track hits a detector.
+ * An invalid ID means the track started outside the spatial grid and will
+ * not be scored.
+ *
+ * \c counts is the number of hits in each bin accumulated over the stream's
+ * lifetime.
  */
 template<Ownership W, MemSpace M>
 struct ResponseTallyStateData
@@ -89,22 +99,16 @@ struct ResponseTallyStateData
     //// TYPES ////
 
     template<class T>
-    using Items = Collection<T, W, M>;
+    using BinItems = Collection<T, W, M, ResponseBinId>;
     template<class T>
     using StateItems = StateCollection<T, W, M>;
 
     //// DATA ////
 
-    StateItems<size_type> bin_ids;
-    Items<size_type> counts;
+    StateItems<ResponseBinId> bin_ids;
+    BinItems<size_type> counts;
 
     //// METHODS ////
-
-    //! Bin ID indicating no hit
-    static CELER_CONSTEXPR_FUNCTION size_type invalid_bin()
-    {
-        return static_cast<size_type>(-1);
-    }
 
     //! Number of track slots
     CELER_FUNCTION size_type size() const { return bin_ids.size(); }

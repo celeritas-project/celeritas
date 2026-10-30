@@ -36,5 +36,23 @@ void ResponseTallyAction::step(CoreParams const& params,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Execute the start action with device data.
+ */
+void ResponseTallyStartAction::step(CoreParams const& params,
+                                    CoreStateDevice& state) const
+{
+    auto& store = tally_->store();
+    TrackSlotExecutor execute{
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::ResponseTallyStartExecutor{
+            store.params<MemSpace::native>(),
+            store.state<MemSpace::native>(state.stream_id(), state.size())}};
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(state, execute);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas
