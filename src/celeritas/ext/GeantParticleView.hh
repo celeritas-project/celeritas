@@ -14,8 +14,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "GeantUnits.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -30,11 +28,11 @@ class GeantParticleView
   public:
     //!@{
     //! \name Type aliases
+    using real_type = double;
     using Charge = Quantity<units::EElectron, double>;
     using Mass = Quantity<units::MevPerCsq, double>;
     using Energy = units::ClhepEnergy;
-    using InvClhepTime = Quantity<UnitInverse<units::Nanosecond>, double>;
-    using real_type = double;
+    using InvTime = Quantity<UnitInverse<units::Nanosecond>, double>;
     //!@}
 
   public:
@@ -54,7 +52,7 @@ class GeantParticleView
     Charge charge() const { return Charge{pd_.GetPDGCharge()}; }
 
     // Decay constant
-    inline InvClhepTime decay_constant() const;
+    inline InvTime decay_constant() const;
 
     // Whether it is antimatter
     inline bool is_antiparticle() const;
@@ -70,7 +68,7 @@ class GeantParticleView
 /*!
  * Decay constant.
  */
-auto GeantParticleView::decay_constant() const -> InvClhepTime
+auto GeantParticleView::decay_constant() const -> InvTime
 {
     if (pd_.GetPDGStable())
     {
@@ -78,7 +76,7 @@ auto GeantParticleView::decay_constant() const -> InvClhepTime
         return zero_quantity();
     }
 
-    return InvClhepTime{1 / pd_.GetPDGLifeTime()};
+    return InvTime{1 / pd_.GetPDGLifeTime()};
 }
 
 //---------------------------------------------------------------------------//
