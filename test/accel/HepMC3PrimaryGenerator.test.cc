@@ -41,6 +41,8 @@ class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
 
     ReadAllResult read_all(G4VPrimaryGenerator& gen, int num_events)
     {
+        using ClhepLength = lengthunits::ClhepLength;
+
         CELER_EXPECT(num_events > 0);
         ReadAllResult result;
         for (auto ev_id : range(num_events))
@@ -54,9 +56,8 @@ class HepMC3PrimaryGeneratorTest : public SimpleCmsTestBase
             {
                 G4PrimaryVertex* vtx = event.GetPrimaryVertex(vtx_id);
                 CELER_ASSERT(vtx);
-                auto pos = to_cm(
-                    native_from_geant<lengthunits::ClhepLength, real_type>(
-                        vtx->GetPosition()));
+                auto pos_cm = to_cm(make_quantity_array<ClhepLength>(
+                    to_array(vtx->GetPosition())));
                 result.pos.insert(result.pos.end(), pos.begin(), pos.end());
                 result.time.push_back(
                     native_from_geant<units::ClhepTime>(vtx->GetT0())

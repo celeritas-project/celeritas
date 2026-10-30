@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "geocel/detail/LengthQuantities.hh"
 #include "geocel/detail/LengthUnits.hh"
 
 namespace celeritas
@@ -32,6 +33,13 @@ CELER_CONSTEXPR_FUNCTION real_type to_cm(real_type v)
 }
 
 //---------------------------------------------------------------------------//
+//! Convert CLHEP length wrappers to cm in the most lossless way possible
+CELER_CONSTEXPR_FUNCTION double to_cm(lengthunits::ClhepLength q)
+{
+    return 10 * q.value();
+}
+
+//---------------------------------------------------------------------------//
 //! Convert a value *from* centimeters to the native system
 CELER_CONSTEXPR_FUNCTION real_type from_cm(real_type v)
 {
@@ -41,6 +49,14 @@ CELER_CONSTEXPR_FUNCTION real_type from_cm(real_type v)
 //---------------------------------------------------------------------------//
 //! Convert an array to centimeters from the native system
 CELER_CONSTEXPR_FUNCTION Array<real_type, 3> to_cm(Array<real_type, 3> const& v)
+{
+    return {to_cm(v[0]), to_cm(v[1]), to_cm(v[2])};
+}
+
+//---------------------------------------------------------------------------//
+//! Convert an array to centimeters from the native system
+CELER_CONSTEXPR_FUNCTION Array<double, 3> to_cm(
+    Array<lengthunits::ClhepLength, 3> const& v)
 {
     return {to_cm(v[0]), to_cm(v[1]), to_cm(v[2])};
 }

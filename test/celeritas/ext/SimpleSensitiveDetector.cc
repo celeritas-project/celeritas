@@ -141,7 +141,7 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     CELER_EXPECT(step);
 
     auto append_pos = [](auto& hits, GeantStepPointView::Length3 g4pos) {
-        auto pos_cm = value_as<lengthunits::ClhepLength>(g4pos) / CLHEP::cm;
+        auto pos_cm = to_cm(g4pos);
         hits.insert(hits.end(), pos_cm.begin(), pos_cm.end());
     };
     auto append_dir = [](auto& hits, GeantStepPointView::Real3 g4dir) {
