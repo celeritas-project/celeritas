@@ -36,7 +36,8 @@ CELER_CONSTEXPR_FUNCTION real_type to_cm(real_type v)
 //! Convert CLHEP length wrappers to cm in the most lossless way possible
 CELER_CONSTEXPR_FUNCTION double to_cm(lengthunits::ClhepLength q)
 {
-    return 10 * q.value();
+    constexpr Constant cm_per_mm{0.1};
+    return q.value() * cm_per_mm;
 }
 
 //---------------------------------------------------------------------------//
