@@ -14,8 +14,8 @@
 #include <G4Track.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/Quantity.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantStepPointView.hh"
@@ -23,6 +23,7 @@
 #include "celeritas/ext/GeantTrackView.hh"
 
 #include "TestMacros.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 using std::cout;
 
@@ -30,6 +31,44 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+template<class T>
+class Comparer
+{
+  public:
+    Comparer(AssertionHelper& helper, T const& expected, T const& actual)
+        : helper_{helper}, expected_{expected}, actual_{actual}
+    {
+    }
+
+    template<class M>
+    bool is_soft_eq(char const* attr, M T::* member) const
+    {
+        // Geant4 reference data is double precision, but Celeritas may use
+        // 32-bit real values.
+        constexpr auto tol
+            = static_cast<double>(SoftEqual<celeritas::real_type>{}.rel());
+        return celeritas::test::is_vec_soft_eq(
+            helper_, attr, expected_.*member, actual_.*member, tol);
+    }
+
+    template<class M>
+    bool is_vec_soft_eq(char const* attr, M T::* member) const
+    {
+        return celeritas::test::is_vec_eq(
+            helper_, attr, expected_.*member, actual_.*member);
+    }
+
+  private:
+    AssertionHelper& helper_;
+    T const& expected_;
+    T const& actual_;
+};
+}  // namespace
+
+#define CELER_INVOKE_ATTR(func, type, attr) func(#attr, &type::attr)
+
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
 {
@@ -57,32 +96,26 @@ void check_ref_eq(AssertionHelper& helper,
                   SimpleHitsResult const& expected,
                   SimpleHitsResult const& actual)
 {
-    using namespace ::celeritas::test;
-    is_vec_soft_eq(helper,
-                   "energy_deposition",
-                   expected.energy_deposition,
-                   actual.energy_deposition);
-    is_vec_soft_eq(
-        helper, "step_length", expected.step_length, actual.step_length);
-    is_vec_eq(helper, "particle", expected.particle, actual.particle);
-    is_vec_soft_eq(helper, "weight", expected.weight, actual.weight);
-    is_vec_eq(helper, "track_id", expected.track_id, actual.track_id);
-    is_vec_eq(helper, "parent_id", expected.parent_id, actual.parent_id);
-    is_vec_soft_eq(
-        helper, "pre_energy", expected.pre_energy, actual.pre_energy);
-    is_vec_soft_eq(helper, "pre_time", expected.pre_time, actual.pre_time);
-    is_vec_soft_eq(helper, "pre_pos", expected.pre_pos, actual.pre_pos);
-    is_vec_soft_eq(helper, "pre_dir", expected.pre_dir, actual.pre_dir);
-    is_vec_eq(helper, "pre_physvol", expected.pre_physvol, actual.pre_physvol);
-    is_vec_soft_eq(helper, "post_time", expected.post_time, actual.post_time);
-    is_vec_soft_eq(
-        helper, "post_energy", expected.post_energy, actual.post_energy);
-    is_vec_soft_eq(helper, "post_pos", expected.post_pos, actual.post_pos);
-    is_vec_soft_eq(helper, "post_dir", expected.post_dir, actual.post_dir);
-    is_vec_eq(
-        helper, "post_physvol", expected.post_physvol, actual.post_physvol);
-    is_vec_eq(helper, "post_status", expected.post_status, actual.post_status);
+    Comparer<SimpleHitsResult> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, energy_deposition);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, step_length);
+    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, particle);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, weight);
+    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, track_id);
+    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, parent_id);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_energy);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_time);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_pos);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_dir);
+    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, pre_physvol);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_time);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_energy);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_pos);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_dir);
+    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, post_physvol);
+    CELER_INVOKE_ATTR(compare.is_vec_soft_eq, SimpleHitsResult, post_status);
 }
+#undef CELER_INVOKE_ATTR
 
 //---------------------------------------------------------------------------//
 SimpleSensitiveDetector::SimpleSensitiveDetector(std::string const& name)
