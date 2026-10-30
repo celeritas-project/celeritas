@@ -68,6 +68,10 @@ ProtoConstructor::ProtoConstructor(VolumeParams const& vols,
     : volumes_{vols}, opts_{options}
 {
     CELER_EXPECT(opts_.tol);
+    CELER_VALIDATE(opts_.align_daughter_fraction > 0
+                       && opts_.align_daughter_fraction <= 1,
+                   << "invalid daughter alignment fraction "
+                   << opts_.align_daughter_fraction << " [must be in (0, 1]]");
 
     for (auto const& [name, rot] : opts_.universe_alignment)
     {
