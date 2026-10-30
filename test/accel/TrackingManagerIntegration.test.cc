@@ -1214,6 +1214,45 @@ TEST_F(WaterSphere, run_small_flush)
     }
 }
 
+/*!
+ * Check that a primary batch can exceed the initial initializer capacity.
+ */
+TEST_F(WaterSphere, run_small_initializers)
+{
+    auto& rm = this->run_manager();
+
+    TMI::Instance().SetOptions([this] {
+        auto opts = this->make_setup_options();
+        opts.initializer_capacity = 2;
+        return opts;
+    }());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    ASSERT_FALSE(this->HasFatalFailure());
+
+    CELER_LOG(status) << "Beam on";
+    {
+        ScopedLogStorer scoped_log_{&self_logger(), LogLevel::info};
+        rm.BeamOn(1);
+
+        auto has_msg = [](std::string const& msg) {
+            return msg.find("Growing track initializer buffer from 2 ")
+                   != std::string::npos;
+        };
+        auto const& messages = scoped_log_.messages();
+        EXPECT_TRUE(std::any_of(messages.begin(), messages.end(), has_msg))
+            << "Expected message not found in logs:\n"
+            << scoped_log_;
+        auto num_hits = this->exchange_hit_count();
+        EXPECT_GT(num_hits, 0);
+        auto num_celeritas_hits = this->exchange_celeritas_hit_count();
+        EXPECT_GT(num_celeritas_hits, 0);
+        EXPECT_LT(num_celeritas_hits, num_hits);
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

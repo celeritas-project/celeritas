@@ -183,9 +183,10 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
     add_cmd(&options->max_steps,
             "maxNumSteps",
             "Limit on number of steps per track before killing");
-    add_cmd(&options->initializer_capacity,
-            "maxInitializers",
-            "Maximum number of track initializers (primaries+secondaries)");
+    add_cmd(
+        &options->initializer_capacity,
+        "maxInitializers",
+        "Initial track initializer buffer capacity (primaries+secondaries)");
     add_cmd(&options->secondary_stack_factor,
             "secondaryStackFactor",
             "At least the average number of secondaries per track slot");

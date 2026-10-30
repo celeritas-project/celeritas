@@ -6,11 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/Copier.hh"
 #include "corecel/random/data/RngData.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -35,7 +38,7 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct TrackInitParamsData
 {
-    size_type capacity{0};  //!< Track initializer storage size
+    size_type capacity{0};  //!< Initial track initializer storage size
     size_type max_events{0};  //!< Maximum number of events that can be run
     TrackOrder track_order{TrackOrder::none};  //!< How to sort tracks on
                                                //!< gpu
@@ -91,7 +94,8 @@ struct TrackInitializer
  *   sorting by charge: element \em i is the number of neutral tracks among the
  *   first \em i + 1 initializers used to create tracks in the current step.
  * - \c initializers stores the data for primaries and secondaries waiting to
- *   be turned into new tracks and can be any size up to \c capacity.
+ *   be turned into new tracks. It is initially allocated with \c capacity
+ *   elements and grows as needed between steps.
  * - \c vacancies stores the \c TrackSlotId of the tracks that have been
  *   killed; the size will be <= the number of track states.
  * - \c track_counters stores the total number of particles that have been
@@ -164,7 +168,7 @@ struct TrackInitStateData
  * Resize and initialize track initializer data.
  *
  * Here \c size is the number of track states, and the "capacity" is the
- * maximum number of track initializers (inactive/pending tracks) that we can
+ * initial number of track initializers (inactive/pending tracks) that we can
  * hold.
  *
  * \note It's likely that for GPU runs, the capacity should be greater than
@@ -197,13 +201,49 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     resize(&data->vacancies, size);
     fill_sequence(&data->vacancies, stream);
 
-    // Reserve space for initializers
-    resize(&data->initializers, params.capacity);
+    // Reserve space for initializers, allocating on the stream so that growing
+    // the buffer can free it asynchronously
+    resize(&data->initializers, params.capacity, stream);
 
     // Initialize the counters for the step to zero
     fill(CoreStateCounters{}, &data->counters);
 
     CELER_ENSURE(*data);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reallocate the track initializer buffer with a larger capacity.
+ *
+ * The first \c num_used initializers are copied into the new buffer. On device,
+ * the allocation, copy, and release of the old buffer are all ordered on the
+ * given stream, so this must be called between steps (or the stream must
+ * otherwise order it after any kernels using the initializers). Any
+ * references to the state data must be updated afterward.
+ */
+template<MemSpace M>
+void reserve_initializers(TrackInitStateData<Ownership::value, M>* data,
+                          size_type num_used,
+                          size_type capacity,
+                          StreamId stream)
+{
+    CELER_EXPECT(data);
+    CELER_EXPECT(num_used <= data->initializers.size());
+    CELER_EXPECT(capacity > data->initializers.size());
+
+    Collection<TrackInitializer, Ownership::value, M> initializers;
+    resize(&initializers, capacity, stream);
+
+    if (num_used > 0)
+    {
+        ItemRange<TrackInitializer> used{ItemId<TrackInitializer>{0},
+                                         ItemId<TrackInitializer>{num_used}};
+        Copier<TrackInitializer, M> copy{initializers[used], stream};
+        copy(M, data->initializers[used]);
+    }
+    data->initializers = std::move(initializers);
+
+    CELER_ENSURE(data->initializers.size() == capacity);
 }
 
 //---------------------------------------------------------------------------//

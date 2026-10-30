@@ -160,22 +160,9 @@ void Stepper<M>::async()
 
     ScopedProfiling profile_this{"step"};
 
-    /*! \todo If we don't have space for all the primaries or secondaries, we
-     * will need to buffer the current track initializers to create room.
-     *
-     * This isn't trivial because we will need to:
-     * - Allocate a new buffer (probably do something like 2x, rounding up to
-     *   nearest power of 2)?
-     * - Update the collection references for track sim
-     * - Update the *copies* of that reference (?) like in track state
-     * - Copy to device to update the on-device references (state.ptr)
-     */
-    size_type max_initializers = this->calc_max_initializers();
-    CELER_VALIDATE(
-        max_initializers <= this->initializer_capacity(),
-        << "insufficient initializer capacity (" << this->initializer_capacity()
-        << ") for a maximum possible requirement of " << max_initializers
-        << ". Increase initializer capacity or decrease track slots");
+    // Grow the initializer buffer if there might not be space for all the
+    // primaries and secondaries
+    state_->reserve_initializers(this->calc_max_initializers());
 
     // Initialize the generated, error, and cut counters to zero and set the
     // number of pending primaries
@@ -218,7 +205,7 @@ void Stepper<M>::async(SpanConstPrimary primaries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the fixed capacity of the track initializer queue.
+ * Return the current capacity of the track initializer queue.
  *
  * After consuming a step result, callers can compare this with the result's
  * queued initializers and the producer buffer size before staging primaries.
@@ -226,7 +213,7 @@ void Stepper<M>::async(SpanConstPrimary primaries)
 template<MemSpace M>
 size_type Stepper<M>::initializer_capacity() const noexcept
 {
-    return params_->init()->capacity();
+    return state_->initializer_capacity();
 }
 
 //---------------------------------------------------------------------------//
