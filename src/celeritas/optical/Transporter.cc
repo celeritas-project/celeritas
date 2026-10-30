@@ -137,9 +137,6 @@ void Transporter::transport_impl(CoreState<M>& state) const
 
         this->params()->gen_reg()->reset(*state.aux());
         state.reset();
-
-        // Keep the host snapshot consistent with the cleared counters
-        state.async_copy_counters();
     }
 
     if (counters.num_cut > 0)
