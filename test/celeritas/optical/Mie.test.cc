@@ -172,7 +172,7 @@ TEST_F(MieTest, stress_test)
 
     auto avg_samples = static_cast<double>(rng_engine.exchange_count())
                        / static_cast<double>(num_samples);
-    SoftEqual<real_type> tol{1e-2, 1e-2};
+    SoftEqual<double> tol{1e-2, 1e-2};
     EXPECT_VEC_NEAR(expected_accum_dir, accum_dir.calc_density(), tol);
     EXPECT_VEC_NEAR(expected_accum_pol, accum_pol.calc_density(), tol);
     EXPECT_SOFT_NEAR(4.0 * sizeof(real_type) / sizeof(float), avg_samples, tol);

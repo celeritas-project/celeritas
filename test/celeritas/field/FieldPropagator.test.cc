@@ -529,10 +529,11 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
         auto result = propagate(2 * delta);
 
         EXPECT_LE(result.distance, 2 * delta);
-        EXPECT_SOFT_NEAR(
-            1.0000000044408872e-07,
-            result.distance,
-            (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4 ? 1e-12 : 1e-8));
+        EXPECT_SOFT_NEAR(1.0000000044408872e-07,
+                         result.distance,
+                         (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
+                              ? 1e-12_r
+                              : 1e-8_r));
         EXPECT_TRUE(result.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_VEC_SOFT_EQ(Real3({5, 0, 0}), geo.pos());
@@ -626,7 +627,7 @@ TEST_F(TwoBoxesTest, electron_cross)
             field, driver_options, particle, geo);
         auto result = propagate(pi);
 
-        EXPECT_SOFT_NEAR(1. / 12., result.distance / circ, 1e-5);
+        EXPECT_SOFT_NEAR(1. / 12., result.distance / circ, 1e-5_r);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({sqrt_three, 5, 0}), geo.pos()), 1e-5);
         // Direction should be up left
@@ -648,7 +649,7 @@ TEST_F(TwoBoxesTest, electron_cross)
             field, driver_options, particle, geo);
         auto result = propagate(circ);
 
-        EXPECT_SOFT_NEAR(1. / 3., result.distance / circ, 1e-5);
+        EXPECT_SOFT_NEAR(1. / 3., result.distance / circ, 1e-5_r);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({-sqrt_three, 5, 0}), geo.pos()), 1e-5);
         // Direction should be down left
@@ -671,7 +672,7 @@ TEST_F(TwoBoxesTest, electron_cross)
             field, driver_options, particle, geo);
         auto result = propagate(7. / 12. * circ);
 
-        EXPECT_SOFT_NEAR(7. / 12., result.distance / circ, 1e-5);
+        EXPECT_SOFT_NEAR(7. / 12., result.distance / circ, 1e-5_r);
         EXPECT_FALSE(result.boundary);
         EXPECT_LT(distance(Real3({2, 4, 0}), geo.pos()), 2e-5);
         EXPECT_LT(distance(Real3({0, 1, 0}), geo.dir()), 1e-5);
@@ -702,7 +703,7 @@ TEST_F(TwoBoxesTest, electron_tangent_cross)
         real_type theta = std::asin(1 - dy);
         real_type x = std::sqrt(2 * dy - ipow<2>(dy));
 
-        EXPECT_SOFT_NEAR(theta, result.distance, .025);
+        EXPECT_SOFT_NEAR(theta, result.distance, .025_r);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({x, 5, 0}), geo.pos()), 2e-5)
             << "Actually stopped at " << geo.pos();
@@ -758,7 +759,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         real_type theta = std::asin(1 - dy);
         real_type x = std::sqrt(2 * dy - ipow<2>(dy));
 
-        EXPECT_SOFT_NEAR(theta, result.distance, .025);
+        EXPECT_SOFT_NEAR(theta, result.distance, .025_r);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({-5 + x, 5, 0}), geo.pos()), 1e-5)
             << "Actually stopped at " << geo.pos();
@@ -787,7 +788,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         real_type theta = std::asin(1 - dy);
         real_type x = std::sqrt(2 * dy - ipow<2>(dy));
 
-        EXPECT_SOFT_NEAR(theta, result.distance, .025);
+        EXPECT_SOFT_NEAR(theta, result.distance, .025_r);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({-5 + x, 5, 0}), geo.pos()), 1e-4)
             << "Actually stopped at " << geo.pos();
@@ -812,7 +813,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
             field, driver_options, particle, geo);
         auto result = propagate(circ);
 
-        EXPECT_SOFT_NEAR(circ * .25, result.distance, 1e-5);
+        EXPECT_SOFT_NEAR(circ * .25, result.distance, 1e-5_r);
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({-5, 5 + dy, 0}), geo.pos()), 1e-5);
         EXPECT_LT(distance(Real3({-1, 0, 0}), geo.dir()), 1e-5);
@@ -1181,7 +1182,7 @@ TEST_F(LayersTest, revolutions_through_cms_field)
     FieldDriverOptions driver_options;
 
     EXPECT_SOFT_NEAR(
-        radius, this->calc_field_curvature(particle, geo, field), 5e-3);
+        radius, this->calc_field_curvature(particle, geo, field), 5e-3_r);
 
     // Build propagator
     auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
@@ -1204,7 +1205,7 @@ TEST_F(LayersTest, revolutions_through_cms_field)
             EXPECT_REAL_EQ(step, result.distance);
         }
     }
-    EXPECT_SOFT_NEAR(2 * pi * radius * num_revs, total_length, 1e-5);
+    EXPECT_SOFT_NEAR(2 * pi * radius * num_revs, total_length, 1e-5_r);
 }
 
 //---------------------------------------------------------------------------//

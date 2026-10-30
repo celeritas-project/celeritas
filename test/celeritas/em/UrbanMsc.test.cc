@@ -42,7 +42,7 @@ namespace test
 TEST(Distributions, UrbanLargeAngleDistribution)
 {
     constexpr size_type num_samples{10000};
-    std::vector<std::vector<double>> angle_dist;
+    std::vector<std::vector<real_type>> angle_dist;
 
     DiagnosticRngEngine<std::mt19937> rng;
 
@@ -119,11 +119,11 @@ TEST(Details, UrbanPositronCorrector)
     }
 
     // clang-format off
-    static const double expected_h[] = {1.378751990475, 1.3787519983432,
+    static const real_type expected_h[] = {1.378751990475, 1.3787519983432,
         1.3813527280086, 1.3825378340463, 1.3834564182635, 1.3856807011387,
         1.3865656925136, 1.3865681880571, 1.3876210627429, 1.3882415266217,
         1.3882507402225, 1.3882508352478};
-    static const double expected_w[] = {0.21482671339734,
+    static const real_type expected_w[] = {0.21482671339734,
         0.4833017838367, 0.70738388881252, 0.70471228941815, 0.7026415135041,
         0.69762728474033, 0.69563878645763, 0.69577660924627, 0.75392431413533,
         0.78819102317998, 0.78869986791365, 0.78870511592834};
@@ -612,9 +612,9 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<real_type> alpha_over_mfp;
 
     // Binned scattering results
-    std::vector<std::vector<double>> angle;
+    std::vector<std::vector<real_type>> angle;
     std::vector<real_type> displace_frac;  // fraction of safety
-    std::vector<std::vector<double>> action;
+    std::vector<std::vector<real_type>> action;
 
     // Average RNG per scatter
     std::vector<real_type> avg_engine_samples;
@@ -668,7 +668,8 @@ TEST_F(UrbanMscTest, msc_scattering)
         tstep_frac.push_back(true_path / this_pstep);
 
         // Reset RNG from the one sample
-        avg_engine_samples.push_back(static_cast<double>(rng.exchange_count()));
+        avg_engine_samples.push_back(
+            static_cast<real_type>(rng.exchange_count()));
 
         // Convert physical step limit to geometrical step
         MscStep step_result = [&] {
@@ -716,10 +717,12 @@ TEST_F(UrbanMscTest, msc_scattering)
         }
 
         EXPECT_FALSE(bin_angle.underflow() || bin_angle.overflow());
-        angle.push_back(bin_angle.calc_density());
+        auto angle_density = bin_angle.calc_density();
+        angle.emplace_back(angle_density.begin(), angle_density.end());
         displace_frac.push_back(avg_displacement / num_samples);
         EXPECT_FALSE(bin_action.underflow() || bin_action.overflow());
-        action.push_back(bin_action.calc_density());
+        auto action_density = bin_action.calc_density();
+        action.emplace_back(action_density.begin(), action_density.end());
         avg_engine_samples.push_back(
             static_cast<real_type>(rng.exchange_count())
             / static_cast<real_type>(num_samples));
@@ -1031,7 +1034,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.37840329914137,
         0.37840329914137,
     };
-    static std::vector<double> const expected_angle[] = {
+    static std::vector<real_type> const expected_angle[] = {
         {0, 0, 0, 0, 0, 0, 0, 4},
         {0, 0, 0, 0, 0, 0, 0, 4},
         {0, 0, 0, 0, 0, 0, 0, 4},
@@ -1167,7 +1170,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.30188146067728,
         0,
     };
-    static std::vector<double> const expected_action[] = {
+    static std::vector<int> const expected_action[] = {
         {0, 0, 1}, {0, 1, 0}, {0, 1, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0},
         {0, 0, 1}, {1, 0, 0}, {1, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0},
         {0, 0, 1}, {0, 0, 1}, {1, 0, 0}, {0, 0, 1}, {0, 0, 1}, {0, 1, 0},
@@ -1202,8 +1205,8 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_VEC_SOFT_EQ(expected_gstep_frac, gstep_frac);
     EXPECT_VEC_SOFT_EQ(expected_alpha_over_mfp, alpha_over_mfp);
 
-    EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
-    EXPECT_VEC_NEAR(expected_displace_frac, displace_frac, 1e-12);
+    EXPECT_VEC_NEAR(expected_angle, angle, 2e-12_r);
+    EXPECT_VEC_NEAR(expected_displace_frac, displace_frac, 1e-12_r);
     EXPECT_VEC_EQ(expected_action, action);
     EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

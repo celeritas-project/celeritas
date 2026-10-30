@@ -56,7 +56,7 @@ TEST_F(CylMapMagneticFieldTest, make_input)
     // [r, phi, z]
     EXPECT_EQ(2 * 4 * 3 * 3, field_tesla.size());
     // clang-format off
-    static double const expected_field_tesla[] = {
+    static real_type const expected_field_tesla[] = {
         -1.05, -1.65, -0.75, -1.05, -1.65, 2.25,
         -1.05, -1.65, 3.75, -1.05, -1.65, -0.75,
         -1.05, -1.65, 2.25, -1.05, -1.65, 3.75,
@@ -71,7 +71,7 @@ TEST_F(CylMapMagneticFieldTest, make_input)
         1.2, -1.65, 2.25, 1.2, -1.65, 3.75,
     };
     // clang-format on
-    EXPECT_VEC_NEAR(expected_field_tesla, field_tesla, 1e-5);
+    EXPECT_VEC_NEAR(expected_field_tesla, field_tesla, 1e-5_r);
 
     EXPECT_VEC_SOFT_EQ(
         (Real2{0.0, 1.5}),

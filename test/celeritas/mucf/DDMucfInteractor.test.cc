@@ -66,7 +66,7 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
                 total_kinetic_energy += s.energy.value();
             }
             // The total kinetic energy range is within [3.2, 3.5] MeV
-            EXPECT_SOFT_NEAR(3.3, total_kinetic_energy, 0.3);
+            EXPECT_SOFT_NEAR(3.3, total_kinetic_energy, 0.3_r);
 
             // Check momentum conservation
             auto const neutron_p_mag = this->calc_momentum(
@@ -131,7 +131,7 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
             {
                 total_kinetic_energy += s.energy.value();
             }
-            EXPECT_SOFT_NEAR(4.03, total_kinetic_energy, 0.5);
+            EXPECT_SOFT_NEAR(4.03, total_kinetic_energy, 0.5_r);
 
             // Check momentum conservation
             auto const proton_p_mag = this->calc_momentum(
