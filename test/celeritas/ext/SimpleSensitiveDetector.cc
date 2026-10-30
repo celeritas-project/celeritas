@@ -14,6 +14,10 @@
 #include <G4Track.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/math/ArrayQuantity.hh"
+#include "corecel/math/Quantity.hh"
+#include "geocel/UnitUtils.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantStepPointView.hh"
 #include "celeritas/ext/GeantStepView.hh"
 #include "celeritas/ext/GeantTrackView.hh"
@@ -97,9 +101,25 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 {
     CELER_EXPECT(step);
 
+    auto append_pos = [](auto& hits, GeantStepPointView::Length3 g4pos) {
+        hits.push_back(to_cm(g4pos));
+    };
+    auto append_dir = [](auto& hits, GeantStepPointView::Real3 g4dir) {
+        hits.push_back(g4dir);
+    };
+
+    auto append_touchable = [](auto& hits, auto* touchable) {
+        if (touchable)
+        {
+            auto* vol = touchable->GetVolume();
+            hits.push_back(vol ? vol->GetName() : "<nullptr>");
+        }
+        else
+        {
+            hits.push_back("<error>");
+        }
+    };
     GeantStepView gsv{*step};
-    CELER_ASSERT(gsv.has_step_point(StepPoint::pre));
-    auto pre_step = gsv.pre_step();
 
     hits_.step_length.push_back(
         value_as<GeantStepView::Length>(gsv.step_length()) / CLHEP::cm);
@@ -118,32 +138,27 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
         edep *= weight;
     }
     hits_.energy_deposition.push_back(edep);
-    hits_.pre_energy.push_back(value_as<units::ClhepEnergy>(pre_step.energy()));
-    hits_.pre_time.push_back(value_as<units::ClhepTime>(pre_step.time()));
 
-    hits_.pre_pos.push_back(native_value_from(pre_step.pos()));
-    hits_.pre_dir.push_back(pre_step.dir());
-
-    if (auto* touchable = pre_step.step_point().GetTouchable())
+    if (gsv.has_step_point(StepPoint::pre))
     {
-        auto* vol = touchable->GetVolume();
-        hits_.pre_physvol.push_back(vol ? vol->GetName() : "<nullptr>");
+        auto step = gsv.pre_step();
+        hits_.pre_energy.push_back(value_as<units::ClhepEnergy>(step.energy()));
+        hits_.pre_time.push_back(value_as<units::ClhepTime>(step.time()));
+        append_pos(hits_.pre_pos, step.pos());
+        append_dir(hits_.pre_dir, step.dir());
+        append_touchable(hits_.pre_physvol, step.step_point().GetTouchable());
     }
     if (gsv.has_step_point(StepPoint::post))
     {
-        auto post_step = gsv.post_step();
-        hits_.post_time.push_back(value_as<units::ClhepTime>(post_step.time()));
+        auto step = gsv.post_step();
+        hits_.post_time.push_back(value_as<units::ClhepTime>(step.time()));
         hits_.post_energy.push_back(
-            value_as<units::ClhepEnergy>(post_step.energy()));
-        hits_.post_pos.push_back(native_value_from(post_step.pos()));
-        hits_.post_dir.push_back(post_step.dir());
-        if (auto* touchable = post_step.step_point().GetTouchable())
-        {
-            auto* vol = touchable->GetVolume();
-            hits_.post_physvol.push_back(vol ? vol->GetName() : "<nullptr>");
-        }
+            value_as<units::ClhepEnergy>(step.energy()));
+        append_pos(hits_.post_pos, step.pos());
+        append_dir(hits_.post_dir, step.dir());
+        append_touchable(hits_.post_physvol, step.step_point().GetTouchable());
         hits_.post_status.push_back(
-            [status = post_step.step_point().GetStepStatus()] {
+            [status = step.step_point().GetStepStatus()] {
                 switch (status)
                 {
                     case G4StepStatus::fWorldBoundary:
