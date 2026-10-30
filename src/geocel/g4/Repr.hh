@@ -8,7 +8,7 @@
 
 #include <G4ThreeVector.hh>
 
-#include "corecel/io/Repr.hh"
+#include "corecel/io/ScopedStreamFormat.hh"
 
 namespace celeritas
 {
@@ -21,15 +21,15 @@ struct G4ThreeVectorRepr
                                     G4ThreeVectorRepr const& value)
     {
         ScopedStreamFormat save_fmt(&os);
-        os.precision(14);
+        os.precision(15);
         return os << '{' << value.obj[0] << ", " << value.obj[1] << ", "
                   << value.obj[2] << '}';
     }
 };
 
-inline G4ThreeVectorRepr repr(G4ThreeVector const& vec)
+inline auto repr(G4ThreeVector const& vec)
 {
-    return {vec};
+    return G4ThreeVectorRepr{vec};
 }
 
 //---------------------------------------------------------------------------//
