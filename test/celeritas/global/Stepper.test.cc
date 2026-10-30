@@ -210,6 +210,41 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         EXPECT_EQ(num_primaries, result.generated);
     }
 
+    template<MemSpace M>
+    void run_initializer_growth()
+    {
+        size_type const init_capacity = this->init()->capacity();
+        auto input = this->make_stepper_input(64);
+        input.primary_capacity = 4 * init_capacity;
+        Stepper<M> step(std::move(input));
+        EXPECT_EQ(init_capacity, step.initializer_capacity());
+
+        // More primaries than the initial capacity: grow an empty buffer
+        auto primaries = this->make_primaries(init_capacity + 1);
+        step.async(make_span(primaries));
+        auto result = step.get();
+        EXPECT_EQ(init_capacity + 1, result.generated);
+        ASSERT_GT(result.queued, 0);
+        size_type const capacity = step.initializer_capacity();
+        EXPECT_GE(capacity, 2 * init_capacity);
+
+        // Fill the remaining space: grow while preserving queued initializers
+        primaries = this->make_primaries(capacity);
+        step.async(make_span(primaries));
+        result = step.get();
+        EXPECT_EQ(capacity, result.generated);
+        EXPECT_GE(step.initializer_capacity(), 2 * capacity);
+
+        // Transport the remaining tracks
+        for (size_type step_iters = 0; result; ++step_iters)
+        {
+            ASSERT_LT(step_iters, 100000);
+            step.async();
+            result = step.get();
+            EXPECT_EQ(0, result.errored);
+        }
+    }
+
     size_type max_steps_{0};
 };
 
@@ -418,20 +453,14 @@ TEST_F(SimpleComptonTest, recover_from_invalid_external_primaries)
     static_cast<void>(step());
 }
 
-//! \todo Remove when automatic resizing is supported
-TEST_F(SimpleComptonTest, initializer_capacity_failure)
+TEST_F(SimpleComptonTest, initializer_growth_host)
 {
-    size_type const init_capacity = this->init()->capacity();
-    auto input = this->make_stepper_input(64);
-    input.primary_capacity = init_capacity + 1;
-    Stepper<MemSpace::host> step(std::move(input));
-    auto primaries = this->make_primaries(init_capacity + 1);
+    this->run_initializer_growth<MemSpace::host>();
+}
 
-    EXPECT_NO_THROW(step.stage_primaries(make_span(primaries)));
-    EXPECT_EQ(0, step.num_buffered_primaries());
-    EXPECT_EQ(init_capacity + 1, step.staged_primaries().size());
-    EXPECT_FALSE(step.staged_primaries().empty());
-    EXPECT_THROW(step(), RuntimeError);
+TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(initializer_growth_device))
+{
+    this->run_initializer_growth<MemSpace::device>();
 }
 
 TEST_F(SimpleComptonTest, primary_capacity_override)

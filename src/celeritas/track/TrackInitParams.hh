@@ -28,7 +28,7 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     //! Track initializer construction arguments
     struct Input
     {
-        size_type capacity{};  //!< Max number of initializers
+        size_type capacity{};  //!< Initial buffer capacity for initializers
         size_type max_events{};  //!< Max simultaneous events
         TrackOrder track_order{TrackOrder::none};  //!< How to sort tracks
     };
@@ -37,7 +37,7 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     // Construct with capacity and number of events
     explicit TrackInitParams(Input const&);
 
-    //! Maximum number of initializers
+    //! Initial number of initializers
     size_type capacity() const { return host_ref().capacity; }
 
     //! Event number cannot exceed this value

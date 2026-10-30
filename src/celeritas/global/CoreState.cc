@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "CoreState.hh"
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
@@ -56,7 +58,7 @@ CoreState<M>::CoreState(
 
     if constexpr (M == MemSpace::device)
     {
-        device_ref_vec_ = DeviceVector<Ref>(1);
+        device_ref_vec_ = DeviceVector<Ref>(1, stream_id);
         device_ref_vec_.copy_to_device({&this->ref(), 1});
         ptr_ = make_observer(device_ref_vec_);
     }
@@ -229,6 +231,44 @@ void CoreState<M>::reset()
 
     // Mark all the track slots as empty
     fill_sequence(&this->ref().init.vacancies, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Grow the track initializer buffer to hold at least this many.
+ *
+ * If the buffer is too small, it is reallocated with at least twice its
+ * current capacity and the queued initializers are copied into it. This must
+ * be called between steps, after the host counters have been updated, since
+ * the number of queued initializers is taken from them.
+ */
+template<MemSpace M>
+void CoreState<M>::reserve_initializers(size_type min_capacity)
+{
+    size_type const capacity = this->initializer_capacity();
+    if (min_capacity <= capacity)
+    {
+        return;
+    }
+
+    size_type const new_capacity = std::max(min_capacity, 2 * capacity);
+    CELER_LOG_LOCAL(info) << "Growing track initializer buffer from "
+                          << capacity << " to " << new_capacity;
+
+    ScopedProfiling profile_this{"reserve-initializers"};
+    celeritas::reserve_initializers(&states_.value().init,
+                                    host_counters_.value().num_initializers,
+                                    new_capacity,
+                                    this->stream_id());
+    states_.update_ref();
+
+    if constexpr (M == MemSpace::device)
+    {
+        // Update the copy of the state reference in device memory
+        device_ref_vec_.copy_to_device({&this->ref(), 1});
+    }
+
+    CELER_ENSURE(this->initializer_capacity() == new_capacity);
 }
 
 //---------------------------------------------------------------------------//

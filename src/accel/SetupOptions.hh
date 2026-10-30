@@ -213,7 +213,7 @@ struct SetupOptions
     size_type max_steps = no_max_steps();
     //! Limit on number of step iterations before aborting
     size_type max_step_iters = no_max_steps();
-    //! Maximum number of track initializers (primaries+secondaries)
+    //! Initial track initializer buffer capacity (primaries+secondaries)
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
     real_type secondary_stack_factor{};

@@ -11,6 +11,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/sys/ThreadId.hh"
+
 #include "Collection.hh"
 
 #include "detail/FillInvalid.hh"
@@ -63,6 +65,9 @@ class CollectionBuilder
 
     // Increase size to this capacity
     inline void resize(std::size_t count);
+
+    // Increase size, allocating device memory asynchronously on a stream
+    inline void resize(std::size_t count, StreamId stream);
 
     // Reserve space
     inline void reserve(std::size_t count);
@@ -191,6 +196,28 @@ void CollectionBuilder<T, M, I>::resize(std::size_t count)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Increase the size, allocating device memory asynchronously on a stream.
+ *
+ * Device memory is allocated (and later freed) in stream order, avoiding the
+ * implicit device-wide synchronization of a plain allocation.
+ */
+template<class T, MemSpace M, class I>
+void CollectionBuilder<T, M, I>::resize(std::size_t count, StreamId stream)
+{
+    if constexpr (M == MemSpace::device)
+    {
+        CELER_EXPECT(this->storage().empty());
+        CELER_EXPECT(count <= max_size());
+        this->storage() = StorageT(count, stream);
+    }
+    else
+    {
+        this->resize(count);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Helper function for constructing collection builders.
  *
  * (Will not be needed under C++17's template argument deduction).
@@ -214,6 +241,19 @@ void resize(Collection<T, Ownership::value, M, I>* collection, std::size_t size)
 {
     CELER_EXPECT(collection);
     CollectionBuilder<T, M, I>(collection).resize(size);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function for resizing a single collection on a stream.
+ */
+template<class T, MemSpace M, class I>
+void resize(Collection<T, Ownership::value, M, I>* collection,
+            std::size_t size,
+            StreamId stream)
+{
+    CELER_EXPECT(collection);
+    CollectionBuilder<T, M, I>(collection).resize(size, stream);
 }
 
 //---------------------------------------------------------------------------//

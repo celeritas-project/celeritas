@@ -714,5 +714,72 @@ TEST_F(TrackInitHostTest, unique_event_rng)
 }
 
 //---------------------------------------------------------------------------//
+
+template<MemSpace M>
+void test_reserve_initializers()
+{
+    using InitId = ItemId<TrackInitializer>;
+
+    // Fill the first three of four initializers on host
+    Collection<TrackInitializer, Ownership::value, MemSpace::host> host_inits;
+    resize(&host_inits, 4);
+    for (auto i : range(3u))
+    {
+        auto& init = host_inits[InitId{i}];
+        init.sim.track_id = TrackId{10 + i};
+        init.sim.event_id = EventId{i};
+        init.particle.particle_id = ParticleId{i};
+        init.particle.energy = units::MevEnergy{1.5 * (i + 1)};
+    }
+
+    // Copy to the target memory space and grow the buffer
+    if constexpr (M == MemSpace::device)
+    {
+        device().create_streams(1);
+    }
+    TrackInitStateData<Ownership::value, M> data;
+    data.initializers = host_inits;
+    reserve_initializers(&data, 3, 10, StreamId{0});
+    EXPECT_EQ(10, data.initializers.size());
+    if constexpr (M == MemSpace::device)
+    {
+        device().stream(StreamId{0}).sync();
+    }
+
+    // The used initializers are preserved
+    host_inits = data.initializers;
+    std::vector<int> track_ids;
+    std::vector<int> event_ids;
+    std::vector<int> particle_ids;
+    std::vector<real_type> energies;
+    for (auto i : range(3u))
+    {
+        auto const& init = host_inits[InitId{i}];
+        track_ids.push_back(id_to_int(init.sim.track_id));
+        event_ids.push_back(id_to_int(init.sim.event_id));
+        particle_ids.push_back(id_to_int(init.particle.particle_id));
+        energies.push_back(init.particle.energy.value());
+    }
+    static int const expected_track_ids[] = {10, 11, 12};
+    EXPECT_VEC_EQ(expected_track_ids, track_ids);
+    static int const expected_event_ids[] = {0, 1, 2};
+    EXPECT_VEC_EQ(expected_event_ids, event_ids);
+    static int const expected_particle_ids[] = {0, 1, 2};
+    EXPECT_VEC_EQ(expected_particle_ids, particle_ids);
+    static real_type const expected_energies[] = {1.5, 3, 4.5};
+    EXPECT_VEC_SOFT_EQ(expected_energies, energies);
+}
+
+TEST(TrackInitDataTest, reserve_initializers_host)
+{
+    test_reserve_initializers<MemSpace::host>();
+}
+
+TEST(TrackInitDataTest, TEST_IF_CELER_DEVICE(reserve_initializers_device))
+{
+    test_reserve_initializers<MemSpace::device>();
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
