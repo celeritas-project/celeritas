@@ -34,13 +34,7 @@ class MctruthTestBase : virtual public SimpleLoopTestBase
 
     struct RunResult
     {
-        static constexpr char class_str[] = "MctruthTestBase::RunResult";
-
-        struct Tolerance
-        {
-            double pos{Test::fine_eps};
-            double dir{Test::fine_eps};
-        };
+        using Real3 = Array<double, 3>;
 
         std::vector<int> event;
         std::vector<int> track;
@@ -48,6 +42,14 @@ class MctruthTestBase : virtual public SimpleLoopTestBase
         std::vector<int> volume;
         std::vector<Real3> pos;
         std::vector<Real3> dir;
+
+        static constexpr char class_str[] = "MctruthTestBase::RunResult";
+
+        struct Tolerance
+        {
+            double pos{Test::fine_eps};
+            double dir{Test::fine_eps};
+        };
 
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
         friend void check_ref_eq(AssertionHelper&,

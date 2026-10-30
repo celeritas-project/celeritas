@@ -104,6 +104,7 @@ TEST(MaterialUtils, radiation_length)
     // Plutonium-244 [NOTE: accuracy decreases compared to tabulated values]
     EXPECT_SOFT_NEAR(5.93, calc_inv_rad_coeff(94, 244.06420), 1e-2);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail

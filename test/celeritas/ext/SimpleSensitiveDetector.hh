@@ -25,6 +25,8 @@ struct SimpleHitsResult
 {
     static constexpr char class_str[] = "SimpleHitsResult";
 
+    using Real3 = Array<double, 3>;
+
     std::vector<double> energy_deposition;  // [MeV]
     std::vector<double> step_length;  // [cm]
     std::vector<std::string> particle;

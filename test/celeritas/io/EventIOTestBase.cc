@@ -23,7 +23,36 @@ namespace celeritas
 {
 namespace test
 {
+
 //---------------------------------------------------------------------------//
+
+std::ostream& operator<<(std::ostream& os,
+                         EventIOTestBase::ReadAllResult const& ref)
+{
+    return os << '{' << CELER_ATTR_REPR(ref, pdg) << ", "
+              << CELER_ATTR_REPR(ref, energy) << ", "
+              << CELER_ATTR_REPR(ref, pos) << ", " << CELER_ATTR_REPR(ref, dir)
+              << ", " << CELER_ATTR_REPR(ref, time) << ", "
+              << CELER_ATTR_REPR(ref, event) << '}';
+}
+
+void check_ref_eq(AssertionHelper& helper,
+                  EventIOTestBase::ReadAllResult const& expected,
+                  EventIOTestBase::ReadAllResult const& actual,
+                  EventIOTestBase::ReadAllResult::Tolerance const& tol)
+{
+    using namespace ::celeritas::test;
+    is_vec_eq(helper, "pdg", expected.pdg, actual.pdg);
+    is_vec_soft_eq(
+        helper, "energy", expected.energy, actual.energy, tol.energy);
+    is_vec_soft_eq(helper, "pos", expected.pos, actual.pos, tol.pos);
+    is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
+    is_vec_soft_eq(helper, "time", expected.time, actual.time, tol.time);
+    is_vec_eq(helper, "event", expected.event, actual.event);
+}
+
+//---------------------------------------------------------------------------//
+
 void EventIOTestBase::SetUp()
 {
     using namespace constants;

@@ -41,36 +41,32 @@ class EventIOTestBase : public Test
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     //!@}
 
-  protected:
+    //! Reference data from read IO
     struct ReadAllResult
     {
         static constexpr char class_str[] = "ReadAllResult";
 
         struct Tolerance
         {
-            double energy{Test::fine_eps};
-            double pos{Test::fine_eps};
-            double dir{Test::fine_eps};
-            double time{Test::fine_eps};
+            real_type energy{Test::fine_eps};
+            real_type pos{Test::fine_eps};
+            real_type dir{Test::fine_eps};
+            real_type time{Test::fine_eps};
         };
 
         std::vector<int> pdg;
-        std::vector<double> energy;
+        std::vector<real_type> energy;
         std::vector<Real3> pos;
         std::vector<Real3> dir;
-        std::vector<double> time;
+        std::vector<real_type> time;
         std::vector<int> event;
 
         friend std::ostream& operator<<(std::ostream& os,
-                                        ReadAllResult const& ref)
-        {
-            return os << '{' << CELER_ATTR_REPR(ref, pdg) << ", "
-                      << CELER_ATTR_REPR(ref, energy) << ", "
-                      << CELER_ATTR_REPR(ref, pos) << ", "
-                      << CELER_ATTR_REPR(ref, dir) << ", "
-                      << CELER_ATTR_REPR(ref, time) << ", "
-                      << CELER_ATTR_REPR(ref, event) << '}';
-        }
+                                        ReadAllResult const& ref);
+        friend void check_ref_eq(AssertionHelper& helper,
+                                 ReadAllResult const& expected,
+                                 ReadAllResult const& actual,
+                                 Tolerance const& tol);
 
         friend void check_ref_eq(AssertionHelper& helper,
                                  ReadAllResult const& expected,
@@ -78,24 +74,9 @@ class EventIOTestBase : public Test
         {
             check_ref_eq(helper, expected, actual, Tolerance{});
         }
-
-        friend void check_ref_eq(AssertionHelper& helper,
-                                 ReadAllResult const& expected,
-                                 ReadAllResult const& actual,
-                                 Tolerance const& tol)
-        {
-            using namespace ::celeritas::test;
-            is_vec_eq(helper, "pdg", expected.pdg, actual.pdg);
-            is_vec_soft_eq(
-                helper, "energy", expected.energy, actual.energy, tol.energy);
-            is_vec_soft_eq(helper, "pos", expected.pos, actual.pos, tol.pos);
-            is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
-            is_vec_soft_eq(
-                helper, "time", expected.time, actual.time, tol.time);
-            is_vec_eq(helper, "event", expected.event, actual.event);
-        }
     };
 
+  protected:
     // Create particles
     void SetUp() override;
 

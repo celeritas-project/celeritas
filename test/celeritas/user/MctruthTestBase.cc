@@ -52,8 +52,6 @@ std::ostream& operator<<(std::ostream& os,
               << '}';
 }
 
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
 void check_ref_eq(AssertionHelper& helper,
                   MctruthTestBase::RunResult const& expected,
                   MctruthTestBase::RunResult const& actual,
@@ -68,7 +66,6 @@ void check_ref_eq(AssertionHelper& helper,
     is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
 }
 
-//---------------------------------------------------------------------------//
 /*!
  * Run a number of tracks.
  */

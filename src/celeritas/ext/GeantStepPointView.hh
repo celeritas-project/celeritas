@@ -11,11 +11,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Quantity.hh"
-#include "geocel/g4/Convert.hh"
+#include "geocel/g4/Convert.hh"  // IWYU pragma: keep
 #include "celeritas/UnitTypes.hh"
 
 #include "GeantParticleView.hh"
-#include "GeantUnits.hh"
 
 namespace celeritas
 {
