@@ -497,6 +497,7 @@ celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
 celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
 celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
+celeritas_add_test(optical/gen/GeneratorCounterState.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat

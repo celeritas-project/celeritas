@@ -50,13 +50,28 @@ GeneratorId GeneratorRegistry::find(std::string const& label) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Update the host copy of the generator counters.
+ *
+ * This waits for the generator counters to be copied from the device, so it
+ * should not be called while stepping except for diagnostics.
+ */
+void GeneratorRegistry::sync_counters(AuxStateVec& aux) const
+{
+    for (auto id : range(GeneratorId{this->size()}))
+    {
+        this->at(id)->counters(aux).sync_counters();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Clear the generated counts at the start of a transport loop.
  */
 void GeneratorRegistry::clear_generated(AuxStateVec& aux) const
 {
     for (auto id : range(GeneratorId{this->size()}))
     {
-        this->at(id)->counters(aux).counters.num_generated = 0;
+        this->at(id)->counters(aux).clear_generated();
     }
 }
 

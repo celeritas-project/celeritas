@@ -44,6 +44,22 @@ struct GeneratorCounters
 
 //---------------------------------------------------------------------------//
 /*!
+ * Generator counters stored in the memory space of the generator state.
+ *
+ * The \c current counters describe the buffered data being generated and are
+ * updated by kernels during the stepping loop. The \c accum counters are the
+ * increments to the accumulated statistics since the counters were last read
+ * on the host: distributions and photons are counted when they are queued,
+ * and photons when they are generated.
+ */
+struct GeneratorStateCounters
+{
+    GeneratorCounters<> current;
+    GeneratorCounters<> accum;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Cumulative statistics of tracking.
  */
 struct CounterAccumStats
