@@ -202,6 +202,11 @@ auto LArSphereOffloadTest::run(
     {
         CELER_TRY_HANDLE(count = step(), log_context);
     }
+    if (!count)
+    {
+        // Transport the remaining optical photons after the core loop ends
+        CELER_TRY_HANDLE(step.end_transport(), log_context);
+    }
 
     auto const& gen_reg = collector_->gen_reg();
     auto gen_id = gen_reg.find("generate");
@@ -499,7 +504,7 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (reference_configuration)
     {
-        unsigned int expected_steps = 19311;
+        unsigned int expected_steps = 21737;
         unsigned int expected_step_iters = 2;
         EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
@@ -507,19 +512,21 @@ TEST_F(LArSphereOffloadTest, host_generate)
         ASSERT_EQ(1, result.accum.generators.size());
 
         auto const& generator = result.accum.generators[0];
-        EXPECT_EQ(7, generator.buffer_size);
+        EXPECT_EQ(11, generator.buffer_size);
         EXPECT_EQ(generator.num_generated, generator.num_pending);
-        EXPECT_EQ(18214, generator.num_generated);
+        EXPECT_EQ(20520, generator.num_generated);
 
-        EXPECT_EQ(2033, result.scintillation.total_num_photons);
-        EXPECT_EQ(273, result.cherenkov.total_num_photons);
+        // The flush is triggered in the last step by the photons pending
+        // after the previous step, so no distributions remain
+        EXPECT_EQ(0, result.scintillation.total_num_photons);
+        EXPECT_EQ(0, result.cherenkov.total_num_photons);
     }
     else if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_GT(result.accum.step_iters, 0);
         EXPECT_GT(result.accum.flushes, 0);
-        EXPECT_GT(result.scintillation.total_num_photons, 0);
-        EXPECT_GT(result.cherenkov.total_num_photons, 0);
+        ASSERT_EQ(1, result.accum.generators.size());
+        EXPECT_GT(result.accum.generators[0].num_generated, 0);
     }
 }
 

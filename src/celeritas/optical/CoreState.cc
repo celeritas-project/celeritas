@@ -9,6 +9,7 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/random/params/RngParams.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/random/RngReseed.hh"
 #include "celeritas/track/CounterAlgorithms.hh"
@@ -49,6 +50,7 @@ CoreState<M>::CoreState(
     auto counters = CoreStateCounters{};
     counters.num_vacancies = num_track_slots;
     this->sync_put_counters(counters);
+    host_counters_.assign(counters);
 
     if constexpr (M == MemSpace::device)
     {
@@ -159,6 +161,22 @@ void CoreState<M>::clear_tallies()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Copy the counters to host-accessible storage without synchronizing.
+ *
+ * For a device state, the copy is enqueued on the state's stream and completes
+ * asynchronously: the \c host_counters snapshot tracks its completion. Unlike
+ * \c sync_get_counters , waiting for the copy does not block work enqueued on
+ * the stream after it.
+ */
+template<MemSpace M>
+void CoreState<M>::async_copy_counters()
+{
+    host_counters_.load_async(this->ref().init.counters.data(),
+                              this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
 //! Add to the number of pending optical photons
 template<MemSpace M>
 void CoreState<M>::add_pending(size_type count)
@@ -188,6 +206,7 @@ void CoreState<M>::reset()
     auto counters = CoreStateCounters{};
     counters.num_vacancies = this->size();
     this->sync_put_counters(counters);
+    host_counters_.assign(counters);
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);

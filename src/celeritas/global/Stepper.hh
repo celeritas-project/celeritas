@@ -193,6 +193,9 @@ class StepperInterface
     // Kill all tracks in flight to debug "stuck" tracks
     virtual void kill_active() = 0;
 
+    // Complete buffered work once all tracks have been transported
+    virtual void end_transport() = 0;
+
     // Reseed the RNGs at the start of an event for reproducibility
     virtual void reseed(UniqueEventId event_id) = 0;
 
@@ -222,9 +225,9 @@ class StepperInterface
  *
  * Device steps have separate start and result phases. Calling \c async
  * enqueues the action sequence, a counter snapshot, and a completion event on
- * the state stream. Diagnostic action or step timing can still synchronize the
- * stream. Other synchronization within the action sequence is being removed
- * separately.
+ * the state stream. Diagnostic action or step timing and a few other actions
+ * (see \c async ) can still synchronize the stream. Work that actions defer
+ * across steps is completed by \c end_transport after the last step.
  *
  * The two primary buffers are reserved to \c primary_capacity at construction,
  * so accumulating and staging primaries within capacity does not reallocate.
@@ -399,6 +402,9 @@ class Stepper final : public StepperInterface
 
     // Kill all tracks in flight to debug "stuck" tracks
     void kill_active() final;
+
+    // Complete buffered work once all tracks have been transported
+    void end_transport() final;
 
     // Reseed the RNGs at the start of an event for reproducibility
     void reseed(UniqueEventId event_id) final;
