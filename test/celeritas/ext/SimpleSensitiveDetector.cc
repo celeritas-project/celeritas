@@ -14,6 +14,7 @@
 #include <G4Track.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/Quantity.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
@@ -140,7 +141,7 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
     CELER_EXPECT(step);
 
     auto append_pos = [](auto& hits, GeantStepPointView::Length3 g4pos) {
-        auto pos_cm = to_cm(native_value_from(g4pos));
+        auto pos_cm = value_as<lengthunits::ClhepLength>(g4pos) / CLHEP::cm;
         hits.insert(hits.end(), pos_cm.begin(), pos_cm.end());
     };
     auto append_dir = [](auto& hits, GeantStepPointView::Real3 g4dir) {
