@@ -572,7 +572,7 @@ TEST_F(TestMultiEm3InstanceCaloTest, step_host)
                           result.instance.end(),
                           "lar:world_PV/Calorimeter/Layer@1/lar_pv");
     EXPECT_TRUE(iter != result.instance.end())
-        << CELER_ATTR_REPR(result, instance);
+        << CELER_REPR_ATTR(result, instance);
 }
 
 TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
@@ -583,7 +583,7 @@ TEST_F(TestMultiEm3InstanceCaloTest, TEST_IF_CELER_DEVICE(step_device))
                           result.instance.end(),
                           "lar:world_PV/Calorimeter/Layer@1/lar_pv");
     EXPECT_TRUE(iter != result.instance.end())
-        << CELER_ATTR_REPR(result, instance);
+        << CELER_REPR_ATTR(result, instance);
 }
 
 //---------------------------------------------------------------------------//

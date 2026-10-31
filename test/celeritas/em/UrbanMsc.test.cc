@@ -197,10 +197,10 @@ struct StepLimitResult
     friend std::ostream& operator<<(std::ostream& os,
                                     StepLimitResult const& result)
     {
-        return os << '{' << CELER_ATTR_REPR(result, mean_step) << ", "
-                  << CELER_ATTR_REPR(result, range_init) << ", "
-                  << CELER_ATTR_REPR(result, range_factor) << ", "
-                  << CELER_ATTR_REPR(result, limit_min) << '}';
+        return os << '{' << CELER_REPR_ATTR(result, mean_step) << ", "
+                  << CELER_REPR_ATTR(result, range_init) << ", "
+                  << CELER_REPR_ATTR(result, range_factor) << ", "
+                  << CELER_REPR_ATTR(result, limit_min) << '}';
     }
 
     friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,

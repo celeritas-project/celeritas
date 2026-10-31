@@ -77,12 +77,12 @@ struct GenCounterResult
     friend std::ostream& operator<<(std::ostream& os,
                                     GenCounterResult const& ref)
     {
-        return os << '{' << CELER_ATTR_REPR(ref, buffer_size) << ", "
-                  << CELER_ATTR_REPR(ref, pending) << ", "
-                  << CELER_ATTR_REPR(ref, generated) << ", "
-                  << CELER_ATTR_REPR(ref, accum_buffer_size) << ", "
-                  << CELER_ATTR_REPR(ref, accum_pending) << ", "
-                  << CELER_ATTR_REPR(ref, accum_generated) << '}';
+        return os << '{' << CELER_REPR_ATTR(ref, buffer_size) << ", "
+                  << CELER_REPR_ATTR(ref, pending) << ", "
+                  << CELER_REPR_ATTR(ref, generated) << ", "
+                  << CELER_REPR_ATTR(ref, accum_buffer_size) << ", "
+                  << CELER_REPR_ATTR(ref, accum_pending) << ", "
+                  << CELER_REPR_ATTR(ref, accum_generated) << '}';
     }
 
     friend bool is_ref_eq(AssertionHelper& helper,
@@ -138,14 +138,14 @@ struct CounterResult
 
     friend std::ostream& operator<<(std::ostream& os, CounterResult const& ref)
     {
-        os << '{' << CELER_ATTR_REPR(ref, pending) << ", "
-           << CELER_ATTR_REPR(ref, generated) << ", "
-           << CELER_ATTR_REPR(ref, initializers) << ", "
-           << CELER_ATTR_REPR(ref, vacancies) << ", "
-           << CELER_ATTR_REPR(ref, active) << ", "
-           << CELER_ATTR_REPR(ref, secondaries) << ", "
-           << CELER_ATTR_REPR(ref, alive) << ", " << CELER_ATTR_REPR(ref, cut)
-           << ", " << CELER_ATTR_REPR(ref, errored) << ", "
+        os << '{' << CELER_REPR_ATTR(ref, pending) << ", "
+           << CELER_REPR_ATTR(ref, generated) << ", "
+           << CELER_REPR_ATTR(ref, initializers) << ", "
+           << CELER_REPR_ATTR(ref, vacancies) << ", "
+           << CELER_REPR_ATTR(ref, active) << ", "
+           << CELER_REPR_ATTR(ref, secondaries) << ", "
+           << CELER_REPR_ATTR(ref, alive) << ", " << CELER_REPR_ATTR(ref, cut)
+           << ", " << CELER_REPR_ATTR(ref, errored) << ", "
            << "/* gen = */ {";
         for (auto const& [label, gen_result] : ref.gen)
         {

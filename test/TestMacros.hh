@@ -56,7 +56,7 @@ using ::celeritas::testdetail::print_expected;
         ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, rel_error)
 
 //! Helper for printing expected values in reference structs
-#define CELER_ATTR_REPR(REF, ATTR) \
+#define CELER_REPR_ATTR(REF, ATTR) \
     ::celeritas::testdetail::StreamableAttr \
     { \
         #ATTR, REF.ATTR \

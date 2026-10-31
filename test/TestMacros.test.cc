@@ -43,7 +43,7 @@ struct ComparerTestResult
 
 std::ostream& operator<<(std::ostream& os, PrintableTestResult const& result)
 {
-    return os << '{' << CELER_ATTR_REPR(result, value) << '}';
+    return os << '{' << CELER_REPR_ATTR(result, value) << '}';
 }
 
 //---------------------------------------------------------------------------//

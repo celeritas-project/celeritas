@@ -60,8 +60,8 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
 
         friend std::ostream& operator<<(std::ostream& os, RunResult const& ref)
         {
-            return os << '{' << CELER_ATTR_REPR(ref, labels) << ", "
-                      << CELER_ATTR_REPR(ref, slots) << '}';
+            return os << '{' << CELER_REPR_ATTR(ref, labels) << ", "
+                      << CELER_REPR_ATTR(ref, slots) << '}';
         }
 
         friend bool is_ref_eq(AssertionHelper& helper,
@@ -238,7 +238,7 @@ TEST_F(TestEm3SlotTest, host)
         s->erase(s->begin() + max_check_count, s->end());
     }
 
-    EXPECT_REF_EQ(expected, result) << CELER_ATTR_REPR(result, slots);
+    EXPECT_REF_EQ(expected, result) << CELER_REPR_ATTR(result, slots);
 }
 
 TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))

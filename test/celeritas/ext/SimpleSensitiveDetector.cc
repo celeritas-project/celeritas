@@ -34,23 +34,23 @@ namespace test
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, energy_deposition) << ", "
-              << CELER_ATTR_REPR(ref, step_length) << ", "
-              << CELER_ATTR_REPR(ref, particle) << ", "
-              << CELER_ATTR_REPR(ref, weight) << ", "
-              << CELER_ATTR_REPR(ref, track_id) << ", "
-              << CELER_ATTR_REPR(ref, parent_id) << ", "
-              << CELER_ATTR_REPR(ref, pre_energy) << ", "
-              << CELER_ATTR_REPR(ref, pre_time) << ", "
-              << CELER_ATTR_REPR(ref, pre_pos) << ", "
-              << CELER_ATTR_REPR(ref, pre_dir) << ", "
-              << CELER_ATTR_REPR(ref, pre_physvol) << ", "
-              << CELER_ATTR_REPR(ref, post_time) << ", "
-              << CELER_ATTR_REPR(ref, post_energy) << ", "
-              << CELER_ATTR_REPR(ref, post_pos) << ", "
-              << CELER_ATTR_REPR(ref, post_dir) << ", "
-              << CELER_ATTR_REPR(ref, post_physvol) << ", "
-              << CELER_ATTR_REPR(ref, post_status) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, energy_deposition) << ", "
+              << CELER_REPR_ATTR(ref, step_length) << ", "
+              << CELER_REPR_ATTR(ref, particle) << ", "
+              << CELER_REPR_ATTR(ref, weight) << ", "
+              << CELER_REPR_ATTR(ref, track_id) << ", "
+              << CELER_REPR_ATTR(ref, parent_id) << ", "
+              << CELER_REPR_ATTR(ref, pre_energy) << ", "
+              << CELER_REPR_ATTR(ref, pre_time) << ", "
+              << CELER_REPR_ATTR(ref, pre_pos) << ", "
+              << CELER_REPR_ATTR(ref, pre_dir) << ", "
+              << CELER_REPR_ATTR(ref, pre_physvol) << ", "
+              << CELER_REPR_ATTR(ref, post_time) << ", "
+              << CELER_REPR_ATTR(ref, post_energy) << ", "
+              << CELER_REPR_ATTR(ref, post_pos) << ", "
+              << CELER_REPR_ATTR(ref, post_dir) << ", "
+              << CELER_REPR_ATTR(ref, post_physvol) << ", "
+              << CELER_REPR_ATTR(ref, post_status) << '}';
 }
 
 //---------------------------------------------------------------------------//

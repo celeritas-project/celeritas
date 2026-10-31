@@ -179,9 +179,9 @@ auto StepperTestBase::RunResult::calc_queue_hwm() const -> StepCount
 std::ostream& operator<<(std::ostream& os,
                          StepperTestBase::SetupCheckResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, processes) << ", "
-              << CELER_ATTR_REPR(ref, actions) << ", "
-              << CELER_ATTR_REPR(ref, actions_desc) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, processes) << ", "
+              << CELER_REPR_ATTR(ref, actions) << ", "
+              << CELER_REPR_ATTR(ref, actions_desc) << '}';
 }
 
 bool is_ref_eq(AssertionHelper& helper,
@@ -200,8 +200,8 @@ bool is_ref_eq(AssertionHelper& helper,
 std::ostream& operator<<(std::ostream& os,
                          StepperTestBase::RunResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, active) << ", "
-              << CELER_ATTR_REPR(ref, queued) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, active) << ", "
+              << CELER_REPR_ATTR(ref, queued) << '}';
 }
 
 bool is_ref_eq(AssertionHelper& helper,

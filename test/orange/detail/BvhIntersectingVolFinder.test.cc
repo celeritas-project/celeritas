@@ -108,10 +108,10 @@ struct IntersectResult
     friend std::ostream& operator<<(std::ostream& os,
                                     IntersectResult const& ref)
     {
-        return os << '{' << CELER_ATTR_REPR(ref, distance) << ", "
-                  << CELER_ATTR_REPR(ref, intersect_surface) << ", "
-                  << CELER_ATTR_REPR(ref, hit_count) << ", "
-                  << CELER_ATTR_REPR(ref, miss_count) << '}';
+        return os << '{' << CELER_REPR_ATTR(ref, distance) << ", "
+                  << CELER_REPR_ATTR(ref, intersect_surface) << ", "
+                  << CELER_REPR_ATTR(ref, hit_count) << ", "
+                  << CELER_REPR_ATTR(ref, miss_count) << '}';
     }
 
     friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,

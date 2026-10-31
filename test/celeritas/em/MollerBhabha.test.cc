@@ -103,11 +103,11 @@ struct SampleResult
 
 std::ostream& operator<<(std::ostream& os, SampleResult const& result)
 {
-    return os << '{' << CELER_ATTR_REPR(result, inc_exit_cost) << ", "
-              << CELER_ATTR_REPR(result, inc_exit_e) << ", "
-              << CELER_ATTR_REPR(result, inc_edep) << ", "
-              << CELER_ATTR_REPR(result, sec_cost) << ", "
-              << CELER_ATTR_REPR(result, sec_e) << '}';
+    return os << '{' << CELER_REPR_ATTR(result, inc_exit_cost) << ", "
+              << CELER_REPR_ATTR(result, inc_exit_e) << ", "
+              << CELER_REPR_ATTR(result, inc_edep) << ", "
+              << CELER_REPR_ATTR(result, sec_cost) << ", "
+              << CELER_REPR_ATTR(result, sec_e) << '}';
 }
 
 bool is_ref_eq(AssertionHelper& helper,

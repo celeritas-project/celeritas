@@ -103,12 +103,12 @@ void GenericGeoTrackingResult::fail_at(std::size_t index)
 
 std::ostream& operator<<(std::ostream& os, GenericGeoTrackingResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, volumes) << ", "
-              << CELER_ATTR_REPR(ref, volume_instances) << ", "
-              << CELER_ATTR_REPR(ref, distances) << ", "
-              << CELER_ATTR_REPR(ref, dot_normal) << ", "
-              << CELER_ATTR_REPR(ref, halfway_safeties) << ", "
-              << CELER_ATTR_REPR(ref, bumps) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, volumes) << ", "
+              << CELER_REPR_ATTR(ref, volume_instances) << ", "
+              << CELER_REPR_ATTR(ref, distances) << ", "
+              << CELER_REPR_ATTR(ref, dot_normal) << ", "
+              << CELER_REPR_ATTR(ref, halfway_safeties) << ", "
+              << CELER_REPR_ATTR(ref, bumps) << '}';
 }
 
 bool is_ref_eq(AssertionHelper& helper,
@@ -175,7 +175,7 @@ GenericGeoVolumeStackResult GenericGeoVolumeStackResult::from_span(
 std::ostream& operator<<(std::ostream& os,
                          GenericGeoVolumeStackResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, volume_instances) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, volume_instances) << '}';
 }
 
 void GenericGeoVolumeStackResult::fail()
@@ -257,12 +257,12 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
 
 std::ostream& operator<<(std::ostream& os, GenericGeoModelInp const& ref)
 {
-    return os << "{{" << CELER_ATTR_REPR(ref, surface.labels) << ", "
-              << CELER_ATTR_REPR(ref, surface.volumes) << "}, {"
+    return os << "{{" << CELER_REPR_ATTR(ref, surface.labels) << ", "
+              << CELER_REPR_ATTR(ref, surface.volumes) << "}, {"
               << repr(ref.region.labels) << ", "
-              << CELER_ATTR_REPR(ref, region.volumes) << "}, {"
-              << CELER_ATTR_REPR(ref, detector.labels) << ", "
-              << CELER_ATTR_REPR(ref, detector.volumes) << "}}";
+              << CELER_REPR_ATTR(ref, region.volumes) << "}, {"
+              << CELER_REPR_ATTR(ref, detector.labels) << ", "
+              << CELER_REPR_ATTR(ref, detector.volumes) << "}}";
 }
 
 bool is_ref_eq(AssertionHelper& helper,

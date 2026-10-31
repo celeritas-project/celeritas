@@ -1386,11 +1386,11 @@ void FieldPropagationResult::fail_at(std::size_t index)
 
 std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, num_boundary) << ", "
-              << CELER_ATTR_REPR(ref, num_step) << ", "
-              << CELER_ATTR_REPR(ref, num_intercept) << ", "
-              << CELER_ATTR_REPR(ref, num_integration) << ", "
-              << CELER_ATTR_REPR(ref, messages) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, num_boundary) << ", "
+              << CELER_REPR_ATTR(ref, num_step) << ", "
+              << CELER_REPR_ATTR(ref, num_intercept) << ", "
+              << CELER_REPR_ATTR(ref, num_integration) << ", "
+              << CELER_REPR_ATTR(ref, messages) << '}';
 }
 
 bool is_ref_eq(AssertionHelper& helper,

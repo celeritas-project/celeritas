@@ -61,11 +61,11 @@ struct RunResult
 
     friend std::ostream& operator<<(std::ostream& os, RunResult const& ref)
     {
-        return os << '{' << CELER_ATTR_REPR(ref, track_ids) << ", "
-                  << CELER_ATTR_REPR(ref, parent_ids) << ", "
-                  << CELER_ATTR_REPR(ref, init_ids) << ", "
-                  << CELER_ATTR_REPR(ref, geo_parent_ids) << ", "
-                  << CELER_ATTR_REPR(ref, vacancies) << '}';
+        return os << '{' << CELER_REPR_ATTR(ref, track_ids) << ", "
+                  << CELER_REPR_ATTR(ref, parent_ids) << ", "
+                  << CELER_REPR_ATTR(ref, init_ids) << ", "
+                  << CELER_REPR_ATTR(ref, geo_parent_ids) << ", "
+                  << CELER_REPR_ATTR(ref, vacancies) << '}';
     }
 
     friend bool is_ref_eq(AssertionHelper& helper,

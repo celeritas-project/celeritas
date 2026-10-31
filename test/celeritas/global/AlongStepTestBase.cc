@@ -153,12 +153,12 @@ std::ostream& operator<<(std::ostream& os,
                          AlongStepTestBase::RunResult const& ref)
 {
     return os
-           << '{' << CELER_ATTR_REPR(ref, eloss) << ", "
-           << CELER_ATTR_REPR(ref, displacement) << ", "
-           << CELER_ATTR_REPR(ref, angle) << ", " << CELER_ATTR_REPR(ref, time)
-           << ", " << CELER_ATTR_REPR(ref, step) << ", "
-           << CELER_ATTR_REPR(ref, mfp) << ", " << CELER_ATTR_REPR(ref, alive)
-           << ", " << CELER_ATTR_REPR(ref, action) << '}';
+           << '{' << CELER_REPR_ATTR(ref, eloss) << ", "
+           << CELER_REPR_ATTR(ref, displacement) << ", "
+           << CELER_REPR_ATTR(ref, angle) << ", " << CELER_REPR_ATTR(ref, time)
+           << ", " << CELER_REPR_ATTR(ref, step) << ", "
+           << CELER_REPR_ATTR(ref, mfp) << ", " << CELER_REPR_ATTR(ref, alive)
+           << ", " << CELER_REPR_ATTR(ref, action) << '}';
 }
 
 bool is_ref_eq(AssertionHelper& helper,

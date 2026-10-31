@@ -110,10 +110,10 @@ struct FVIT
 };
 
 //---------------------------------------------------------------------------//
-// CELER_ATTR_REPR IMPLEMENTATION
+// CELER_REPR_ATTR IMPLEMENTATION
 //---------------------------------------------------------------------------//
 
-//! Print an attribute with CELER_ATTR_REPR
+//! Print an attribute with CELER_REPR_ATTR
 template<class T>
 struct StreamableAttr
 {

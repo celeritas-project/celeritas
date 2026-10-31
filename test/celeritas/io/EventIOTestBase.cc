@@ -30,11 +30,11 @@ namespace test
 std::ostream& operator<<(std::ostream& os,
                          EventIOTestBase::ReadAllResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, pdg) << ", "
-              << CELER_ATTR_REPR(ref, energy) << ", "
-              << CELER_ATTR_REPR(ref, pos) << ", " << CELER_ATTR_REPR(ref, dir)
-              << ", " << CELER_ATTR_REPR(ref, time) << ", "
-              << CELER_ATTR_REPR(ref, event) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, pdg) << ", "
+              << CELER_REPR_ATTR(ref, energy) << ", "
+              << CELER_REPR_ATTR(ref, pos) << ", " << CELER_REPR_ATTR(ref, dir)
+              << ", " << CELER_REPR_ATTR(ref, time) << ", "
+              << CELER_REPR_ATTR(ref, event) << '}';
 }
 
 bool is_ref_eq(AssertionHelper& helper,

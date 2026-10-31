@@ -56,13 +56,13 @@ struct EventResult
     //! Implement \c print_expected
     friend std::ostream& operator<<(std::ostream& os, EventResult const& ref)
     {
-        return os << '{' << CELER_ATTR_REPR(ref, pos) << ", "
-                  << CELER_ATTR_REPR(ref, time) << ", "
-                  << CELER_ATTR_REPR(ref, vtx) << ", "
-                  << CELER_ATTR_REPR(ref, pdg) << ", "
-                  << CELER_ATTR_REPR(ref, energy) << ", "
-                  << CELER_ATTR_REPR(ref, dir) << ", "
-                  << CELER_ATTR_REPR(ref, mass) << '}';
+        return os << '{' << CELER_REPR_ATTR(ref, pos) << ", "
+                  << CELER_REPR_ATTR(ref, time) << ", "
+                  << CELER_REPR_ATTR(ref, vtx) << ", "
+                  << CELER_REPR_ATTR(ref, pdg) << ", "
+                  << CELER_REPR_ATTR(ref, energy) << ", "
+                  << CELER_REPR_ATTR(ref, dir) << ", "
+                  << CELER_REPR_ATTR(ref, mass) << '}';
     }
 
     //! Implement \c EXPECT_REF_NEAR

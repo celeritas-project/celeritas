@@ -37,10 +37,10 @@ struct EventResult
 
   friend std::ostream& operator<<(std::ostream& os, EventResult const& ref)
   {
-    return os << '{' << CELER_ATTR_REPR(ref, pos) << ", "
-          << CELER_ATTR_REPR(ref, dir) << ", "
-          << CELER_ATTR_REPR(ref, energy) << ", "
-          << CELER_ATTR_REPR(ref, vtx) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, pos) << ", "
+          << CELER_REPR_ATTR(ref, dir) << ", "
+          << CELER_REPR_ATTR(ref, energy) << ", "
+          << CELER_REPR_ATTR(ref, vtx) << '}';
   }
 
   friend bool is_ref_eq(AssertionHelper& helper,
@@ -161,7 +161,7 @@ Provide printable output:
 
 - Give the result type a `class_str` and an ADL-visible `operator<<`. For a
   field-based aggregate, emit a braced initializer in declaration order using
-  `CELER_ATTR_REPR(ref, field)` for each field, as in
+  `CELER_REPR_ATTR(ref, field)` for each field, as in
   `test/accel/HepMC3PrimaryGenerator.test.cc`'s `EventResult`. This prints
   each field's name as a comment alongside its `repr` value while keeping the
   output valid as an aggregate initializer. Do not use `CELER_REF_ATTR` here:

@@ -42,7 +42,7 @@ RunResult RunResult::from_btr(
 
 std::ostream& operator<<(std::ostream& os, RunResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, num_hits) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, num_hits) << '}';
 }
 
 bool is_ref_eq(
@@ -72,10 +72,10 @@ DepHitResult DepHitResult::from_sdp(std::vector<sim::SDP> const& sdps)
 
 std::ostream& operator<<(std::ostream& os, DepHitResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, track_id) << ", "
-              << CELER_ATTR_REPR(ref, num_photons) << ", "
-              << CELER_ATTR_REPR(ref, energy) << ", "
-              << CELER_ATTR_REPR(ref, pos) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, track_id) << ", "
+              << CELER_REPR_ATTR(ref, num_photons) << ", "
+              << CELER_REPR_ATTR(ref, energy) << ", "
+              << CELER_REPR_ATTR(ref, pos) << '}';
 }
 
 //---------------------------------------------------------------------------//

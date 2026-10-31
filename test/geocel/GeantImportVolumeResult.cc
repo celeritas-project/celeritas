@@ -75,8 +75,8 @@ GeantImportVolumeResult GeantImportVolumeResult::from_import(
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, GeantImportVolumeResult const& ref)
 {
-    return os << '{' << CELER_ATTR_REPR(ref, volumes) << ", "
-              << CELER_ATTR_REPR(ref, missing_labels) << '}';
+    return os << '{' << CELER_REPR_ATTR(ref, volumes) << ", "
+              << CELER_REPR_ATTR(ref, missing_labels) << '}';
 }
 
 bool is_ref_eq(AssertionHelper& helper,

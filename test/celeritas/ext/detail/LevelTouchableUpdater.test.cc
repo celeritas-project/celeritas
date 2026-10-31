@@ -43,8 +43,8 @@ struct TestResult
 
     friend std::ostream& operator<<(std::ostream& os, TestResult const& ref)
     {
-        return os << '{' << CELER_ATTR_REPR(ref, coords) << ", "
-                  << CELER_ATTR_REPR(ref, replicas) << '}';
+        return os << '{' << CELER_REPR_ATTR(ref, coords) << ", "
+                  << CELER_REPR_ATTR(ref, replicas) << '}';
     }
 
     friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
