@@ -37,6 +37,7 @@ set(SOURCES
   GenericGeoResults.cc
   GenericGeoTestInterface.cc
   GeoTests.cc
+  RefUtils.cc
   SurfaceTestBase.cc
   VolumeTestBase.cc
 )

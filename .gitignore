@@ -23,7 +23,6 @@ Testing
 /spack-build*
 
 # Specific directories in the top level
-/.claude/
 /.claude/worktrees/
 /node_modules/
 

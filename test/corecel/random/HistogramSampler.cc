@@ -10,7 +10,8 @@
 #include "corecel/math/SoftEqual.hh"
 
 #include "AssertionHelper.hh"
-#include "testdetail/TestMacrosImpl.hh"
+#include "RefComparer.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -18,56 +19,28 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-void SampledHistogram::print_expected() const
-{
-    std::cout << "SampledHistogram ref;\n"
-              << "ref.distribution = " << repr(distribution) << ";\n"
-              << "ref.rng_count = " << repr(rng_count) << ";\n"
-              << "EXPECT_REF_EQ(ref, result);\n";
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Print to a stream.
- */
+//! Print to a stream
 std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh)
 {
     os << "{" << repr(sh.distribution) << ", " << repr(sh.rng_count) << "}";
     return os;
 }
 
-//---------------------------------------------------------------------------//
-
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   SampledHistogram const& val1,
-                                   SampledHistogram const& val2)
+//! Check against a reference histogram
+bool is_ref_eq(AssertionHelper& helper,
+               SampledHistogram const& val1,
+               SampledHistogram const& val2,
+               double tol)
 {
-    AssertionHelper result(expr1, expr2);
-
-    if (result.equal_size(val1.distribution.size(), val2.distribution.size()))
-    {
-        // TODO make the vector soft equal composable
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.distribution, val2.distribution);
-        if (!softeq_result)
-        {
-            result.fail() << softeq_result.message();
-        }
-    }
-    else
-    {
-        result.fail() << "  distribution: " << expr2 << " = "
-                      << repr(val2.distribution);
-    }
-    if (!soft_equal(val1.rng_count, val2.rng_count))
-    {
-        result.fail() << "  rng_count: " << val1.rng_count
-                      << " != " << val2.rng_count;
-    }
-
-    return result;
+    RefComparer<SampledHistogram> compare{helper, val1, val2};
+    bool result = CELER_INVOKE_ATTR(
+        compare.is_soft_eq, SampledHistogram, distribution, tol);
+    compare.record_result(result);
+    compare.record_result(
+        is_soft_eq(helper, val1.rng_count, val2.rng_count, {tol}));
+    return static_cast<bool>(compare);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

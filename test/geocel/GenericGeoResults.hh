@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <string>
 #include <vector>
 #include <gtest/gtest.h>
@@ -28,6 +30,7 @@ struct Model;
 
 namespace test
 {
+class AssertionHelper;
 class GenericGeoTestInterface;
 
 //---------------------------------------------------------------------------//
@@ -44,6 +47,8 @@ class GenericGeoTestInterface;
 //! Get detailed results from tracking from one cell to the next
 struct GenericGeoTrackingResult
 {
+    static constexpr char class_str[] = "GenericGeoTrackingResult";
+
     std::vector<std::string> volumes;
     std::vector<std::string> volume_instances;
     std::vector<real_type> distances;  //!< [cm]
@@ -75,8 +80,8 @@ struct GenericGeoTrackingResult
     // Add a failure sentinel at a certain index
     void fail_at(std::size_t index);
 
-    // Print expected expression to cout
-    void print_expected() const;
+    friend std::ostream& operator<<(std::ostream&,
+                                    GenericGeoTrackingResult const&);
 };
 
 //! Loosen strictness for tracking comparison
@@ -88,22 +93,10 @@ struct GenericGeoTrackingTolerance
 };
 
 // Compare tracking results
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   char const* tol_expr,
-                                   GenericGeoTrackingResult const& expected,
-                                   GenericGeoTrackingResult const& actual,
-                                   GenericGeoTrackingTolerance const& tol);
-
-//! Compare tracking results with default tolerance
-inline ::testing::AssertionResult IsRefEq(
-    char const* expected_expr,
-    char const* actual_expr,
-    GenericGeoTrackingResult const& expected,
-    GenericGeoTrackingResult const& actual)
-{
-    return IsRefEq(expected_expr, actual_expr, "default", expected, actual, {});
-}
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoTrackingResult const& expected,
+               GenericGeoTrackingResult const& actual,
+               GenericGeoTrackingTolerance const& tol = {});
 
 //---------------------------------------------------------------------------//
 // STACK RESULT
@@ -112,22 +105,25 @@ inline ::testing::AssertionResult IsRefEq(
 //! Get the volume instances and replica IDs from a point
 struct GenericGeoVolumeStackResult
 {
+    static constexpr char class_str[] = "GenericGeoVolumeStackResult";
+
     using LabelMap = LabelIdMultiMap<VolumeInstanceId>;
 
     std::vector<std::string> volume_instances;
 
     static GenericGeoVolumeStackResult from_span(LabelMap const&,
                                                  Span<VolumeInstanceId const>);
-    void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream&,
+                                    GenericGeoVolumeStackResult const&);
 
     //! Add a failure sentinel at the end
     void fail();
 };
 
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   GenericGeoVolumeStackResult const& expected,
-                                   GenericGeoVolumeStackResult const& actual);
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoVolumeStackResult const& expected,
+               GenericGeoVolumeStackResult const& actual);
 
 //---------------------------------------------------------------------------//
 // MODEL INPUT RESULT
@@ -136,6 +132,8 @@ struct GenericGeoVolumeStackResult
 //! Get the unfolded geometry model input
 struct GenericGeoModelInp
 {
+    static constexpr char class_str[] = "GenericGeoModelInp";
+
     struct
     {
         std::vector<std::string> labels;
@@ -155,15 +153,15 @@ struct GenericGeoModelInp
     } detector;
 
     static GenericGeoModelInp from_model_input(inp::Model const& in);
-    void print_expected() const;
+
+    friend std::ostream& operator<<(std::ostream&, GenericGeoModelInp const&);
 };
 
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expected_expr,
-                                   char const* actual_expr,
-                                   GenericGeoModelInp const& expected,
-                                   GenericGeoModelInp const& actual);
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoModelInp const& expected,
+               GenericGeoModelInp const& actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

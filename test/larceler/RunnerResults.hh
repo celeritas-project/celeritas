@@ -6,8 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <vector>
 #include <gtest/gtest.h>
+
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"  // IWYU pragma: keep
 
 namespace sim
 {
@@ -20,45 +25,48 @@ namespace celeritas
 {
 namespace test
 {
+class AssertionHelper;
 //---------------------------------------------------------------------------//
 struct RunResult
 {
+    static constexpr char class_str[] = "RunResult";
+
     std::vector<int> num_hits;
 
     static RunResult from_btr(
         std::vector<sim::OpDetBacktrackerRecord> const& records);
 
-    void print_expected() const;
+    friend std::ostream& operator<<(std::ostream&, RunResult const&);
 };
 
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   RunResult const& val1,
-                                   RunResult const& val2);
+bool is_ref_eq(AssertionHelper& helper,
+               RunResult const& expected,
+               RunResult const& actual);
 
 //---------------------------------------------------------------------------//
 struct DepHitResult
 {
+    static constexpr char class_str[] = "DepHitResult";
+
+    using Real3 = Array<float, 3>;
+
     std::vector<int> track_id;
     std::vector<float> num_photons;
     std::vector<float> energy;
-    std::vector<float> x;
-    std::vector<float> y;
-    std::vector<float> z;
+    std::vector<Real3> pos;
 
     static DepHitResult from_sdp(std::vector<sim::SDP> const& sdps);
 
-    void print_expected() const;
+    friend std::ostream& operator<<(std::ostream&, DepHitResult const&);
 };
 
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   DepHitResult const& val1,
-                                   DepHitResult const& val2);
+bool is_ref_eq(AssertionHelper& helper,
+               DepHitResult const& expected,
+               DepHitResult const& actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

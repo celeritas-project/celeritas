@@ -318,8 +318,9 @@ class LeadBox : public LeadBoxTestBase, public StepperTestBase
 TEST_F(TestEm3Compton, setup)
 {
     auto result = this->check_setup();
-    static char const* expected_process[] = {"Compton scattering"};
-    EXPECT_VEC_EQ(expected_process, result.processes);
+    auto ref = result;
+    ref.processes = {"Compton scattering"};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TestEm3Compton, host)
@@ -341,7 +342,7 @@ TEST_F(TestEm3Compton, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -357,8 +358,8 @@ TEST_F(TestEm3Compton, host)
 TEST_F(TestEm3NoMsc, setup)
 {
     auto result = this->check_setup();
-
-    static char const* const expected_processes[] = {
+    auto ref = result;
+    ref.processes = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -366,8 +367,7 @@ TEST_F(TestEm3NoMsc, setup)
         "Electron/positron ionization",
         "Bremsstrahlung",
     };
-    EXPECT_VEC_EQ(expected_processes, result.processes);
-    static char const* const expected_actions[] = {
+    ref.actions = {
         "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
@@ -385,7 +385,7 @@ TEST_F(TestEm3NoMsc, setup)
         "tracking-cut",
         "extend-from-secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions, result.actions);
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TestEm3NoMsc, host)
@@ -408,7 +408,7 @@ TEST_F(TestEm3NoMsc, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -476,7 +476,7 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -492,8 +492,8 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
 TEST_F(TestEm3Msc, setup)
 {
     auto result = this->check_setup();
-
-    static char const* const expected_processes[] = {
+    auto ref = result;
+    ref.processes = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -501,8 +501,7 @@ TEST_F(TestEm3Msc, setup)
         "Electron/positron ionization",
         "Bremsstrahlung",
     };
-    EXPECT_VEC_EQ(expected_processes, result.processes);
-    static char const* const expected_actions[] = {
+    ref.actions = {
         "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
@@ -520,9 +519,7 @@ TEST_F(TestEm3Msc, setup)
         "tracking-cut",
         "extend-from-secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions, result.actions);
-
-    static char const* const expected_actions_desc[] = {
+    ref.actions_desc = {
         "create track initializers from primaries",
         "initialize track states",
         "update beginning-of-step state",
@@ -540,7 +537,7 @@ TEST_F(TestEm3Msc, setup)
         "kill a track and deposit its energy",
         "create track initializers from secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions_desc, result.actions_desc);
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TestEm3Msc, host)
@@ -563,7 +560,7 @@ TEST_F(TestEm3Msc, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -591,7 +588,7 @@ TEST_F(TestEm3Msc, TEST_IF_CELER_DEVICE(device))
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -625,7 +622,7 @@ TEST_F(TestEm3MscNofluct, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -655,7 +652,7 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -689,7 +686,7 @@ TEST_F(TestEm3MscNoIntegral, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -705,8 +702,8 @@ TEST_F(TestEm3MscNoIntegral, host)
 TEST_F(TestEm15FieldMsc, setup)
 {
     auto result = this->check_setup();
-
-    static char const* const expected_processes[] = {
+    auto ref = result;
+    ref.processes = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -714,8 +711,7 @@ TEST_F(TestEm15FieldMsc, setup)
         "Electron/positron ionization",
         "Bremsstrahlung",
     };
-    EXPECT_VEC_EQ(expected_processes, result.processes);
-    static char const* const expected_actions[] = {
+    ref.actions = {
         "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
@@ -733,7 +729,7 @@ TEST_F(TestEm15FieldMsc, setup)
         "tracking-cut",
         "extend-from-secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions, result.actions);
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TestEm15FieldMsc, host)
@@ -755,7 +751,7 @@ TEST_F(TestEm15FieldMsc, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -782,7 +778,7 @@ TEST_F(TestEm15FieldMsc, TEST_IF_CELER_DEVICE(device))
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -798,8 +794,8 @@ TEST_F(TestEm15FieldMsc, TEST_IF_CELER_DEVICE(device))
 TEST_F(OneSteelSphere, setup)
 {
     auto result = this->check_setup();
-
-    static char const* const expected_processes[] = {
+    auto ref = result;
+    ref.processes = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -807,8 +803,7 @@ TEST_F(OneSteelSphere, setup)
         "Electron/positron ionization",
         "Bremsstrahlung",
     };
-    EXPECT_VEC_EQ(expected_processes, result.processes);
-    static char const* const expected_actions[] = {
+    ref.actions = {
         "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
@@ -826,7 +821,7 @@ TEST_F(OneSteelSphere, setup)
         "tracking-cut",
         "extend-from-secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions, result.actions);
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(OneSteelSphere, host)
@@ -849,7 +844,7 @@ TEST_F(OneSteelSphere, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {

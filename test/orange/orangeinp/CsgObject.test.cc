@@ -89,7 +89,7 @@ TEST_F(NegatedObjectTest, just_neg)
     {
         // Note that print_expected goes through string simplifier
         ScopedStreamRedirect redirected(&std::cout);
-        this->print_expected();
+        print_expected(this->unit());
         EXPECT_EQ(1545, redirected.str().size());
     }
     {
@@ -481,8 +481,6 @@ TEST_F(CsgObjectTest, subtraction_nested)
         to_string(*awalls));
 
     this->build_volume(*awalls);
-
-    // this->print_expected();
 
     static char const* const expected_volume_strings[] = {
         R"(all(+0, -1, +2, -3, +4, -5, !all(+6, -7, +8, -9, +10, -11), !all(+6, -7, +8, -9, +12, -13), !all(+6, -7, +8, -9, +14, -15), !all(+6, -7, +8, -9, +16, -17)))"};

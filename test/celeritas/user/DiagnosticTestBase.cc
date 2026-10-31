@@ -15,6 +15,10 @@
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/StepDiagnostic.hh"
 
+#include "AssertionHelper.hh"
+#include "RefComparer.hh"
+#include "TestMacros.hh"
+
 using std::cout;
 
 namespace celeritas
@@ -38,37 +42,24 @@ void DiagnosticTestBase::SetUp()
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void DiagnosticTestBase::RunResult::print_expected() const
+std::ostream& operator<<(std::ostream& os,
+                         DiagnosticTestBase::RunResult const& ref)
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static char const* const expected_nonzero_action_keys[] = "
-         << repr(this->nonzero_action_keys)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_nonzero_action_keys, "
-            "result.nonzero_action_keys);\n"
-            "static size_type const expected_nonzero_action_counts[] = "
-         << repr(this->nonzero_action_counts)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_nonzero_action_counts, "
-            "result.nonzero_action_counts);\n"
-            "static size_type const expected_steps[] = "
-         << repr(this->steps)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_steps, result.steps);\n"
-            "/*** END CODE ***/\n";
+    return os << '{' << CELER_REPR_ATTR(ref, nonzero_action_keys) << ", "
+              << CELER_REPR_ATTR(ref, nonzero_action_counts) << ", "
+              << CELER_REPR_ATTR(ref, steps) << '}';
 }
 
-//---------------------------------------------------------------------------//
-//! Print the expected result
-void DiagnosticTestBase::print_expected() const
+bool is_ref_eq(AssertionHelper& helper,
+               DiagnosticTestBase::RunResult const& expected,
+               DiagnosticTestBase::RunResult const& actual)
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-         << "EXPECT_EQ(R\"json(" << this->action_output()
-         << ")json\",this->action_output());\n"
-         << "EXPECT_EQ(R\"json(" << this->step_output()
-         << ")json\",this->step_output());\n"
-            "/*** END CODE ***/\n";
+    using Result = DiagnosticTestBase::RunResult;
+    RefComparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, Result, nonzero_action_keys);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, nonzero_action_counts);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, steps);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

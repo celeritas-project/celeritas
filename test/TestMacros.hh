@@ -10,7 +10,9 @@
 
 #include "corecel/Config.hh"
 
-#include "testdetail/TestMacrosImpl.hh"
+#include "testdetail/TestMacrosImpl.hh"  // IWYU pragma: export
+
+using ::celeritas::testdetail::print_expected;
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -18,9 +20,10 @@
 
 //! Custom comparison for Celeritas test result types, using ADL
 #define EXPECT_REF_EQ(EXPECTED, ACTUAL) \
-    EXPECT_PRED_FORMAT2(IsRefEq, EXPECTED, ACTUAL)
+    EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsRefEq, EXPECTED, ACTUAL)
 #define EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL) \
-    EXPECT_PRED_FORMAT3(IsRefEq, EXPECTED, ACTUAL, TOL)
+    EXPECT_PRED_FORMAT3( \
+        ::celeritas::testdetail::IsRefEq, EXPECTED, ACTUAL, TOL)
 
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \
@@ -52,12 +55,22 @@
     EXPECT_PRED_FORMAT3( \
         ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, rel_error)
 
-//! Print the given container as an array for regression testing
-#define PRINT_EXPECTED(data) \
-    ::celeritas::testdetail::print_expected(data, #data)
-
 //! Helper for printing expected values in reference structs
-#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(ref.ATTR) << ";\n"
+#define CELER_REPR_ATTR(REF, ATTR) \
+    ::celeritas::testdetail::StreamableAttr \
+    { \
+        #ATTR, REF.ATTR \
+    }
+
+//! Invoke an attribute comparison with an optional tolerance
+#define CELER_INVOKE_ATTR_3(func, type, attr) func(#attr, &type::attr)
+#define CELER_INVOKE_ATTR_4(func, type, attr, tol) \
+    func(#attr, &type::attr, tol)
+#define CELER_INVOKE_ATTR_IMPL(_1, _2, _3, _4, NAME, ...) NAME
+#define CELER_INVOKE_ATTR(...) \
+    CELER_INVOKE_ATTR_IMPL( \
+        __VA_ARGS__, CELER_INVOKE_ATTR_4, CELER_INVOKE_ATTR_3, unused)( \
+        __VA_ARGS__)
 
 //! JSON string equality (soft equal for floats)
 #define EXPECT_JSON_EQ(expected, actual) \
@@ -97,20 +110,3 @@
 #else
 #    define TEST_IF_CELERITAS_USE_ROOT(name) DISABLED_##name
 #endif
-
-// Expose the generic container IsRefEq to the possible test namespaces so that
-// "unqualified lookup" as well as "argument-dependent" work
-namespace celeritas
-{
-namespace test
-{
-using ::celeritas::testdetail::IsRefEq;
-}
-namespace detail
-{
-namespace test
-{
-using ::celeritas::testdetail::IsRefEq;
-}
-}  // namespace detail
-}  // namespace celeritas

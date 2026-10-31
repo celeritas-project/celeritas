@@ -45,13 +45,13 @@ Celeritas defines special test macros that simplify testing with floating-point 
 .. doxygendefine:: EXPECT_REF_EQ
 .. doxygendefine:: EXPECT_JSON_EQ
 
-Expected data can be printed with another macro:
-
-.. doxygendefine:: PRINT_EXPECTED
-
 For more details on the test harnesses, especially the hierarchy used for
 setting up physics problems for testing, see the ``celeritas::test`` namespace
 in the Doxygen developer documentation.
+
+To help set up "reference result" comparators used by :c:macro:`EXPECT_REF_EQ`,
+see the reference result agent skill at
+:file:`.claude/skills/reference-result/SKILL.md`.
 
 Testing random number distributions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

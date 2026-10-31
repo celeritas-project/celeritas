@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/em/msc/UrbanMsc.hh"
 
+#include <cmath>
+
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -27,6 +29,7 @@
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 
+#include "AssertionHelper.hh"
 #include "MscTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
@@ -39,7 +42,7 @@ namespace test
 TEST(Distributions, UrbanLargeAngleDistribution)
 {
     constexpr size_type num_samples{10000};
-    std::vector<std::vector<double>> angle_dist;
+    std::vector<std::vector<real_type>> angle_dist;
 
     DiagnosticRngEngine<std::mt19937> rng;
 
@@ -116,11 +119,11 @@ TEST(Details, UrbanPositronCorrector)
     }
 
     // clang-format off
-    static const double expected_h[] = {1.378751990475, 1.3787519983432,
+    static const real_type expected_h[] = {1.378751990475, 1.3787519983432,
         1.3813527280086, 1.3825378340463, 1.3834564182635, 1.3856807011387,
         1.3865656925136, 1.3865681880571, 1.3876210627429, 1.3882415266217,
         1.3882507402225, 1.3882508352478};
-    static const double expected_w[] = {0.21482671339734,
+    static const real_type expected_w[] = {0.21482671339734,
         0.4833017838367, 0.70738388881252, 0.70471228941815, 0.7026415135041,
         0.69762728474033, 0.69563878645763, 0.69577660924627, 0.75392431413533,
         0.78819102317998, 0.78869986791365, 0.78870511592834};
@@ -181,6 +184,46 @@ std::ostream& operator<<(std::ostream& os, LabeledValue<T> const& lv)
     os << lv.label << "=" << lv.value;
     return os;
 }
+
+struct StepLimitResult
+{
+    static constexpr char class_str[] = "StepLimitResult";
+
+    std::vector<real_type> mean_step;
+    std::vector<real_type> range_init;
+    std::vector<real_type> range_factor;
+    std::vector<real_type> limit_min;
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    StepLimitResult const& result)
+    {
+        return os << '{' << CELER_REPR_ATTR(result, mean_step) << ", "
+                  << CELER_REPR_ATTR(result, range_init) << ", "
+                  << CELER_REPR_ATTR(result, range_factor) << ", "
+                  << CELER_REPR_ATTR(result, limit_min) << '}';
+    }
+
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          StepLimitResult const& expected,
+                          StepLimitResult const& actual,
+                          real_type tol)
+    {
+        ::celeritas::test::RefComparer<StepLimitResult> compare{
+            helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, mean_step, tol);
+        CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, range_init, tol);
+        CELER_INVOKE_ATTR(
+            compare.is_soft_eq, StepLimitResult, range_factor, tol);
+        CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, limit_min, tol);
+        return static_cast<bool>(compare);
+    }
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          StepLimitResult const& expected,
+                          StepLimitResult const& actual)
+    {
+        return is_ref_eq(helper, expected, actual, UrbanMscTest::fine_eps);
+    }
+};
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -349,19 +392,9 @@ TEST_F(UrbanMscTest, step_limit)
 {
     using Algorithm = MscStepLimitAlgorithm;
 
-    struct Result
-    {
-        using VecReal = std::vector<real_type>;
-
-        VecReal mean_step;
-        VecReal range_init;
-        VecReal range_factor;
-        VecReal limit_min;
-    };
-
     auto sample = [&](Algorithm alg, bool on_boundary) {
         RandomEngine& rng = this->rng();
-        Result result;
+        StepLimitResult result;
 
         real_type const num_samples = 100;
         real_type const safety = 0;
@@ -426,127 +459,88 @@ TEST_F(UrbanMscTest, step_limit)
     {
         // "Minimal" algorithm, first step and not on boundary
         // step = phys_step
-        static real_type const expected_mean_step[] = {
-            5.4443542524765e-05,
-            0.0026634570717113,
-            0.07706894630323,
-            0.90591081547834,
-            8.8845468955896,
-        };
-        static real_type const expected_range_init[]
-            = {inf, inf, inf, inf, inf};
-        static real_type const expected_range_factor[]
-            = {0.2, 0.2, 0.2, 0.2, 0.2};
-        static real_type const expected_limit_min[]
-            = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
-
         auto result = sample(Algorithm::minimal, false);
         real_type tol = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
                              ? 2e-6f
                              : 1e-11);
-        EXPECT_VEC_NEAR(expected_mean_step, result.mean_step, tol);
-        EXPECT_VEC_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_EQ(expected_range_factor, result.range_factor);
-        EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
+        StepLimitResult ref{{5.4443542524765e-05,
+                             0.0026634570717113,
+                             0.07706894630323,
+                             0.90591081547834,
+                             8.8845468955896},
+                            {inf, inf, inf, inf, inf},
+                            {0.2, 0.2, 0.2, 0.2, 0.2},
+                            {1e-08, 1e-08, 1e-08, 1e-08, 1e-08}};
+        EXPECT_REF_NEAR(ref, result, tol);
     }
     {
         // "Minimal" algorithm, first step and on boundary
-        static real_type const expected_mean_step[] = {
-            1.0947992605048e-05,
-            0.00052916041217278,
-            0.015353327646933,
-            0.21986948123587,
-            8.8845468955896,
-        };
-        static real_type const expected_range_init[] = {
-            1.0888708504953e-05,
-            0.00053269141434226,
-            0.015413789260646,
-            0.21762788543933,
-            15.553546812173,
-        };
-        static real_type const expected_range_factor[]
-            = {0.2, 0.2, 0.2, 0.2, 0.2};
-        static real_type const expected_limit_min[]
-            = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
-
         auto result = sample(Algorithm::minimal, true);
+        StepLimitResult ref{{1.0947992605048e-05,
+                             0.00052916041217278,
+                             0.015353327646933,
+                             0.21986948123587,
+                             8.8845468955896},
+                            {1.0888708504953e-05,
+                             0.00053269141434226,
+                             0.015413789260646,
+                             0.21762788543933,
+                             15.553546812173},
+                            {0.2, 0.2, 0.2, 0.2, 0.2},
+                            {1e-08, 1e-08, 1e-08, 1e-08, 1e-08}};
         if (Test::is_reference_rng)
         {
-            EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-            EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-            EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
-            EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+            EXPECT_REF_EQ(ref, result);
         }
     }
     {
         // "Use safety" algorithm
-        static real_type const expected_mean_step[] = {
-            2.1774398678028e-06,
-            0.00010553667369532,
-            0.0030850804312135,
-            0.15209571378504,
-            8.8845468955896,
-        };
-        static real_type const expected_range_init[] = {
-            5.4443542524765e-05,
-            0.0026634570717113,
-            0.07706894630323,
-            1.0881394271966,
-            77.767734060865,
-        };
-        static real_type const expected_range_factor[]
-            = {0.04, 0.04, 0.04, 0.13881394271966, 7.8067734060865};
-        static real_type const expected_limit_min[] = {
-            1.9688399316472e-06,
-            1.0522532283188e-05,
-            3.1432398888924e-05,
-            4.0583539826243e-05,
-            3.6094312868035e-05,
-        };
-
         auto result = sample(Algorithm::safety, true);
+        StepLimitResult ref{
+            {2.1774398678028e-06,
+             0.00010553667369532,
+             0.0030850804312135,
+             0.15209571378504,
+             8.8845468955896},
+            {5.4443542524765e-05,
+             0.0026634570717113,
+             0.07706894630323,
+             1.0881394271966,
+             77.767734060865},
+            {0.04, 0.04, 0.04, 0.13881394271966, 7.8067734060865},
+            {1.9688399316472e-06,
+             1.0522532283188e-05,
+             3.1432398888924e-05,
+             4.0583539826243e-05,
+             3.6094312868035e-05}};
         if (Test::is_reference_rng)
         {
-            EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-            EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-            EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
-            EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+            EXPECT_REF_EQ(ref, result);
         }
     }
     {
         // "Use safety plus" algorithm
-        static real_type const expected_mean_step[] = {
-            2.1762412527058e-06,
-            0.00010784096017973,
-            0.0030577621335327,
-            0.094075756535309,
-            3.1108913402956,
-        };
-        static real_type const expected_range_init[] = {
-            5.4443542524765e-05,
-            0.0026634570717113,
-            0.07706894630323,
-            0.90591081547834,
-            8.8845468955896,
-        };
-        static real_type const expected_range_factor[]
-            = {0.04, 0.04, 0.04, 0.10324092334058, 5.0107349798953};
-        static real_type const expected_limit_min[] = {
-            1.9688399316472e-06,
-            1.0522532283188e-05,
-            3.1432398888924e-05,
-            4.0583539826243e-05,
-            3.6094312868035e-05,
-        };
-
         auto result = sample(Algorithm::safety_plus, true);
+        StepLimitResult ref{
+            {2.1762412527058e-06,
+             0.00010784096017973,
+             0.0030577621335327,
+             0.094075756535309,
+             3.1108913402956},
+            {5.4443542524765e-05,
+             0.0026634570717113,
+             0.07706894630323,
+             0.90591081547834,
+             8.8845468955896},
+            {0.04, 0.04, 0.04, 0.10324092334058, 5.0107349798953},
+            {1.9688399316472e-06,
+             1.0522532283188e-05,
+             3.1432398888924e-05,
+             4.0583539826243e-05,
+             3.6094312868035e-05}};
         if (Test::is_reference_rng)
         {
-            EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
-            EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-            EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
-            EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+            EXPECT_REF_EQ(ref, result);
         }
     }
 }
@@ -615,9 +609,9 @@ TEST_F(UrbanMscTest, msc_scattering)
     std::vector<real_type> alpha_over_mfp;
 
     // Binned scattering results
-    std::vector<std::vector<double>> angle;
+    std::vector<std::vector<real_type>> angle;
     std::vector<real_type> displace_frac;  // fraction of safety
-    std::vector<std::vector<double>> action;
+    std::vector<std::vector<real_type>> action;
 
     // Average RNG per scatter
     std::vector<real_type> avg_engine_samples;
@@ -671,7 +665,8 @@ TEST_F(UrbanMscTest, msc_scattering)
         tstep_frac.push_back(true_path / this_pstep);
 
         // Reset RNG from the one sample
-        avg_engine_samples.push_back(static_cast<double>(rng.exchange_count()));
+        avg_engine_samples.push_back(
+            static_cast<real_type>(rng.exchange_count()));
 
         // Convert physical step limit to geometrical step
         MscStep step_result = [&] {
@@ -719,10 +714,12 @@ TEST_F(UrbanMscTest, msc_scattering)
         }
 
         EXPECT_FALSE(bin_angle.underflow() || bin_angle.overflow());
-        angle.push_back(bin_angle.calc_density());
+        auto angle_density = bin_angle.calc_density();
+        angle.emplace_back(angle_density.begin(), angle_density.end());
         displace_frac.push_back(avg_displacement / num_samples);
         EXPECT_FALSE(bin_action.underflow() || bin_action.overflow());
-        action.push_back(bin_action.calc_density());
+        auto action_density = bin_action.calc_density();
+        action.emplace_back(action_density.begin(), action_density.end());
         avg_engine_samples.push_back(
             static_cast<real_type>(rng.exchange_count())
             / static_cast<real_type>(num_samples));
@@ -741,21 +738,6 @@ TEST_F(UrbanMscTest, msc_scattering)
 
     if (!Test::is_reference_rng)
     {
-        PRINT_EXPECTED(lambda_cm);
-        PRINT_EXPECTED(pstep_mfp);
-        PRINT_EXPECTED(range_mfp);
-
-        PRINT_EXPECTED(msc_range_mfp);
-        PRINT_EXPECTED(tstep_frac);
-        PRINT_EXPECTED(gstep_frac);
-        PRINT_EXPECTED(alpha_over_mfp);
-
-        PRINT_EXPECTED(angle);
-        PRINT_EXPECTED(displace_frac);
-        PRINT_EXPECTED(action);
-
-        PRINT_EXPECTED(avg_engine_samples);
-
         GTEST_SKIP() << "Not using reference RNG";
     }
 
@@ -1049,7 +1031,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.37840329914137,
         0.37840329914137,
     };
-    static std::vector<double> const expected_angle[] = {
+    static std::vector<real_type> const expected_angle[] = {
         {0, 0, 0, 0, 0, 0, 0, 4},
         {0, 0, 0, 0, 0, 0, 0, 4},
         {0, 0, 0, 0, 0, 0, 0, 4},
@@ -1185,7 +1167,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         0.30188146067728,
         0,
     };
-    static std::vector<double> const expected_action[] = {
+    static std::vector<int> const expected_action[] = {
         {0, 0, 1}, {0, 1, 0}, {0, 1, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0},
         {0, 0, 1}, {1, 0, 0}, {1, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 0},
         {0, 0, 1}, {0, 0, 1}, {1, 0, 0}, {0, 0, 1}, {0, 0, 1}, {0, 1, 0},
@@ -1220,8 +1202,8 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_VEC_SOFT_EQ(expected_gstep_frac, gstep_frac);
     EXPECT_VEC_SOFT_EQ(expected_alpha_over_mfp, alpha_over_mfp);
 
-    EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
-    EXPECT_VEC_NEAR(expected_displace_frac, displace_frac, 1e-12);
+    EXPECT_VEC_NEAR(expected_angle, angle, 2e-12_r);
+    EXPECT_VEC_NEAR(expected_displace_frac, displace_frac, 1e-12_r);
     EXPECT_VEC_EQ(expected_action, action);
     EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
 }

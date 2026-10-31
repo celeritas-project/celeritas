@@ -11,7 +11,6 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/inp/Distributions.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/Repr.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
@@ -76,20 +75,58 @@ class GeantImporterTest : public GeantTestBase
 
     struct ImportSummary
     {
+        static constexpr char class_str[] = "ImportSummary";
+
         std::vector<std::string> particles;
         std::vector<std::string> processes;
         std::vector<std::string> models;
 
-        void print_expected() const;
+        friend std::ostream& operator<<(std::ostream& os,
+                                        ImportSummary const& ref)
+        {
+            return os << '{' << CELER_REPR_ATTR(ref, particles) << ", "
+                      << CELER_REPR_ATTR(ref, processes) << ", "
+                      << CELER_REPR_ATTR(ref, models) << '}';
+        }
+
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              ImportSummary const& expected,
+                              ImportSummary const& actual)
+        {
+            RefComparer<ImportSummary> compare{helper, expected, actual};
+            CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, particles);
+            CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, processes);
+            CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, models);
+            return static_cast<bool>(compare);
+        }
     };
 
     struct ImportXsSummary
     {
-        std::vector<size_type> size;  //!< Number of micro XS in each material
-        std::vector<real_type> energy;
-        std::vector<real_type> xs;
+        static constexpr char class_str[] = "ImportXsSummary";
 
-        void print_expected() const;
+        std::vector<size_type> size;  //!< Number of micro XS in each material
+        std::vector<double> energy;
+        std::vector<double> xs;
+
+        friend std::ostream& operator<<(std::ostream& os,
+                                        ImportXsSummary const& ref)
+        {
+            return os << '{' << CELER_REPR_ATTR(ref, size) << ", "
+                      << CELER_REPR_ATTR(ref, energy) << ", "
+                      << CELER_REPR_ATTR(ref, xs) << '}';
+        }
+
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              ImportXsSummary const& expected,
+                              ImportXsSummary const& actual)
+        {
+            RefComparer<ImportXsSummary> compare{helper, expected, actual};
+            CELER_INVOKE_ATTR(compare.is_eq, ImportXsSummary, size);
+            CELER_INVOKE_ATTR(compare.is_soft_eq, ImportXsSummary, energy);
+            CELER_INVOKE_ATTR(compare.is_soft_eq, ImportXsSummary, xs);
+            return static_cast<bool>(compare);
+        }
     };
 
     ImportSummary summarize(ImportData const& data) const;
@@ -181,21 +218,6 @@ auto GeantImporterTest::summarize(ImportData const& data) const -> ImportSummary
     return s;
 }
 
-void GeantImporterTest::ImportSummary::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static const char* expected_particles[] = "
-         << repr(this->particles) << ";\n"
-         << "EXPECT_VEC_EQ(expected_particles, summary.particles);\n"
-            "static const char* expected_processes[] = "
-         << repr(this->processes) << ";\n"
-         << "EXPECT_VEC_EQ(expected_processes, summary.processes);\n"
-            "static const char* expected_models[] = "
-         << repr(this->models) << ";\n"
-         << "EXPECT_VEC_EQ(expected_models, summary.models);\n"
-            "/*** END CODE ***/\n";
-}
-
 auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
     -> ImportXsSummary
 {
@@ -226,21 +248,6 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
         }
     }
     return result;
-}
-
-void GeantImporterTest::ImportXsSummary::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-         << "static size_type const expected_size[] = " << repr(this->size)
-         << ";\n"
-         << "EXPECT_VEC_EQ(expected_size, result.size);\n"
-         << "static real_type const expected_e[] = " << repr(this->energy)
-         << ";\n"
-         << "EXPECT_VEC_SOFT_EQ(expected_e, result.energy);\n"
-         << "static real_type const expected_xs[] = " << repr(this->xs)
-         << ";\n"
-         << "EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);\n"
-         << "/*** END CODE ***/\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -474,38 +481,32 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[]
-        = {"e+", "e-", "gamma", "mu+", "mu-"};
-    EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {
-        "e_ioni",
-        "e_brems",
-        "photoelectric",
-        "compton",
-        "conversion",
-        "rayleigh",
-        "annihilation",
-        "mu_ioni",
-        "mu_brems",
-        "mu_pair_prod",
-    };
-    EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {
-        "urban_msc",
-        "icru_73_qo",
-        "bragg",
-        "moller_bhabha",
-        "e_brems_sb",
-        "e_brems_lpm",
-        "e_plus_to_gg",
-        "livermore_photoelectric",
-        "klein_nishina",
-        "bethe_heitler_lpm",
-        "livermore_rayleigh",
-        "mu_bethe_bloch",
-        "mu_brems",
-        "mu_pair_prod",
-    };
+    ImportSummary ref;
+    ref.particles = {"e+", "e-", "gamma", "mu+", "mu-"};
+    ref.processes = {"e_ioni",
+                     "e_brems",
+                     "photoelectric",
+                     "compton",
+                     "conversion",
+                     "rayleigh",
+                     "annihilation",
+                     "mu_ioni",
+                     "mu_brems",
+                     "mu_pair_prod"};
+    ref.models = {"urban_msc",
+                  "icru_73_qo",
+                  "bragg",
+                  "moller_bhabha",
+                  "e_brems_sb",
+                  "e_brems_lpm",
+                  "e_plus_to_gg",
+                  "livermore_photoelectric",
+                  "klein_nishina",
+                  "bethe_heitler_lpm",
+                  "livermore_rayleigh",
+                  "mu_bethe_bloch",
+                  "mu_brems",
+                  "mu_pair_prod"};
     if (geant4_version < Version(11, 1, 0))
     {
         // Older versions of Geant4 use the Bethe-Bloch model for muon
@@ -515,7 +516,7 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
         EXPECT_TRUE(iter != summary.models.end());
         summary.models.erase(iter, iter + 1);
     }
-    EXPECT_VEC_EQ(expected_models, summary.models);
+    EXPECT_REF_EQ(ref, summary);
 }
 
 //---------------------------------------------------------------------------//
@@ -527,38 +528,32 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[]
-        = {"e+", "e-", "gamma", "mu+", "mu-", "proton"};
-    EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {
-        "e_ioni",
-        "e_brems",
-        "photoelectric",
-        "compton",
-        "conversion",
-        "rayleigh",
-        "annihilation",
-        "mu_ioni",
-        "mu_brems",
-        "mu_pair_prod",
-    };
-    EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {
-        "urban_msc",
-        "icru_73_qo",
-        "bragg",
-        "moller_bhabha",
-        "e_brems_sb",
-        "e_brems_lpm",
-        "e_plus_to_gg",
-        "livermore_photoelectric",
-        "klein_nishina",
-        "bethe_heitler_lpm",
-        "livermore_rayleigh",
-        "mu_bethe_bloch",
-        "mu_brems",
-        "mu_pair_prod",
-    };
+    ImportSummary ref;
+    ref.particles = {"e+", "e-", "gamma", "mu+", "mu-", "proton"};
+    ref.processes = {"e_ioni",
+                     "e_brems",
+                     "photoelectric",
+                     "compton",
+                     "conversion",
+                     "rayleigh",
+                     "annihilation",
+                     "mu_ioni",
+                     "mu_brems",
+                     "mu_pair_prod"};
+    ref.models = {"urban_msc",
+                  "icru_73_qo",
+                  "bragg",
+                  "moller_bhabha",
+                  "e_brems_sb",
+                  "e_brems_lpm",
+                  "e_plus_to_gg",
+                  "livermore_photoelectric",
+                  "klein_nishina",
+                  "bethe_heitler_lpm",
+                  "livermore_rayleigh",
+                  "mu_bethe_bloch",
+                  "mu_brems",
+                  "mu_pair_prod"};
     if (geant4_version < Version(11, 1, 0))
     {
         // Older versions of Geant4 use the Bethe-Bloch model for muon
@@ -568,7 +563,7 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
         EXPECT_TRUE(iter != summary.models.end());
         summary.models.erase(iter, iter + 1);
     }
-    EXPECT_VEC_EQ(expected_models, summary.models);
+    EXPECT_REF_EQ(ref, summary);
 }
 
 //---------------------------------------------------------------------------//
@@ -841,18 +836,15 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static size_type const expected_size[] = {7ul, 5ul};
-        EXPECT_VEC_EQ(expected_size, result.size);
-        static real_type const expected_e[]
-            = {0.001, 1000, 0.020822442086622, 1000};
-        EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        static real_type const expected_xs[] = {19.90859573288,
-                                                77.272184544415,
-                                                16.869369978465,
-                                                66.694254412524,
-                                                23.221614672926,
-                                                88.397283181803};
-        EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
+        ImportXsSummary ref{{7ul, 5ul},
+                            {0.001, 1000, 0.020822442086622, 1000},
+                            {19.90859573288,
+                             77.272184544415,
+                             16.869369978465,
+                             66.694254412524,
+                             23.221614672926,
+                             88.397283181803}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // Check relativistic brems electron micro xs
@@ -861,26 +853,24 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static size_type const expected_size[] = {6ul, 6ul};
-        EXPECT_VEC_EQ(expected_size, result.size);
-        static real_type const expected_e[]
-            = {1000, 100000000, 1000, 100000000};
-        EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        std::vector<real_type> expected_xs = {
-            77.086886023111,
-            14.346968386977,
-            66.448046061979,
-            12.347652116819,
-            88.449439286966,
-            16.486040161073,
-        };
+        ImportXsSummary ref{{6ul, 6ul},
+                            {1000, 100000000, 1000, 100000000},
+                            {77.086886023111,
+                             14.346968386977,
+                             66.448046061979,
+                             12.347652116819,
+                             88.449439286966,
+                             16.486040161073}};
         if (geant4_version >= Version{11, 4})
         {
-            expected_xs[1] = 13.8230751340639;
-            expected_xs[3] = 11.8968157228843;
-            expected_xs[5] = 15.8839849148429;
+            ref.xs = {77.086886023111,
+                      13.8230751340639,
+                      66.448046061979,
+                      11.8968157228843,
+                      88.449439286966,
+                      15.8839849148429};
         }
-        EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
@@ -902,26 +892,24 @@ TEST_F(FourSteelSlabsEmStandard, conv)
 
         auto result = summarize(model.materials);
 
-        static size_type const expected_size[] = {9ul, 9ul};
-        EXPECT_VEC_EQ(expected_size, result.size);
-        static real_type const expected_e[]
-            = {1.02199782, 100000000, 1.02199782, 100000000};
-        EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        std::vector<real_type> expected_xs = {
-            1.4603666285612,
-            4.4976609946794,
-            1.250617083013,
-            3.8760336885145,
-            1.6856988385825,
-            5.1617257552977,
-        };
+        ImportXsSummary ref{{9ul, 9ul},
+                            {1.02199782, 100000000, 1.02199782, 100000000},
+                            {1.4603666285612,
+                             4.4976609946794,
+                             1.250617083013,
+                             3.8760336885145,
+                             1.6856988385825,
+                             5.1617257552977}};
         if (geant4_version >= Version{11, 4})
         {
-            expected_xs[1] = 4.49213367238703;
-            expected_xs[3] = 3.87127465292614;
-            expected_xs[5] = 5.1553769178412;
+            ref.xs = {1.4603666285612,
+                      4.49213367238703,
+                      1.250617083013,
+                      3.87127465292614,
+                      1.6856988385825,
+                      5.1553769178412};
         }
-        EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
@@ -939,12 +927,8 @@ TEST_F(FourSteelSlabsEmStandard, anni)
 
     EXPECT_EQ(2, model.materials.size());
     auto result = summarize(model.materials);
-    static double const expected_energy[]
-        = {0.0001, 100000000, 0.0001, 100000000};
-    static unsigned int const expected_size[] = {0, 0};
-    EXPECT_VEC_EQ(expected_size, result.size);
-    EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
-    EXPECT_TRUE(result.xs.empty());
+    ImportXsSummary ref{{0, 0}, {0.0001, 100000000, 0.0001, 100000000}, {}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -966,11 +950,8 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         EXPECT_EQ(ImportModelClass::icru_73_qo, model.model_class);
 
         auto result = summarize(model.materials);
-        EXPECT_TRUE(result.xs.empty());
-        static unsigned int const expected_size[] = {0, 0};
-        EXPECT_VEC_EQ(expected_size, result.size);
-        static double const expected_energy[] = {0.0001, 0.2, 0.0001, 0.2};
-        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+        ImportXsSummary ref{{0, 0}, {0.0001, 0.2, 0.0001, 0.2}, {}};
+        EXPECT_REF_EQ(ref, result);
     }
     if (geant4_version < Version(11, 1, 0))
     {
@@ -978,32 +959,24 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         EXPECT_EQ(ImportModelClass::bethe_bloch, model.model_class);
 
         auto result = summarize(model.materials);
-        EXPECT_TRUE(result.xs.empty());
-        static unsigned int const expected_size[] = {0, 0};
-        EXPECT_VEC_EQ(expected_size, result.size);
-        static double const expected_energy[] = {0.2, 1000, 0.2, 1000};
-        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+        ImportXsSummary ref{{0, 0}, {0.2, 1000, 0.2, 1000}, {}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         auto const& model = mu_minus.models.back();
         EXPECT_EQ(ImportModelClass::mu_bethe_bloch, model.model_class);
 
         auto result = summarize(model.materials);
-        EXPECT_TRUE(result.xs.empty());
-        static unsigned int const expected_size[] = {0, 0};
-        EXPECT_VEC_EQ(expected_size, result.size);
+        ImportXsSummary ref{{0, 0}, {}, {}};
         if (geant4_version < Version(11, 1, 0))
         {
-            static double const expected_energy[]
-                = {1000, 100000000, 1000, 100000000};
-            EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+            ref.energy = {1000, 100000000, 1000, 100000000};
         }
         else
         {
-            static double const expected_energy[]
-                = {0.2, 100000000, 0.2, 100000000};
-            EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
+            ref.energy = {0.2, 100000000, 0.2, 100000000};
         }
+        EXPECT_REF_EQ(ref, result);
     }
 
     EXPECT_TRUE(mu_minus.dedx);
@@ -1557,14 +1530,10 @@ TEST_F(OneSteelSphere, physics)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static unsigned int const expected_size[] = {7u, 0u};
-        EXPECT_VEC_EQ(expected_size, result.size);
-        static double const expected_energy[]
-            = {0.001, 1000, 9549.6516356879, 1000};
-        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
         // Gamma production cut in steel is higher than the SB model upper
         // energy limit, so there will be no micro xs
-        EXPECT_TRUE(result.xs.empty());
+        ImportXsSummary ref{{7u, 0u}, {0.001, 1000, 9549.6516356879, 1000}, {}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // Check relativistic brems electron micro xs
@@ -1573,23 +1542,18 @@ TEST_F(OneSteelSphere, physics)
         EXPECT_EQ(2, model.materials.size());
 
         auto result = summarize(model.materials);
-        static size_type const expected_size[] = {6u, 5u};
-        EXPECT_VEC_EQ(expected_size, result.size);
-        static double const expected_energy[]
-            = {1000, 100000000, 9549.6516356879, 100000000};
-        EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
-        std::vector<double> expected_xs = {
-            16.197663688566,
-            14.176435287746,
-            13.963271396942,
-            12.201090525228,
-            18.583905773638,
-            16.289792829097,
-        };
+        ImportXsSummary ref{{6u, 5u},
+                            {1000, 100000000, 9549.6516356879, 100000000},
+                            {16.197663688566,
+                             14.176435287746,
+                             13.963271396942,
+                             12.201090525228,
+                             18.583905773638,
+                             16.289792829097}};
 
         if (geant4_version >= Version{11, 4})
         {
-            expected_xs = {
+            ref.xs = {
                 16.1976636765356,
                 13.6730593453982,
                 13.9632713865697,
@@ -1598,7 +1562,7 @@ TEST_F(OneSteelSphere, physics)
                 15.7112542979618,
             };
         }
-        EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // Check the bremsstrahlung macro xs
@@ -1682,26 +1646,25 @@ TEST_F(OneSteelSphereGG, physics)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {"e+", "e-", "gamma"};
-    EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"e_ioni",
-                                               "e_brems",
-                                               "photoelectric",
-                                               "compton",
-                                               "conversion",
-                                               "rayleigh",
-                                               "annihilation"};
-    EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {"urban_msc",
-                                            "moller_bhabha",
-                                            "e_brems_sb",
-                                            "e_brems_lpm",
-                                            "e_plus_to_gg",
-                                            "livermore_photoelectric",
-                                            "klein_nishina",
-                                            "bethe_heitler_lpm",
-                                            "livermore_rayleigh"};
-    EXPECT_VEC_EQ(expected_models, summary.models);
+    ImportSummary ref;
+    ref.particles = {"e+", "e-", "gamma"};
+    ref.processes = {"e_ioni",
+                     "e_brems",
+                     "photoelectric",
+                     "compton",
+                     "conversion",
+                     "rayleigh",
+                     "annihilation"};
+    ref.models = {"urban_msc",
+                  "moller_bhabha",
+                  "e_brems_sb",
+                  "e_brems_lpm",
+                  "e_plus_to_gg",
+                  "livermore_photoelectric",
+                  "klein_nishina",
+                  "bethe_heitler_lpm",
+                  "livermore_rayleigh"};
+    EXPECT_REF_EQ(ref, summary);
 
     {
         // Check Urban MSC bounds
@@ -2046,12 +2009,11 @@ TEST_F(Solids, physics)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {"e+", "e-", "gamma"};
-    EXPECT_VEC_EQ(expected_particles, summary.particles);
-    static char const* expected_processes[] = {"e_brems"};
-    EXPECT_VEC_EQ(expected_processes, summary.processes);
-    static char const* expected_models[] = {"e_brems_sb"};
-    EXPECT_VEC_EQ(expected_models, summary.models);
+    ImportSummary ref;
+    ref.particles = {"e+", "e-", "gamma"};
+    ref.processes = {"e_brems"};
+    ref.models = {"e_brems_sb"};
+    EXPECT_REF_EQ(ref, summary);
 }
 
 //---------------------------------------------------------------------------//

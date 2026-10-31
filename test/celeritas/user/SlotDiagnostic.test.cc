@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/user/SlotDiagnostic.hh"
 
+#include <cstddef>
 #include <fstream>
 #include <nlohmann/json.hpp>
 
@@ -15,8 +16,10 @@
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "AssertionHelper.hh"
 #include "SimpleLoopTestBase.hh"
 #include "celeritas_test.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
 {
@@ -50,9 +53,26 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
   protected:
     struct RunResult
     {
+        static constexpr char class_str[] = "RunResult";
+
         std::vector<std::string> labels;
         std::vector<std::string> slots;
-        void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream& os, RunResult const& ref)
+        {
+            return os << '{' << CELER_REPR_ATTR(ref, labels) << ", "
+                      << CELER_REPR_ATTR(ref, slots) << '}';
+        }
+
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              RunResult const& expected,
+                              RunResult const& actual)
+        {
+            RefComparer<RunResult> compare{helper, expected, actual};
+            CELER_INVOKE_ATTR(compare.is_eq, RunResult, labels);
+            CELER_INVOKE_ATTR(compare.is_eq, RunResult, slots);
+            return static_cast<bool>(compare);
+        }
     };
 
     void SetUp() override
@@ -114,20 +134,6 @@ auto SlotDiagnosticTest::parse_output() const -> RunResult
     return out;
 }
 
-void SlotDiagnosticTest::RunResult::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static char const* const expected_labels[] = "
-         << repr(this->labels)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_labels, result.labels);\n"
-            "static char const* const expected_slots[] = "
-         << repr(this->slots)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_slots, result.slots);\n"
-            "/*** END CODE ***/\n";
-}
-
 //---------------------------------------------------------------------------//
 class TestEm3SlotTest : virtual public TestEm3Base,
                         virtual public SlotDiagnosticTest
@@ -179,9 +185,9 @@ TEST_F(TestEm3SlotTest, host)
 {
     auto result = this->run<MemSpace::host>(32, 64);
 
-    static char const* const expected_labels[] = {"gamma", "e-", "e+"};
-    EXPECT_VEC_EQ(expected_labels, result.labels);
-    std::vector<std::string> expected_slots = {
+    RunResult expected;
+    expected.labels = {"gamma", "e-", "e+"};
+    expected.slots = {
         "0                            -+-", "0                            -+-",
         "0000                         -+-", "0000000                      -+-",
         "00000000                  -+--+-", "0000000000                -+--+-",
@@ -223,24 +229,25 @@ TEST_F(TestEm3SlotTest, host)
     auto max_check_count = (!Test::is_reference_rng   ? 1
                             : !Test::strict_testing() ? 6
                             : !is_orange              ? 37
-                                                      : expected_slots.size());
-    ASSERT_LE(max_check_count, expected_slots.size());
+                                                      : expected.slots.size());
+    ASSERT_LE(max_check_count, expected.slots.size());
     ASSERT_LE(max_check_count, result.slots.size());
 
-    for (auto* s : {&expected_slots, &result.slots})
+    for (auto* s : {&expected.slots, &result.slots})
     {
         s->erase(s->begin() + max_check_count, s->end());
     }
 
-    EXPECT_VEC_EQ(expected_slots, result.slots) << repr(result.slots);
+    EXPECT_REF_EQ(expected, result) << CELER_REPR_ATTR(result, slots);
 }
 
 TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
 {
     auto result = this->run<MemSpace::device>(64, 16);
 
-    static char const* const expected_labels[] = {"gamma", "e-", "e+"};
-    EXPECT_VEC_EQ(expected_labels, result.labels);
+    auto expected = result;
+    expected.labels = {"gamma", "e-", "e+"};
+    EXPECT_REF_EQ(expected, result);
     std::vector<std::string> expected_slots = {
         "00                                                        -+-+-+",
         "00                                                        -+-+-+",

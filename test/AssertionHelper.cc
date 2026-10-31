@@ -11,18 +11,19 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+
 /*!
  * Construct with expected/actual expressions.
  */
-AssertionHelper::AssertionHelper(char const* expected_expr,
-                                 char const* actual_expr)
+AssertionHelper::AssertionHelper(
+    char const* expected_expr, char const* actual_expr, char const* tol_expr)
     : result_(::testing::AssertionSuccess())
     , expected_expr_(expected_expr)
     , actual_expr_(actual_expr)
+    , tol_expr_(tol_expr)
 {
 }
 
-//---------------------------------------------------------------------------//
 /*!
  * Fail and return a streamable object.
  */
@@ -41,7 +42,6 @@ AssertionHelper::AssertionHelper(char const* expected_expr,
     return result_;
 }
 
-//---------------------------------------------------------------------------//
 /*!
  * Check the sizes, returning success, adding failure message if not.
  */
@@ -54,6 +54,10 @@ bool AssertionHelper::equal_size(std::size_t expected, std::size_t actual)
     }
     return true;
 }
+
+//---------------------------------------------------------------------------//
+
+char const AssertionHelper::default_tol_expr_[] = "tolerance";
 
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -4,7 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/GeneratorCounters.test.cc
 //---------------------------------------------------------------------------//
-#include <array>
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -17,12 +16,10 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/sys/ActionGroups.hh"
-#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
@@ -73,19 +70,34 @@ struct GenCounterResult
         accum_generated.push_back(gen.accum.num_generated);
     }
 
-    //! Print the result
-    void print_expected() const
-    {
-        auto print = [](char const* field, auto const& values) {
-            std::cout << " /* " << field << " */ " << repr(values) << ",";
-        };
+    //// REFERENCE RESULT ////
 
-        print("buffer_size", buffer_size);
-        print("pending", pending);
-        print("generated", generated);
-        print("accum_buffer_size", accum_buffer_size);
-        print("accum_pending", accum_pending);
-        print("accum_generated", accum_generated);
+    static constexpr char class_str[] = "GenCounterResult";
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    GenCounterResult const& ref)
+    {
+        return os << '{' << CELER_REPR_ATTR(ref, buffer_size) << ", "
+                  << CELER_REPR_ATTR(ref, pending) << ", "
+                  << CELER_REPR_ATTR(ref, generated) << ", "
+                  << CELER_REPR_ATTR(ref, accum_buffer_size) << ", "
+                  << CELER_REPR_ATTR(ref, accum_pending) << ", "
+                  << CELER_REPR_ATTR(ref, accum_generated) << '}';
+    }
+
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          GenCounterResult const& expected,
+                          GenCounterResult const& actual,
+                          std::nullptr_t = {})
+    {
+        RefComparer<GenCounterResult> compare{helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, buffer_size);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, pending);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, generated);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_buffer_size);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_pending);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_generated);
+        return static_cast<bool>(compare);
     }
 };
 
@@ -120,100 +132,79 @@ struct CounterResult
         errored.push_back(core.num_errored);
     }
 
-    //! Print the result
-    void print_expected() const
-    {
-        auto print = [](char const* field, auto const& values) {
-            std::cout << " /* " << field << " */ " << repr(values) << ",";
-        };
+    //// REFERENCE RESULT ////
 
-        std::cout << "CounterResult const expected_counts{";
-        print("pending", pending);
-        print("generated", generated);
-        print("initializers", initializers);
-        print("vacancies", vacancies);
-        print("active", active);
-        print("secondaries", secondaries);
-        print("alive", alive);
-        print("cut", cut);
-        print("errored", errored);
-        std::cout << " /* gen */ {";
-        for (auto const& [gen_label, gen_result] : gen)
+    static constexpr char class_str[] = "CounterResult";
+
+    friend std::ostream& operator<<(std::ostream& os, CounterResult const& ref)
+    {
+        os << '{' << CELER_REPR_ATTR(ref, pending) << ", "
+           << CELER_REPR_ATTR(ref, generated) << ", "
+           << CELER_REPR_ATTR(ref, initializers) << ", "
+           << CELER_REPR_ATTR(ref, vacancies) << ", "
+           << CELER_REPR_ATTR(ref, active) << ", "
+           << CELER_REPR_ATTR(ref, secondaries) << ", "
+           << CELER_REPR_ATTR(ref, alive) << ", " << CELER_REPR_ATTR(ref, cut)
+           << ", " << CELER_REPR_ATTR(ref, errored) << ", "
+           << "/* gen = */ {";
+        for (auto const& [label, gen_result] : ref.gen)
         {
-            std::cout << "{\"" << gen_label << "\",{";
-            gen_result.print_expected();
-            std::cout << "}},";
+            os << '{' << repr(label) << ", " << gen_result << "},";
         }
-        std::cout << "},};\n";
+        return os << "}}";
+    }
+
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          CounterResult const& expected,
+                          CounterResult const& actual,
+                          std::nullptr_t = {})
+    {
+        RefComparer<CounterResult> compare{helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, pending);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, generated);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, initializers);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, vacancies);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, active);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, secondaries);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, alive);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, cut);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, errored);
+
+        std::vector<std::string> expected_labels;
+        std::vector<std::string> actual_labels;
+        for (auto const& item : expected.gen)
+        {
+            expected_labels.push_back(item.first);
+        }
+        for (auto const& item : actual.gen)
+        {
+            actual_labels.push_back(item.first);
+        }
+        compare.record_result(
+            is_vec_eq(helper, "gen", expected_labels, actual_labels));
+
+        for (auto const& [label, expected_gen] : expected.gen)
+        {
+            auto iter = actual.gen.find(label);
+            if (iter != actual.gen.end())
+            {
+                bool const gen_success
+                    = is_ref_eq(helper, expected_gen, iter->second);
+                compare.record_result(gen_success);
+                if (!gen_success)
+                {
+                    helper.fail() << "...in gen[\"" << label << "\"]";
+                }
+            }
+            else
+            {
+                helper.fail() << "Missing label " << label;
+                compare.record_result(false);
+            }
+        }
+        return static_cast<bool>(compare);
     }
 };
-
-//! Compare the counters and report where they differ
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   CounterResult const& val1,
-                                   CounterResult const& val2)
-{
-    AssertionHelper result{expr1, expr2};
-
-    auto check = [&result](std::string const& name,
-                           auto const& expected,
-                           auto const& actual) {
-        if (auto r = ::celeritas::testdetail::IsVecEq(
-                name.c_str(), name.c_str(), expected, actual);
-            !static_cast<bool>(r))
-        {
-            result.fail() << "\n" << name << ": " << r.message();
-        }
-    };
-
-    // Check the core counters
-    check("pending", val1.pending, val2.pending);
-    check("generated", val1.generated, val2.generated);
-    check("initializers", val1.initializers, val2.initializers);
-    check("vacancies", val1.vacancies, val2.vacancies);
-    check("active", val1.active, val2.active);
-    check("secondaries", val1.secondaries, val2.secondaries);
-    check("alive", val1.alive, val2.alive);
-    check("cut", val1.cut, val2.cut);
-    check("errored", val1.errored, val2.errored);
-
-    // Check that the same generators are present
-    std::vector<std::string> labels1;
-    std::vector<std::string> labels2;
-    for (auto const& kv : val1.gen)
-    {
-        labels1.push_back(kv.first);
-    }
-    for (auto const& kv : val2.gen)
-    {
-        labels2.push_back(kv.first);
-    }
-    check("gen", labels1, labels2);
-
-    // Check the counters for each generator
-    for (auto const& [label, gen1] : val1.gen)
-    {
-        auto iter = val2.gen.find(label);
-        if (iter == val2.gen.end())
-        {
-            continue;
-        }
-        auto const& gen2 = iter->second;
-        check(label + ".buffer_size", gen1.buffer_size, gen2.buffer_size);
-        check(label + ".pending", gen1.pending, gen2.pending);
-        check(label + ".generated", gen1.generated, gen2.generated);
-        check(label + ".accum_buffer_size",
-              gen1.accum_buffer_size,
-              gen2.accum_buffer_size);
-        check(label + ".accum_pending", gen1.accum_pending, gen2.accum_pending);
-        check(label + ".accum_generated",
-              gen1.accum_generated,
-              gen2.accum_generated);
-    }
-
-    return result;
-}
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
@@ -399,36 +390,36 @@ TEST_F(LarSphereGeneratorCountersTest, offload)
     generator->insert(*state, make_span(distributions));
 
     auto counts = this->run(params, *state);
-    // counts.print_expected();
+    // print_expected(counts);
 
-    CounterResult const expected_counts{
-        /* pending */ {200ul, 168ul, 137ul, 106ul, 74ul, 46ul, 16ul, 0ul},
-        /* generated */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
-        /* initializers */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
-        /* vacancies */ {32ul, 31ul, 31ul, 32ul, 28ul, 30ul, 31ul, 32ul},
-        /* active */ {0ul, 32ul, 32ul, 32ul, 32ul, 32ul, 32ul, 17ul},
-        /* secondaries */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
-        /* alive */ {0ul, 1ul, 1ul, 0ul, 4ul, 2ul, 1ul, 0ul},
-        /* cut */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
-        /* errored */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
-        /* gen */
+    CounterResult const ref{
+        /* pending = */ {200ul, 168ul, 137ul, 106ul, 74ul, 46ul, 16ul, 0ul},
+        /* generated = */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
+        /* initializers = */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
+        /* vacancies = */ {32ul, 31ul, 31ul, 32ul, 28ul, 30ul, 31ul, 32ul},
+        /* active = */ {0ul, 32ul, 32ul, 32ul, 32ul, 32ul, 32ul, 17ul},
+        /* secondaries = */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
+        /* alive = */ {0ul, 1ul, 1ul, 0ul, 4ul, 2ul, 1ul, 0ul},
+        /* cut = */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
+        /* errored = */ {0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul, 0ul},
+        /* gen = */
         {
             {"generate",
              {
-                 /* buffer_size */ {5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 0ul},
-                 /* pending */ {0ul, 168ul, 137ul, 106ul, 74ul, 46ul, 16ul, 0ul},
-                 /* generated */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
-                 /* accum_buffer_size */ {0ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul},
-                 /* accum_pending */
+                 /* buffer_size = */ {5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 0ul},
+                 /* pending = */ {0ul, 168ul, 137ul, 106ul, 74ul, 46ul, 16ul, 0ul},
+                 /* generated = */ {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
+                 /* accum_buffer_size = */ {0ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul, 5ul},
+                 /* accum_pending = */
                  {0ul, 200ul, 200ul, 200ul, 200ul, 200ul, 200ul, 200ul},
-                 /* accum_generated */
+                 /* accum_generated = */
                  {0ul, 32ul, 63ul, 94ul, 126ul, 154ul, 184ul, 200ul},
              }},
         },
     };
     if (Test::is_reference_rng)
     {
-        EXPECT_REF_EQ(expected_counts, counts);
+        EXPECT_REF_EQ(ref, counts);
     }
 }
 

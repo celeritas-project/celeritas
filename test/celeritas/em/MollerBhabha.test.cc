@@ -5,13 +5,10 @@
 //! \file celeritas/em/MollerBhabha.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/interactor/MollerBhabhaInteractor.hh"
-#include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/CutoffView.hh"
-#include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
 #include "celeritas_test.hh"
@@ -94,12 +91,37 @@ struct SampleInit
 
 struct SampleResult
 {
+    static constexpr char class_str[] = "SampleResult";
+
     std::vector<double> inc_exit_cost;
     std::vector<double> inc_exit_e;
     std::vector<double> inc_edep;
     std::vector<double> sec_cost;
     std::vector<double> sec_e;
+    friend std::ostream& operator<<(std::ostream&, SampleResult const&);
 };
+
+std::ostream& operator<<(std::ostream& os, SampleResult const& result)
+{
+    return os << '{' << CELER_REPR_ATTR(result, inc_exit_cost) << ", "
+              << CELER_REPR_ATTR(result, inc_exit_e) << ", "
+              << CELER_REPR_ATTR(result, inc_edep) << ", "
+              << CELER_REPR_ATTR(result, sec_cost) << ", "
+              << CELER_REPR_ATTR(result, sec_e) << '}';
+}
+
+bool is_ref_eq(AssertionHelper& helper,
+               SampleResult const& val1,
+               SampleResult const& val2)
+{
+    RefComparer<SampleResult> compare{helper, val1, val2};
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, inc_exit_cost);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, inc_exit_e);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, inc_edep);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, sec_cost);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, sec_e);
+    return static_cast<bool>(compare);
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -151,50 +173,39 @@ TEST_F(MollerBhabhaInteractorTest, basic)
         }
     }
 
-    //// Moller
     // Gold values based on the host rng. Energies are in MeV
-    static double const expected_m_inc_exit_cost[] = {
-        0.99973900914319, 0.99998439403408, 0.99999999892476, 0.99999999999959};
-    static double const expected_m_inc_exit_e[]
-        = {0.99896793373796, 9.996634923266, 999.9978936714, 99999.992056977};
-    static double const expected_m_inc_edep[] = {0, 0, 0, 0};
-    static double const expected_m_sec_cost[] = {0.045164786751542,
-                                                 0.060143518761038,
-                                                 0.045374598488427,
-                                                 0.087819098576717};
-    static double const expected_m_sec_e[] = {0.0010320662620386,
-                                              0.0033650767340367,
-                                              0.0021063286005393,
-                                              0.0079430230464576};
+    SampleResult const expected_m{
+        {0.99973900914319, 0.99998439403408, 0.99999999892476, 0.99999999999959},
+        {0.99896793373796, 9.996634923266, 999.9978936714, 99999.992056977},
+        {0, 0, 0, 0},
+        {0.045164786751542,
+         0.060143518761038,
+         0.045374598488427,
+         0.087819098576717},
+        {0.0010320662620386,
+         0.0033650767340367,
+         0.0021063286005393,
+         0.0079430230464576}};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
-    static double const expected_b_inc_exit_cost[] = {
-        0.99953803363407, 0.9999871668284, 0.99999999937891, 0.99999999999991};
-    static double const expected_b_inc_exit_e[] = {
-        0.99817409418782, 9.9972326602584, 999.99878331207, 99999.998278701};
-    static double const expected_b_inc_edep[] = {0, 0, 0, 0};
-    static double const expected_b_sec_cost[] = {0.060050541049384,
-                                                 0.054556840397858,
-                                                 0.034500711450312,
-                                                 0.041005293173408};
-    static double const expected_b_sec_e[] = {0.0018259058121848,
-                                              0.0027673397416426,
-                                              0.0012166879316949,
-                                              0.001721298732305};
+    SampleResult const expected_b{
+        {0.99953803363407, 0.9999871668284, 0.99999999937891, 0.99999999999991},
+        {0.99817409418782, 9.9972326602584, 999.99878331207, 99999.998278701},
+        {0, 0, 0, 0},
+        {0.060050541049384,
+         0.054556840397858,
+         0.034500711450312,
+         0.041005293173408},
+        {0.0018259058121848,
+         0.0027673397416426,
+         0.0012166879316949,
+         0.001721298732305}};
 
     //// Moller
-    EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_cost, m_results.inc_exit_cost);
-    EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_e, m_results.inc_exit_e);
-    EXPECT_VEC_SOFT_EQ(expected_m_inc_edep, m_results.inc_edep);
-    EXPECT_VEC_SOFT_EQ(expected_m_sec_cost, m_results.sec_cost);
-    EXPECT_VEC_SOFT_EQ(expected_m_sec_e, m_results.sec_e);
+    EXPECT_REF_EQ(expected_m, m_results);
     //// Bhabha
-    EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_cost, b_results.inc_exit_cost);
-    EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_e, b_results.inc_exit_e);
-    EXPECT_VEC_SOFT_EQ(expected_b_inc_edep, b_results.inc_edep);
-    EXPECT_VEC_SOFT_EQ(expected_b_sec_cost, b_results.sec_cost);
-    EXPECT_VEC_SOFT_EQ(expected_b_sec_e, b_results.sec_e);
+    EXPECT_REF_EQ(expected_b, b_results);
 }
 
 //---------------------------------------------------------------------------//
@@ -258,34 +269,24 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
 
     //// Moller
     // Gold values based on the host rng. Energies are in MeV
-    static double const expected_m_inc_exit_cost[] = {
-        0.99474381994671, 0.9998320422927, 0.99999935924924, 0.99999999959414};
-    static double const expected_m_inc_exit_e[]
-        = {8.9744580752619, 96.785484384822, 998.74637287344, 99992.05807867};
-    static double const expected_m_inc_edep[] = {0, 0, 0, 0};
-    static double const expected_m_sec_cost[] = {
-        0.74300321590697, 0.87551068112013, 0.74260120785797, 0.94127395616289};
-    static double const expected_m_sec_e[]
-        = {1.0255419247381, 3.2145156151784, 1.2536271265614, 7.9419213303979};
+    SampleResult const expected_m{
+        {0.99474381994671, 0.9998320422927, 0.99999935924924, 0.99999999959414},
+        {8.9744580752619, 96.785484384822, 998.74637287344, 99992.05807867},
+        {0, 0, 0, 0},
+        {0.74300321590697, 0.87551068112013, 0.74260120785797, 0.94127395616289},
+        {1.0255419247381, 3.2145156151784, 1.2536271265614, 7.9419213303979}};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
-    static double const expected_b_inc_exit_cost[] = {
-        0.99479050564194, 0.99987897158914, 0.99999937828724, 0.99999999991204};
-    static double const expected_b_inc_exit_e[]
-        = {8.9827046800673, 97.662824061219, 998.78357538952, 99998.278713671};
-    static double const expected_b_inc_edep[] = {0, 0, 0, 0};
-    static double const expected_b_sec_cost[] = {
-        0.74150459775358, 0.83837330389592, 0.73755324517749, 0.79212437269015};
-    static double const expected_b_sec_e[]
-        = {1.0172953199327, 2.3371759387812, 1.2164246104832, 1.721286329104};
+    SampleResult const expected_b{
+        {0.99479050564194, 0.99987897158914, 0.99999937828724, 0.99999999991204},
+        {8.9827046800673, 97.662824061219, 998.78357538952, 99998.278713671},
+        {0, 0, 0, 0},
+        {0.74150459775358, 0.83837330389592, 0.73755324517749, 0.79212437269015},
+        {1.0172953199327, 2.3371759387812, 1.2164246104832, 1.721286329104}};
 
     //// Moller
-    EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_cost, m_results.inc_exit_cost);
-    EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_e, m_results.inc_exit_e);
-    EXPECT_VEC_SOFT_EQ(expected_m_inc_edep, m_results.inc_edep);
-    EXPECT_VEC_SOFT_EQ(expected_m_sec_cost, m_results.sec_cost);
-    EXPECT_VEC_SOFT_EQ(expected_m_sec_e, m_results.sec_e);
+    EXPECT_REF_EQ(expected_m, m_results);
     for (auto const secondary_energy : m_results.sec_e)
     {
         // Verify if secondary is above the cutoff threshold
@@ -294,11 +295,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     }
 
     //// Bhabha
-    EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_cost, b_results.inc_exit_cost);
-    EXPECT_VEC_SOFT_EQ(expected_b_inc_exit_e, b_results.inc_exit_e);
-    EXPECT_VEC_SOFT_EQ(expected_b_inc_edep, b_results.inc_edep);
-    EXPECT_VEC_SOFT_EQ(expected_b_sec_cost, b_results.sec_cost);
-    EXPECT_VEC_SOFT_EQ(expected_b_sec_e, b_results.sec_e);
+    EXPECT_REF_EQ(expected_b, b_results);
     for (auto const secondary_energy : b_results.sec_e)
     {
         // Verify if secondary is above the cutoff threshold
@@ -387,6 +384,7 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

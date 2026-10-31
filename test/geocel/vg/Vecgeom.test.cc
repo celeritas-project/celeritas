@@ -564,7 +564,7 @@ TEST_F(SolidsTest, geant_volumes)
         };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         EXPECT_EQ(0, result.missing_labels.size())
-            << repr(result.missing_labels);
+            << CELER_REPR_ATTR(result, missing_labels);
     }
 }
 
@@ -682,7 +682,7 @@ class ArbitraryGeantTest : public ArbitraryVecgeomTest
 TEST_F(ArbitraryGeantTest, DISABLED_convert)
 {
     auto result = GeantImportVolumeResult::from_import(*this->geometry());
-    result.print_expected();
+    print_expected(result);
     EXPECT_EQ(0, result.missing_labels.size());
 }
 

@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <memory>
 #include <string>
 
@@ -25,6 +27,7 @@ class ExtendFromPrimariesAction;
 
 namespace test
 {
+class AssertionHelper;
 //---------------------------------------------------------------------------//
 /*!
  * Run one or more tracks with the same starting conditions for a single step.
@@ -59,6 +62,8 @@ class AlongStepTestBase : virtual public GlobalTestBase
 
     struct RunResult
     {
+        static constexpr char class_str[] = "RunResult";
+
         real_type eloss{};  //!< Energy loss / MeV
         real_type displacement{};  //!< Distance from start to end points
         real_type angle{};  //!< Dot product of in/out direction
@@ -68,7 +73,9 @@ class AlongStepTestBase : virtual public GlobalTestBase
         real_type alive{};  //!< Fraction of tracks alive at end of step
         std::string action;  //!< Most likely action to take next
 
-        void print_expected() const;
+        friend std::ostream& operator<<(std::ostream&, RunResult const&);
+        friend bool is_ref_eq(
+            AssertionHelper&, RunResult const&, RunResult const&);
     };
 
     RunResult run(Input const&, size_type num_tracks = 1);

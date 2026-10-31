@@ -23,6 +23,9 @@
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "RefComparer.hh"
+#include "TestMacros.hh"
+
 namespace celeritas
 {
 namespace test
@@ -146,35 +149,38 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 }
 
 //---------------------------------------------------------------------------//
-void AlongStepTestBase::RunResult::print_expected() const
+std::ostream& operator<<(std::ostream& os,
+                         AlongStepTestBase::RunResult const& ref)
 {
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n";
+    return os
+           << '{' << CELER_REPR_ATTR(ref, eloss) << ", "
+           << CELER_REPR_ATTR(ref, displacement) << ", "
+           << CELER_REPR_ATTR(ref, angle) << ", " << CELER_REPR_ATTR(ref, time)
+           << ", " << CELER_REPR_ATTR(ref, step) << ", "
+           << CELER_REPR_ATTR(ref, mfp) << ", " << CELER_REPR_ATTR(ref, alive)
+           << ", " << CELER_REPR_ATTR(ref, action) << '}';
+}
 
-    cout << "EXPECT_SOFT_EQ(" << repr(this->eloss)
-         << ", result.eloss);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->displacement)
-         << ", result.displacement);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->angle)
-         << ", result.angle);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->time)
-         << ", result.time);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->step)
-         << ", result.step);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->mfp)
-         << ", result.mfp);\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->alive) << ", result.alive);\n";
-    if (!this->action.empty() && this->action.front() == '{')
-        cout << "// ";
-    cout << "EXPECT_EQ(" << repr(this->action)
-         << ", result.action);\n"
-            "/*** END CODE ***/\n";
+bool is_ref_eq(AssertionHelper& helper,
+               AlongStepTestBase::RunResult const& expected,
+               AlongStepTestBase::RunResult const& actual)
+{
+    auto const comp = SoftComparator_t<real_type>();
+    RefComparer<AlongStepTestBase::RunResult> compare{helper, expected, actual};
+    compare.record_result(
+        is_soft_eq(helper, expected.eloss, actual.eloss, comp));
+    compare.record_result(
+        is_soft_eq(helper, expected.displacement, actual.displacement, comp));
+    compare.record_result(
+        is_soft_eq(helper, expected.angle, actual.angle, comp));
+    compare.record_result(is_soft_eq(helper, expected.time, actual.time, comp));
+    compare.record_result(is_soft_eq(helper, expected.step, actual.step, comp));
+    compare.record_result(is_soft_eq(helper, expected.mfp, actual.mfp, comp));
+    compare.record_result(
+        is_soft_eq(helper, expected.alive, actual.alive, comp));
+    compare.record_result(
+        is_eq(helper, "action", expected.action, actual.action));
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

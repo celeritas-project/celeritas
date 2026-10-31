@@ -6,14 +6,15 @@
 //---------------------------------------------------------------------------//
 #include "TestMacros.hh"
 
-#include <algorithm>
-#include <cmath>
 #include <limits>
+#include <string>
+#include <vector>
 
 #include "corecel/cont/Array.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
 
 #include "celeritas_test.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 using Dbl2 = celeritas::Array<double, 2>;
 using VecInt = std::vector<int>;
@@ -27,38 +28,129 @@ namespace celeritas
 namespace test
 {
 
+struct PrintableTestResult
+{
+    static constexpr char class_str[] = "PrintableTestResult";
+
+    int value{};
+};
+
+struct ComparerTestResult
+{
+    std::vector<int> ids;
+    std::vector<double> distances;
+};
+
+std::ostream& operator<<(std::ostream& os, PrintableTestResult const& result)
+{
+    return os << '{' << CELER_REPR_ATTR(result, value) << '}';
+}
+
 //---------------------------------------------------------------------------//
 
 TEST(PrintExpected, example)
 {
+    using celeritas::testdetail::print_expected;
+
     std::string out_result = [] {
         ScopedStreamRedirect redirect_out(&std::cout);
         std::cout << '\n';
 
         std::vector<int> values = {1, 2, 3};
-        PRINT_EXPECTED(values);
+        print_expected(values);
 
         using Limits_t = std::numeric_limits<double>;
         double const more[]
             = {.5, .001, Limits_t::infinity(), Limits_t::quiet_NaN()};
-        PRINT_EXPECTED(more);
+        print_expected(more);
 
         char const* const cstrings[] = {"one", "three", "five"};
-        PRINT_EXPECTED(cstrings);
+        print_expected(cstrings);
 
         std::string const strings[] = {"a", "", "special\nchars\t"};
-        PRINT_EXPECTED(strings);
+        print_expected(strings);
 
         return redirect_out.str();
     }();
     out_result.push_back('\n');
     EXPECT_EQ(R"(
-static int const expected_values[] = {1, 2, 3};
-static double const expected_more[] = {0.5, 0.001, inf, nan};
-static char const* const expected_cstrings[] = {"one", "three", "five"};
-static std::string const expected_strings[] = {"a", "", "special\nchars\t"};
+static int const ref[] = {1, 2, 3};
+static double const ref[] = {0.5, 0.001, inf, nan};
+static char const* const ref[] = {"one", "three", "five"};
+static std::string const ref[] = {"a", "", "special\nchars\t"};
 )",
               out_result);
+}
+
+TEST(PrintExpected, reference_result)
+{
+    std::string out_result = [] {
+        ScopedStreamRedirect redirect_out(&std::cout);
+        testdetail::print_expected(PrintableTestResult{42});
+        return redirect_out.str();
+    }();
+    out_result.push_back('\n');
+
+    EXPECT_EQ(
+        "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+        "PrintableTestResult ref = {/* value = */ 42};\n"
+        "EXPECT_REF_EQ(ref, result);\n"
+        "/*** END CODE ***/\n",
+        out_result);
+}
+
+TEST(AssertionHelper, vector_soft_tolerance)
+{
+    VecDbl expected{1.0, 2.0};
+    VecDbl actual{1.01, 2.0};
+
+    AssertionHelper accepted{"expected", "actual"};
+    EXPECT_TRUE(is_vec_soft_eq(accepted, "distances", expected, actual, 0.02));
+
+    AssertionHelper rejected{"expected", "actual"};
+    EXPECT_FALSE(
+        is_vec_soft_eq(rejected, "distances", expected, actual, 0.001));
+    ::testing::AssertionResult const& result = rejected;
+    EXPECT_NE(std::string(result.message()).find("distances"),
+              std::string::npos);
+}
+
+TEST(RefComparer, invoke_attribute)
+{
+    ComparerTestResult const expected{{1, 2}, {1.0}};
+    ComparerTestResult const actual_default{{1, 2}, {1.0 + 1e-13}};
+    ComparerTestResult const actual_tolerant{{1, 2}, {1.01}};
+
+    AssertionHelper helper{"expected", "actual"};
+    RefComparer<ComparerTestResult> compare_default{
+        helper, expected, actual_default};
+    EXPECT_TRUE(
+        CELER_INVOKE_ATTR(compare_default.is_eq, ComparerTestResult, ids));
+    EXPECT_TRUE(CELER_INVOKE_ATTR(
+        compare_default.is_soft_eq, ComparerTestResult, distances));
+    EXPECT_TRUE(static_cast<bool>(compare_default));
+
+    AssertionHelper tolerant_helper{"expected", "actual"};
+    RefComparer<ComparerTestResult> compare_tolerant{
+        tolerant_helper, expected, actual_tolerant};
+    EXPECT_TRUE(CELER_INVOKE_ATTR(
+        compare_tolerant.is_soft_eq, ComparerTestResult, distances, 0.02));
+    EXPECT_TRUE(static_cast<bool>(compare_tolerant));
+
+    ComparerTestResult const actual_failed{{0, 2}, {1.5}};
+    AssertionHelper failed_helper{"expected", "actual"};
+    RefComparer<ComparerTestResult> compare_failed{
+        failed_helper, expected, actual_failed};
+    EXPECT_FALSE(
+        CELER_INVOKE_ATTR(compare_failed.is_eq, ComparerTestResult, ids));
+    EXPECT_FALSE(CELER_INVOKE_ATTR(
+        compare_failed.is_soft_eq, ComparerTestResult, distances));
+    EXPECT_FALSE(static_cast<bool>(compare_failed));
+
+    ::testing::AssertionResult const& failed_result = failed_helper;
+    std::string const message{failed_result.message()};
+    EXPECT_NE(message.find("ids"), std::string::npos);
+    EXPECT_NE(message.find("distances"), std::string::npos);
 }
 }  // namespace test
 
@@ -433,41 +525,39 @@ TEST(IsVecEq, failures)
 struct Foo
 {
     int val{0};
-};
 
-struct FooTol
-{
-    int val{0};
-};
-
-inline ::testing::AssertionResult IsRefEq(
-    char const* expr1, char const* expr2, Foo const& val1, Foo const& val2)
-{
-    ::celeritas::test::AssertionHelper result(expr1, expr2);
-
-    if (val1.val != val2.val)
+    static constexpr char class_str[] = "Foo";
+    struct Tol
     {
-        result.fail() << "  foo: " << val1.val << " != " << val2.val;
-    }
-    return result;
-}
+        int val{0};
+    };
 
-inline ::testing::AssertionResult IsRefEq(char const* expr1,
-                                          char const* expr2,
-                                          char const* tolexpr,
-                                          Foo const& val1,
-                                          Foo const& val2,
-                                          FooTol const& tol)
-{
-    ::celeritas::test::AssertionHelper result(expr1, expr2);
-
-    if (std::fabs(val1.val - val2.val) >= tol.val)
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          Foo const& val1,
+                          Foo const& val2,
+                          Tol const& tol)
     {
-        result.fail() << "  foo: " << val1.val << " != " << val2.val
-                      << " within " << tolexpr << " (" << tol.val << ")";
+        ::celeritas::test::RefComparer<Foo> compare{helper, val1, val2};
+        bool const result = std::abs(val1.val - val2.val) <= tol.val;
+        if (result)
+        {
+            compare.record_result(true);
+            return static_cast<bool>(compare);
+        }
+        helper.fail() << "  foo: " << val1.val << " != " << val2.val
+                      << " within " << helper.tol_expr() << " (" << tol.val
+                      << ")";
+        compare.record_result(false);
+        return static_cast<bool>(compare);
     }
-    return result;
-}
+    // NOTE: this overload is necessary because `Tol` is a nested class.
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          Foo const& val1,
+                          Foo const& val2)
+    {
+        return is_ref_eq(helper, val1, val2, Tol{});
+    }
+};
 
 TEST(IsRefEq, successes)
 {
@@ -475,13 +565,13 @@ TEST(IsRefEq, successes)
     ref.val = 2;
 
     EXPECT_REF_EQ(ref, ref);
-    EXPECT_REF_NEAR(ref, ref, FooTol{123});
+    EXPECT_REF_NEAR(ref, ref, Foo::Tol{123});
 
     // Vectors
     static Foo const vexpected[] = {Foo{2}, Foo{2}};
     std::vector<Foo> vactual = {ref, ref};
     EXPECT_REF_EQ(vexpected, vactual);
-    EXPECT_REF_NEAR(vexpected, vactual, FooTol{123});
+    EXPECT_REF_NEAR(vexpected, vactual, Foo::Tol{123});
 }
 
 TEST(IsRefEq, failures)
@@ -489,25 +579,32 @@ TEST(IsRefEq, failures)
     Foo ref;
     ref.val = 2;
 
-    EXPECT_FALSE(IsRefEq("expected", "actual", ref, Foo{1}));
-    EXPECT_FALSE(IsRefEq("expected", "actual", "tol", ref, Foo{20}, FooTol{5}));
+    EXPECT_FALSE(
+        ::celeritas::testdetail::IsRefEq("expected", "actual", ref, Foo{1}));
+    EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
+        "expected", "actual", "tol", ref, Foo{20}, Foo::Tol{5}));
 
     // Vectors of different size
     {
         static Foo const vexpected[] = {Foo{2}, Foo{2}};
         std::vector<Foo> vactual = {ref, ref, ref};
-        EXPECT_FALSE(IsRefEq("expected", "actual", vexpected, vactual));
-        EXPECT_FALSE(IsRefEq(
-            "expected", "actual", "tol", vexpected, vactual, FooTol{5}));
+        EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
+            "expected", "actual", vexpected, vactual));
+        EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
+            "expected", "actual", "tol", vexpected, vactual, Foo::Tol{5}));
     }
 
     // Vectors of same size
     {
         std::vector<Foo> vexpected(100, ref);
         std::vector<Foo> vactual(100, Foo{50});
-        EXPECT_FALSE(IsRefEq("expected", "actual", vexpected, vactual));
-        EXPECT_FALSE(IsRefEq(
-            "expected", "actual", "tol", vexpected, vactual, FooTol{20}));
+        EXPECT_FALSE(::celeritas::testdetail::IsRefEq(
+            "expected", "actual", vexpected, vactual));
+        auto const tol_result = ::celeritas::testdetail::IsRefEq(
+            "expected", "actual", "tol", vexpected, vactual, Foo::Tol{20});
+        EXPECT_FALSE(tol_result);
+        EXPECT_NE(std::string::npos,
+                  std::string(tol_result.message()).find("within tol"));
     }
 }
 

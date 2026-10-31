@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <iosfwd>
 #include <random>
 #include <vector>
@@ -20,20 +21,33 @@ namespace celeritas
 {
 namespace test
 {
+class AssertionHelper;
 //---------------------------------------------------------------------------//
 //! Sampled distribution
 struct SampledHistogram
 {
+    static constexpr char class_str[] = "SampledHistogram";
+
     //! Sampled distribution
     std::vector<double> distribution;
     //! Average number of RNG samples
     double rng_count{};
 
-    // Print expected code to cout
-    void print_expected() const;
-
     // Print to a stream
     friend std::ostream& operator<<(std::ostream&, SampledHistogram const&);
+
+    // Check against a reference histogram (
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          SampledHistogram const& expected,
+                          SampledHistogram const& actual,
+                          double tol);
+    // Check against a reference histogram
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          SampledHistogram const& expected,
+                          SampledHistogram const& actual)
+    {
+        return is_ref_eq(helper, expected, actual, 1e-8);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -93,15 +107,6 @@ class HistogramSampler
     size_type num_samples_;
     DiagnosticRngEngine<std::mt19937> rng_;
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   SampledHistogram const& val1,
-                                   SampledHistogram const& val2);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

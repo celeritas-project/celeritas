@@ -63,16 +63,6 @@ LocalVolumeId ObjectTestBase::build_volume(ObjectInterface const& s)
 
 //---------------------------------------------------------------------------//
 /*!
- * Print the unit we've constructed.
- */
-void ObjectTestBase::print_expected() const
-{
-    CELER_EXPECT(unit_);
-    ::celeritas::orangeinp::test::print_expected(*unit_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Print an output like `.csg.json'
  */
 void ObjectTestBase::print_csg() const

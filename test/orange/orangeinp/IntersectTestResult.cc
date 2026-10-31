@@ -10,13 +10,11 @@
 
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "geocel/RefUtils.hh"
 
-#include "testdetail/TestMacrosImpl.hh"
-
-//!@{
-//! Helper macros
-#define ITR_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(this->ATTR) << ";\n"
-//!@}
+#include "AssertionHelper.hh"
+#include "RefComparer.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -50,70 +48,41 @@ namespace orangeinp
 namespace test
 {
 //---------------------------------------------------------------------------//
-void IntersectTestResult::print_expected() const
+std::ostream& operator<<(std::ostream& os, IntersectTestResult const& ref)
 {
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "IntersectTestResult ref;\n"
-         << ITR_REF_ATTR(node) << ITR_REF_ATTR(surfaces)
-         << ITR_REF_ATTR(interior) << ITR_REF_ATTR(exterior)
-         << "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    return os << '{' << CELER_REPR_ATTR(ref, node) << ", "
+              << CELER_REPR_ATTR(ref, surfaces) << ", "
+              << CELER_REPR_ATTR(ref, interior) << ", "
+              << CELER_REPR_ATTR(ref, exterior) << '}';
 }
 
 //---------------------------------------------------------------------------//
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   IntersectTestResult const& val1,
-                                   IntersectTestResult const& val2)
+bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+               IntersectTestResult const& val1,
+               IntersectTestResult const& val2)
 {
-    ::celeritas::test::AssertionHelper result{expr1, expr2};
+    using namespace celeritas::test;
 
-#define IRE_COMPARE(ATTR) \
-    if (val1.ATTR != val2.ATTR) \
-    { \
-        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR); \
-    } \
-    else \
-        (void)sizeof(char)
+    RefComparer<IntersectTestResult> compare{helper, val1, val2};
+    compare.record_result(is_eq(helper, "node", val1.node, val2.node));
+    CELER_INVOKE_ATTR(compare.is_eq, IntersectTestResult, surfaces);
 
-    IRE_COMPARE(node);
-    IRE_COMPARE(surfaces);
+    bool const interior_result
+        = is_ref_eq(helper, val1.interior, val2.interior);
+    if (!interior_result)
+    {
+        helper.fail() << "in interior";
+    }
+    compare.record_result(interior_result);
 
-    // Special handling for BBox objects with soft equality
-    // TODO make its own expect-ref-eq
-    auto check_bbox =
-        [&result](char const* name, auto const& expected, auto const& actual) {
-            if (!expected && !actual)
-            {
-                return;  // Both null
-            }
-            if (static_cast<bool>(expected) != static_cast<bool>(actual))
-            {
-                result.fail() << "Expected " << name << ": " << repr(expected)
-                              << " but got " << repr(actual);
-                return;
-            }
-
-            EqualOr<SoftEqual<>> soft_eq;
-            for (int i = 0; i < 3; ++i)
-            {
-                if (!soft_eq(expected.lower()[i], actual.lower()[i])
-                    || !soft_eq(expected.upper()[i], actual.upper()[i]))
-                {
-                    result.fail()
-                        << "Expected " << name << ": " << repr(expected)
-                        << " but got " << repr(actual);
-                    return;
-                }
-            }
-        };
-
-    check_bbox("interior", val1.interior, val2.interior);
-    check_bbox("exterior", val1.exterior, val2.exterior);
-#undef IRE_COMPARE
-    return result;
+    bool const exterior_result
+        = is_ref_eq(helper, val1.exterior, val2.exterior);
+    if (!exterior_result)
+    {
+        helper.fail() << "in exterior";
+    }
+    compare.record_result(exterior_result);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

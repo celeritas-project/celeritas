@@ -6,7 +6,9 @@
 //! \file celeritas/track/TrackInit.test.cc
 //---------------------------------------------------------------------------//
 #include <algorithm>
+#include <cstddef>
 #include <initializer_list>
+#include <iosfwd>
 #include <numeric>
 #include <vector>
 
@@ -19,6 +21,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/io/LogContextException.hh"
+#include "corecel/io/Repr.hh"
 #include "corecel/random/data/RngData.hh"
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -30,8 +33,10 @@
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
 #include "celeritas/track/InitializeTracksAction.hh"
 
+#include "AssertionHelper.hh"
 #include "MockInteractAction.hh"
 #include "celeritas_test.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
 {
@@ -43,6 +48,8 @@ namespace test
 
 struct RunResult
 {
+    static constexpr char class_str[] = "RunResult";
+
     std::vector<int> track_ids;
     std::vector<int> parent_ids;
     std::vector<int> init_ids;
@@ -52,8 +59,28 @@ struct RunResult
     template<MemSpace M>
     static RunResult from_state(CoreState<M>&);
 
-    // Print code for the expected attributes
-    void print_expected() const;
+    friend std::ostream& operator<<(std::ostream& os, RunResult const& ref)
+    {
+        return os << '{' << CELER_REPR_ATTR(ref, track_ids) << ", "
+                  << CELER_REPR_ATTR(ref, parent_ids) << ", "
+                  << CELER_REPR_ATTR(ref, init_ids) << ", "
+                  << CELER_REPR_ATTR(ref, geo_parent_ids) << ", "
+                  << CELER_REPR_ATTR(ref, vacancies) << '}';
+    }
+
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          RunResult const& expected,
+                          RunResult const& actual)
+    {
+        using namespace ::celeritas::test;
+        RefComparer<RunResult> compare{helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, track_ids);
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, parent_ids);
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, init_ids);
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, geo_parent_ids);
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, vacancies);
+        return static_cast<bool>(compare);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -96,28 +123,6 @@ RunResult RunResult::from_state(CoreState<M>& state)
     }
 
     return result;
-}
-
-// Print code for the expected attributes
-void RunResult::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static int const expected_track_ids[] = "
-         << repr(this->track_ids) << ";\n"
-         << "EXPECT_VEC_EQ(expected_track_ids, result.track_ids);\n"
-            "static int const expected_parent_ids[] = "
-         << repr(this->parent_ids) << ";\n"
-         << "EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);\n"
-            "static int const expected_init_ids[] = "
-         << repr(this->init_ids) << ";\n"
-         << "EXPECT_VEC_EQ(expected_init_ids, result.init_ids);\n"
-            "static int const expected_geo_parent_ids[] = "
-         << repr(this->geo_parent_ids) << ";\n"
-         << "EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);\n"
-            "static int const expected_vacancies[] = "
-         << repr(this->vacancies) << ";\n"
-         << "EXPECT_VEC_EQ(expected_vacancies, result.vacancies);\n"
-            "/*** END CODE ***/\n";
 }
 
 //---------------------------------------------------------------------------//
@@ -266,8 +271,9 @@ TYPED_TEST(TrackInitTest, extend_primaries)
             // EXPECT_THROW is removed
             this->init_tracks();
             auto result = RunResult::from_state(this->state());
-            static int const expected_track_ids[] = {-1, -1, 0, 1, 0, 1, 2, 3};
-            EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+            auto ref = result;
+            ref.track_ids = {-1, -1, 0, 1, 0, 1, 2, 3};
+            EXPECT_REF_EQ(ref, result);
         }
     }
 }
@@ -282,8 +288,9 @@ TYPED_TEST(TrackInitTest, run)
     // Check that all of the track slots were marked as empty
     {
         auto result = RunResult::from_state(this->state());
-        static int const expected_vacancies[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-        EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
+        auto ref = result;
+        ref.vacancies = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        EXPECT_REF_EQ(ref, result);
     }
 
     // Create track initializers on device from primary particles
@@ -297,9 +304,9 @@ TYPED_TEST(TrackInitTest, run)
         if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
         {
             // TODO: internal track IDs are not reproducible due to atomic add
-            static int const expected_track_ids[]
-                = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-            EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
+            auto ref = result;
+            ref.init_ids = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+            EXPECT_REF_EQ(ref, result);
         }
     }
 
@@ -309,19 +316,17 @@ TYPED_TEST(TrackInitTest, run)
     // Check the track IDs and parent IDs of the initialized tracks
     {
         auto result = RunResult::from_state(this->state());
-        static int const expected_track_ids[]
-            = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+        auto ref = result;
 
         if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
         {
             // TODO: internal track IDs are not reproducible due to atomic add
-            EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+            ref.track_ids = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
         }
 
         // All primary particles, so no parent
-        static int const expected_parent_ids[]
-            = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-        EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+        ref.parent_ids = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+        EXPECT_REF_EQ(ref, result);
     }
 
     auto interact = [] {
@@ -340,15 +345,15 @@ TYPED_TEST(TrackInitTest, run)
     {
         // Check the vacancies
         auto result = RunResult::from_state(this->state());
-        static int const expected_vacancies[] = {2, 6};
-        EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
+        auto ref = result;
+        ref.vacancies = {2, 6};
 
         if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
         {
             // Check the parent IDs for copying the geometry state
-            static int const expected_geo_parent_ids[] = {-1, -1, -1, 5, 8};
-            EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+            ref.geo_parent_ids = {-1, -1, -1, 5, 8};
         }
+        EXPECT_REF_EQ(ref, result);
 
         // Check the track IDs of the track initializers created from
         // secondaries. Because IDs are not calculated deterministically and we
@@ -374,6 +379,7 @@ TYPED_TEST(TrackInitTest, run)
     // Check the track IDs and parent IDs of the initialized tracks
     {
         auto result = RunResult::from_state(this->state());
+        auto ref = result;
         EXPECT_TRUE(std::all_of(std::begin(result.track_ids),
                                 std::end(result.track_ids),
                                 [](int id) { return id >= 0 && id <= 18; }));
@@ -387,17 +393,18 @@ TYPED_TEST(TrackInitTest, run)
             EXPECT_EQ(9, result.track_ids[7]);
 
             // Two tracks should have the same parent ID = 10
-            int expected_parent_ids[] = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
+            std::vector<int> expected_parent_ids
+                = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
             std::sort(std::begin(result.parent_ids),
                       std::end(result.parent_ids));
             std::sort(std::begin(expected_parent_ids),
                       std::end(expected_parent_ids));
-            EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+            ref.parent_ids = std::move(expected_parent_ids);
         }
 
         // Check the parent IDs for copying the geometry state
-        static int const expected_geo_parent_ids[] = {-1, -1, -1};
-        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        ref.geo_parent_ids = {-1, -1, -1};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
@@ -445,40 +452,26 @@ TYPED_TEST(TrackInitTest, primaries)
     }
 
     // Check the results
-    static int const expected_track_ids[] = {
-        56,
-        1,
-        57,
-        3,
-        58,
-        5,
-        59,
-        7,
-        60,
-        9,
-        61,
-        11,
-        62,
-        13,
-        63,
-        15,
-    };
-    static int const expected_parent_ids[]
+    std::vector<int> expected_track_ids
+        = {56, 1, 57, 3, 58, 5, 59, 7, 60, 9, 61, 11, 62, 13, 63, 15};
+    std::vector<int> expected_parent_ids
         = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    static int const expected_vacancies[] = {0, 2, 4, 6, 8, 10, 12, 14};
-    static int const expected_init_ids[] = {
+    std::vector<int> expected_vacancies = {0, 2, 4, 6, 8, 10, 12, 14};
+    std::vector<int> expected_init_ids = {
         16, 17, 18, 19, 20, 21, 22, 23, 32, 33, 34, 35,
         36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55,
     };
     auto result = RunResult::from_state(this->state());
+    auto ref = result;
     if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
     {
         // TODO: internal track IDs are not reproducible due to atomic add
-        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
-        EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
+        ref.track_ids = std::move(expected_track_ids);
+        ref.init_ids = std::move(expected_init_ids);
     }
-    EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
-    EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
+    ref.parent_ids = std::move(expected_parent_ids);
+    ref.vacancies = std::move(expected_vacancies);
+    EXPECT_REF_EQ(ref, result);
 }
 
 TYPED_TEST(TrackInitTest, extend_from_secondaries)
@@ -520,11 +513,10 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
 
         // Slots 5 and 6 are always vacant because these tracks are killed with
         // no secondaries
-        static int const expected_vacancies[] = {5u, 6u};
-        EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
-
-        static int const expected_geo_parent_ids[] = {0, 2};
-        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        auto ref = result;
+        ref.vacancies = {5, 6};
+        ref.geo_parent_ids = {0, 2};
+        EXPECT_REF_EQ(ref, result);
 
         // init IDs may not be deterministic, but can guarantee they are in the
         // range 8<=x<=12 as we create 4 tracks per iteration, 2 in reused
@@ -588,8 +580,9 @@ TYPED_TEST(TrackInitTest, geo_parents)
 
         // Two secondaries expect to be initialized in the next step so have
         // valid IDs for their parent geometry state
-        static int const expected_geo_parent_ids[] = {0, 2};
-        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        auto ref = result;
+        ref.geo_parent_ids = {0, 2};
+        EXPECT_REF_EQ(ref, result);
     }
 
     // Insert enough primaries to fill all current vacancies
@@ -603,8 +596,9 @@ TYPED_TEST(TrackInitTest, geo_parents)
 
         // Adding primaries can delay the initialization of existing
         // initializers, so their geometry parent IDs should be invalidated
-        static int const expected_geo_parent_ids[] = {-1, -1, -1, -1};
-        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        auto ref = result;
+        ref.geo_parent_ids = {-1, -1, -1, -1};
+        EXPECT_REF_EQ(ref, result);
     }
 
     // New primaries are initialized first, leaving the original secondaries
@@ -617,8 +611,9 @@ TYPED_TEST(TrackInitTest, geo_parents)
         EXPECT_EQ(2, this->state().sync_get_counters().num_initializers);
 
         // The parent IDs for the deferred secondaries should have been cleared
-        static int const expected_geo_parent_ids[] = {-1, -1};
-        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        auto ref = result;
+        ref.geo_parent_ids = {-1, -1};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 

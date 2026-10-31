@@ -340,9 +340,9 @@ TEST_F(RelativisticBremTest, stress_with_lpm)
 
     EXPECT_SOFT_EQ(average_energy / num_samples, 2932.1072998587733);
     EXPECT_SOFT_NEAR(
-        average_angle[0] / num_samples, 3.3286986548662216e-06, 1e-8);
+        average_angle[0] / num_samples, 3.3286986548662216e-06, 1e-8_r);
     EXPECT_SOFT_NEAR(
-        average_angle[1] / num_samples, 1.3067055198983571e-06, 1e-8);
+        average_angle[1] / num_samples, 1.3067055198983571e-06, 1e-8_r);
     EXPECT_SOFT_EQ(average_angle[2] / num_samples, 0.99999999899845182);
 }
 //---------------------------------------------------------------------------//

@@ -6,11 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "orange/detail/BvhIntersectingVolFinder.hh"
 
+#include <cstddef>
 #include <limits>
 #include <unordered_map>
 #include <vector>
 
 #include "corecel/StringSimplifier.hh"
+#include "corecel/Types.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTypes.hh"
@@ -87,6 +89,8 @@ class MockIntersector
 
 struct IntersectResult
 {
+    static constexpr char class_str[] = "IntersectResult";
+
     real_type distance{};
     LocalSurfaceId intersect_surface;
 
@@ -100,52 +104,35 @@ struct IntersectResult
      */
     std::vector<int> hit_count;
     std::vector<int> miss_count;
-};
 
-std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
-{
-    // clang-format off
-    os << "/*** INTERSECT RESULT ***/\n"
-          "IntersectResult ref;\n"
-       << CELER_REF_ATTR(distance)
-       << CELER_REF_ATTR(intersect_surface)
-       << CELER_REF_ATTR(hit_count)
-       << CELER_REF_ATTR(miss_count)
-       << "EXPECT_REF_EQ(ref, result) << result;\n"
-          "/*** END CODE ***/\n";
-    // clang-format on
-    return os;
-}
-
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   IntersectResult const& val1,
-                                   IntersectResult const& val2)
-{
-    ::celeritas::test::AssertionHelper result{expr1, expr2};
-
-#define IRE_COMPARE(ATTR) \
-    if (val1.ATTR != val2.ATTR) \
-    { \
-        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR); \
-    } \
-    else \
-        CELER_DISCARD(int)
-
-    if (!testdetail::make_soft_comparator<real_type>()(val1.distance,
-                                                       val2.distance))
+    friend std::ostream& operator<<(std::ostream& os,
+                                    IntersectResult const& ref)
     {
-        result.fail() << "Expected distance: " << repr(val1.distance)
-                      << " but got " << repr(val2.distance);
+        return os << '{' << CELER_REPR_ATTR(ref, distance) << ", "
+                  << CELER_REPR_ATTR(ref, intersect_surface) << ", "
+                  << CELER_REPR_ATTR(ref, hit_count) << ", "
+                  << CELER_REPR_ATTR(ref, miss_count) << '}';
     }
-    IRE_COMPARE(intersect_surface);
-    IRE_COMPARE(hit_count);
-    IRE_COMPARE(miss_count);
 
-#undef IRE_COMPARE
-    return result;
-}
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          IntersectResult const& val1,
+                          IntersectResult const& val2)
+    {
+        using namespace ::celeritas::test;
+        using SoftEqT = SoftComparator_t<real_type>;
+
+        RefComparer<IntersectResult> compare{helper, val1, val2};
+        compare.record_result(
+            is_soft_eq(helper, val1.distance, val2.distance, SoftEqT()));
+        compare.record_result(is_eq(helper,
+                                    "intersect_surface",
+                                    val1.intersect_surface,
+                                    val2.intersect_surface));
+        CELER_INVOKE_ATTR(compare.is_eq, IntersectResult, hit_count);
+        CELER_INVOKE_ATTR(compare.is_eq, IntersectResult, miss_count);
+        return static_cast<bool>(compare);
+    }
+};
 
 //---------------------------------------------------------------------------//
 /*!

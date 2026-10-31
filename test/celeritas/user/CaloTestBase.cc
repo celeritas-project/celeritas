@@ -13,6 +13,10 @@
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/StepCollector.hh"
 
+#include "AssertionHelper.hh"
+#include "RefComparer.hh"
+#include "TestMacros.hh"
+
 namespace celeritas
 {
 namespace test
@@ -46,17 +50,20 @@ void CaloTestBase::SetUp()
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void CaloTestBase::RunResult::print_expected() const
+std::ostream& operator<<(std::ostream& os, CaloTestBase::RunResult const& ref)
 {
-    using std::cout;
+    return os << '{' << CELER_REPR_ATTR(ref, edep) << '}';
+}
 
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static const double expected_edep[] = "
-         << repr(this->edep)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);\n"
-            "/*** END CODE ***/\n";
+bool is_ref_eq(AssertionHelper& helper,
+               CaloTestBase::RunResult const& expected,
+               CaloTestBase::RunResult const& actual,
+               CaloTestBase::RunResult::Tolerance const& tol)
+{
+    using Result = CaloTestBase::RunResult;
+    RefComparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, edep, tol.edep);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

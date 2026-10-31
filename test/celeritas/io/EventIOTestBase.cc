@@ -14,6 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 using namespace celeritas::literals;
@@ -23,39 +24,37 @@ namespace celeritas
 {
 namespace test
 {
+
 //---------------------------------------------------------------------------//
-void EventIOTestBase::ReadAllResult::print_expected() const
+
+std::ostream& operator<<(std::ostream& os,
+                         EventIOTestBase::ReadAllResult const& ref)
 {
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static int const expected_pdg[] = "
-         << repr(this->pdg)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_pdg, result.pdg);\n"
-            "static real_type const expected_energy[] = "
-         << repr(this->energy)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);\n"
-            "static real_type const expected_pos[] = "
-         << repr(this->pos)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);\n"
-            "static real_type const expected_dir[] = "
-         << repr(this->dir)
-         << ";\n"
-            "EXPECT_VEC_NEAR(expected_dir, result.dir, 1e-8);\n"
-            "static real_type const expected_time[] = "
-         << repr(this->time)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_time, result.time);\n"
-            "static int const expected_event[] = "
-         << repr(this->event)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_event, result.event);\n"
-            "/*** END CODE ***/\n";
+    return os << '{' << CELER_REPR_ATTR(ref, pdg) << ", "
+              << CELER_REPR_ATTR(ref, energy) << ", "
+              << CELER_REPR_ATTR(ref, pos) << ", " << CELER_REPR_ATTR(ref, dir)
+              << ", " << CELER_REPR_ATTR(ref, time) << ", "
+              << CELER_REPR_ATTR(ref, event) << '}';
+}
+
+bool is_ref_eq(AssertionHelper& helper,
+               EventIOTestBase::ReadAllResult const& expected,
+               EventIOTestBase::ReadAllResult const& actual,
+               EventIOTestBase::ReadAllResult::Tolerance const& tol)
+{
+    using Result = EventIOTestBase::ReadAllResult;
+    RefComparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, Result, pdg);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, energy, tol.energy);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, pos, tol.pos);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, dir, tol.dir);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, time, tol.time);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, event);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
+
 void EventIOTestBase::SetUp()
 {
     using namespace constants;
@@ -106,10 +105,8 @@ auto EventIOTestBase::read_all(Reader& read_event) const -> ReadAllResult
             result.pdg.push_back(
                 particles_->id_to_pdg(p.particle_id).unchecked_get());
             result.energy.push_back(p.energy.value());
-            auto pos = to_cm(p.position);
-            result.pos.insert(result.pos.end(), pos.begin(), pos.end());
-            result.dir.insert(
-                result.dir.end(), p.direction.begin(), p.direction.end());
+            result.pos.push_back(to_cm(p.position));
+            result.dir.push_back(p.direction);
             result.time.push_back(p.time / units::second);
             result.event.push_back(p.event_id.unchecked_get());
         }
@@ -183,28 +180,46 @@ void EventIOTestBase::read_check_test_event(Reader& read_event) const
 {
     auto result = this->read_all(read_event);
 
-    // clang-format off
-    static int const expected_pdg[] = {22, 2212, 22, 2212, 22, 2212, 22, 2212,
-        2212, 22};
-    static real_type const expected_energy[] = {1.23, 2.34, 1.23, 2.34, 1.23,
-        2.34, 1.23, 2.34, 3.45, 1.23};
-    static real_type const expected_pos[] = {2, 4, 5, -3, -4, 5, 2, 4, 5, 2, 4, 5,
-        2, 4, 5, -3, -4, 5, 2, 4, 5, 2, 4, 5, 2, 4, 5, 2, 4, 5};
-    static real_type const expected_dir[] = {1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
-        1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0};
-    static real_type const expected_time[] = {5.67e-09, 5.78e-09, 5.67e-09,
-        5.67e-09, 5.67e-09, 5.78e-09, 5.67e-09, 5.67e-09, 5.67e-09, 5.67e-09};
-    static int const expected_event[] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 2};
-    // clang-format on
+    ReadAllResult ref;
+    ref.pdg = {22, 2212, 22, 2212, 22, 2212, 22, 2212, 2212, 22};
+    ref.energy = {1.23, 2.34, 1.23, 2.34, 1.23, 2.34, 1.23, 2.34, 3.45, 1.23};
+    ref.pos = {{2, 4, 5},
+               {-3, -4, 5},
+               {2, 4, 5},
+               {2, 4, 5},
+               {2, 4, 5},
+               {-3, -4, 5},
+               {2, 4, 5},
+               {2, 4, 5},
+               {2, 4, 5},
+               {2, 4, 5}};
+    ref.dir = {{1, 0, 0},
+               {0, 1, 0},
+               {1, 0, 0},
+               {0, 1, 0},
+               {1, 0, 0},
+               {0, 1, 0},
+               {1, 0, 0},
+               {0, 1, 0},
+               {0, 1, 0},
+               {1, 0, 0}};
+    ref.time = {5.67e-09,
+                5.78e-09,
+                5.67e-09,
+                5.67e-09,
+                5.67e-09,
+                5.78e-09,
+                5.67e-09,
+                5.67e-09,
+                5.67e-09,
+                5.67e-09};
+    ref.event = {0, 0, 0, 0, 1, 1, 1, 1, 1, 2};
 
     real_type energy_tol = 0.1_r * coarse_eps;
-
-    EXPECT_VEC_EQ(expected_pdg, result.pdg);
-    EXPECT_VEC_NEAR(expected_energy, result.energy, energy_tol);
-    EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
-    EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
-    EXPECT_VEC_NEAR(expected_time, result.time, 1e-6_r);
-    EXPECT_VEC_EQ(expected_event, result.event);
+    ReadAllResult::Tolerance tol;
+    tol.energy = energy_tol;
+    tol.time = 1e-6_r;
+    EXPECT_REF_NEAR(ref, result, tol);
 }
 
 //---------------------------------------------------------------------------//

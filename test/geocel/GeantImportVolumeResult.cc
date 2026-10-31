@@ -17,6 +17,10 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 
+#include "AssertionHelper.hh"
+#include "RefComparer.hh"
+#include "TestMacros.hh"
+
 namespace celeritas
 {
 namespace test
@@ -69,23 +73,20 @@ GeantImportVolumeResult GeantImportVolumeResult::from_import(
 }
 
 //---------------------------------------------------------------------------//
-void GeantImportVolumeResult::print_expected() const
+std::ostream& operator<<(std::ostream& os, GeantImportVolumeResult const& ref)
 {
-    using std::cout;
+    return os << '{' << CELER_REPR_ATTR(ref, volumes) << ", "
+              << CELER_REPR_ATTR(ref, missing_labels) << '}';
+}
 
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static int const expected_volumes[] = "
-         << repr(this->volumes)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
-            "EXPECT_EQ(0, result.missing_labels.size()) << "
-            "repr(result.missing_labels);\n";
-    if (!this->missing_labels.empty())
-    {
-        cout << "/* Currently missing: " << repr(this->missing_labels)
-             << " */\n";
-    }
-    cout << "/*** END CODE ***/\n";
+bool is_ref_eq(AssertionHelper& helper,
+               GeantImportVolumeResult const& expected,
+               GeantImportVolumeResult const& actual)
+{
+    RefComparer<GeantImportVolumeResult> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, GeantImportVolumeResult, volumes);
+    CELER_INVOKE_ATTR(compare.is_eq, GeantImportVolumeResult, missing_labels);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
