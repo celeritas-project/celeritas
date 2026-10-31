@@ -11,6 +11,7 @@
 #include <ostream>
 #include <type_traits>
 
+#include "corecel/io/ReprFormatter.hh"
 #include "corecel/io/ScopedStreamFormat.hh"
 
 #include "detail/ReprContainer.hh"

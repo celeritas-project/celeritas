@@ -11,19 +11,12 @@
 #include <string_view>
 
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
+#include "corecel/io/ReprFormatter.hh"
+
+#include "ReprFwd.hh"
 
 namespace celeritas
 {
-namespace detail
-{
-template<class T>
-struct DefaultRepr;
-}
-
-template<class T>
-detail::DefaultRepr<T> repr(T const& obj);
-
 namespace detail
 {
 //---------------------------------------------------------------------------//

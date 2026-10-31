@@ -14,6 +14,8 @@
 #include <utility>
 #include <vector>
 
+#include "ReprFormatter.hh"
+
 #include "detail/ReprContainer.hh"
 #include "detail/ReprImpl.hh"
 

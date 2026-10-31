@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Joined.hh"
-#include "ReprImpl.hh"
+#include "ReprFwd.hh"
 
 namespace celeritas
 {
