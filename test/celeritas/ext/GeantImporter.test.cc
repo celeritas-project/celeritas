@@ -90,14 +90,15 @@ class GeantImporterTest : public GeantTestBase
                       << CELER_ATTR_REPR(ref, models) << '}';
         }
 
-        friend void check_ref_eq(AssertionHelper& helper,
+        friend bool check_ref_eq(AssertionHelper& helper,
                                  ImportSummary const& expected,
                                  ImportSummary const& actual)
         {
-            Comparer<ImportSummary> compare{helper, expected, actual};
+            RefComparer<ImportSummary> compare{helper, expected, actual};
             CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, particles);
             CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, processes);
             CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, models);
+            return static_cast<bool>(compare);
         }
     };
 
@@ -117,14 +118,15 @@ class GeantImporterTest : public GeantTestBase
                       << CELER_ATTR_REPR(ref, xs) << '}';
         }
 
-        friend void check_ref_eq(AssertionHelper& helper,
+        friend bool check_ref_eq(AssertionHelper& helper,
                                  ImportXsSummary const& expected,
                                  ImportXsSummary const& actual)
         {
-            Comparer<ImportXsSummary> compare{helper, expected, actual};
+            RefComparer<ImportXsSummary> compare{helper, expected, actual};
             CELER_INVOKE_ATTR(compare.is_eq, ImportXsSummary, size);
             CELER_INVOKE_ATTR(compare.is_soft_eq, ImportXsSummary, energy);
             CELER_INVOKE_ATTR(compare.is_soft_eq, ImportXsSummary, xs);
+            return static_cast<bool>(compare);
         }
     };
 

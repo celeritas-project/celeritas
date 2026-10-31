@@ -111,12 +111,12 @@ std::ostream& operator<<(std::ostream& os, GenericGeoTrackingResult const& ref)
               << CELER_ATTR_REPR(ref, bumps) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   GenericGeoTrackingResult const& val1,
                   GenericGeoTrackingResult const& val2,
                   GenericGeoTrackingTolerance const& tol)
 {
-    Comparer<GenericGeoTrackingResult> compare{helper, val1, val2};
+    RefComparer<GenericGeoTrackingResult> compare{helper, val1, val2};
     CELER_INVOKE_ATTR(compare.is_eq, GenericGeoTrackingResult, volumes);
     CELER_INVOKE_ATTR(
         compare.is_eq, GenericGeoTrackingResult, volume_instances);
@@ -144,6 +144,7 @@ void check_ref_eq(AssertionHelper& helper,
                       GenericGeoTrackingResult,
                       bumps,
                       SoftEqual(tol.safety, tol.safety));
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
@@ -182,13 +183,14 @@ void GenericGeoVolumeStackResult::fail()
     this->volume_instances.push_back("[FAILURE]");
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   GenericGeoVolumeStackResult const& val1,
                   GenericGeoVolumeStackResult const& val2)
 {
-    Comparer<GenericGeoVolumeStackResult> compare{helper, val1, val2};
+    RefComparer<GenericGeoVolumeStackResult> compare{helper, val1, val2};
     CELER_INVOKE_ATTR(
         compare.is_eq, GenericGeoVolumeStackResult, volume_instances);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
@@ -263,27 +265,31 @@ std::ostream& operator<<(std::ostream& os, GenericGeoModelInp const& ref)
               << CELER_ATTR_REPR(ref, detector.volumes) << "}}";
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   GenericGeoModelInp const& val1,
                   GenericGeoModelInp const& val2)
 {
-#define IRE_COMPARE(ATTR) \
-    if (val1.ATTR != val2.ATTR) \
-    { \
-        helper.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR); \
-    } \
-    else \
-        CELER_DISCARD(int)
+    RefComparer<GenericGeoModelInp> compare{helper, val1, val2};
+    auto compare_attr = [&helper, &compare](char const* name,
+                                            auto const& expected,
+                                            auto const& actual) {
+        bool const result = expected == actual;
+        if (!result)
+        {
+            helper.fail() << "Expected " << name << ": " << repr(expected)
+                          << " but got " << repr(actual);
+        }
+        compare.record_result(result);
+    };
 
-    IRE_COMPARE(surface.labels);
-    IRE_COMPARE(surface.volumes);
-    IRE_COMPARE(region.labels);
-    IRE_COMPARE(region.volumes);
-    IRE_COMPARE(detector.labels);
-    IRE_COMPARE(detector.volumes);
-
-#undef IRE_COMPARE
+    compare_attr("surface.labels", val1.surface.labels, val2.surface.labels);
+    compare_attr("surface.volumes", val1.surface.volumes, val2.surface.volumes);
+    compare_attr("region.labels", val1.region.labels, val2.region.labels);
+    compare_attr("region.volumes", val1.region.volumes, val2.region.volumes);
+    compare_attr("detector.labels", val1.detector.labels, val2.detector.labels);
+    compare_attr(
+        "detector.volumes", val1.detector.volumes, val2.detector.volumes);
+    return static_cast<bool>(compare);
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -45,7 +45,7 @@ class DiagnosticTestBase : virtual public SimpleLoopTestBase
         std::vector<size_type> steps;
 
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
-        friend void check_ref_eq(
+        friend bool check_ref_eq(
             AssertionHelper&, RunResult const&, RunResult const&);
     };
 

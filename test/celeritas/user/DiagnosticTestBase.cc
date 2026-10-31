@@ -50,15 +50,16 @@ std::ostream& operator<<(std::ostream& os,
               << CELER_ATTR_REPR(ref, steps) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   DiagnosticTestBase::RunResult const& expected,
                   DiagnosticTestBase::RunResult const& actual)
 {
     using Result = DiagnosticTestBase::RunResult;
-    Comparer<Result> compare{helper, expected, actual};
+    RefComparer<Result> compare{helper, expected, actual};
     CELER_INVOKE_ATTR(compare.is_eq, Result, nonzero_action_keys);
     CELER_INVOKE_ATTR(compare.is_eq, Result, nonzero_action_counts);
     CELER_INVOKE_ATTR(compare.is_eq, Result, steps);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

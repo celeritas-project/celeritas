@@ -92,24 +92,14 @@ struct GenCounterResult
                              GenCounterResult const& actual,
                              std::nullptr_t = {})
     {
-        bool result{true};
-        Comparer<GenCounterResult> compare{helper, expected, actual};
-        result = CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, buffer_size)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, pending)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, generated)
-                 && result;
-        result = CELER_INVOKE_ATTR(
-                     compare.is_eq, GenCounterResult, accum_buffer_size)
-                 && result;
-        result
-            = CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_pending)
-              && result;
-        result = CELER_INVOKE_ATTR(
-                     compare.is_eq, GenCounterResult, accum_generated)
-                 && result;
-        return result;
+        RefComparer<GenCounterResult> compare{helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, buffer_size);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, pending);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, generated);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_buffer_size);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_pending);
+        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_generated);
+        return static_cast<bool>(compare);
     }
 };
 
@@ -171,25 +161,16 @@ struct CounterResult
                              CounterResult const& actual,
                              std::nullptr_t = {})
     {
-        bool result{true};
-        Comparer<CounterResult> compare{helper, expected, actual};
-        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, pending)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, generated)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, initializers)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, vacancies)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, active)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, secondaries)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, alive)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, cut) && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, errored)
-                 && result;
+        RefComparer<CounterResult> compare{helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, pending);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, generated);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, initializers);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, vacancies);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, active);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, secondaries);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, alive);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, cut);
+        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, errored);
 
         std::vector<std::string> expected_labels;
         std::vector<std::string> actual_labels;
@@ -201,26 +182,29 @@ struct CounterResult
         {
             actual_labels.push_back(item.first);
         }
-        result = is_vec_eq(helper, "gen", expected_labels, actual_labels)
-                 && result;
+        compare.record_result(
+            is_vec_eq(helper, "gen", expected_labels, actual_labels));
 
         for (auto const& [label, expected_gen] : expected.gen)
         {
             auto iter = actual.gen.find(label);
             if (iter != actual.gen.end())
             {
-                if (!check_ref_eq(helper, expected_gen, iter->second))
+                bool const gen_success
+                    = check_ref_eq(helper, expected_gen, iter->second);
+                compare.record_result(gen_success);
+                if (!gen_success)
                 {
                     helper.fail() << "...in gen[\"" << label << "\"]";
-                    result = false;
                 }
             }
             else
             {
                 helper.fail() << "Missing label " << label;
+                compare.record_result(false);
             }
         }
-        return result;
+        return static_cast<bool>(compare);
     }
 };
 

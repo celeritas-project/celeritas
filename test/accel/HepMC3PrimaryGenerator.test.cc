@@ -72,23 +72,15 @@ struct EventResult
                              EventResult const& actual,
                              Tol const& tol)
     {
-        bool result{true};
-        Comparer<EventResult> compare{helper, expected, actual};
-        result = CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, pos)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, time)
-                 && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, EventResult, vtx) && result;
-        result = CELER_INVOKE_ATTR(compare.is_eq, EventResult, pdg) && result;
-        result = CELER_INVOKE_ATTR(
-                     compare.is_soft_eq, EventResult, energy, tol.energy)
-                 && result;
-        result
-            = CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, dir, tol.dir)
-              && result;
-        result = CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, mass)
-                 && result;
-        return result;
+        RefComparer<EventResult> compare{helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, pos);
+        CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, time);
+        CELER_INVOKE_ATTR(compare.is_eq, EventResult, vtx);
+        CELER_INVOKE_ATTR(compare.is_eq, EventResult, pdg);
+        CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, energy, tol.energy);
+        CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, dir, tol.dir);
+        CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, mass);
+        return static_cast<bool>(compare);
     }
 
     //! Implement \c EXPECT_REF_EQ

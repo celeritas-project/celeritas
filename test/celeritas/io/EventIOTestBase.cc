@@ -37,19 +37,20 @@ std::ostream& operator<<(std::ostream& os,
               << CELER_ATTR_REPR(ref, event) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   EventIOTestBase::ReadAllResult const& expected,
                   EventIOTestBase::ReadAllResult const& actual,
                   EventIOTestBase::ReadAllResult::Tolerance const& tol)
 {
     using Result = EventIOTestBase::ReadAllResult;
-    Comparer<Result> compare{helper, expected, actual};
+    RefComparer<Result> compare{helper, expected, actual};
     CELER_INVOKE_ATTR(compare.is_eq, Result, pdg);
     CELER_INVOKE_ATTR(compare.is_soft_eq, Result, energy, tol.energy);
     CELER_INVOKE_ATTR(compare.is_soft_eq, Result, pos, tol.pos);
     CELER_INVOKE_ATTR(compare.is_soft_eq, Result, dir, tol.dir);
     CELER_INVOKE_ATTR(compare.is_soft_eq, Result, time, tol.time);
     CELER_INVOKE_ATTR(compare.is_eq, Result, event);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

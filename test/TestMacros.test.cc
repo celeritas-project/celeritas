@@ -116,25 +116,42 @@ TEST(AssertionHelper, vector_soft_tolerance)
               std::string::npos);
 }
 
-TEST(Comparer, invoke_attribute)
+TEST(RefComparer, invoke_attribute)
 {
     ComparerTestResult const expected{{1, 2}, {1.0}};
     ComparerTestResult const actual_default{{1, 2}, {1.0 + 1e-13}};
     ComparerTestResult const actual_tolerant{{1, 2}, {1.01}};
 
     AssertionHelper helper{"expected", "actual"};
-    Comparer<ComparerTestResult> compare_default{
+    RefComparer<ComparerTestResult> compare_default{
         helper, expected, actual_default};
     EXPECT_TRUE(
         CELER_INVOKE_ATTR(compare_default.is_eq, ComparerTestResult, ids));
     EXPECT_TRUE(CELER_INVOKE_ATTR(
         compare_default.is_soft_eq, ComparerTestResult, distances));
+    EXPECT_TRUE(static_cast<bool>(compare_default));
 
     AssertionHelper tolerant_helper{"expected", "actual"};
-    Comparer<ComparerTestResult> compare_tolerant{
+    RefComparer<ComparerTestResult> compare_tolerant{
         tolerant_helper, expected, actual_tolerant};
     EXPECT_TRUE(CELER_INVOKE_ATTR(
         compare_tolerant.is_soft_eq, ComparerTestResult, distances, 0.02));
+    EXPECT_TRUE(static_cast<bool>(compare_tolerant));
+
+    ComparerTestResult const actual_failed{{0, 2}, {1.5}};
+    AssertionHelper failed_helper{"expected", "actual"};
+    RefComparer<ComparerTestResult> compare_failed{
+        failed_helper, expected, actual_failed};
+    EXPECT_FALSE(
+        CELER_INVOKE_ATTR(compare_failed.is_eq, ComparerTestResult, ids));
+    EXPECT_FALSE(CELER_INVOKE_ATTR(
+        compare_failed.is_soft_eq, ComparerTestResult, distances));
+    EXPECT_FALSE(static_cast<bool>(compare_failed));
+
+    ::testing::AssertionResult const& failed_result = failed_helper;
+    std::string const message{failed_result.message()};
+    EXPECT_NE(message.find("ids"), std::string::npos);
+    EXPECT_NE(message.find("distances"), std::string::npos);
 }
 }  // namespace test
 
@@ -521,14 +538,18 @@ struct Foo
                              Foo const& val2,
                              Tol const& tol)
     {
-        if (std::abs(val1.val - val2.val) <= tol.val)
+        ::celeritas::test::RefComparer<Foo> compare{helper, val1, val2};
+        bool const result = std::abs(val1.val - val2.val) <= tol.val;
+        if (result)
         {
-            return true;
+            compare.record_result(true);
+            return static_cast<bool>(compare);
         }
         helper.fail() << "  foo: " << val1.val << " != " << val2.val
                       << " within " << helper.tol_expr() << " (" << tol.val
                       << ")";
-        return false;
+        compare.record_result(false);
+        return static_cast<bool>(compare);
     }
     // NOTE: this overload is necessary because `Tol` is a nested class.
     friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,

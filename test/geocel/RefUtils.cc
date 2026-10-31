@@ -13,6 +13,7 @@
 #include "geocel/BoundingBox.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 
 namespace celeritas
 {
@@ -33,6 +34,7 @@ bool check_ref_eq(AssertionHelper& helper,
                   BoundingBox<T> const& actual,
                   T tol)
 {
+    RefComparer<BoundingBox<T>> compare{helper, expected, actual};
     auto fail = [&] {
         auto&& msg = helper.fail();
         msg << "Expected " << repr(expected) << " but got " << repr(actual);
@@ -44,9 +46,9 @@ bool check_ref_eq(AssertionHelper& helper,
         if (static_cast<bool>(expected) != static_cast<bool>(actual))
         {
             fail();
-            return false;
+            compare.record_result(false);
         }
-        return true;
+        return static_cast<bool>(compare);
     }
 
     auto const points_are_close = [tol](auto const& expected_point,
@@ -68,13 +70,14 @@ bool check_ref_eq(AssertionHelper& helper,
         }
         return point_distance <= tol;
     };
-    if (!points_are_close(expected.lower(), actual.lower())
-        || !points_are_close(expected.upper(), actual.upper()))
+    bool const result = points_are_close(expected.lower(), actual.lower())
+                        && points_are_close(expected.upper(), actual.upper());
+    if (!result)
     {
         fail();
-        return false;
     }
-    return true;
+    compare.record_result(result);
+    return static_cast<bool>(compare);
 }
 
 template bool check_ref_eq<float>(

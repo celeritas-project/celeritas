@@ -115,21 +115,23 @@ struct IntersectResult
                   << CELER_ATTR_REPR(ref, miss_count) << '}';
     }
 
-    friend void check_ref_eq(::celeritas::test::AssertionHelper& helper,
+    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
                              IntersectResult const& val1,
                              IntersectResult const& val2)
     {
         using namespace ::celeritas::test;
         using SoftEqT = SoftComparator_t<real_type>;
 
-        is_soft_eq(helper, val1.distance, val2.distance, SoftEqT());
-        is_eq(helper,
-              "intersect_surface",
-              val1.intersect_surface,
-              val2.intersect_surface);
-        Comparer<IntersectResult> compare{helper, val1, val2};
+        RefComparer<IntersectResult> compare{helper, val1, val2};
+        compare.record_result(
+            is_soft_eq(helper, val1.distance, val2.distance, SoftEqT()));
+        compare.record_result(is_eq(helper,
+                                    "intersect_surface",
+                                    val1.intersect_surface,
+                                    val2.intersect_surface));
         CELER_INVOKE_ATTR(compare.is_eq, IntersectResult, hit_count);
         CELER_INVOKE_ATTR(compare.is_eq, IntersectResult, miss_count);
+        return static_cast<bool>(compare);
     }
 };
 

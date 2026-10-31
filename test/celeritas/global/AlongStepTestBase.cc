@@ -23,6 +23,7 @@
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "Comparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -160,19 +161,26 @@ std::ostream& operator<<(std::ostream& os,
            << ", " << CELER_ATTR_REPR(ref, action) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   AlongStepTestBase::RunResult const& expected,
                   AlongStepTestBase::RunResult const& actual)
 {
     auto const comp = SoftComparator_t<real_type>();
-    is_soft_eq(helper, expected.eloss, actual.eloss, comp);
-    is_soft_eq(helper, expected.displacement, actual.displacement, comp);
-    is_soft_eq(helper, expected.angle, actual.angle, comp);
-    is_soft_eq(helper, expected.time, actual.time, comp);
-    is_soft_eq(helper, expected.step, actual.step, comp);
-    is_soft_eq(helper, expected.mfp, actual.mfp, comp);
-    is_soft_eq(helper, expected.alive, actual.alive, comp);
-    is_eq(helper, "action", expected.action, actual.action);
+    RefComparer<AlongStepTestBase::RunResult> compare{helper, expected, actual};
+    compare.record_result(
+        is_soft_eq(helper, expected.eloss, actual.eloss, comp));
+    compare.record_result(
+        is_soft_eq(helper, expected.displacement, actual.displacement, comp));
+    compare.record_result(
+        is_soft_eq(helper, expected.angle, actual.angle, comp));
+    compare.record_result(is_soft_eq(helper, expected.time, actual.time, comp));
+    compare.record_result(is_soft_eq(helper, expected.step, actual.step, comp));
+    compare.record_result(is_soft_eq(helper, expected.mfp, actual.mfp, comp));
+    compare.record_result(
+        is_soft_eq(helper, expected.alive, actual.alive, comp));
+    compare.record_result(
+        is_eq(helper, "action", expected.action, actual.action));
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

@@ -48,14 +48,15 @@ struct TestResult
                   << CELER_ATTR_REPR(ref, replicas) << '}';
     }
 
-    friend void check_ref_eq(::celeritas::test::AssertionHelper& helper,
+    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
                              TestResult const& expected,
                              TestResult const& actual)
     {
         using namespace ::celeritas::test;
-        Comparer<TestResult> compare{helper, expected, actual};
+        RefComparer<TestResult> compare{helper, expected, actual};
         CELER_INVOKE_ATTR(compare.is_soft_eq, TestResult, coords);
         CELER_INVOKE_ATTR(compare.is_eq, TestResult, replicas);
+        return static_cast<bool>(compare);
     }
 };
 

@@ -55,14 +55,15 @@ std::ostream& operator<<(std::ostream& os, CaloTestBase::RunResult const& ref)
     return os << '{' << CELER_ATTR_REPR(ref, edep) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   CaloTestBase::RunResult const& expected,
                   CaloTestBase::RunResult const& actual,
                   CaloTestBase::RunResult::Tolerance const& tol)
 {
     using Result = CaloTestBase::RunResult;
-    Comparer<Result> compare{helper, expected, actual};
+    RefComparer<Result> compare{helper, expected, actual};
     CELER_INVOKE_ATTR(compare.is_soft_eq, Result, edep, tol.edep);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

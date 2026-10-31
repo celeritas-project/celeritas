@@ -45,11 +45,12 @@ std::ostream& operator<<(std::ostream& os, RunResult const& ref)
     return os << '{' << CELER_ATTR_REPR(ref, num_hits) << '}';
 }
 
-void check_ref_eq(
+bool check_ref_eq(
     AssertionHelper& helper, RunResult const& val1, RunResult const& val2)
 {
-    Comparer<RunResult> compare{helper, val1, val2};
+    RefComparer<RunResult> compare{helper, val1, val2};
     CELER_INVOKE_ATTR(compare.is_eq, RunResult, num_hits);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
@@ -79,15 +80,16 @@ std::ostream& operator<<(std::ostream& os, DepHitResult const& ref)
 
 //---------------------------------------------------------------------------//
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   DepHitResult const& val1,
                   DepHitResult const& val2)
 {
-    Comparer<DepHitResult> compare{helper, val1, val2};
+    RefComparer<DepHitResult> compare{helper, val1, val2};
     CELER_INVOKE_ATTR(compare.is_eq, DepHitResult, track_id);
     CELER_INVOKE_ATTR(compare.is_soft_eq, DepHitResult, num_photons);
     CELER_INVOKE_ATTR(compare.is_soft_eq, DepHitResult, energy);
     CELER_INVOKE_ATTR(compare.is_soft_eq, DepHitResult, pos);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

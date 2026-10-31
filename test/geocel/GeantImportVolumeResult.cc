@@ -79,13 +79,14 @@ std::ostream& operator<<(std::ostream& os, GeantImportVolumeResult const& ref)
               << CELER_ATTR_REPR(ref, missing_labels) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   GeantImportVolumeResult const& expected,
                   GeantImportVolumeResult const& actual)
 {
-    Comparer<GeantImportVolumeResult> compare{helper, expected, actual};
+    RefComparer<GeantImportVolumeResult> compare{helper, expected, actual};
     CELER_INVOKE_ATTR(compare.is_eq, GeantImportVolumeResult, volumes);
     CELER_INVOKE_ATTR(compare.is_eq, GeantImportVolumeResult, missing_labels);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

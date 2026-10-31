@@ -184,15 +184,16 @@ std::ostream& operator<<(std::ostream& os,
               << CELER_ATTR_REPR(ref, actions_desc) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   StepperTestBase::SetupCheckResult const& expected,
                   StepperTestBase::SetupCheckResult const& actual)
 {
     using Result = StepperTestBase::SetupCheckResult;
-    Comparer<Result> compare{helper, expected, actual};
+    RefComparer<Result> compare{helper, expected, actual};
     CELER_INVOKE_ATTR(compare.is_eq, Result, processes);
     CELER_INVOKE_ATTR(compare.is_eq, Result, actions);
     CELER_INVOKE_ATTR(compare.is_eq, Result, actions_desc);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
@@ -203,14 +204,15 @@ std::ostream& operator<<(std::ostream& os,
               << CELER_ATTR_REPR(ref, queued) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   StepperTestBase::RunResult const& expected,
                   StepperTestBase::RunResult const& actual)
 {
     using Result = StepperTestBase::RunResult;
-    Comparer<Result> compare{helper, expected, actual};
+    RefComparer<Result> compare{helper, expected, actual};
     CELER_INVOKE_ATTR(compare.is_eq, Result, active);
     CELER_INVOKE_ATTR(compare.is_eq, Result, queued);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

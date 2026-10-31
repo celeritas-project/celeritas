@@ -55,7 +55,7 @@ class StepperTestBase : virtual public GlobalTestBase
         std::vector<std::string> actions_desc;
 
         friend std::ostream& operator<<(std::ostream&, SetupCheckResult const&);
-        friend void check_ref_eq(AssertionHelper&,
+        friend bool check_ref_eq(AssertionHelper&,
                                  SetupCheckResult const&,
                                  SetupCheckResult const&);
     };
@@ -79,7 +79,7 @@ class StepperTestBase : virtual public GlobalTestBase
         StepCount calc_queue_hwm() const;
 
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
-        friend void check_ref_eq(
+        friend bool check_ref_eq(
             AssertionHelper&, RunResult const&, RunResult const&);
 
         //! True if run was performed and data is consistent

@@ -41,13 +41,14 @@ std::ostream& operator<<(std::ostream& os,
 }
 
 //---------------------------------------------------------------------------//
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   ExampleInstanceCalo::Result const& expected,
                   ExampleInstanceCalo::Result const& actual)
 {
-    Comparer<ExampleInstanceCalo::Result> compare{helper, expected, actual};
+    RefComparer<ExampleInstanceCalo::Result> compare{helper, expected, actual};
     CELER_INVOKE_ATTR(compare.is_eq, ExampleInstanceCalo::Result, instance);
     CELER_INVOKE_ATTR(compare.is_soft_eq, ExampleInstanceCalo::Result, edep);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

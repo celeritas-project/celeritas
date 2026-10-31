@@ -69,17 +69,18 @@ struct RunResult
                   << CELER_ATTR_REPR(ref, vacancies) << '}';
     }
 
-    friend void check_ref_eq(AssertionHelper& helper,
+    friend bool check_ref_eq(AssertionHelper& helper,
                              RunResult const& expected,
                              RunResult const& actual)
     {
         using namespace ::celeritas::test;
-        Comparer<RunResult> compare{helper, expected, actual};
+        RefComparer<RunResult> compare{helper, expected, actual};
         CELER_INVOKE_ATTR(compare.is_eq, RunResult, track_ids);
         CELER_INVOKE_ATTR(compare.is_eq, RunResult, parent_ids);
         CELER_INVOKE_ATTR(compare.is_eq, RunResult, init_ids);
         CELER_INVOKE_ATTR(compare.is_eq, RunResult, geo_parent_ids);
         CELER_INVOKE_ATTR(compare.is_eq, RunResult, vacancies);
+        return static_cast<bool>(compare);
     }
 };
 

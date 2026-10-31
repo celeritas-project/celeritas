@@ -41,7 +41,7 @@ struct RunResult
 
 //---------------------------------------------------------------------------//
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   RunResult const& expected,
                   RunResult const& actual);
 
@@ -64,7 +64,7 @@ struct DepHitResult
 
 //---------------------------------------------------------------------------//
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   DepHitResult const& expected,
                   DepHitResult const& actual);
 

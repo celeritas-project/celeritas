@@ -93,7 +93,7 @@ struct GenericGeoTrackingTolerance
 };
 
 // Compare tracking results
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   GenericGeoTrackingResult const& expected,
                   GenericGeoTrackingResult const& actual,
                   GenericGeoTrackingTolerance const& tol = {});
@@ -121,7 +121,7 @@ struct GenericGeoVolumeStackResult
     void fail();
 };
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   GenericGeoVolumeStackResult const& expected,
                   GenericGeoVolumeStackResult const& actual);
 
@@ -159,7 +159,7 @@ struct GenericGeoModelInp
 
 //---------------------------------------------------------------------------//
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   GenericGeoModelInp const& expected,
                   GenericGeoModelInp const& actual);
 

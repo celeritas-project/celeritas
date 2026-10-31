@@ -32,6 +32,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "CMSParameterizedField.hh"
+#include "Comparer.hh"
 #include "DiagnosticIntegrator.hh"
 #include "FieldTestBase.hh"
 #include "celeritas_test.hh"
@@ -1393,18 +1394,22 @@ std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
               << CELER_ATTR_REPR(ref, messages) << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   FieldPropagationResult const& val1,
                   FieldPropagationResult const& val2)
 {
+    RefComparer<FieldPropagationResult> compare{helper, val1, val2};
 #define IRE_COMPARE(ATTR) \
-    if (val1.ATTR != val2.ATTR) \
+    do \
     { \
-        helper.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR); \
-    } \
-    else \
-        CELER_DISCARD(int)
+        bool const result = val1.ATTR == val2.ATTR; \
+        if (!result) \
+        { \
+            helper.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
+                          << " but got " << repr(val2.ATTR); \
+        } \
+        compare.record_result(result); \
+    } while (false)
 
     IRE_COMPARE(num_boundary);
     IRE_COMPARE(num_step);
@@ -1413,6 +1418,7 @@ void check_ref_eq(AssertionHelper& helper,
     IRE_COMPARE(messages);
 
 #undef IRE_COMPARE
+    return static_cast<bool>(compare);
 }
 
 TEST_F(CmseTest, coarse)

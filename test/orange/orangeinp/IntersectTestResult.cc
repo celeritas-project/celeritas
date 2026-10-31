@@ -63,23 +63,26 @@ bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
 {
     using namespace celeritas::test;
 
-    bool result = true;
+    RefComparer<IntersectTestResult> compare{helper, val1, val2};
+    compare.record_result(is_eq(helper, "node", val1.node, val2.node));
+    CELER_INVOKE_ATTR(compare.is_eq, IntersectTestResult, surfaces);
 
-    result = is_eq(helper, "node", val1.node, val2.node) && result;
-    Comparer<IntersectTestResult> compare{helper, val1, val2};
-    result = CELER_INVOKE_ATTR(compare.is_eq, IntersectTestResult, surfaces)
-             && result;
-    if (!check_ref_eq(helper, val1.interior, val2.interior))
+    bool const interior_result
+        = check_ref_eq(helper, val1.interior, val2.interior);
+    if (!interior_result)
     {
         helper.fail() << "in interior";
-        result = false;
     }
-    if (!check_ref_eq(helper, val1.exterior, val2.exterior))
+    compare.record_result(interior_result);
+
+    bool const exterior_result
+        = check_ref_eq(helper, val1.exterior, val2.exterior);
+    if (!exterior_result)
     {
         helper.fail() << "in exterior";
-        result = false;
     }
-    return result;
+    compare.record_result(exterior_result);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

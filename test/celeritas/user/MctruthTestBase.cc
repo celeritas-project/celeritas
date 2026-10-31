@@ -53,19 +53,20 @@ std::ostream& operator<<(std::ostream& os,
               << '}';
 }
 
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   MctruthTestBase::RunResult const& expected,
                   MctruthTestBase::RunResult const& actual,
                   MctruthTestBase::RunResult::Tolerance const& tol)
 {
     using Result = MctruthTestBase::RunResult;
-    Comparer<Result> compare{helper, expected, actual};
+    RefComparer<Result> compare{helper, expected, actual};
     CELER_INVOKE_ATTR(compare.is_eq, Result, event);
     CELER_INVOKE_ATTR(compare.is_eq, Result, track);
     CELER_INVOKE_ATTR(compare.is_eq, Result, step);
     CELER_INVOKE_ATTR(compare.is_eq, Result, volume);
     CELER_INVOKE_ATTR(compare.is_soft_eq, Result, pos, tol.pos);
     CELER_INVOKE_ATTR(compare.is_soft_eq, Result, dir, tol.dir);
+    return static_cast<bool>(compare);
 }
 
 /*!

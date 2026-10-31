@@ -67,16 +67,17 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
                       << result.failed << '}';
         }
 
-        friend void check_ref_eq(AssertionHelper& helper,
+        friend bool check_ref_eq(AssertionHelper& helper,
                                  HeuristicInitResult const& val1,
                                  HeuristicInitResult const& val2)
         {
             using namespace ::celeritas::test;
-            Comparer<HeuristicInitResult> compare{helper, val1, val2};
+            RefComparer<HeuristicInitResult> compare{helper, val1, val2};
             CELER_INVOKE_ATTR(
                 compare.is_soft_eq, HeuristicInitResult, vol_fractions);
-            is_soft_eq(
-                helper, val1.failed, val2.failed, SoftComparator_t<double>());
+            compare.record_result(is_soft_eq(
+                helper, val1.failed, val2.failed, SoftComparator_t<double>()));
+            return static_cast<bool>(compare);
         }
     };
 

@@ -32,14 +32,13 @@ bool check_ref_eq(AssertionHelper& helper,
                   SampledHistogram const& val2,
                   double tol)
 {
-    Comparer<SampledHistogram> compare{helper, val1, val2};
+    RefComparer<SampledHistogram> compare{helper, val1, val2};
     bool result = CELER_INVOKE_ATTR(
         compare.is_soft_eq, SampledHistogram, distribution, tol);
-    if (!is_soft_eq(helper, val1.rng_count, val2.rng_count, {tol}))
-    {
-        return false;
-    }
-    return result;
+    compare.record_result(result);
+    compare.record_result(
+        is_soft_eq(helper, val1.rng_count, val2.rng_count, {tol}));
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

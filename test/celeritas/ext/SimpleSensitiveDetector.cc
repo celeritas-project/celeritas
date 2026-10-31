@@ -54,11 +54,11 @@ std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
 }
 
 //---------------------------------------------------------------------------//
-void check_ref_eq(AssertionHelper& helper,
+bool check_ref_eq(AssertionHelper& helper,
                   SimpleHitsResult const& expected,
                   SimpleHitsResult const& actual)
 {
-    Comparer<SimpleHitsResult> compare{helper, expected, actual};
+    RefComparer<SimpleHitsResult> compare{helper, expected, actual};
     constexpr auto tol
         = static_cast<double>(SoftEqual<celeritas::real_type>{}.rel());
     CELER_INVOKE_ATTR(
@@ -79,6 +79,7 @@ void check_ref_eq(AssertionHelper& helper,
     CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_dir, tol);
     CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, post_physvol);
     CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, post_status);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

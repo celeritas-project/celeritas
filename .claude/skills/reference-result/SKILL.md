@@ -48,12 +48,12 @@ struct EventResult
                EventResult const& actual,
                Tol const& tol)
   {
-    bool result{true};
-    result = is_vec_soft_eq(helper, "pos", expected.pos, actual.pos) && result;
-    result = is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir) && result;
-    result = is_vec_soft_eq(helper, "energy", expected.energy, actual.energy, tol.energy) && result;
-    result = is_vec_eq(helper, "vtx", expected.vtx, actual.vtx) && result;
-    return result;
+    RefComparer<EventResult> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, pos);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, dir, tol.dir);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, energy, tol.energy);
+    CELER_INVOKE_ATTR(compare.is_eq, EventResult, vtx);
+    return static_cast<bool>(compare);
   }
 
   friend bool check_ref_eq(AssertionHelper& helper,
