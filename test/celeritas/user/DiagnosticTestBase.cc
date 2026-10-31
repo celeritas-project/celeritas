@@ -16,7 +16,7 @@
 #include "celeritas/user/StepDiagnostic.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 using std::cout;
@@ -50,9 +50,9 @@ std::ostream& operator<<(std::ostream& os,
               << CELER_ATTR_REPR(ref, steps) << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  DiagnosticTestBase::RunResult const& expected,
-                  DiagnosticTestBase::RunResult const& actual)
+bool is_ref_eq(AssertionHelper& helper,
+               DiagnosticTestBase::RunResult const& expected,
+               DiagnosticTestBase::RunResult const& actual)
 {
     using Result = DiagnosticTestBase::RunResult;
     RefComparer<Result> compare{helper, expected, actual};

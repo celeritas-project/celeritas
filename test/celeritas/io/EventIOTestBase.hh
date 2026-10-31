@@ -63,16 +63,16 @@ class EventIOTestBase : public Test
 
         friend std::ostream& operator<<(std::ostream& os,
                                         ReadAllResult const& ref);
-        friend bool check_ref_eq(AssertionHelper& helper,
-                                 ReadAllResult const& expected,
-                                 ReadAllResult const& actual,
-                                 Tolerance const& tol);
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              ReadAllResult const& expected,
+                              ReadAllResult const& actual,
+                              Tolerance const& tol);
 
-        friend bool check_ref_eq(AssertionHelper& helper,
-                                 ReadAllResult const& expected,
-                                 ReadAllResult const& actual)
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              ReadAllResult const& expected,
+                              ReadAllResult const& actual)
         {
-            return check_ref_eq(helper, expected, actual, Tolerance{});
+            return is_ref_eq(helper, expected, actual, Tolerance{});
         }
     };
 

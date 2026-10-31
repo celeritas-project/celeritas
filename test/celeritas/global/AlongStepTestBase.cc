@@ -23,7 +23,7 @@
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -161,9 +161,9 @@ std::ostream& operator<<(std::ostream& os,
            << ", " << CELER_ATTR_REPR(ref, action) << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  AlongStepTestBase::RunResult const& expected,
-                  AlongStepTestBase::RunResult const& actual)
+bool is_ref_eq(AssertionHelper& helper,
+               AlongStepTestBase::RunResult const& expected,
+               AlongStepTestBase::RunResult const& actual)
 {
     auto const comp = SoftComparator_t<real_type>();
     RefComparer<AlongStepTestBase::RunResult> compare{helper, expected, actual};

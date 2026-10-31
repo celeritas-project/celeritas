@@ -41,9 +41,9 @@ struct RunResult
 
 //---------------------------------------------------------------------------//
 
-bool check_ref_eq(AssertionHelper& helper,
-                  RunResult const& expected,
-                  RunResult const& actual);
+bool is_ref_eq(AssertionHelper& helper,
+               RunResult const& expected,
+               RunResult const& actual);
 
 //---------------------------------------------------------------------------//
 struct DepHitResult
@@ -64,9 +64,9 @@ struct DepHitResult
 
 //---------------------------------------------------------------------------//
 
-bool check_ref_eq(AssertionHelper& helper,
-                  DepHitResult const& expected,
-                  DepHitResult const& actual);
+bool is_ref_eq(AssertionHelper& helper,
+               DepHitResult const& expected,
+               DepHitResult const& actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

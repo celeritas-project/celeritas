@@ -43,7 +43,7 @@ struct EventResult
           << CELER_ATTR_REPR(ref, vtx) << '}';
   }
 
-  friend bool check_ref_eq(AssertionHelper& helper,
+  friend bool is_ref_eq(AssertionHelper& helper,
                EventResult const& expected,
                EventResult const& actual,
                Tol const& tol)
@@ -56,11 +56,11 @@ struct EventResult
     return static_cast<bool>(compare);
   }
 
-  friend bool check_ref_eq(AssertionHelper& helper,
+  friend bool is_ref_eq(AssertionHelper& helper,
                EventResult const& expected,
                EventResult const& actual)
   {
-    return check_ref_eq(helper, expected, actual, {});
+    return is_ref_eq(helper, expected, actual, {});
   }
 };
 
@@ -107,8 +107,8 @@ Inventory the fields first, then declare only what the result needs:
   members to select between default and custom comparison behavior. Nest the
   tolerance struct in the result when it is specific to that result. Name each
   tolerance for its field or shared semantics.
-- ADL-visible friends for `operator<<` and `check_ref_eq`. Return `bool` from
-  `check_ref_eq`, especially when the result is reusable or can be an element
+- ADL-visible friends for `operator<<` and `is_ref_eq`. Return `bool` from
+  `is_ref_eq`, especially when the result is reusable or can be an element
   of a container. Keep small test-local implementations inline in the test
   header/source; for a reusable test library, declare the friend in the result
   type and define it in the corresponding `.cc` file.
@@ -116,7 +116,7 @@ Inventory the fields first, then declare only what the result needs:
   by `test/TestMacros.hh`; do not add a result-specific member, friend, or
   free-function forwarding wrapper.
 
-For a main-library class, place reusable `check_ref_eq` declarations in the
+For a main-library class, place reusable `is_ref_eq` declarations in the
 corresponding test helper. Ensure the comparison friend is discoverable by ADL
 from the result type; callers may need a using-declaration for test helper
 functions when the type is in the main namespace.
@@ -125,12 +125,12 @@ functions when the type is in the main namespace.
 
 Implement comparison once, using the existing dispatcher and field helpers:
 
-- `EXPECT_REF_EQ` dispatches to `check_ref_eq` without a tolerance;
+- `EXPECT_REF_EQ` dispatches to `is_ref_eq` without a tolerance;
   `EXPECT_REF_NEAR` dispatches with the supplied tolerance. Do not add
   result-specific `IsRefEq` overloads.
 - For a result with a nested tolerance type, define a four-argument friend that
   accepts `Tol const&`, then define the three-argument friend to create and
-  forward with the default tolerance (`return check_ref_eq(..., {});`). Do not
+  forward with the default tolerance (`return is_ref_eq(..., {});`). Do not
   use a default argument of the nested tolerance type on the friend; that
   default argument is prohibited in this context.
 - For a result with no tolerance policy, a four-argument friend may use
@@ -138,13 +138,13 @@ Implement comparison once, using the existing dispatcher and field helpers:
   three-argument comparison while also allowing container comparison dispatch
   to pass an explicit no-tolerance argument; include `<cstddef>` for
   `std::nullptr_t`.
-- For field-specific semantics, implement `check_ref_eq` field by field.
+- For field-specific semantics, implement `is_ref_eq` field by field.
   Pass tolerance members directly to soft-comparison helpers, including the
   defaulted values. Use `is_eq` for exact scalars, `is_vec_eq` for exact
   containers, `is_vec_soft_eq` for tolerant containers, and `is_soft_eq` for
   tolerant scalars. Keep field labels and continue checking later fields after
   a mismatch. For a vector of reference-result objects, call the
-  container-overloaded `check_ref_eq(helper, expected.items, actual.items)` (or
+  container-overloaded `is_ref_eq(helper, expected.items, actual.items)` (or
   pass its tolerance when applicable). It recursively dispatches to each
   element's ADL-visible friend; do not write a second element-comparison loop.
   Use lower-level vector predicates only when wrappers cannot express the

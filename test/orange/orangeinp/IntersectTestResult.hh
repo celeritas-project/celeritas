@@ -50,9 +50,9 @@ struct IntersectTestResult
     friend std::ostream& operator<<(std::ostream&, IntersectTestResult const&);
 
     // Compare with EXPECT_REF_EQ
-    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
-                             IntersectTestResult const& expected,
-                             IntersectTestResult const& actual);
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          IntersectTestResult const& expected,
+                          IntersectTestResult const& actual);
 };
 
 //---------------------------------------------------------------------------//

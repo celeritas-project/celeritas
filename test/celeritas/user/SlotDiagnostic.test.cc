@@ -17,7 +17,6 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
 #include "SimpleLoopTestBase.hh"
 #include "celeritas_test.hh"
 #include "testdetail/TestMacrosImpl.hh"
@@ -65,9 +64,9 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
                       << CELER_ATTR_REPR(ref, slots) << '}';
         }
 
-        friend bool check_ref_eq(AssertionHelper& helper,
-                                 RunResult const& expected,
-                                 RunResult const& actual)
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              RunResult const& expected,
+                              RunResult const& actual)
         {
             RefComparer<RunResult> compare{helper, expected, actual};
             CELER_INVOKE_ATTR(compare.is_eq, RunResult, labels);

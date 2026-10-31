@@ -22,7 +22,6 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
 #include "celeritas_test.hh"
 
 using celeritas::test::InstancePathFinder;
@@ -48,9 +47,9 @@ struct TestResult
                   << CELER_ATTR_REPR(ref, replicas) << '}';
     }
 
-    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
-                             TestResult const& expected,
-                             TestResult const& actual)
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          TestResult const& expected,
+                          TestResult const& actual)
     {
         using namespace ::celeritas::test;
         RefComparer<TestResult> compare{helper, expected, actual};

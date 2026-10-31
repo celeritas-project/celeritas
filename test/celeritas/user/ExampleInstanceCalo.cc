@@ -22,7 +22,7 @@
 #include "geocel/VolumeParams.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -41,9 +41,9 @@ std::ostream& operator<<(std::ostream& os,
 }
 
 //---------------------------------------------------------------------------//
-bool check_ref_eq(AssertionHelper& helper,
-                  ExampleInstanceCalo::Result const& expected,
-                  ExampleInstanceCalo::Result const& actual)
+bool is_ref_eq(AssertionHelper& helper,
+               ExampleInstanceCalo::Result const& expected,
+               ExampleInstanceCalo::Result const& actual)
 {
     RefComparer<ExampleInstanceCalo::Result> compare{helper, expected, actual};
     CELER_INVOKE_ATTR(compare.is_eq, ExampleInstanceCalo::Result, instance);

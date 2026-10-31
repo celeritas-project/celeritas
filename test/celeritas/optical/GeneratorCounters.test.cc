@@ -4,7 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/GeneratorCounters.test.cc
 //---------------------------------------------------------------------------//
-#include <array>
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -34,7 +33,6 @@
 #include "celeritas/setup/StandaloneInput.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -87,10 +85,10 @@ struct GenCounterResult
                   << CELER_ATTR_REPR(ref, accum_generated) << '}';
     }
 
-    friend bool check_ref_eq(AssertionHelper& helper,
-                             GenCounterResult const& expected,
-                             GenCounterResult const& actual,
-                             std::nullptr_t = {})
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          GenCounterResult const& expected,
+                          GenCounterResult const& actual,
+                          std::nullptr_t = {})
     {
         RefComparer<GenCounterResult> compare{helper, expected, actual};
         CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, buffer_size);
@@ -156,10 +154,10 @@ struct CounterResult
         return os << "}}";
     }
 
-    friend bool check_ref_eq(AssertionHelper& helper,
-                             CounterResult const& expected,
-                             CounterResult const& actual,
-                             std::nullptr_t = {})
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          CounterResult const& expected,
+                          CounterResult const& actual,
+                          std::nullptr_t = {})
     {
         RefComparer<CounterResult> compare{helper, expected, actual};
         CELER_INVOKE_ATTR(compare.is_eq, CounterResult, pending);
@@ -191,7 +189,7 @@ struct CounterResult
             if (iter != actual.gen.end())
             {
                 bool const gen_success
-                    = check_ref_eq(helper, expected_gen, iter->second);
+                    = is_ref_eq(helper, expected_gen, iter->second);
                 compare.record_result(gen_success);
                 if (!gen_success)
                 {

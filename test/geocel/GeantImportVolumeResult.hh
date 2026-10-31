@@ -36,9 +36,9 @@ struct GeantImportVolumeResult
 
     friend std::ostream& operator<<(std::ostream&,
                                     GeantImportVolumeResult const&);
-    friend bool check_ref_eq(AssertionHelper&,
-                             GeantImportVolumeResult const&,
-                             GeantImportVolumeResult const&);
+    friend bool is_ref_eq(AssertionHelper&,
+                          GeantImportVolumeResult const&,
+                          GeantImportVolumeResult const&);
 };
 
 //---------------------------------------------------------------------------//

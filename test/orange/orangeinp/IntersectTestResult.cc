@@ -13,7 +13,7 @@
 #include "geocel/RefUtils.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -57,9 +57,9 @@ std::ostream& operator<<(std::ostream& os, IntersectTestResult const& ref)
 }
 
 //---------------------------------------------------------------------------//
-bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
-                  IntersectTestResult const& val1,
-                  IntersectTestResult const& val2)
+bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+               IntersectTestResult const& val1,
+               IntersectTestResult const& val2)
 {
     using namespace celeritas::test;
 
@@ -68,7 +68,7 @@ bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
     CELER_INVOKE_ATTR(compare.is_eq, IntersectTestResult, surfaces);
 
     bool const interior_result
-        = check_ref_eq(helper, val1.interior, val2.interior);
+        = is_ref_eq(helper, val1.interior, val2.interior);
     if (!interior_result)
     {
         helper.fail() << "in interior";
@@ -76,7 +76,7 @@ bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
     compare.record_result(interior_result);
 
     bool const exterior_result
-        = check_ref_eq(helper, val1.exterior, val2.exterior);
+        = is_ref_eq(helper, val1.exterior, val2.exterior);
     if (!exterior_result)
     {
         helper.fail() << "in exterior";

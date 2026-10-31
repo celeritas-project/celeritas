@@ -30,7 +30,6 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
 #include "MscTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
@@ -204,10 +203,10 @@ struct StepLimitResult
                   << CELER_ATTR_REPR(result, limit_min) << '}';
     }
 
-    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
-                             StepLimitResult const& expected,
-                             StepLimitResult const& actual,
-                             real_type tol)
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          StepLimitResult const& expected,
+                          StepLimitResult const& actual,
+                          real_type tol)
     {
         ::celeritas::test::RefComparer<StepLimitResult> compare{
             helper, expected, actual};
@@ -218,11 +217,11 @@ struct StepLimitResult
         CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, limit_min, tol);
         return static_cast<bool>(compare);
     }
-    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
-                             StepLimitResult const& expected,
-                             StepLimitResult const& actual)
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          StepLimitResult const& expected,
+                          StepLimitResult const& actual)
     {
-        return check_ref_eq(helper, expected, actual, UrbanMscTest::fine_eps);
+        return is_ref_eq(helper, expected, actual, UrbanMscTest::fine_eps);
     }
 };
 

@@ -13,7 +13,6 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
 
-#include "Comparer.hh"
 #include "celeritas_test.hh"
 #include "testdetail/TestMacrosImpl.hh"
 
@@ -533,10 +532,10 @@ struct Foo
         int val{0};
     };
 
-    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
-                             Foo const& val1,
-                             Foo const& val2,
-                             Tol const& tol)
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          Foo const& val1,
+                          Foo const& val2,
+                          Tol const& tol)
     {
         ::celeritas::test::RefComparer<Foo> compare{helper, val1, val2};
         bool const result = std::abs(val1.val - val2.val) <= tol.val;
@@ -552,11 +551,11 @@ struct Foo
         return static_cast<bool>(compare);
     }
     // NOTE: this overload is necessary because `Tol` is a nested class.
-    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
-                             Foo const& val1,
-                             Foo const& val2)
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          Foo const& val1,
+                          Foo const& val2)
     {
-        return check_ref_eq(helper, val1, val2, Tol{});
+        return is_ref_eq(helper, val1, val2, Tol{});
     }
 };
 

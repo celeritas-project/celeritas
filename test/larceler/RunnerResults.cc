@@ -14,7 +14,7 @@
 #include "corecel/io/Repr.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& os, RunResult const& ref)
     return os << '{' << CELER_ATTR_REPR(ref, num_hits) << '}';
 }
 
-bool check_ref_eq(
+bool is_ref_eq(
     AssertionHelper& helper, RunResult const& val1, RunResult const& val2)
 {
     RefComparer<RunResult> compare{helper, val1, val2};
@@ -80,9 +80,9 @@ std::ostream& operator<<(std::ostream& os, DepHitResult const& ref)
 
 //---------------------------------------------------------------------------//
 
-bool check_ref_eq(AssertionHelper& helper,
-                  DepHitResult const& val1,
-                  DepHitResult const& val2)
+bool is_ref_eq(AssertionHelper& helper,
+               DepHitResult const& val1,
+               DepHitResult const& val2)
 {
     RefComparer<DepHitResult> compare{helper, val1, val2};
     CELER_INVOKE_ATTR(compare.is_eq, DepHitResult, track_id);

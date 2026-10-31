@@ -37,16 +37,16 @@ struct SampledHistogram
     friend std::ostream& operator<<(std::ostream&, SampledHistogram const&);
 
     // Check against a reference histogram (
-    friend bool check_ref_eq(AssertionHelper& helper,
-                             SampledHistogram const& expected,
-                             SampledHistogram const& actual,
-                             double tol);
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          SampledHistogram const& expected,
+                          SampledHistogram const& actual,
+                          double tol);
     // Check against a reference histogram
-    friend bool check_ref_eq(AssertionHelper& helper,
-                             SampledHistogram const& expected,
-                             SampledHistogram const& actual)
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          SampledHistogram const& expected,
+                          SampledHistogram const& actual)
     {
-        return check_ref_eq(helper, expected, actual, 1e-8);
+        return is_ref_eq(helper, expected, actual, 1e-8);
     }
 };
 

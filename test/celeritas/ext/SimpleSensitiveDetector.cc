@@ -22,7 +22,7 @@
 #include "celeritas/ext/GeantStepView.hh"
 #include "celeritas/ext/GeantTrackView.hh"
 
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 using std::cout;
@@ -54,9 +54,9 @@ std::ostream& operator<<(std::ostream& os, SimpleHitsResult const& ref)
 }
 
 //---------------------------------------------------------------------------//
-bool check_ref_eq(AssertionHelper& helper,
-                  SimpleHitsResult const& expected,
-                  SimpleHitsResult const& actual)
+bool is_ref_eq(AssertionHelper& helper,
+               SimpleHitsResult const& expected,
+               SimpleHitsResult const& actual)
 {
     RefComparer<SimpleHitsResult> compare{helper, expected, actual};
     constexpr auto tol

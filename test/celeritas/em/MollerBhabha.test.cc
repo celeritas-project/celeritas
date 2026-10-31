@@ -11,7 +11,6 @@
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
-#include "Comparer.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -111,9 +110,9 @@ std::ostream& operator<<(std::ostream& os, SampleResult const& result)
               << CELER_ATTR_REPR(result, sec_e) << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  SampleResult const& val1,
-                  SampleResult const& val2)
+bool is_ref_eq(AssertionHelper& helper,
+               SampleResult const& val1,
+               SampleResult const& val2)
 {
     RefComparer<SampleResult> compare{helper, val1, val2};
     CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, inc_exit_cost);

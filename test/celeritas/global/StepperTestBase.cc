@@ -21,7 +21,7 @@
 #include "celeritas/phys/PhysicsParams.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 using std::cout;
@@ -184,9 +184,9 @@ std::ostream& operator<<(std::ostream& os,
               << CELER_ATTR_REPR(ref, actions_desc) << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  StepperTestBase::SetupCheckResult const& expected,
-                  StepperTestBase::SetupCheckResult const& actual)
+bool is_ref_eq(AssertionHelper& helper,
+               StepperTestBase::SetupCheckResult const& expected,
+               StepperTestBase::SetupCheckResult const& actual)
 {
     using Result = StepperTestBase::SetupCheckResult;
     RefComparer<Result> compare{helper, expected, actual};
@@ -204,9 +204,9 @@ std::ostream& operator<<(std::ostream& os,
               << CELER_ATTR_REPR(ref, queued) << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  StepperTestBase::RunResult const& expected,
-                  StepperTestBase::RunResult const& actual)
+bool is_ref_eq(AssertionHelper& helper,
+               StepperTestBase::RunResult const& expected,
+               StepperTestBase::RunResult const& actual)
 {
     using Result = StepperTestBase::RunResult;
     RefComparer<Result> compare{helper, expected, actual};

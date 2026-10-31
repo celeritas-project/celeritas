@@ -14,7 +14,7 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -55,10 +55,10 @@ std::ostream& operator<<(std::ostream& os, CaloTestBase::RunResult const& ref)
     return os << '{' << CELER_ATTR_REPR(ref, edep) << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  CaloTestBase::RunResult const& expected,
-                  CaloTestBase::RunResult const& actual,
-                  CaloTestBase::RunResult::Tolerance const& tol)
+bool is_ref_eq(AssertionHelper& helper,
+               CaloTestBase::RunResult const& expected,
+               CaloTestBase::RunResult const& actual,
+               CaloTestBase::RunResult::Tolerance const& tol)
 {
     using Result = CaloTestBase::RunResult;
     RefComparer<Result> compare{helper, expected, actual};

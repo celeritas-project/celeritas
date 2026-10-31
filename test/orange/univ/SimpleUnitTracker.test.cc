@@ -27,7 +27,6 @@
 #include "orange/detail/UniverseIndexer.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
 #include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"
 
@@ -67,9 +66,9 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
                       << result.failed << '}';
         }
 
-        friend bool check_ref_eq(AssertionHelper& helper,
-                                 HeuristicInitResult const& val1,
-                                 HeuristicInitResult const& val2)
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              HeuristicInitResult const& val1,
+                              HeuristicInitResult const& val2)
         {
             using namespace ::celeritas::test;
             RefComparer<HeuristicInitResult> compare{helper, val1, val2};

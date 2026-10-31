@@ -13,7 +13,7 @@
 #include "geocel/BoundingBox.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
+#include "RefComparer.hh"
 
 namespace celeritas
 {
@@ -21,18 +21,18 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 template<class T>
-bool check_ref_eq(AssertionHelper& helper,
-                  BoundingBox<T> const& expected,
-                  BoundingBox<T> const& actual)
+bool is_ref_eq(AssertionHelper& helper,
+               BoundingBox<T> const& expected,
+               BoundingBox<T> const& actual)
 {
-    return check_ref_eq(helper, expected, actual, SoftEqual<T>{}.rel());
+    return is_ref_eq(helper, expected, actual, SoftEqual<T>{}.rel());
 }
 
 template<class T>
-bool check_ref_eq(AssertionHelper& helper,
-                  BoundingBox<T> const& expected,
-                  BoundingBox<T> const& actual,
-                  T tol)
+bool is_ref_eq(AssertionHelper& helper,
+               BoundingBox<T> const& expected,
+               BoundingBox<T> const& actual,
+               T tol)
 {
     RefComparer<BoundingBox<T>> compare{helper, expected, actual};
     auto fail = [&] {
@@ -80,18 +80,18 @@ bool check_ref_eq(AssertionHelper& helper,
     return static_cast<bool>(compare);
 }
 
-template bool check_ref_eq<float>(
+template bool is_ref_eq<float>(
     AssertionHelper&, BoundingBox<float> const&, BoundingBox<float> const&);
-template bool check_ref_eq<double>(
+template bool is_ref_eq<double>(
     AssertionHelper&, BoundingBox<double> const&, BoundingBox<double> const&);
-template bool check_ref_eq<float>(AssertionHelper&,
-                                  BoundingBox<float> const&,
-                                  BoundingBox<float> const&,
-                                  float);
-template bool check_ref_eq<double>(AssertionHelper&,
-                                   BoundingBox<double> const&,
-                                   BoundingBox<double> const&,
-                                   double);
+template bool is_ref_eq<float>(AssertionHelper&,
+                               BoundingBox<float> const&,
+                               BoundingBox<float> const&,
+                               float);
+template bool is_ref_eq<double>(AssertionHelper&,
+                                BoundingBox<double> const&,
+                                BoundingBox<double> const&,
+                                double);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

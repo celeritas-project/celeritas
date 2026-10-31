@@ -16,7 +16,6 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 
-#include "Comparer.hh"
 #include "celeritas_test.hh"
 #include "testdetail/TestMacrosImpl.hh"
 
@@ -67,10 +66,10 @@ struct EventResult
     }
 
     //! Implement \c EXPECT_REF_NEAR
-    friend bool check_ref_eq(AssertionHelper& helper,
-                             EventResult const& expected,
-                             EventResult const& actual,
-                             Tol const& tol)
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          EventResult const& expected,
+                          EventResult const& actual,
+                          Tol const& tol)
     {
         RefComparer<EventResult> compare{helper, expected, actual};
         CELER_INVOKE_ATTR(compare.is_soft_eq, EventResult, pos);
@@ -84,11 +83,11 @@ struct EventResult
     }
 
     //! Implement \c EXPECT_REF_EQ
-    friend bool check_ref_eq(AssertionHelper& helper,
-                             EventResult const& expected,
-                             EventResult const& actual)
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          EventResult const& expected,
+                          EventResult const& actual)
     {
-        return check_ref_eq(helper, expected, actual, {});
+        return is_ref_eq(helper, expected, actual, {});
     }
 };
 

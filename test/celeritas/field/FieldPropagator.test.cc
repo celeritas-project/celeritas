@@ -32,7 +32,6 @@
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "CMSParameterizedField.hh"
-#include "Comparer.hh"
 #include "DiagnosticIntegrator.hh"
 #include "FieldTestBase.hh"
 #include "celeritas_test.hh"
@@ -1394,9 +1393,9 @@ std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
               << CELER_ATTR_REPR(ref, messages) << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  FieldPropagationResult const& val1,
-                  FieldPropagationResult const& val2)
+bool is_ref_eq(AssertionHelper& helper,
+               FieldPropagationResult const& val1,
+               FieldPropagationResult const& val2)
 {
     RefComparer<FieldPropagationResult> compare{helper, val1, val2};
 #define IRE_COMPARE(ATTR) \

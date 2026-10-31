@@ -47,15 +47,15 @@ class CaloTestBase : virtual public SimpleLoopTestBase
         std::vector<double> edep;
 
         friend std::ostream& operator<<(std::ostream&, RunResult const&);
-        friend bool check_ref_eq(AssertionHelper&,
-                                 RunResult const&,
-                                 RunResult const&,
-                                 Tolerance const&);
-        friend bool check_ref_eq(AssertionHelper& helper,
-                                 RunResult const& expected,
-                                 RunResult const& actual)
+        friend bool is_ref_eq(AssertionHelper&,
+                              RunResult const&,
+                              RunResult const&,
+                              Tolerance const&);
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              RunResult const& expected,
+                              RunResult const& actual)
         {
-            return check_ref_eq(helper, expected, actual, Tolerance{});
+            return is_ref_eq(helper, expected, actual, Tolerance{});
         }
     };
 

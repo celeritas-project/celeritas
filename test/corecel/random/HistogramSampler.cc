@@ -10,7 +10,7 @@
 #include "corecel/math/SoftEqual.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -27,10 +27,10 @@ std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh)
 }
 
 //! Check against a reference histogram
-bool check_ref_eq(AssertionHelper& helper,
-                  SampledHistogram const& val1,
-                  SampledHistogram const& val2,
-                  double tol)
+bool is_ref_eq(AssertionHelper& helper,
+               SampledHistogram const& val1,
+               SampledHistogram const& val2,
+               double tol)
 {
     RefComparer<SampledHistogram> compare{helper, val1, val2};
     bool result = CELER_INVOKE_ATTR(

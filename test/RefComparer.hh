@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file Comparer.hh
+//! \file RefComparer.hh
 //! \sa TestMacros.test.cc
 //---------------------------------------------------------------------------//
 #pragma once

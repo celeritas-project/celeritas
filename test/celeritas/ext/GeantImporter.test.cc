@@ -24,7 +24,6 @@
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "Comparer.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -90,9 +89,9 @@ class GeantImporterTest : public GeantTestBase
                       << CELER_ATTR_REPR(ref, models) << '}';
         }
 
-        friend bool check_ref_eq(AssertionHelper& helper,
-                                 ImportSummary const& expected,
-                                 ImportSummary const& actual)
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              ImportSummary const& expected,
+                              ImportSummary const& actual)
         {
             RefComparer<ImportSummary> compare{helper, expected, actual};
             CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, particles);
@@ -118,9 +117,9 @@ class GeantImporterTest : public GeantTestBase
                       << CELER_ATTR_REPR(ref, xs) << '}';
         }
 
-        friend bool check_ref_eq(AssertionHelper& helper,
-                                 ImportXsSummary const& expected,
-                                 ImportXsSummary const& actual)
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              ImportXsSummary const& expected,
+                              ImportXsSummary const& actual)
         {
             RefComparer<ImportXsSummary> compare{helper, expected, actual};
             CELER_INVOKE_ATTR(compare.is_eq, ImportXsSummary, size);

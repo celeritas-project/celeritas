@@ -19,8 +19,8 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/inp/Model.hh"
 
-#include "Comparer.hh"
 #include "GenericGeoTestInterface.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 using namespace celeritas::literals;
@@ -111,10 +111,10 @@ std::ostream& operator<<(std::ostream& os, GenericGeoTrackingResult const& ref)
               << CELER_ATTR_REPR(ref, bumps) << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  GenericGeoTrackingResult const& val1,
-                  GenericGeoTrackingResult const& val2,
-                  GenericGeoTrackingTolerance const& tol)
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoTrackingResult const& val1,
+               GenericGeoTrackingResult const& val2,
+               GenericGeoTrackingTolerance const& tol)
 {
     RefComparer<GenericGeoTrackingResult> compare{helper, val1, val2};
     CELER_INVOKE_ATTR(compare.is_eq, GenericGeoTrackingResult, volumes);
@@ -183,9 +183,9 @@ void GenericGeoVolumeStackResult::fail()
     this->volume_instances.push_back("[FAILURE]");
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  GenericGeoVolumeStackResult const& val1,
-                  GenericGeoVolumeStackResult const& val2)
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoVolumeStackResult const& val1,
+               GenericGeoVolumeStackResult const& val2)
 {
     RefComparer<GenericGeoVolumeStackResult> compare{helper, val1, val2};
     CELER_INVOKE_ATTR(
@@ -265,9 +265,9 @@ std::ostream& operator<<(std::ostream& os, GenericGeoModelInp const& ref)
               << CELER_ATTR_REPR(ref, detector.volumes) << "}}";
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  GenericGeoModelInp const& val1,
-                  GenericGeoModelInp const& val2)
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoModelInp const& val1,
+               GenericGeoModelInp const& val2)
 {
     RefComparer<GenericGeoModelInp> compare{helper, val1, val2};
     auto compare_attr = [&helper, &compare](char const* name,

@@ -34,7 +34,6 @@
 #include "celeritas/track/InitializeTracksAction.hh"
 
 #include "AssertionHelper.hh"
-#include "Comparer.hh"
 #include "MockInteractAction.hh"
 #include "celeritas_test.hh"
 #include "testdetail/TestMacrosImpl.hh"
@@ -69,9 +68,9 @@ struct RunResult
                   << CELER_ATTR_REPR(ref, vacancies) << '}';
     }
 
-    friend bool check_ref_eq(AssertionHelper& helper,
-                             RunResult const& expected,
-                             RunResult const& actual)
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          RunResult const& expected,
+                          RunResult const& actual)
     {
         using namespace ::celeritas::test;
         RefComparer<RunResult> compare{helper, expected, actual};

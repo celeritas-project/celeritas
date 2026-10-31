@@ -16,6 +16,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/StreamUtils.hh"
 
+#include "RefComparer.hh"
 #include "Test.hh"
 #include "TestMacros.hh"
 #include "TestMain.hh"

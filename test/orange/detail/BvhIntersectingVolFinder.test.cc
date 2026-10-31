@@ -19,7 +19,6 @@
 #include "orange/detail/BvhBuilder.hh"
 #include "orange/univ/detail/Types.hh"
 
-#include "Comparer.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -115,9 +114,9 @@ struct IntersectResult
                   << CELER_ATTR_REPR(ref, miss_count) << '}';
     }
 
-    friend bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
-                             IntersectResult const& val1,
-                             IntersectResult const& val2)
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          IntersectResult const& val1,
+                          IntersectResult const& val2)
     {
         using namespace ::celeritas::test;
         using SoftEqT = SoftComparator_t<real_type>;

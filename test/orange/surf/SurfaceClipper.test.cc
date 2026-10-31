@@ -14,7 +14,6 @@
 #include "orange/surf/SphereCentered.hh"
 #include "orange/surf/VariantSurface.hh"
 
-#include "Comparer.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -35,19 +34,19 @@ struct ClipResult
         return os << '{' << result.i << ", " << result.x << '}';
     }
 
-    friend bool check_ref_eq(AssertionHelper& helper,
-                             ClipResult const& expected,
-                             ClipResult const& actual)
+    friend bool is_ref_eq(AssertionHelper& helper,
+                          ClipResult const& expected,
+                          ClipResult const& actual)
     {
         RefComparer<ClipResult> compare{helper, expected, actual};
-        bool const i_result = check_ref_eq(helper, expected.i, actual.i);
+        bool const i_result = is_ref_eq(helper, expected.i, actual.i);
         if (!i_result)
         {
             helper.fail() << "in member: i";
         }
         compare.record_result(i_result);
 
-        bool const x_result = check_ref_eq(helper, expected.x, actual.x);
+        bool const x_result = is_ref_eq(helper, expected.x, actual.x);
         if (!x_result)
         {
             helper.fail() << "in member: x";

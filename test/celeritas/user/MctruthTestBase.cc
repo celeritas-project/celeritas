@@ -14,8 +14,8 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/StepCollector.hh"
 
-#include "Comparer.hh"
 #include "ExampleMctruth.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 using std::cout;
@@ -53,10 +53,10 @@ std::ostream& operator<<(std::ostream& os,
               << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  MctruthTestBase::RunResult const& expected,
-                  MctruthTestBase::RunResult const& actual,
-                  MctruthTestBase::RunResult::Tolerance const& tol)
+bool is_ref_eq(AssertionHelper& helper,
+               MctruthTestBase::RunResult const& expected,
+               MctruthTestBase::RunResult const& actual,
+               MctruthTestBase::RunResult::Tolerance const& tol)
 {
     using Result = MctruthTestBase::RunResult;
     RefComparer<Result> compare{helper, expected, actual};

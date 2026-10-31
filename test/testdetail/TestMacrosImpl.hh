@@ -171,7 +171,7 @@ std::enable_if_t<IsRefResult_v<Result>, void> print_expected(
 }
 
 //---------------------------------------------------------------------------//
-// CHECK_REF_EQ
+// is_ref_eq
 //---------------------------------------------------------------------------//
 
 /*!
@@ -179,10 +179,10 @@ std::enable_if_t<IsRefResult_v<Result>, void> print_expected(
  */
 template<class ContainerE, class ContainerA, class Tol>
 std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>, bool>
-check_ref_eq(::celeritas::test::AssertionHelper& helper,
-             ContainerE const& val1,
-             ContainerA const& val2,
-             Tol&& tol)
+is_ref_eq(::celeritas::test::AssertionHelper& helper,
+          ContainerE const& val1,
+          ContainerA const& val2,
+          Tol&& tol)
 {
     using std::begin;
     using std::end;
@@ -201,7 +201,7 @@ check_ref_eq(::celeritas::test::AssertionHelper& helper,
     constexpr size_type max_printable_failures = 10;
     for (auto end1 = end(val1); iter1 != end1; ++i, ++iter1, ++iter2)
     {
-        if (!check_ref_eq(helper, *iter1, *iter2, tol))
+        if (!is_ref_eq(helper, *iter1, *iter2, tol))
         {
             if (failures++ < max_printable_failures)
             {
@@ -220,9 +220,9 @@ check_ref_eq(::celeritas::test::AssertionHelper& helper,
 
 template<class ContainerE, class ContainerA>
 std::enable_if_t<IsContainer_v<ContainerE> && IsContainer_v<ContainerA>, bool>
-check_ref_eq(::celeritas::test::AssertionHelper& helper,
-             ContainerE const& val1,
-             ContainerA const& val2)
+is_ref_eq(::celeritas::test::AssertionHelper& helper,
+          ContainerE const& val1,
+          ContainerA const& val2)
 {
     using std::begin;
     using std::end;
@@ -240,7 +240,7 @@ check_ref_eq(::celeritas::test::AssertionHelper& helper,
     constexpr size_type max_printable_failures = 10;
     for (auto end1 = end(val1); iter1 != end1; ++i, ++iter1, ++iter2)
     {
-        if (!check_ref_eq(helper, *iter1, *iter2))
+        if (!is_ref_eq(helper, *iter1, *iter2))
         {
             if (failures++ < max_printable_failures)
             {
@@ -678,7 +678,7 @@ template<class E, class A>
     char const* expr1, char const* expr2, E const& expected, A const& actual)
 {
     ::celeritas::test::AssertionHelper helper{expr1, expr2};
-    check_ref_eq(helper, expected, actual);
+    is_ref_eq(helper, expected, actual);
     return helper;
 }
 
@@ -694,7 +694,7 @@ template<class E, class A, class T>
                                    T const& tol)
 {
     ::celeritas::test::AssertionHelper helper{expr1, expr2, tol_expr};
-    check_ref_eq(helper, expected, actual, tol);
+    is_ref_eq(helper, expected, actual, tol);
     return helper;
 }
 

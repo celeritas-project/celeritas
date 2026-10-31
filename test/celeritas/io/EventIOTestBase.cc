@@ -14,7 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
-#include "Comparer.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 using namespace celeritas::literals;
@@ -37,10 +37,10 @@ std::ostream& operator<<(std::ostream& os,
               << CELER_ATTR_REPR(ref, event) << '}';
 }
 
-bool check_ref_eq(AssertionHelper& helper,
-                  EventIOTestBase::ReadAllResult const& expected,
-                  EventIOTestBase::ReadAllResult const& actual,
-                  EventIOTestBase::ReadAllResult::Tolerance const& tol)
+bool is_ref_eq(AssertionHelper& helper,
+               EventIOTestBase::ReadAllResult const& expected,
+               EventIOTestBase::ReadAllResult const& actual,
+               EventIOTestBase::ReadAllResult::Tolerance const& tol)
 {
     using Result = EventIOTestBase::ReadAllResult;
     RefComparer<Result> compare{helper, expected, actual};
