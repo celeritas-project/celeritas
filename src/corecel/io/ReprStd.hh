@@ -21,51 +21,64 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-inline std::ostream& operator<<(std::ostream& os,
-                                ReprValue<std::string_view> const& value)
+template<>
+struct ReprFormatter<std::string_view>
 {
-    write_string_repr(os, value.obj);
-    return os;
-}
+    std::ostream& operator()(std::ostream& os, std::string_view obj) const
+    {
+        write_string_repr(os, obj);
+        return os;
+    }
+};
 
-inline std::ostream& operator<<(std::ostream& os,
-                                ReprValue<std::string> const& value)
+template<>
+struct ReprFormatter<std::string>
 {
-    write_string_repr(os, value.obj);
-    return os;
-}
+    std::ostream& operator()(std::ostream& os, std::string const& obj) const
+    {
+        write_string_repr(os, obj);
+        return os;
+    }
+};
 
 template<class T1, class T2>
-std::ostream& operator<<(std::ostream& os,
-                         ReprValue<std::pair<T1, T2>> const& value)
+struct ReprFormatter<std::pair<T1, T2>>
 {
-    os << '{' << repr(value.obj.first) << ',' << repr(value.obj.second) << '}';
-    return os;
-}
+    std::ostream& operator()(std::ostream& os,
+                             std::pair<T1, T2> const& obj) const
+    {
+        os << '{' << repr(obj.first) << ',' << repr(obj.second) << '}';
+        return os;
+    }
+};
 
 template<class T, class A>
-std::ostream& operator<<(std::ostream& os,
-                         ReprValue<std::vector<T, A>> const& value)
+struct ReprFormatter<std::vector<T, A>>
 {
-    auto const& vec = value.obj;
-    if constexpr (std::is_same_v<T, bool>)
+    std::ostream& operator()(std::ostream& os,
+                             std::vector<T, A> const& vec) const
     {
-        return os << ReprContainer{vec.begin(), vec.end(), vec.size() > 8};
+        if constexpr (std::is_same_v<T, bool>)
+        {
+            return os << ReprContainer{vec.begin(), vec.end(), vec.size() > 8};
+        }
+        else
+        {
+            auto const* data = vec.data();
+            return os << ReprContainer{data, data + vec.size(), vec.size() > 8};
+        }
     }
-    else
-    {
-        auto const* data = vec.data();
-        return os << ReprContainer{data, data + vec.size(), vec.size() > 8};
-    }
-}
+};
 
 template<class T, class C, class A>
-std::ostream& operator<<(std::ostream& os,
-                         ReprValue<std::set<T, C, A>> const& value)
+struct ReprFormatter<std::set<T, C, A>>
 {
-    auto const& obj = value.obj;
-    return os << ReprContainer{obj.begin(), obj.end(), obj.size() > 8};
-}
+    std::ostream& operator()(std::ostream& os,
+                             std::set<T, C, A> const& obj) const
+    {
+        return os << ReprContainer{obj.begin(), obj.end(), obj.size() > 8};
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -9,6 +9,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "corecel/cont/Array.hh"
@@ -80,12 +81,21 @@ TEST(ReprTest, fundamental)
     EXPECT_EQ("1.25f", repr_to_string(1.25f));
 
     EXPECT_EQ("1.25", repr_to_string(1.25));
+    std::ostringstream os;
+    os.precision(3);
+    os << repr(1.23456789012345) << ' ' << 1.23456789012345;
+    EXPECT_EQ("1.2345678901235 1.23", os.str());
+
     EXPECT_EQ("1", repr_to_string(1));
+    EXPECT_EQ("1u", repr_to_string(1u));
+    EXPECT_EQ("1l", repr_to_string(1l));
+    EXPECT_EQ("1ul", repr_to_string(1ul));
     EXPECT_EQ("1ull", repr_to_string(1ull));
     EXPECT_EQ("1ll", repr_to_string(1ll));
     EXPECT_EQ("'a'", repr_to_string('a'));
     EXPECT_EQ("'\\x61'", repr_to_string(static_cast<unsigned char>('a')));
     EXPECT_EQ("'\\xff'", repr_to_string('\xff'));
+    EXPECT_EQ("nullptr", repr_to_string(static_cast<char const*>(nullptr)));
 }
 
 TEST(ReprTest, string)
@@ -106,7 +116,19 @@ TEST(ReprTest, overloads)
 
 TEST(ReprTest, container)
 {
+    EXPECT_EQ("{}", repr_to_string(std::vector<int>{}));
+    EXPECT_EQ("{7}", repr_to_string(std::vector<int>{7}));
     EXPECT_EQ("{1, 2, 3, 4}", repr_to_string(std::vector<int>{1, 2, 3, 4}));
+    EXPECT_EQ("{{1, 2}, {3, 4}}",
+              repr_to_string(std::vector<std::vector<int>>{{1, 2}, {3, 4}}));
+    EXPECT_EQ("{1,2}", repr_to_string(std::pair<int, int>{1, 2}));
+    EXPECT_EQ("{1, 0, 1}",
+              repr_to_string(std::vector<bool>{true, false, true}));
+    EXPECT_EQ("{hidden{42}, hidden{17}}",
+              repr_to_string(std::vector<HiddenFriendValue>{{42}, {17}}));
+    EXPECT_EQ("{external{17}, external{42}}",
+              repr_to_string(std::vector<FreeFunctionValue>{{17}, {42}}));
+    EXPECT_EQ("{'a', '\\n'}", repr_to_string(std::vector<char>{'a', '\n'}));
     EXPECT_EQ("{100l, 200l}", repr_to_string(Array<long, 2>{100, 200}));
     EXPECT_EQ("{0, 1, 2, 3, 4, 5, 6, 7, 8,}",
               repr_to_string(Array<int, 9>{0, 1, 2, 3, 4, 5, 6, 7, 8}));

@@ -11,6 +11,7 @@
 #include <cstdio>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/ScopedStreamFormat.hh"
 
 namespace celeritas
 {

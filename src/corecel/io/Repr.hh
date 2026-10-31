@@ -28,7 +28,7 @@ auto repr(Array<T, N> const& obj)
 template<class T, std::size_t Extent>
 auto repr(Span<T, Extent> const& obj)
 {
-    return detail::ReprContainer<T*>{obj.begin(), obj.end(), obj.size() > 8};
+    return detail::ReprContainer{obj.begin(), obj.end(), obj.size() > 8};
 }
 
 }  // namespace celeritas

@@ -11,8 +11,6 @@
 #include <string_view>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/ScopedStreamFormat.hh"
-#include "corecel/io/StreamUtils.hh"
 
 #include "Joined.hh"
 
@@ -42,24 +40,23 @@ struct ReprValue
     T const& obj;
 };
 
+template<class T>
+struct ReprFormatter
+{
+    std::ostream& operator()(std::ostream& os, T const& obj) const
+    {
+        return os << obj;
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
- * Write a streamable object to a stream.
- *
- * This must be a free function so it can be overridden by std types.
+ * Write a ReprValue to a stream using its formatter policy.
  */
 template<class T>
 inline std::ostream& operator<<(std::ostream& os, ReprValue<T> const& s)
 {
-    return os << s.obj;
-}
-
-//! Implementation for ReprContainer
-template<class T>
-void generic_repr(std::ostream& os, T const& value)
-{
-    using celeritas::repr;
-    os << repr(value);
+    return ReprFormatter<T>{}(os, s.obj);
 }
 
 //! Stream a range using repr for each element.
@@ -73,10 +70,13 @@ struct ReprContainer
     friend std::ostream& operator<<(std::ostream& os,
                                     ReprContainer const& value)
     {
-        using ValueT = decltype(*value.begin);
+        auto repr_element = [](auto const& element) {
+            using celeritas::repr;
+            return repr(element);
+        };
 
         os << '{'
-           << Joined{value.begin, value.end, ", ", &generic_repr<ValueT>};
+           << Joined{value.begin, value.end, ", ", UnaryToStream{repr_element}};
         if (value.trailing_comma)
             os << ',';
         os << '}';

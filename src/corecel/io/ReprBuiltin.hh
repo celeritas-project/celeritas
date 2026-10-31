@@ -3,12 +3,14 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/io/ReprBuiltin.hh
+//! \sa corecel/io/Repr.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cstddef>
 #include <ostream>
-#include <type_traits>
+
+#include "corecel/io/ScopedStreamFormat.hh"
 
 #include "detail/ReprImpl.hh"
 
@@ -17,107 +19,154 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-inline std::ostream& operator<<(std::ostream& os, ReprValue<float> const& value)
+template<>
+struct ReprFormatter<float>
 {
-    ScopedStreamFormat save_fmt(&os);
-    os.precision(7);
-    return os << value.obj << 'f';
-}
-
-inline std::ostream& operator<<(std::ostream& os,
-                                ReprValue<double> const& value)
-{
-    ScopedStreamFormat save_fmt(&os);
-    os.precision(14);
-    return os << value.obj;
-}
-
-inline std::ostream& operator<<(std::ostream& os, ReprValue<char> const& value)
-{
-    ScopedStreamFormat save_fmt(&os);
-    os << '\'';
-    repr_char(os, value.obj);
-    return os << '\'';
-}
-
-inline std::ostream& operator<<(std::ostream& os,
-                                ReprValue<unsigned char> const& value)
-{
-    return os << "'\\x" << char_to_hex_string(value.obj) << '\'';
-}
-
-inline std::ostream& operator<<(std::ostream& os, ReprValue<bool> const& value)
-{
-    return os << std::boolalpha << value.obj;
-}
-
-inline std::ostream& operator<<(std::ostream& os,
-                                ReprValue<unsigned int> const& value)
-{
-    return os << value.obj << 'u';
-}
-
-inline std::ostream& operator<<(std::ostream& os, ReprValue<long> const& value)
-{
-    return os << value.obj << 'l';
-}
-
-inline std::ostream& operator<<(std::ostream& os,
-                                ReprValue<unsigned long> const& value)
-{
-    return os << value.obj << "ul";
-}
-
-inline std::ostream& operator<<(std::ostream& os,
-                                ReprValue<long long> const& value)
-{
-    return os << value.obj << "ll";
-}
-
-inline std::ostream& operator<<(std::ostream& os,
-                                ReprValue<unsigned long long> const& value)
-{
-    return os << value.obj << "ull";
-}
-
-inline std::ostream& operator<<(std::ostream& os,
-                                ReprValue<char const*> const& value)
-{
-    if (value.obj)
+    std::ostream& operator()(std::ostream& os, float obj) const
     {
-        write_string_repr(os, value.obj);
+        ScopedStreamFormat save_fmt(&os);
+        os.precision(7);
+        return os << obj << 'f';
+    }
+};
+
+template<>
+struct ReprFormatter<double>
+{
+    std::ostream& operator()(std::ostream& os, double obj) const
+    {
+        ScopedStreamFormat save_fmt(&os);
+        os.precision(14);
+        return os << obj;
+    }
+};
+
+template<>
+struct ReprFormatter<char>
+{
+    std::ostream& operator()(std::ostream& os, char obj) const
+    {
+        ScopedStreamFormat save_fmt(&os);
+        os << '\'';
+        repr_char(os, obj);
+        return os << '\'';
+    }
+};
+
+template<>
+struct ReprFormatter<unsigned char>
+{
+    std::ostream& operator()(std::ostream& os, unsigned char obj) const
+    {
+        return os << "'\\x" << char_to_hex_string(obj) << '\'';
+    }
+};
+
+template<>
+struct ReprFormatter<bool>
+{
+    std::ostream& operator()(std::ostream& os, bool obj) const
+    {
+        return os << std::boolalpha << obj;
+    }
+};
+
+template<>
+struct ReprFormatter<unsigned int>
+{
+    std::ostream& operator()(std::ostream& os, unsigned int obj) const
+    {
+        return os << obj << 'u';
+    }
+};
+
+template<>
+struct ReprFormatter<long>
+{
+    std::ostream& operator()(std::ostream& os, long obj) const
+    {
+        return os << obj << 'l';
+    }
+};
+
+template<>
+struct ReprFormatter<unsigned long>
+{
+    std::ostream& operator()(std::ostream& os, unsigned long obj) const
+    {
+        return os << obj << "ul";
+    }
+};
+
+template<>
+struct ReprFormatter<long long>
+{
+    std::ostream& operator()(std::ostream& os, long long obj) const
+    {
+        return os << obj << "ll";
+    }
+};
+
+template<>
+struct ReprFormatter<unsigned long long>
+{
+    std::ostream& operator()(std::ostream& os, unsigned long long obj) const
+    {
+        return os << obj << "ull";
+    }
+};
+
+template<>
+struct ReprFormatter<char const*>
+{
+    std::ostream& operator()(std::ostream& os, char const* obj) const
+    {
+        if (obj)
+        {
+            write_string_repr(os, obj);
+            return os;
+        }
+        return os << "nullptr";
+    }
+};
+
+template<>
+struct ReprFormatter<char*>
+{
+    std::ostream& operator()(std::ostream& os, char const* obj) const
+    {
+        return ReprFormatter<char const*>{}(os, obj);
+    }
+};
+
+template<std::size_t N>
+struct ReprFormatter<char[N]>
+{
+    std::ostream& operator()(std::ostream& os, char const (&obj)[N]) const
+    {
+        write_string_repr(os, obj);
         return os;
     }
-    return os << "nullptr";
-}
-
-inline std::ostream& operator<<(std::ostream& os, ReprValue<char*> const& value)
-{
-    return os << ReprValue<char const*>{value.obj};
-}
+};
 
 template<std::size_t N>
-std::ostream& operator<<(std::ostream& os, ReprValue<char[N]> const& value)
+struct ReprFormatter<char const[N]>
 {
-    write_string_repr(os, value.obj);
-    return os;
-}
+    std::ostream& operator()(std::ostream& os, char const (&obj)[N]) const
+    {
+        write_string_repr(os, obj);
+        return os;
+    }
+};
 
-template<std::size_t N>
-std::ostream& operator<<(std::ostream& os,
-                         ReprValue<char const[N]> const& value)
+template<class T, std::size_t N>
+struct ReprFormatter<T[N]>
 {
-    write_string_repr(os, value.obj);
-    return os;
-}
-
-template<class T,
-         std::size_t N,
-         std::enable_if_t<!std::is_same_v<std::remove_cv_t<T>, char>, bool> = true>
-std::ostream& operator<<(std::ostream& os, ReprValue<T[N]> const& value)
-{
-    return os << ReprContainer{value.obj, value.obj + N, N > 8};
-}
+    std::ostream& operator()(std::ostream& os, T const (&obj)[N]) const
+    {
+        return os << ReprContainer{obj, obj + N, N > 8};
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
