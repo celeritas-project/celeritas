@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include <cstring>
 #include <string_view>
 
 #include "corecel/Assert.hh"
@@ -17,6 +18,8 @@
 namespace celeritas
 {
 namespace detail
+{
+namespace
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -28,6 +31,7 @@ bool all_printable(std::string_view s)
         return std::isprint(ch) || ch == '\n';
     });
 }
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -79,7 +83,7 @@ void repr_char(std::ostream& os, char value)
                 break;
             default:
                 os << 'x';
-                write_hex_int(os, static_cast<unsigned char>(value));
+                write_hex_char(os, static_cast<unsigned char>(value));
                 break;
         }
     }
@@ -113,6 +117,15 @@ void write_string_repr(std::ostream& os, std::string_view value)
         repr_char(os, c);
     }
     os << '"';
+}
+
+std::ostream& operator<<(std::ostream& os, ReprString const& value)
+{
+    auto const size = value.size == ReprString::unknown_size
+                          ? std::strlen(value.s)
+                          : value.size;
+    write_string_repr(os, std::string_view{value.s, size});
+    return os;
 }
 
 }  // namespace detail

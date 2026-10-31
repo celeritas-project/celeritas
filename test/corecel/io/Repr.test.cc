@@ -102,6 +102,7 @@ TEST(ReprTest, string)
 {
     EXPECT_EQ("\"abcd\\a\"", repr_to_string("abcd\a"));
     EXPECT_EQ("\"abcd\\a\"", repr_to_string(std::string("abcd\a")));
+    EXPECT_EQ("\"a\\0b\"", repr_to_string(std::string{"a\0b", 3}));
 
     auto longstr = repr_to_string(std::string(100, 'x'));
     EXPECT_TRUE(starts_with(longstr, "R\"(xxx")) << longstr;

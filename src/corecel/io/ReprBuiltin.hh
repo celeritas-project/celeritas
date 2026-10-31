@@ -133,8 +133,7 @@ struct ReprFormatter<char const*>
         {
             return os << "nullptr";
         }
-        write_string_repr(os, obj);
-        return os;
+        return os << ReprString::from_cstring(obj);
     }
 };
 
@@ -152,8 +151,7 @@ struct ReprFormatter<char[N]>
 {
     std::ostream& operator()(std::ostream& os, char const (&obj)[N]) const
     {
-        write_string_repr(os, obj);
-        return os;
+        return os << ReprString::from_cstring(obj);
     }
 };
 
@@ -162,8 +160,7 @@ struct ReprFormatter<char const[N]>
 {
     std::ostream& operator()(std::ostream& os, char const (&obj)[N]) const
     {
-        write_string_repr(os, obj);
-        return os;
+        return os << ReprString::from_cstring(obj);
     }
 };
 

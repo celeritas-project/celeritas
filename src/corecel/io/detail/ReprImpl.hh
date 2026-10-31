@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <ostream>
-#include <string>
 #include <string_view>
 
 #include "corecel/Assert.hh"
@@ -83,11 +83,26 @@ struct ReprContainer
         return os;
     }
 };
+
+//! Stream a string using repr-specific escaping and formatting.
+struct ReprString
+{
+    static constexpr std::size_t unknown_size = static_cast<std::size_t>(-1);
+
+    char const* s;
+    std::size_t size;
+
+    static constexpr ReprString from_cstring(char const* s)
+    {
+        return {s, unknown_size};
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, ReprString const& value);
+};
+
 //---------------------------------------------------------------------------//
 // HELPER FUNCTION DECLARATIONS
 //---------------------------------------------------------------------------//
-bool all_printable(std::string_view s);
-
 void repr_char(std::ostream& os, char value);
 
 void write_hex_char(std::ostream& os, unsigned char value);

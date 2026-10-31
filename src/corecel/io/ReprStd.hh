@@ -26,8 +26,7 @@ struct ReprFormatter<std::string_view>
 {
     std::ostream& operator()(std::ostream& os, std::string_view obj) const
     {
-        write_string_repr(os, obj);
-        return os;
+        return os << ReprString{obj.data(), obj.size()};
     }
 };
 
@@ -36,8 +35,7 @@ struct ReprFormatter<std::string>
 {
     std::ostream& operator()(std::ostream& os, std::string const& obj) const
     {
-        write_string_repr(os, obj);
-        return os;
+        return os << ReprString{obj.data(), obj.size()};
     }
 };
 
