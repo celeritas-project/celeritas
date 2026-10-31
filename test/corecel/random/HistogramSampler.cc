@@ -10,7 +10,8 @@
 #include "corecel/math/SoftEqual.hh"
 
 #include "AssertionHelper.hh"
-#include "testdetail/TestMacrosImpl.hh"
+#include "Comparer.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -31,8 +32,9 @@ bool check_ref_eq(AssertionHelper& helper,
                   SampledHistogram const& val2,
                   double tol)
 {
-    bool result = is_vec_soft_eq(
-        helper, "distribution", val1.distribution, val2.distribution, tol);
+    Comparer<SampledHistogram> compare{helper, val1, val2};
+    bool result = CELER_INVOKE_ATTR(
+        compare.is_soft_eq, SampledHistogram, distribution, tol);
     if (!is_soft_eq(helper, val1.rng_count, val2.rng_count, {tol}))
     {
         return false;

@@ -14,6 +14,7 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/StepCollector.hh"
 
+#include "Comparer.hh"
 #include "ExampleMctruth.hh"
 #include "TestMacros.hh"
 
@@ -57,13 +58,14 @@ void check_ref_eq(AssertionHelper& helper,
                   MctruthTestBase::RunResult const& actual,
                   MctruthTestBase::RunResult::Tolerance const& tol)
 {
-    using namespace ::celeritas::test;
-    is_vec_eq(helper, "event", expected.event, actual.event);
-    is_vec_eq(helper, "track", expected.track, actual.track);
-    is_vec_eq(helper, "step", expected.step, actual.step);
-    is_vec_eq(helper, "volume", expected.volume, actual.volume);
-    is_vec_soft_eq(helper, "pos", expected.pos, actual.pos, tol.pos);
-    is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
+    using Result = MctruthTestBase::RunResult;
+    Comparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, Result, event);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, track);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, step);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, volume);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, pos, tol.pos);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, dir, tol.dir);
 }
 
 /*!

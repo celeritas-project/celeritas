@@ -19,6 +19,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/inp/Model.hh"
 
+#include "Comparer.hh"
 #include "GenericGeoTestInterface.hh"
 #include "TestMacros.hh"
 
@@ -115,13 +116,12 @@ void check_ref_eq(AssertionHelper& helper,
                   GenericGeoTrackingResult const& val2,
                   GenericGeoTrackingTolerance const& tol)
 {
-    is_vec_eq(helper, "volumes", val1.volumes, val2.volumes);
-    is_vec_eq(helper,
-              "volume_instances",
-              val1.volume_instances,
-              val2.volume_instances);
-    is_vec_soft_eq(
-        helper, "distances", val1.distances, val2.distances, tol.distance);
+    Comparer<GenericGeoTrackingResult> compare{helper, val1, val2};
+    CELER_INVOKE_ATTR(compare.is_eq, GenericGeoTrackingResult, volumes);
+    CELER_INVOKE_ATTR(
+        compare.is_eq, GenericGeoTrackingResult, volume_instances);
+    CELER_INVOKE_ATTR(
+        compare.is_soft_eq, GenericGeoTrackingResult, distances, tol.distance);
     if (val1.disabled_surface_normal() || val2.disabled_surface_normal())
     {
         static int warn_count{0};
@@ -131,19 +131,19 @@ void check_ref_eq(AssertionHelper& helper,
     }
     else
     {
-        is_vec_soft_eq(
-            helper, "dot_normal", val1.dot_normal, val2.dot_normal, tol.normal);
+        CELER_INVOKE_ATTR(compare.is_soft_eq,
+                          GenericGeoTrackingResult,
+                          dot_normal,
+                          tol.normal);
     }
-    is_vec_soft_eq(helper,
-                   "halfway_safeties",
-                   val1.halfway_safeties,
-                   val2.halfway_safeties,
-                   EqualOr{SoftEqual(tol.safety, tol.safety)});
-    is_vec_soft_eq(helper,
-                   "bumps",
-                   val1.bumps,
-                   val2.bumps,
-                   SoftEqual(tol.safety, tol.safety));
+    CELER_INVOKE_ATTR(compare.is_soft_eq,
+                      GenericGeoTrackingResult,
+                      halfway_safeties,
+                      EqualOr{SoftEqual(tol.safety, tol.safety)});
+    CELER_INVOKE_ATTR(compare.is_soft_eq,
+                      GenericGeoTrackingResult,
+                      bumps,
+                      SoftEqual(tol.safety, tol.safety));
 }
 
 //---------------------------------------------------------------------------//
@@ -186,10 +186,9 @@ void check_ref_eq(AssertionHelper& helper,
                   GenericGeoVolumeStackResult const& val1,
                   GenericGeoVolumeStackResult const& val2)
 {
-    is_eq(helper,
-          "volume_instances",
-          val1.volume_instances,
-          val2.volume_instances);
+    Comparer<GenericGeoVolumeStackResult> compare{helper, val1, val2};
+    CELER_INVOKE_ATTR(
+        compare.is_eq, GenericGeoVolumeStackResult, volume_instances);
 }
 
 //---------------------------------------------------------------------------//

@@ -22,6 +22,7 @@
 #include "geocel/VolumeParams.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -44,9 +45,9 @@ void check_ref_eq(AssertionHelper& helper,
                   ExampleInstanceCalo::Result const& expected,
                   ExampleInstanceCalo::Result const& actual)
 {
-    using namespace ::celeritas::test;
-    is_vec_eq(helper, "instance", expected.instance, actual.instance);
-    is_vec_soft_eq(helper, "edep", expected.edep, actual.edep);
+    Comparer<ExampleInstanceCalo::Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, ExampleInstanceCalo::Result, instance);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, ExampleInstanceCalo::Result, edep);
 }
 
 //---------------------------------------------------------------------------//

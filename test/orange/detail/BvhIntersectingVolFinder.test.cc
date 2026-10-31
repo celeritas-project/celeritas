@@ -19,6 +19,7 @@
 #include "orange/detail/BvhBuilder.hh"
 #include "orange/univ/detail/Types.hh"
 
+#include "Comparer.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -126,8 +127,9 @@ struct IntersectResult
               "intersect_surface",
               val1.intersect_surface,
               val2.intersect_surface);
-        is_eq(helper, "hit_count", val1.hit_count, val2.hit_count);
-        is_eq(helper, "miss_count", val1.miss_count, val2.miss_count);
+        Comparer<IntersectResult> compare{helper, val1, val2};
+        CELER_INVOKE_ATTR(compare.is_eq, IntersectResult, hit_count);
+        CELER_INVOKE_ATTR(compare.is_eq, IntersectResult, miss_count);
     }
 };
 

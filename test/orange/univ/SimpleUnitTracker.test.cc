@@ -27,6 +27,7 @@
 #include "orange/detail/UniverseIndexer.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"
 
@@ -71,10 +72,9 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
                                  HeuristicInitResult const& val2)
         {
             using namespace ::celeritas::test;
-            is_vec_soft_eq(helper,
-                           "vol_fractions",
-                           val1.vol_fractions,
-                           val2.vol_fractions);
+            Comparer<HeuristicInitResult> compare{helper, val1, val2};
+            CELER_INVOKE_ATTR(
+                compare.is_soft_eq, HeuristicInitResult, vol_fractions);
             is_soft_eq(
                 helper, val1.failed, val2.failed, SoftComparator_t<double>());
         }

@@ -13,6 +13,7 @@
 #include "geocel/RefUtils.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -65,7 +66,9 @@ bool check_ref_eq(::celeritas::test::AssertionHelper& helper,
     bool result = true;
 
     result = is_eq(helper, "node", val1.node, val2.node) && result;
-    result = is_eq(helper, "surfaces", val1.surfaces, val2.surfaces) && result;
+    Comparer<IntersectTestResult> compare{helper, val1, val2};
+    result = CELER_INVOKE_ATTR(compare.is_eq, IntersectTestResult, surfaces)
+             && result;
     if (!check_ref_eq(helper, val1.interior, val2.interior))
     {
         helper.fail() << "in interior";

@@ -21,6 +21,7 @@
 #include "celeritas/phys/PhysicsParams.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "TestMacros.hh"
 
 using std::cout;
@@ -187,10 +188,11 @@ void check_ref_eq(AssertionHelper& helper,
                   StepperTestBase::SetupCheckResult const& expected,
                   StepperTestBase::SetupCheckResult const& actual)
 {
-    is_vec_eq(helper, "processes", expected.processes, actual.processes);
-    is_vec_eq(helper, "actions", expected.actions, actual.actions);
-    is_vec_eq(
-        helper, "actions_desc", expected.actions_desc, actual.actions_desc);
+    using Result = StepperTestBase::SetupCheckResult;
+    Comparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, Result, processes);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, actions);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, actions_desc);
 }
 
 //---------------------------------------------------------------------------//
@@ -205,8 +207,10 @@ void check_ref_eq(AssertionHelper& helper,
                   StepperTestBase::RunResult const& expected,
                   StepperTestBase::RunResult const& actual)
 {
-    is_vec_eq(helper, "active", expected.active, actual.active);
-    is_vec_eq(helper, "queued", expected.queued, actual.queued);
+    using Result = StepperTestBase::RunResult;
+    Comparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, Result, active);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, queued);
 }
 
 //---------------------------------------------------------------------------//

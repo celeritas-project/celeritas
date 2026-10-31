@@ -17,6 +17,7 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "SimpleLoopTestBase.hh"
 #include "celeritas_test.hh"
 #include "testdetail/TestMacrosImpl.hh"
@@ -68,9 +69,9 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
                                  RunResult const& expected,
                                  RunResult const& actual)
         {
-            using namespace ::celeritas::test;
-            is_vec_eq(helper, "labels", expected.labels, actual.labels);
-            is_vec_eq(helper, "slots", expected.slots, actual.slots);
+            Comparer<RunResult> compare{helper, expected, actual};
+            CELER_INVOKE_ATTR(compare.is_eq, RunResult, labels);
+            CELER_INVOKE_ATTR(compare.is_eq, RunResult, slots);
         }
     };
 

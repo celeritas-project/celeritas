@@ -14,6 +14,7 @@
 #include "corecel/io/Repr.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
@@ -47,7 +48,8 @@ std::ostream& operator<<(std::ostream& os, RunResult const& ref)
 void check_ref_eq(
     AssertionHelper& helper, RunResult const& val1, RunResult const& val2)
 {
-    is_vec_eq(helper, "num_hits", val1.num_hits, val2.num_hits);
+    Comparer<RunResult> compare{helper, val1, val2};
+    CELER_INVOKE_ATTR(compare.is_eq, RunResult, num_hits);
 }
 
 //---------------------------------------------------------------------------//
@@ -81,10 +83,11 @@ void check_ref_eq(AssertionHelper& helper,
                   DepHitResult const& val1,
                   DepHitResult const& val2)
 {
-    is_eq(helper, "track_id", val1.track_id, val2.track_id);
-    is_vec_soft_eq(helper, "num_photons", val1.num_photons, val2.num_photons);
-    is_vec_soft_eq(helper, "energy", val1.energy, val2.energy);
-    is_vec_soft_eq(helper, "pos", val1.pos, val2.pos);
+    Comparer<DepHitResult> compare{helper, val1, val2};
+    CELER_INVOKE_ATTR(compare.is_eq, DepHitResult, track_id);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, DepHitResult, num_photons);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, DepHitResult, energy);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, DepHitResult, pos);
 }
 
 //---------------------------------------------------------------------------//

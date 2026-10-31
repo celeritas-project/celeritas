@@ -30,6 +30,7 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "MscTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
@@ -208,17 +209,13 @@ struct StepLimitResult
                              StepLimitResult const& actual,
                              real_type tol)
     {
-        is_vec_soft_eq(
-            helper, "mean_step", expected.mean_step, actual.mean_step, tol);
-        is_vec_soft_eq(
-            helper, "range_init", expected.range_init, actual.range_init, tol);
-        is_vec_soft_eq(helper,
-                       "range_factor",
-                       expected.range_factor,
-                       actual.range_factor,
-                       tol);
-        is_vec_soft_eq(
-            helper, "limit_min", expected.limit_min, actual.limit_min, tol);
+        ::celeritas::test::Comparer<StepLimitResult> compare{
+            helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, mean_step, tol);
+        CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, range_init, tol);
+        CELER_INVOKE_ATTR(
+            compare.is_soft_eq, StepLimitResult, range_factor, tol);
+        CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, limit_min, tol);
     }
     friend void check_ref_eq(::celeritas::test::AssertionHelper& helper,
                              StepLimitResult const& expected,

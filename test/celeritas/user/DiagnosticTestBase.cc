@@ -16,6 +16,7 @@
 #include "celeritas/user/StepDiagnostic.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "TestMacros.hh"
 
 using std::cout;
@@ -53,15 +54,11 @@ void check_ref_eq(AssertionHelper& helper,
                   DiagnosticTestBase::RunResult const& expected,
                   DiagnosticTestBase::RunResult const& actual)
 {
-    is_vec_eq(helper,
-              "nonzero_action_keys",
-              expected.nonzero_action_keys,
-              actual.nonzero_action_keys);
-    is_vec_eq(helper,
-              "nonzero_action_counts",
-              expected.nonzero_action_counts,
-              actual.nonzero_action_counts);
-    is_vec_eq(helper, "steps", expected.steps, actual.steps);
+    using Result = DiagnosticTestBase::RunResult;
+    Comparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, Result, nonzero_action_keys);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, nonzero_action_counts);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, steps);
 }
 
 //---------------------------------------------------------------------------//

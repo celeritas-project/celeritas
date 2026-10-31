@@ -14,6 +14,7 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -59,7 +60,9 @@ void check_ref_eq(AssertionHelper& helper,
                   CaloTestBase::RunResult const& actual,
                   CaloTestBase::RunResult::Tolerance const& tol)
 {
-    is_vec_soft_eq(helper, "edep", expected.edep, actual.edep, tol.edep);
+    using Result = CaloTestBase::RunResult;
+    Comparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, edep, tol.edep);
 }
 
 //---------------------------------------------------------------------------//

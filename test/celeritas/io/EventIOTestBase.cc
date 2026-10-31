@@ -14,6 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
+#include "Comparer.hh"
 #include "TestMacros.hh"
 
 using namespace celeritas::literals;
@@ -41,14 +42,14 @@ void check_ref_eq(AssertionHelper& helper,
                   EventIOTestBase::ReadAllResult const& actual,
                   EventIOTestBase::ReadAllResult::Tolerance const& tol)
 {
-    using namespace ::celeritas::test;
-    is_vec_eq(helper, "pdg", expected.pdg, actual.pdg);
-    is_vec_soft_eq(
-        helper, "energy", expected.energy, actual.energy, tol.energy);
-    is_vec_soft_eq(helper, "pos", expected.pos, actual.pos, tol.pos);
-    is_vec_soft_eq(helper, "dir", expected.dir, actual.dir, tol.dir);
-    is_vec_soft_eq(helper, "time", expected.time, actual.time, tol.time);
-    is_vec_eq(helper, "event", expected.event, actual.event);
+    using Result = EventIOTestBase::ReadAllResult;
+    Comparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, Result, pdg);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, energy, tol.energy);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, pos, tol.pos);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, dir, tol.dir);
+    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, time, tol.time);
+    CELER_INVOKE_ATTR(compare.is_eq, Result, event);
 }
 
 //---------------------------------------------------------------------------//

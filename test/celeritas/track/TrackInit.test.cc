@@ -34,6 +34,7 @@
 #include "celeritas/track/InitializeTracksAction.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "MockInteractAction.hh"
 #include "celeritas_test.hh"
 #include "testdetail/TestMacrosImpl.hh"
@@ -73,14 +74,12 @@ struct RunResult
                              RunResult const& actual)
     {
         using namespace ::celeritas::test;
-        is_vec_eq(helper, "track_ids", expected.track_ids, actual.track_ids);
-        is_vec_eq(helper, "parent_ids", expected.parent_ids, actual.parent_ids);
-        is_vec_eq(helper, "init_ids", expected.init_ids, actual.init_ids);
-        is_vec_eq(helper,
-                  "geo_parent_ids",
-                  expected.geo_parent_ids,
-                  actual.geo_parent_ids);
-        is_vec_eq(helper, "vacancies", expected.vacancies, actual.vacancies);
+        Comparer<RunResult> compare{helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, track_ids);
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, parent_ids);
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, init_ids);
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, geo_parent_ids);
+        CELER_INVOKE_ATTR(compare.is_eq, RunResult, vacancies);
     }
 };
 

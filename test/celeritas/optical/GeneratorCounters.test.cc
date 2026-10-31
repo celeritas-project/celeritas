@@ -34,6 +34,7 @@
 #include "celeritas/setup/StandaloneInput.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -92,20 +93,22 @@ struct GenCounterResult
                              std::nullptr_t = {})
     {
         bool result{true};
-        auto check = [&](char const* field, auto const& exp, auto const& act) {
-            result = is_vec_eq(helper, field, exp, act) && result;
-        };
-
-        check("buffer_size", expected.buffer_size, actual.buffer_size);
-        check("pending", expected.pending, actual.pending);
-        check("generated", expected.generated, actual.generated);
-        check("accum_buffer_size",
-              expected.accum_buffer_size,
-              actual.accum_buffer_size);
-        check("accum_pending", expected.accum_pending, actual.accum_pending);
-        check("accum_generated",
-              expected.accum_generated,
-              actual.accum_generated);
+        Comparer<GenCounterResult> compare{helper, expected, actual};
+        result = CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, buffer_size)
+                 && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, pending)
+                 && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, generated)
+                 && result;
+        result = CELER_INVOKE_ATTR(
+                     compare.is_eq, GenCounterResult, accum_buffer_size)
+                 && result;
+        result
+            = CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_pending)
+              && result;
+        result = CELER_INVOKE_ATTR(
+                     compare.is_eq, GenCounterResult, accum_generated)
+                 && result;
         return result;
     }
 };
@@ -169,20 +172,24 @@ struct CounterResult
                              std::nullptr_t = {})
     {
         bool result{true};
-        auto check = [&helper, &result](
-                         char const* field, auto const& exp, auto const& act) {
-            result = is_vec_eq(helper, field, exp, act) && result;
-        };
-
-        check("pending", expected.pending, actual.pending);
-        check("generated", expected.generated, actual.generated);
-        check("initializers", expected.initializers, actual.initializers);
-        check("vacancies", expected.vacancies, actual.vacancies);
-        check("active", expected.active, actual.active);
-        check("secondaries", expected.secondaries, actual.secondaries);
-        check("alive", expected.alive, actual.alive);
-        check("cut", expected.cut, actual.cut);
-        check("errored", expected.errored, actual.errored);
+        Comparer<CounterResult> compare{helper, expected, actual};
+        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, pending)
+                 && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, generated)
+                 && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, initializers)
+                 && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, vacancies)
+                 && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, active)
+                 && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, secondaries)
+                 && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, alive)
+                 && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, cut) && result;
+        result = CELER_INVOKE_ATTR(compare.is_eq, CounterResult, errored)
+                 && result;
 
         std::vector<std::string> expected_labels;
         std::vector<std::string> actual_labels;

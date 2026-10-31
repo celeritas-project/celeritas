@@ -18,6 +18,7 @@
 #include "geocel/GeantGeoUtils.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "TestMacros.hh"
 
 namespace celeritas
@@ -82,11 +83,9 @@ void check_ref_eq(AssertionHelper& helper,
                   GeantImportVolumeResult const& expected,
                   GeantImportVolumeResult const& actual)
 {
-    is_vec_eq(helper, "volumes", expected.volumes, actual.volumes);
-    is_vec_eq(helper,
-              "missing_labels",
-              expected.missing_labels,
-              actual.missing_labels);
+    Comparer<GeantImportVolumeResult> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, GeantImportVolumeResult, volumes);
+    CELER_INVOKE_ATTR(compare.is_eq, GeantImportVolumeResult, missing_labels);
 }
 
 //---------------------------------------------------------------------------//

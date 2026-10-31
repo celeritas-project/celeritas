@@ -24,6 +24,7 @@
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "Comparer.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -93,12 +94,10 @@ class GeantImporterTest : public GeantTestBase
                                  ImportSummary const& expected,
                                  ImportSummary const& actual)
         {
-            using namespace ::celeritas::test;
-            is_vec_eq(
-                helper, "particles", expected.particles, actual.particles);
-            is_vec_eq(
-                helper, "processes", expected.processes, actual.processes);
-            is_vec_eq(helper, "models", expected.models, actual.models);
+            Comparer<ImportSummary> compare{helper, expected, actual};
+            CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, particles);
+            CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, processes);
+            CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, models);
         }
     };
 
@@ -122,10 +121,10 @@ class GeantImporterTest : public GeantTestBase
                                  ImportXsSummary const& expected,
                                  ImportXsSummary const& actual)
         {
-            using namespace ::celeritas::test;
-            is_vec_eq(helper, "size", expected.size, actual.size);
-            is_vec_soft_eq(helper, "energy", expected.energy, actual.energy);
-            is_vec_soft_eq(helper, "xs", expected.xs, actual.xs);
+            Comparer<ImportXsSummary> compare{helper, expected, actual};
+            CELER_INVOKE_ATTR(compare.is_eq, ImportXsSummary, size);
+            CELER_INVOKE_ATTR(compare.is_soft_eq, ImportXsSummary, energy);
+            CELER_INVOKE_ATTR(compare.is_soft_eq, ImportXsSummary, xs);
         }
     };
 

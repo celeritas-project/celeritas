@@ -22,6 +22,7 @@
 #include "celeritas/geo/CoreGeoParams.hh"
 
 #include "AssertionHelper.hh"
+#include "Comparer.hh"
 #include "celeritas_test.hh"
 
 using celeritas::test::InstancePathFinder;
@@ -52,8 +53,9 @@ struct TestResult
                              TestResult const& actual)
     {
         using namespace ::celeritas::test;
-        is_vec_soft_eq(helper, "coords", expected.coords, actual.coords);
-        is_vec_eq(helper, "replicas", expected.replicas, actual.replicas);
+        Comparer<TestResult> compare{helper, expected, actual};
+        CELER_INVOKE_ATTR(compare.is_soft_eq, TestResult, coords);
+        CELER_INVOKE_ATTR(compare.is_eq, TestResult, replicas);
     }
 };
 
