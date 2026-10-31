@@ -14,11 +14,10 @@
 #include <utility>
 #include <vector>
 
+#include "detail/ReprContainer.hh"
 #include "detail/ReprImpl.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 template<>
@@ -26,7 +25,7 @@ struct ReprFormatter<std::string_view>
 {
     std::ostream& operator()(std::ostream& os, std::string_view obj) const
     {
-        return os << ReprString{obj.data(), obj.size()};
+        return os << detail::ReprString{obj.data(), obj.size()};
     }
 };
 
@@ -35,7 +34,7 @@ struct ReprFormatter<std::string>
 {
     std::ostream& operator()(std::ostream& os, std::string const& obj) const
     {
-        return os << ReprString{obj.data(), obj.size()};
+        return os << detail::ReprString{obj.data(), obj.size()};
     }
 };
 
@@ -58,12 +57,14 @@ struct ReprFormatter<std::vector<T, A>>
     {
         if constexpr (std::is_same_v<T, bool>)
         {
-            return os << ReprContainer{vec.begin(), vec.end(), vec.size() > 8};
+            return os << detail::ReprContainer{
+                       vec.begin(), vec.end(), vec.size() > 8};
         }
         else
         {
             auto const* data = vec.data();
-            return os << ReprContainer{data, data + vec.size(), vec.size() > 8};
+            return os << detail::ReprContainer{
+                       data, data + vec.size(), vec.size() > 8};
         }
     }
 };
@@ -74,10 +75,10 @@ struct ReprFormatter<std::set<T, C, A>>
     std::ostream& operator()(std::ostream& os,
                              std::set<T, C, A> const& obj) const
     {
-        return os << ReprContainer{obj.begin(), obj.end(), obj.size() > 8};
+        return os << detail::ReprContainer{
+                   obj.begin(), obj.end(), obj.size() > 8};
     }
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

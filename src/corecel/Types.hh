@@ -28,6 +28,10 @@ namespace celeritas
 template<class T, std::size_t N>
 class Array;
 
+//! Customization policy for formatting values with repr
+template<class T, class Enable = void>
+struct ReprFormatter;
+
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//

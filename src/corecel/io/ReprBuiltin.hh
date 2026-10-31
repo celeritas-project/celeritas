@@ -13,11 +13,10 @@
 
 #include "corecel/io/ScopedStreamFormat.hh"
 
+#include "detail/ReprContainer.hh"
 #include "detail/ReprImpl.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 // FLOATING POINT
@@ -56,7 +55,7 @@ struct ReprFormatter<char>
     std::ostream& operator()(std::ostream& os, char obj) const
     {
         os << '\'';
-        repr_char(os, obj);
+        detail::repr_char(os, obj);
         return os << '\'';
     }
 };
@@ -67,7 +66,7 @@ struct ReprFormatter<unsigned char>
     std::ostream& operator()(std::ostream& os, unsigned char obj) const
     {
         os << "'\\x";
-        write_hex_char(os, obj);
+        detail::write_hex_char(os, obj);
         os << '\'';
         return os;
     }
@@ -129,7 +128,7 @@ struct ReprFormatter<char const*>
 {
     std::ostream& operator()(std::ostream& os, char const* obj) const
     {
-        return os << ReprString::from_cstring(obj);
+        return os << detail::ReprString::from_cstring(obj);
     }
 };
 
@@ -147,7 +146,7 @@ struct ReprFormatter<char[N]>
 {
     std::ostream& operator()(std::ostream& os, char const (&obj)[N]) const
     {
-        return os << ReprString::from_cstring(obj);
+        return os << detail::ReprString::from_cstring(obj);
     }
 };
 
@@ -156,7 +155,7 @@ struct ReprFormatter<char const[N]>
 {
     std::ostream& operator()(std::ostream& os, char const (&obj)[N]) const
     {
-        return os << ReprString::from_cstring(obj);
+        return os << detail::ReprString::from_cstring(obj);
     }
 };
 
@@ -165,10 +164,9 @@ struct ReprFormatter<T[N]>
 {
     std::ostream& operator()(std::ostream& os, T const (&obj)[N]) const
     {
-        return os << ReprContainer{obj, obj + N, N > 8};
+        return os << detail::ReprContainer{obj, obj + N, N > 8};
     }
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

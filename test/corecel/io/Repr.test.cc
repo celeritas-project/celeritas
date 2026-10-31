@@ -25,6 +25,20 @@ struct FreeFunctionValue
     int value;
 };
 
+struct FormatterValue
+{
+    int value;
+};
+
+template<>
+struct ReprFormatter<FormatterValue>
+{
+    std::ostream& operator()(std::ostream& os, FormatterValue const& obj) const
+    {
+        return os << "formatted{" << obj.value << '}';
+    }
+};
+
 struct FreeFunctionRepr
 {
     FreeFunctionValue const& obj;
@@ -115,6 +129,7 @@ TEST(ReprTest, overloads)
 {
     EXPECT_EQ("hidden{42}", repr_to_string(HiddenFriendValue{42}));
     EXPECT_EQ("external{17}", repr_to_string(FreeFunctionValue{17}));
+    EXPECT_EQ("formatted{23}", repr_to_string(FormatterValue{23}));
 }
 
 TEST(ReprTest, container)

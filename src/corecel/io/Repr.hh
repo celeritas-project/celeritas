@@ -6,13 +6,29 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <ostream>
+
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+
+namespace celeritas
+{
+//! Default formatter that streams values directly.
+template<class T, class Enable>
+struct ReprFormatter
+{
+    std::ostream& operator()(std::ostream& os, T const& obj) const
+    {
+        return os << obj;
+    }
+};
+}  // namespace celeritas
 
 #include "ReprBuiltin.hh"  // IWYU pragma: export
 #include "ReprStd.hh"  // IWYU pragma: export
 
-#include "detail/ReprImpl.hh"
+#include "detail/ReprContainer.hh"
 
 namespace celeritas
 {

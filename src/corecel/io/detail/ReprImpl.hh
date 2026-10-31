@@ -11,19 +11,18 @@
 #include <string_view>
 
 #include "corecel/Assert.hh"
-
-#include "Joined.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {
 namespace detail
 {
 template<class T>
-struct ReprValue;
+struct DefaultRepr;
 }
 
 template<class T>
-detail::ReprValue<T> repr(T const& obj);
+detail::DefaultRepr<T> repr(T const& obj);
 
 namespace detail
 {
@@ -31,56 +30,15 @@ namespace detail
 // STREAMABLE
 //---------------------------------------------------------------------------//
 
-/*!
- * Lightweight wrapper for printing an object with repr-specific formatting.
- */
+//! Implementation of repr that forwards to ReprFormatter policy
 template<class T>
-struct ReprValue
+struct DefaultRepr
 {
     T const& obj;
-};
 
-template<class T, class Enable = void>
-struct ReprFormatter
-{
-    std::ostream& operator()(std::ostream& os, T const& obj) const
+    friend std::ostream& operator<<(std::ostream& os, DefaultRepr const& s)
     {
-        return os << obj;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Write a ReprValue to a stream using its formatter policy.
- */
-template<class T>
-inline std::ostream& operator<<(std::ostream& os, ReprValue<T> const& s)
-{
-    return ReprFormatter<T>{}(os, s.obj);
-}
-
-//! Stream a range using repr for each element.
-template<class Iter>
-struct ReprContainer
-{
-    Iter begin;
-    Iter end;
-    bool trailing_comma{false};
-
-    friend std::ostream& operator<<(std::ostream& os,
-                                    ReprContainer const& value)
-    {
-        auto repr_element = [](auto const& element) {
-            using celeritas::repr;
-            return repr(element);
-        };
-
-        os << '{'
-           << Joined{value.begin, value.end, ", ", UnaryToStream{repr_element}};
-        if (value.trailing_comma)
-            os << ',';
-        os << '}';
-        return os;
+        return celeritas::ReprFormatter<T>{}(os, s.obj);
     }
 };
 
@@ -106,9 +64,9 @@ void write_string_repr(std::ostream& os, std::string_view value);
 //---------------------------------------------------------------------------//
 }  // namespace detail
 
-//! Default "repr" allows overriding via detail class.
+//! Default "repr" dispatches to the ReprFormatter policy class.
 template<class T>
-detail::ReprValue<T> repr(T const& obj)
+detail::DefaultRepr<T> repr(T const& obj)
 {
     return {obj};
 }
