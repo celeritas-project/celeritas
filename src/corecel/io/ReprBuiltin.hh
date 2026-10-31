@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <ostream>
+#include <type_traits>
 
 #include "corecel/io/ScopedStreamFormat.hh"
 
@@ -19,34 +20,41 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<>
-struct ReprFormatter<float>
+// FLOATING POINT
+//---------------------------------------------------------------------------//
+
+template<class T>
+struct ReprFormatter<T, std::enable_if_t<std::is_floating_point_v<T>>>
 {
-    std::ostream& operator()(std::ostream& os, float obj) const
+    std::ostream& operator()(std::ostream& os, T obj) const
     {
         ScopedStreamFormat save_fmt(&os);
-        os.precision(7);
-        return os << obj << 'f';
+        os.precision(std::is_same_v<T, float>    ? 7
+                     : std::is_same_v<T, double> ? 14
+                                                 : 16);
+        os << obj;
+
+        if constexpr (std::is_same_v<T, float>)
+        {
+            os << 'f';
+        }
+        else if constexpr (std::is_same_v<T, long double>)
+        {
+            os << 'L';
+        }
+        return os;
     }
 };
 
-template<>
-struct ReprFormatter<double>
-{
-    std::ostream& operator()(std::ostream& os, double obj) const
-    {
-        ScopedStreamFormat save_fmt(&os);
-        os.precision(14);
-        return os << obj;
-    }
-};
+//---------------------------------------------------------------------------//
+// CHARS
+//---------------------------------------------------------------------------//
 
 template<>
 struct ReprFormatter<char>
 {
     std::ostream& operator()(std::ostream& os, char obj) const
     {
-        ScopedStreamFormat save_fmt(&os);
         os << '\'';
         repr_char(os, obj);
         return os << '\'';
@@ -58,9 +66,16 @@ struct ReprFormatter<unsigned char>
 {
     std::ostream& operator()(std::ostream& os, unsigned char obj) const
     {
-        return os << "'\\x" << char_to_hex_string(obj) << '\'';
+        os << "'\\x";
+        write_hex_char(os, obj);
+        os << '\'';
+        return os;
     }
 };
+
+//---------------------------------------------------------------------------//
+// BOOL
+//---------------------------------------------------------------------------//
 
 template<>
 struct ReprFormatter<bool>
@@ -71,62 +86,55 @@ struct ReprFormatter<bool>
     }
 };
 
-template<>
-struct ReprFormatter<unsigned int>
+//---------------------------------------------------------------------------//
+// INTEGERS
+//---------------------------------------------------------------------------//
+
+template<class T>
+struct ReprFormatter<T, std::enable_if_t<std::is_integral_v<T>>>
 {
-    std::ostream& operator()(std::ostream& os, unsigned int obj) const
+    std::ostream& operator()(std::ostream& os, T obj) const
     {
-        return os << obj << 'u';
+        os << obj;
+        if constexpr (std::is_same_v<T, unsigned int>)
+        {
+            os << 'u';
+        }
+        else if constexpr (std::is_same_v<T, long>)
+        {
+            os << 'l';
+        }
+        else if constexpr (std::is_same_v<T, unsigned long>)
+        {
+            os << "ul";
+        }
+        else if constexpr (std::is_same_v<T, long long>)
+        {
+            os << "ll";
+        }
+        else if constexpr (std::is_same_v<T, unsigned long long>)
+        {
+            os << "ull";
+        }
+        return os;
     }
 };
 
-template<>
-struct ReprFormatter<long>
-{
-    std::ostream& operator()(std::ostream& os, long obj) const
-    {
-        return os << obj << 'l';
-    }
-};
-
-template<>
-struct ReprFormatter<unsigned long>
-{
-    std::ostream& operator()(std::ostream& os, unsigned long obj) const
-    {
-        return os << obj << "ul";
-    }
-};
-
-template<>
-struct ReprFormatter<long long>
-{
-    std::ostream& operator()(std::ostream& os, long long obj) const
-    {
-        return os << obj << "ll";
-    }
-};
-
-template<>
-struct ReprFormatter<unsigned long long>
-{
-    std::ostream& operator()(std::ostream& os, unsigned long long obj) const
-    {
-        return os << obj << "ull";
-    }
-};
+//---------------------------------------------------------------------------//
+// STRINGS
+//---------------------------------------------------------------------------//
 
 template<>
 struct ReprFormatter<char const*>
 {
     std::ostream& operator()(std::ostream& os, char const* obj) const
     {
-        if (obj)
+        if (!obj)
         {
-            write_string_repr(os, obj);
-            return os;
+            return os << "nullptr";
         }
-        return os << "nullptr";
+        write_string_repr(os, obj);
+        return os;
     }
 };
 

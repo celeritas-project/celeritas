@@ -40,7 +40,7 @@ struct ReprValue
     T const& obj;
 };
 
-template<class T>
+template<class T, class Enable = void>
 struct ReprFormatter
 {
     std::ostream& operator()(std::ostream& os, T const& obj) const
@@ -90,7 +90,7 @@ bool all_printable(std::string_view s);
 
 void repr_char(std::ostream& os, char value);
 
-std::string char_to_hex_string(unsigned char value);
+void write_hex_char(std::ostream& os, unsigned char value);
 
 void write_string_repr(std::ostream& os, std::string_view value);
 

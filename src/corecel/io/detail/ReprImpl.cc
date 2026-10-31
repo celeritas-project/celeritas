@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include <string_view>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/ScopedStreamFormat.hh"
@@ -26,6 +27,19 @@ bool all_printable(std::string_view s)
     return std::all_of(s.begin(), s.end(), [](unsigned char ch) {
         return std::isprint(ch) || ch == '\n';
     });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write a character as a two-digit hexadecimal like '0a'.
+ */
+void write_hex_char(std::ostream& os, unsigned char value)
+{
+    char buffer[3];
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
+    int size = std::snprintf(buffer, sizeof(buffer), "%02hhx", value);
+    CELER_ENSURE(size == 2);
+    os << buffer;
 }
 
 //---------------------------------------------------------------------------//
@@ -64,26 +78,12 @@ void repr_char(std::ostream& os, char value)
                 os << 'r';
                 break;
             default:
-                os << 'x'
-                   << char_to_hex_string(static_cast<unsigned char>(value));
+                os << 'x';
+                write_hex_int(os, static_cast<unsigned char>(value));
                 break;
         }
     }
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a character as a two-digit hexadecimal like '0a'.
- */
-std::string char_to_hex_string(unsigned char value)
-{
-    char buffer[3];
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
-    int size = std::snprintf(buffer, sizeof(buffer), "%02hhx", value);
-    CELER_ENSURE(size == 2);
-    return {buffer, buffer + 2};
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Write a string using escaped or raw C++ string literal syntax.
