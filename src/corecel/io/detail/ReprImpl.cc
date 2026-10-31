@@ -10,9 +10,10 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
-#include <string_view>
+#include <ostream>
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/io/ScopedStreamFormat.hh"
 
 namespace celeritas
@@ -25,12 +26,16 @@ namespace
 /*!
  * Whether all characters are printable (no escaping needed).
  */
-bool all_printable(std::string_view s)
+bool all_printable(char const* s, std::size_t size)
 {
-    return std::all_of(s.begin(), s.end(), [](unsigned char ch) {
+    return std::all_of(s, s + size, [](unsigned char ch) {
         return std::isprint(ch) || ch == '\n';
     });
 }
+
+//! Sentinel value for cstrings: address is compared directly
+char const null_string_sentinel[] = "nullptr";
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -43,7 +48,7 @@ void write_hex_char(std::ostream& os, unsigned char value)
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg)
     int size = std::snprintf(buffer, sizeof(buffer), "%02hhx", value);
     CELER_ENSURE(size == 2);
-    os << buffer;
+    os << buffer[0] << buffer[1];
 }
 
 //---------------------------------------------------------------------------//
@@ -88,43 +93,56 @@ void repr_char(std::ostream& os, char value)
         }
     }
 }
+
+ReprString ReprString::from_cstring(char const* s)
+{
+    if (s == nullptr)
+    {
+        return ReprString::from_cstring(null_string_sentinel);
+    }
+    return ReprString{s, std::strlen(s)};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Write a string using escaped or raw C++ string literal syntax.
  */
-void write_string_repr(std::ostream& os, std::string_view value)
+std::ostream& operator<<(std::ostream& os, ReprString value)
 {
+    CELER_EXPECT(value.s != nullptr || value.size == 0);
+
+    if (CELER_UNLIKELY(value.s == null_string_sentinel))
+    {
+        // Print nullptr without surrounding quotes
+        return os << null_string_sentinel;
+    }
+
     ScopedStreamFormat save_fmt(&os);
     using ssize = std::streamsize;
     ssize width = os.width();
-    os.width(std::max(width - static_cast<ssize>(value.size()) - 2, ssize{0}));
+    os.width(std::max(width - static_cast<ssize>(value.size) - 2, ssize{0}));
 
-    if (all_printable(value)
-        && (value.size() > 70
-            || std::count(value.begin(), value.end(), '"') > 2))
+    auto const s_end = value.s + value.size;
+    if (all_printable(value.s, value.size)
+        && (value.size > 70 || std::count(value.s, s_end, '"') > 2))
     {
-        os << "R\"(" << value << ")\"";
-        return;
+        os << "R\"(";
+        os.write(value.s, value.size);
+        os << ")\"";
+        return os;
     }
 
     os << '"';
-    for (char c : value)
+    for (char const* s = value.s; s != s_end; ++s)
     {
-        if (c == '"')
+        if (*s == '"')
         {
             os << '\\';
         }
-        repr_char(os, c);
+        repr_char(os, *s);
     }
     os << '"';
-}
 
-std::ostream& operator<<(std::ostream& os, ReprString const& value)
-{
-    auto const size = value.size == ReprString::unknown_size
-                          ? std::strlen(value.s)
-                          : value.size;
-    write_string_repr(os, std::string_view{value.s, size});
     return os;
 }
 

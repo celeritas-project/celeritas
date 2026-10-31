@@ -95,11 +95,13 @@ TEST(ReprTest, fundamental)
     EXPECT_EQ("'a'", repr_to_string('a'));
     EXPECT_EQ("'\\x61'", repr_to_string(static_cast<unsigned char>('a')));
     EXPECT_EQ("'\\xff'", repr_to_string('\xff'));
-    EXPECT_EQ("nullptr", repr_to_string(static_cast<char const*>(nullptr)));
 }
 
 TEST(ReprTest, string)
 {
+    EXPECT_EQ("nullptr", repr_to_string(static_cast<char const*>(nullptr)));
+    EXPECT_EQ("\"nullptr\"", repr_to_string("nullptr"));
+
     EXPECT_EQ("\"abcd\\a\"", repr_to_string("abcd\a"));
     EXPECT_EQ("\"abcd\\a\"", repr_to_string(std::string("abcd\a")));
     EXPECT_EQ("\"a\\0b\"", repr_to_string(std::string{"a\0b", 3}));

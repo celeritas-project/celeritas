@@ -129,10 +129,6 @@ struct ReprFormatter<char const*>
 {
     std::ostream& operator()(std::ostream& os, char const* obj) const
     {
-        if (!obj)
-        {
-            return os << "nullptr";
-        }
         return os << ReprString::from_cstring(obj);
     }
 };
