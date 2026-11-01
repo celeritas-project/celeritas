@@ -91,6 +91,16 @@ cmake_dependent_option(CELERITAS_DEVICE_DEBUG
   "_celeritas_use_device;CELERITAS_DEBUG" OFF
 )
 
+# Build CTest tree by default when building GoogleTest tests
+# or, if Celeritas is the main project, when CTest BUILD_TESTING option
+# is given (for backward compatibility)
+if(CELERITAS_BUILD_TESTS OR (BUILD_TESTING AND PROJECT_IS_TOP_LEVEL))
+  set(_default_test ON)
+else()
+  set(_default_test OFF)
+endif()
+option(CELERITAS_ENABLE_TESTING "Enable CTest testing" "${_default_test}")
+
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
@@ -120,7 +130,8 @@ else()
   set(_needs_g4vg OFF)
 endif()
 
-if(BUILD_TESTING OR CELERITAS_BUILD_DOCS OR CELERITAS_BUILD_TESTS)
+if((CELERITAS_ENABLE_TESTING AND CELERITAS_BUILD_APPS)
+   OR CELERITAS_BUILD_DOCS)
   set(_needs_python ON)
 else()
   set(_needs_python OFF)
@@ -297,8 +308,6 @@ celeritas_set_default(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY FALSE)
 
 ### Build flags ###
 
-# Default to building CTest tree if using Celeritas tests
-celeritas_set_default(BUILD_TESTING ${CELERITAS_BUILD_TESTS})
 # Default to debug or released based on value of CELERITAS_DEBUG
 if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   if(CELERITAS_DEBUG)
@@ -413,9 +422,9 @@ if(CELERITAS_USE_CLI11)
   celeritas_find_or_builtin_package(CLI11 2.4)
 endif()
 
-if(BUILD_TESTING)
+if(CELERITAS_ENABLE_TESTING)
   # Build the test tree for unit and/or app tests
-  include(CTest)
+  enable_testing()
 endif()
 
 if(CELERITAS_USE_LArSoft)

@@ -23,7 +23,7 @@ celeritas_target_link_libraries(celer-optical PRIVATE ${LIBRARIES})
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT BUILD_TESTING)
+if(NOT CELERITAS_ENABLE_TESTING)
   return()
 endif()
 

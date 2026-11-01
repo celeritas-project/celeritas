@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-if(BUILD_TESTING)
+if(CELERITAS_ENABLE_TESTING)
   celeritas_get_pyenv(CELER_PYTHONENV)
   set(CELER_PYTHON "$<TARGET_FILE:Python::Interpreter>")
 
@@ -90,7 +90,7 @@ add_subdirectory(celer-optical)
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT BUILD_TESTING)
+if(NOT CELERITAS_ENABLE_TESTING)
   return()
 endif()
 set(_geant_test_inp "${CELER_APP_DATA_DIR}/four-steel-slabs.gdml")
