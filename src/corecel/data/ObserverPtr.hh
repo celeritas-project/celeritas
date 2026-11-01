@@ -20,6 +20,8 @@ namespace celeritas
  *
  * This class is based on WG21 N4282, "A Proposal for the World's Dumbest Smart
  * Pointer, v4". It adds memspace safety similar to Thrust's host/device_ptr.
+ * (See \c ObserverPtr.device.hh to convert between \c device_ptr and \c
+ * ObserverPtr .)
  *
  * The dereferencing operators can *only* be used from the "native" memspace:
  * i.e., host data can be accessed from a .cc file, and device data from a .cu
@@ -82,6 +84,11 @@ class ObserverPtr
     {
         static_assert(M == MemSpace::native, "accessing from invalid memspace");
         return ptr_;
+    }
+    CELER_CONSTEXPR_FUNCTION reference operator[](std::size_t i) const noexcept
+    {
+        static_assert(M == MemSpace::native, "accessing from invalid memspace");
+        return ptr_[i];
     }
     //!@}
 

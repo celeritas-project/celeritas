@@ -44,16 +44,19 @@ TEST_F(ObserverPtrTest, host)
     EXPECT_TRUE(obs);
     EXPECT_TRUE(obs == obs);
     EXPECT_TRUE(obs != nullptr);
+    EXPECT_EQ(some_data.data() + 2, &obs[2]);
     EXPECT_EQ(1, *obs);
     EXPECT_EQ(1, *obs.get());
+
+    // Release clears the pointer
     EXPECT_EQ(1, *obs.release());
     EXPECT_EQ(nullptr, obs.get());
     EXPECT_TRUE(obs == nullptr);
 
-    auto vec_ptr = make_observer(const_cast<VecInt const*>(&some_data));
-    EXPECT_TRUE((std::is_same_v<decltype(vec_ptr),
+    auto cobs = make_observer(const_cast<VecInt const*>(&some_data));
+    EXPECT_TRUE((std::is_same_v<decltype(cobs),
                                 ObserverPtr<VecInt const, MemSpace::host>>));
-    EXPECT_EQ(4, vec_ptr->size());
+    EXPECT_EQ(4, cobs->size());
 }
 
 TEST_F(ObserverPtrTest, TEST_IF_CELER_DEVICE(device))
@@ -69,6 +72,7 @@ TEST_F(ObserverPtrTest, TEST_IF_CELER_DEVICE(device))
 #ifdef CELERITAS_SHOULD_NOT_COMPILE
     // Assigning a device pointer on host is prohibited
     *src = 2;
+    src[2] = 3;
 #endif
     // Pointer cast can be used to access without memspace checking
     EXPECT_NE(nullptr, static_cast<int*>(src));
