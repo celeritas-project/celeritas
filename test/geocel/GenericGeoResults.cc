@@ -19,7 +19,6 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/inp/Model.hh"
 
-#include "GenericGeoTestInterface.hh"
 #include "RefComparer.hh"
 #include "TestMacros.hh"
 
@@ -37,6 +36,16 @@ void erase_after(std::vector<T>& vec, std::size_t idx)
 {
     auto iter = vec.begin() + std::min(idx, vec.size());
     vec.erase(iter, vec.end());
+}
+
+template<class T>
+bool compare_model_input_group(
+    AssertionHelper& helper, T const& expected, T const& actual)
+{
+    RefComparer<T> compare{helper, expected, actual};
+    CELER_INVOKE_ATTR(compare.is_eq, T, labels);
+    CELER_INVOKE_ATTR(compare.is_eq, T, volumes);
+    return static_cast<bool>(compare);
 }
 
 }  // namespace
@@ -114,7 +123,7 @@ std::ostream& operator<<(std::ostream& os, GenericGeoTrackingResult const& ref)
 bool is_ref_eq(AssertionHelper& helper,
                GenericGeoTrackingResult const& val1,
                GenericGeoTrackingResult const& val2,
-               GenericGeoTrackingTolerance const& tol)
+               GenericGeoTrackingResult::Tol const& tol)
 {
     RefComparer<GenericGeoTrackingResult> compare{helper, val1, val2};
     CELER_INVOKE_ATTR(compare.is_eq, GenericGeoTrackingResult, volumes);
@@ -145,6 +154,13 @@ bool is_ref_eq(AssertionHelper& helper,
                       bumps,
                       SoftEqual(tol.safety, tol.safety));
     return static_cast<bool>(compare);
+}
+
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoTrackingResult const& expected,
+               GenericGeoTrackingResult const& actual)
+{
+    return is_ref_eq(helper, expected, actual, {});
 }
 
 //---------------------------------------------------------------------------//
@@ -259,7 +275,7 @@ std::ostream& operator<<(std::ostream& os, GenericGeoModelInp const& ref)
 {
     return os << "{{" << CELER_REPR_ATTR(ref, surface.labels) << ", "
               << CELER_REPR_ATTR(ref, surface.volumes) << "}, {"
-              << repr(ref.region.labels) << ", "
+              << CELER_REPR_ATTR(ref, region.labels) << ", "
               << CELER_REPR_ATTR(ref, region.volumes) << "}, {"
               << CELER_REPR_ATTR(ref, detector.labels) << ", "
               << CELER_REPR_ATTR(ref, detector.volumes) << "}}";
@@ -282,13 +298,13 @@ bool is_ref_eq(AssertionHelper& helper,
         compare.record_result(result);
     };
 
-    compare_attr("surface.labels", val1.surface.labels, val2.surface.labels);
-    compare_attr("surface.volumes", val1.surface.volumes, val2.surface.volumes);
-    compare_attr("region.labels", val1.region.labels, val2.region.labels);
-    compare_attr("region.volumes", val1.region.volumes, val2.region.volumes);
-    compare_attr("detector.labels", val1.detector.labels, val2.detector.labels);
-    compare_attr(
-        "detector.volumes", val1.detector.volumes, val2.detector.volumes);
+#define IRE_COMPARE_ATTR(ATTR) compare_attr(#ATTR, val1.ATTR, val2.ATTR);
+    IRE_COMPARE_ATTR(surface.volumes);
+    IRE_COMPARE_ATTR(region.labels);
+    IRE_COMPARE_ATTR(region.volumes);
+    IRE_COMPARE_ATTR(detector.labels);
+    IRE_COMPARE_ATTR(detector.volumes);
+#undef IRE_COMPARE_ATTR
     return static_cast<bool>(compare);
 }
 //---------------------------------------------------------------------------//

@@ -47,8 +47,6 @@ class GenericGeoTestInterface;
 //! Get detailed results from tracking from one cell to the next
 struct GenericGeoTrackingResult
 {
-    static constexpr char class_str[] = "GenericGeoTrackingResult";
-
     std::vector<std::string> volumes;
     std::vector<std::string> volume_instances;
     std::vector<real_type> distances;  //!< [cm]
@@ -80,23 +78,29 @@ struct GenericGeoTrackingResult
     // Add a failure sentinel at a certain index
     void fail_at(std::size_t index);
 
+    //// REFERENCE COMPARISON ////
+
+    static constexpr char class_str[] = "GenericGeoTrackingResult";
+
+    //! Loosen strictness for tracking comparison
+    struct Tol
+    {
+        real_type distance{0};
+        real_type normal{0};
+        real_type safety{0};
+    };
     friend std::ostream& operator<<(std::ostream&,
                                     GenericGeoTrackingResult const&);
+    friend bool is_ref_eq(AssertionHelper&,
+                          GenericGeoTrackingResult const&,
+                          GenericGeoTrackingResult const&,
+                          Tol const&);
+    friend bool is_ref_eq(AssertionHelper&,
+                          GenericGeoTrackingResult const&,
+                          GenericGeoTrackingResult const&);
 };
 
-//! Loosen strictness for tracking comparison
-struct GenericGeoTrackingTolerance
-{
-    real_type distance{0};
-    real_type normal{0};
-    real_type safety{0};
-};
-
-// Compare tracking results
-bool is_ref_eq(AssertionHelper& helper,
-               GenericGeoTrackingResult const& expected,
-               GenericGeoTrackingResult const& actual,
-               GenericGeoTrackingTolerance const& tol = {});
+using GenericGeoTrackingTolerance = GenericGeoTrackingResult::Tol;
 
 //---------------------------------------------------------------------------//
 // STACK RESULT
@@ -105,25 +109,25 @@ bool is_ref_eq(AssertionHelper& helper,
 //! Get the volume instances and replica IDs from a point
 struct GenericGeoVolumeStackResult
 {
-    static constexpr char class_str[] = "GenericGeoVolumeStackResult";
-
     using LabelMap = LabelIdMultiMap<VolumeInstanceId>;
 
     std::vector<std::string> volume_instances;
 
     static GenericGeoVolumeStackResult from_span(LabelMap const&,
                                                  Span<VolumeInstanceId const>);
+    //! Add a failure sentinel at the end
+    void fail();
+
+    //// REFERENCE COMPARISON ////
+
+    static constexpr char class_str[] = "GenericGeoVolumeStackResult";
 
     friend std::ostream& operator<<(std::ostream&,
                                     GenericGeoVolumeStackResult const&);
-
-    //! Add a failure sentinel at the end
-    void fail();
+    friend bool is_ref_eq(AssertionHelper&,
+                          GenericGeoVolumeStackResult const&,
+                          GenericGeoVolumeStackResult const&);
 };
-
-bool is_ref_eq(AssertionHelper& helper,
-               GenericGeoVolumeStackResult const& expected,
-               GenericGeoVolumeStackResult const& actual);
 
 //---------------------------------------------------------------------------//
 // MODEL INPUT RESULT
@@ -132,8 +136,6 @@ bool is_ref_eq(AssertionHelper& helper,
 //! Get the unfolded geometry model input
 struct GenericGeoModelInp
 {
-    static constexpr char class_str[] = "GenericGeoModelInp";
-
     struct
     {
         std::vector<std::string> labels;
@@ -154,14 +156,15 @@ struct GenericGeoModelInp
 
     static GenericGeoModelInp from_model_input(inp::Model const& in);
 
+    //// REFERENCE COMPARISON ////
+
+    static constexpr char class_str[] = "GenericGeoModelInp";
+
     friend std::ostream& operator<<(std::ostream&, GenericGeoModelInp const&);
+    friend bool is_ref_eq(AssertionHelper&,
+                          GenericGeoModelInp const&,
+                          GenericGeoModelInp const&);
 };
-
-//---------------------------------------------------------------------------//
-
-bool is_ref_eq(AssertionHelper& helper,
-               GenericGeoModelInp const& expected,
-               GenericGeoModelInp const& actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace test
