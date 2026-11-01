@@ -32,7 +32,9 @@ endif()
 celeritas_add_library(celer_app_utils STATIC
   CliUtils.cc
 )
-
+set_target_properties(celer_app_utils PROPERTIES
+  FOLDER "lib"
+)
 celeritas_target_link_libraries(celer_app_utils
   PUBLIC CLI11::CLI11
   PRIVATE Celeritas::corecel Celeritas::ExtMPI

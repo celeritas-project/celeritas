@@ -817,6 +817,9 @@ else()
     VERBATIM
   )
 endif()
+set_target_properties("get-config" PROPERTIES
+  FOLDER "app"
+)
 
 #----------------------------------------------------------------------------#
 # DOCUMENTATION
