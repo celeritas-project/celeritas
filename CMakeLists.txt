@@ -820,14 +820,14 @@ if(CELERITAS_BUILD_APPS)
   add_subdirectory(app)
 else()
   # Replacement for running celer-config
-  add_custom_target("get-config"
+  add_custom_target("print-config"
     COMMAND ${CMAKE_COMMAND} -E echo
-      "'get-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
+      "'print-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
     VERBATIM
   )
 endif()
-set_target_properties("get-config" PROPERTIES
-  FOLDER "app"
+set_target_properties("print-config" PROPERTIES
+  FOLDER "bin"
 )
 
 #----------------------------------------------------------------------------#

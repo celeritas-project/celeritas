@@ -58,7 +58,7 @@ celeritas_target_link_libraries(celer-config
 )
 
 # Target to run celer-config
-add_custom_target(get-config
+add_custom_target(print-config
   COMMAND "$<TARGET_FILE:celer-config>" "-d" "--indent" -1
   VERBATIM
   DEPENDS celer-config
