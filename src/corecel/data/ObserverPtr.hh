@@ -23,10 +23,9 @@ namespace celeritas
  *
  * The dereferencing operators can *only* be used from the "native" memspace:
  * i.e., host data can be accessed from a .cc file, and device data from a .cu
- * file.
- *
- * A manual pointer cast function can be used to access the pointer with no
- * memspace checking.
+ * file. However, the pointer itself can be accessed directly via `get` or
+ * explicitly casting to the pointer type. Members of observerptr structs can
+ * be accessed using a special \c make_observer overload.
  */
 template<class T, MemSpace M = MemSpace::native>
 class ObserverPtr
@@ -57,28 +56,32 @@ class ObserverPtr
     }
     //!@}
 
+    //! True unless nullptr
+    CELER_CONSTEXPR_FUNCTION explicit operator bool() const noexcept
+    {
+        return ptr_ != nullptr;
+    }
+
     //!@{
-    //! Access the pointer
-    CELER_CONSTEXPR_FUNCTION pointer get() const noexcept
-    {
-        static_assert(M == MemSpace::native, "accessing from invalid memspace");
-        return ptr_;
-    }
-    CELER_CONSTEXPR_FUNCTION reference operator*() const noexcept
-    {
-        return *this->get();
-    }
-    CELER_CONSTEXPR_FUNCTION pointer operator->() const noexcept
-    {
-        return this->get();
-    }
+    //! Access the pointer without checking
+    CELER_CONSTEXPR_FUNCTION pointer get() const noexcept { return ptr_; }
     CELER_CONSTEXPR_FUNCTION explicit operator pointer() const noexcept
     {
         return ptr_;
     }
-    CELER_CONSTEXPR_FUNCTION explicit operator bool() const noexcept
+    //!@}
+
+    //!@{
+    //! Access the pointed-to data from the native memspace
+    CELER_CONSTEXPR_FUNCTION reference operator*() const noexcept
     {
-        return ptr_ != nullptr;
+        static_assert(M == MemSpace::native, "accessing from invalid memspace");
+        return *ptr_;
+    }
+    CELER_CONSTEXPR_FUNCTION pointer operator->() const noexcept
+    {
+        static_assert(M == MemSpace::native, "accessing from invalid memspace");
+        return ptr_;
     }
     //!@}
 
@@ -100,12 +103,6 @@ class ObserverPtr
 
   private:
     pointer ptr_{nullptr};
-
-    CELER_CONSTEXPR_FUNCTION pointer checked_get() const noexcept
-    {
-        static_assert(M == MemSpace::native, "accessing from invalid memspace");
-        return ptr_;
-    }
 
     template<class, MemSpace>
     friend class ObserverPtr;
@@ -179,6 +176,18 @@ template<class T>
 inline ObserverPtr<T> make_observer(T* ptr) noexcept
 {
     return ObserverPtr<T>{ptr};
+}
+
+//! Create an observer pointer to a data member in any namespace.
+template<class T, MemSpace M, class U, class C>
+CELER_CONSTEXPR_FUNCTION auto make_observer(ObserverPtr<T, M> ptr,
+                                            U C::* member) noexcept -> auto
+{
+    CELER_EXPECT(ptr);
+    T* raw_ptr = ptr.get();
+    auto& raw_memptr = raw_ptr->*member;  // U if T is mutable, U const if not
+    using value_type = std::remove_reference_t<decltype(raw_memptr)>;
+    return ObserverPtr<value_type, M>{&raw_memptr};
 }
 
 //---------------------------------------------------------------------------//

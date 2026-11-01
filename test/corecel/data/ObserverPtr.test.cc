@@ -21,6 +21,12 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
+struct ExampleStruct
+{
+    int foo{0};
+    int bar{0};
+};
+
 class ObserverPtrTest : public ::celeritas::test::Test
 {
   protected:
@@ -59,6 +65,7 @@ TEST_F(ObserverPtrTest, TEST_IF_CELER_DEVICE(device))
 
     auto src = make_observer(inp_dv);
     auto dst = make_observer(out_dv);
+
 #ifdef CELERITAS_SHOULD_NOT_COMPILE
     // Assigning a device pointer on host is prohibited
     *src = 2;
@@ -80,6 +87,33 @@ TEST_F(ObserverPtrTest, TEST_IF_CELER_DEVICE(device))
     copy_thrust_test(src, dst, inp_dv.size());
     out_dv.copy_to_host(make_span(out));
     EXPECT_VEC_EQ(make_span(test_data), out);
+}
+
+TEST_F(ObserverPtrTest, host_member)
+{
+    ExampleStruct value{7, 9};
+    auto struct_ptr = make_observer(&value);
+    auto foo = make_observer(struct_ptr, &ExampleStruct::foo);
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(foo), ObserverPtr<int, MemSpace::host>>));
+    EXPECT_EQ(&value.foo, foo.get());
+    EXPECT_EQ(7, *foo);
+    EXPECT_TRUE(make_observer(struct_ptr, &ExampleStruct::foo)
+                < make_observer(struct_ptr, &ExampleStruct::bar));
+
+    ObserverPtr<ExampleStruct const> cstruct_ptr{struct_ptr};
+    auto cfoo = make_observer(cstruct_ptr, &ExampleStruct::foo);
+    EXPECT_TRUE((
+        std::is_same_v<decltype(cfoo), ObserverPtr<int const, MemSpace::host>>));
+}
+
+TEST_F(ObserverPtrTest, TEST_IF_CELER_DEVICE(device_member))
+{
+    DeviceVector<ExampleStruct> example_dv(3);
+    auto example_ptr = make_observer(example_dv);
+    auto foo = make_observer(example_ptr, &ExampleStruct::foo);
+    static_assert(
+        std::is_same_v<decltype(foo), ObserverPtr<int, MemSpace::device>>);
 }
 
 //---------------------------------------------------------------------------//
