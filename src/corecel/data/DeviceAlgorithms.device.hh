@@ -149,7 +149,7 @@ void copy_if_async(InputIt input,
 
     // Store the number of selected items on device (synchronizes)
     size_type host_num_selected = stop - start;
-    Copier<size_type, MemSpace::device> copy{num_selected, stream_id};
+    Copier<size_type, MemSpace::device> copy{num_selected, 1, stream_id};
     copy(MemSpace::host, {&host_num_selected, 1});
     device().stream(stream_id).sync();
 #else

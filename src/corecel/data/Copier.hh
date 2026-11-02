@@ -51,6 +51,12 @@ class Copier
     {
     }
 
+    //! Construct with a single dst element
+    Copier(ObserverPtr<T, M> dst, StreamId stream)
+        : dst_{dst}, size_{1}, stream_{stream}
+    {
+    }
+
     //! Construct from a destination span and stream
     Copier(Span<T> dst, StreamId stream)
         : Copier{ObserverPtr<T, M>{dst.data()}, dst.size(), stream}
