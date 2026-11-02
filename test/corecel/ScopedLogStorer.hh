@@ -7,6 +7,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -29,6 +30,9 @@ namespace test
  *
  * You can use the \c CELER_LOG_SCOPED environment variable to print the
  * captured log messages as they are written.
+ *
+ * Messages may be written concurrently from multiple threads, but the
+ * accessors must not be called while other threads are still logging.
  *
  * \todo The move constructor is subtly broken: the logger retains a pointer
  * to the moved-from object, which may result in use-after-free. Break this
@@ -118,6 +122,7 @@ class ScopedLogStorer
     int float_digits_{4};
     VecString messages_;
     VecString levels_;
+    std::unique_ptr<std::mutex> mutex_;
 };
 
 // Print expected results

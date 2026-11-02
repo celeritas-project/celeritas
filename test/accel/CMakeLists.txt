@@ -235,6 +235,13 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
+# Test that primary batches can exceed the initial initializer capacity
+celeritas_add_integration_tests(
+  TrackingManagerIntegration WaterSphere run_small_initializers
+  OFFLOAD cpu gpu
+  RMTYPE serial mt
+)
+
 # Test with optical physics offloading distributions
 celeritas_add_integration_tests(
   UserActionIntegration LarSphereOpticalOffload run

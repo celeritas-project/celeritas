@@ -11,6 +11,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/sys/ThreadId.hh"
+
 #include "Collection.hh"
 
 #include "detail/FillInvalid.hh"
@@ -61,6 +63,14 @@ class CollectionBuilder
         CELER_EXPECT(collection);
     }
 
+    //! Construct from a collection and a stream
+    explicit CollectionBuilder(CollectionT* collection, StreamId stream)
+        : col_(*collection), stream_id_(stream)
+    {
+        CELER_EXPECT(collection);
+        CELER_EXPECT(stream);
+    }
+
     // Increase size to this capacity
     inline void resize(std::size_t count);
 
@@ -101,6 +111,7 @@ class CollectionBuilder
     }
 
     CollectionT& col_;
+    StreamId stream_id_;
 };
 
 //---------------------------------------------------------------------------//
@@ -181,7 +192,14 @@ void CollectionBuilder<T, M, I>::resize(std::size_t count)
 {
     CELER_EXPECT(this->storage().empty());
     CELER_EXPECT(count <= max_size());
-    this->storage() = StorageT(count);
+    if constexpr (M == MemSpace::device)
+    {
+        this->storage() = StorageT(count, stream_id_);
+    }
+    else
+    {
+        this->storage() = StorageT(count);
+    }
     if constexpr (CELERITAS_DEBUG && M == MemSpace::host)
     {
         // Fill with invalid values to help with debugging on host
@@ -214,6 +232,22 @@ void resize(Collection<T, Ownership::value, M, I>* collection, std::size_t size)
 {
     CELER_EXPECT(collection);
     CollectionBuilder<T, M, I>(collection).resize(size);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function for resizing a single collection on a stream.
+ *
+ * Device memory is allocated (and later freed) in stream order, avoiding the
+ * implicit device-wide synchronization of a plain allocation.
+ */
+template<class T, MemSpace M, class I>
+void resize(Collection<T, Ownership::value, M, I>* collection,
+            std::size_t size,
+            StreamId stream)
+{
+    CELER_EXPECT(collection);
+    CollectionBuilder<T, M, I>(collection, stream).resize(size);
 }
 
 //---------------------------------------------------------------------------//
