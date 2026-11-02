@@ -58,11 +58,9 @@ struct StateCapacity
  * processes that produce many daughters (e.g., atomic relaxation or Bertini
  * cascade) are active. The number of \c events in flight primarily increases
  * the number of active tracks, possible initializers, and produced secondaries
- * (NOTE: see
- * [#1233](https://github.com/celeritas-project/celeritas/issues/1233) ).
  * Finally, the number of \c primaries is the maximum number of pending tracks
  * from an external application before running a kernel to construct \c
- * initializers and execute the stpeping loop.
+ * initializers and execute the stepping loop.
  *
  * \note The \c primaries was previously named \c auto_flush .
  * \note Previously, \c SetupOptions and \c celer-g4 treated these quantities

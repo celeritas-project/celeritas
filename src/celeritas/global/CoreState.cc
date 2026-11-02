@@ -260,7 +260,9 @@ void CoreState<M>::reserve_initializers(size_type min_capacity)
                                     host_counters_.value().num_initializers,
                                     new_capacity,
                                     this->stream_id());
-    states_.update_ref();
+
+    // Update the host reference
+    states_.ref().init = states_.value().init;
 
     if constexpr (M == MemSpace::device)
     {

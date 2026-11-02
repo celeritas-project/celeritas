@@ -96,11 +96,8 @@ class StateDataStore
     // Get a reference to the mutable state data
     inline Ref const& ref() const;
 
-    // Access the owned data for reallocation (call update_ref afterward)
+    // Access the owned data for reallocation (update reference afterward)
     inline Value& value();
-
-    // Update the reference after the owned data has been reallocated
-    inline void update_ref();
 
   private:
     Value val_;
@@ -258,24 +255,13 @@ auto StateDataStore<S, M>::ref() const -> Ref const&
 /*!
  * Access the owned state data so that it can be reallocated in place.
  *
- * Reallocating any collection invalidates the stored reference, so \c
- * update_ref must be called before \c ref is used again.
+ * Reallocating any collection invalidates the stored reference, so the
+ * reference must be updated before \c ref is used again.
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 auto StateDataStore<S, M>::value() -> Value&
 {
     return val_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Update the reference after the owned data has been reallocated.
- */
-template<template<Ownership, MemSpace> class S, MemSpace M>
-void StateDataStore<S, M>::update_ref()
-{
-    CELER_EXPECT(val_);
-    ref_ = val_;
 }
 
 //---------------------------------------------------------------------------//

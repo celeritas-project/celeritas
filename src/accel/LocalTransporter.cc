@@ -495,7 +495,7 @@ void LocalTransporter::launch_pending_primaries()
             // step. This records whether any active tracks remain so
             // launch_step can distinguish between continuing transport and
             // starting a new batch
-            static_cast<void>(this->complete_step());
+            this->complete_step();
         }
         this->launch_step();
     }
@@ -506,7 +506,7 @@ void LocalTransporter::launch_pending_primaries()
         if (step_->has_outstanding_result())
         {
             // Retrieve the previous step result as above
-            static_cast<void>(this->complete_step());
+            this->complete_step();
         }
         this->stage_buffered_primaries();
         this->launch_step();
