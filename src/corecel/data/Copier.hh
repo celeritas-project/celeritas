@@ -33,7 +33,9 @@ class Stream;
  *
  * Example of copying data from device to host:
  * \code
-    Copier<int, MemSpace::host> copy_to_host{host_ints};
+    Copier copy_to_host{ObserverPtr<int, MemSpace::host>{host_ints.data()},
+                        host_ints.size(),
+                        StreamId{}};
     copy_to_host(MemSpace::device, device_ints);
  * \endcode
  */
@@ -43,19 +45,31 @@ class Copier
     static_assert(is_trivially_copyable_v<T>, "Data is not trivially copyable");
 
   public:
-    //! Construct with the destination and the class's memspace
-    explicit Copier(Span<T> dst) : dst_{dst} {}
+    //! Construct with the destination, size, and stream for async copy
+    Copier(ObserverPtr<T, M> dst, std::size_t size, StreamId stream)
+        : dst_{dst}, size_{size}, stream_{stream}
+    {
+    }
 
-    //! Also construct with a stream ID to use for async copy
-    Copier(Span<T> dst, StreamId stream) : dst_{dst}, stream_{stream} {}
+    //! Construct from a destination span and stream
+    Copier(Span<T> dst, StreamId stream)
+        : Copier{ObserverPtr<T, M>{dst.data()}, dst.size(), stream}
+    {
+    }
 
     inline void operator()(MemSpace srcmem, Span<T const> src) const;
 
   private:
-    Span<T> dst_;
+    ObserverPtr<T, M> dst_;
+    std::size_t size_;
     StreamId stream_;
     static constexpr auto dstmem = M;
 };
+
+//---------------------------------------------------------------------------//
+//! Deduce the element type and memory space from the destination pointer.
+template<class T, MemSpace M>
+Copier(ObserverPtr<T, M>, std::size_t, StreamId) -> Copier<T, M>;
 
 //---------------------------------------------------------------------------//
 // FUNCTIONS
@@ -89,7 +103,8 @@ inline std::remove_const_t<T> load_sync(ObserverPtr<T, M> src,
         else
         {
             value_type result{};
-            Copier<value_type, MemSpace::host> copy_from{{&result, 1}, stream};
+            Copier<value_type, MemSpace::host> copy_from{
+                ObserverPtr<value_type, MemSpace::host>{&result}, 1, stream};
             copy_from(M, {static_cast<value_type const*>(src), 1});
             return result;
         }
@@ -147,20 +162,23 @@ inline void copy_bytes(ObserverPtr<void, D> dst,
 template<class T, MemSpace M>
 void Copier<T, M>::operator()(MemSpace srcmem, Span<T const> src) const
 {
-    CELER_EXPECT(src.size() == dst_.size());
+    CELER_EXPECT(src.size() == size_);
     if (stream_)
     {
         copy_bytes(dstmem,
-                   dst_.data(),
+                   static_cast<T*>(dst_),
                    srcmem,
                    src.data(),
-                   src.size() * sizeof(T),
+                   size_ * sizeof(T),
                    stream_);
     }
     else
     {
-        copy_bytes(
-            dstmem, dst_.data(), srcmem, src.data(), src.size() * sizeof(T));
+        copy_bytes(dstmem,
+                   static_cast<T*>(dst_),
+                   srcmem,
+                   src.data(),
+                   size_ * sizeof(T));
     }
 }
 

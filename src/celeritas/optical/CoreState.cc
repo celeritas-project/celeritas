@@ -126,10 +126,8 @@ CoreStateCounters CoreState<M>::sync_get_counters() const
 template<MemSpace M>
 void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 {
-    auto* counters
-        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
-    CELER_ASSERT(counters);
-    Copier<CoreStateCounters, M> copy{{counters, 1}, this->stream_id()};
+    Copier<CoreStateCounters, M> copy{
+        this->ref().init.counters.data(), 1, this->stream_id()};
     copy(MemSpace::host, {&host_counters, 1});
     if constexpr (M == MemSpace::device)
     {
