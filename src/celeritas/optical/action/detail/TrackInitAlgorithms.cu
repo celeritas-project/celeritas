@@ -12,6 +12,7 @@
 #include "corecel/data/DeviceAlgorithms.device.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -35,7 +36,7 @@ struct TransformType
 //! Whether the given track slot is vacant
 struct IsVacantAt
 {
-    TrackStatus const* status;
+    ObserverPtr<TrackStatus const> status;
 
     CELER_FUNCTION bool operator()(TrackSlotId slot) const
     {
@@ -56,14 +57,15 @@ void copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     CELER_EXPECT(status.size() == init.vacancies.size());
 
     ScopedProfiling profile_this{"copy-if-vacant"};
-    auto* counters = init.counters.data().get();
+    auto counter_vacancies = make_observer(init.counters.data(),
+                                           &CoreStateCounters::num_vacancies);
     copy_if_async(
         thrust::make_transform_iterator(
             thrust::make_counting_iterator<size_type>(0), TransformType{}),
         init.vacancies.data(),
         init.vacancies.size(),
-        ObserverPtr<size_type, MemSpace::device>{&counters->num_vacancies},
-        IsVacantAt{status.data().get()},
+        counter_vacancies,
+        IsVacantAt{status.data()},
         stream_id);
 }
 

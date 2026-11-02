@@ -36,7 +36,7 @@ void copy_if_vacant(TrackStatusRef<MemSpace::host> const& status,
         ++tid;
     }
 
-    auto counters = init.counters.data().get();
+    auto counters = init.counters.data();
     counters->num_vacancies = result - init.vacancies.data().get();
     return;
 }

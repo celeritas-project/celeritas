@@ -90,8 +90,8 @@ void scan_neutral_initializers(
     CELER_EXPECT(!init.indices.empty());
 
     IsNeutralNewTrack is_neutral{params.ptr<MemSpace::native>(),
-                                 init.initializers.data().get(),
-                                 init.counters.data().get()};
+                                 init.initializers.data(),
+                                 init.counters.data()};
     auto* data = init.indices.data().get();
     size_type acc = 0;
     for (size_type i = 0; i < init.indices.size(); ++i)

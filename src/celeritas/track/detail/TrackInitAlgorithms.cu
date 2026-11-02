@@ -68,7 +68,8 @@ ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
 {
     ScopedProfiling profile_this{"prefix-sum-counts"};
     // Scan in place
-    exclusive_sum_async(counts.data(), counts.data(), counts.size(), stream_id);
+    exclusive_sum_async<size_type>(
+        counts.data(), counts.data(), counts.size(), stream_id);
     // No synchronization since the next use of the results (data array), which
     // pulls the value from the results, will use another call on this stream
     return make_observer(counts.data().get() + counts.size() - 1);
@@ -98,8 +99,8 @@ void scan_neutral_initializers(
     auto is_neutral = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0),
         IsNeutralNewTrack{params.ptr<MemSpace::native>(),
-                          init.initializers.data().get(),
-                          init.counters.data().get()});
+                          init.initializers.data(),
+                          init.counters.data()});
     inclusive_sum_async(
         is_neutral, init.indices.data(), init.indices.size(), stream_id);
 }

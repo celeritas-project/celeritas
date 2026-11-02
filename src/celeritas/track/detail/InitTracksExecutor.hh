@@ -75,7 +75,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     CELER_EXPECT(state);
 
     auto const& data = state->init;
-    auto* counters = state->init.counters.data().get();
+    auto counters = state->init.counters.data();
     size_type num_init
         = min(counters->num_vacancies, counters->num_initializers);
     CELER_EXPECT(num_init <= state->size());
