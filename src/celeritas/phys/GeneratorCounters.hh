@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <type_traits>
 
 #include "corecel/Macros.hh"
@@ -50,12 +51,13 @@ struct GeneratorCounters
  * updated by kernels during the stepping loop. The \c accum counters are the
  * increments to the accumulated statistics since the counters were last read
  * on the host: distributions and photons are counted when they are queued,
- * and photons when they are generated.
+ * and photons when they are generated. They use the same type as the host
+ * statistics in \c GeneratorStateBase::accum .
  */
 struct GeneratorStateCounters
 {
     GeneratorCounters<> current;
-    GeneratorCounters<> accum;
+    GeneratorCounters<std::size_t> accum;
 };
 
 //---------------------------------------------------------------------------//
