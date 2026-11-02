@@ -20,15 +20,6 @@ namespace detail
 namespace
 {
 using DeviceGenPtr = GenCountersObserver<MemSpace::device>;
-
-//---------------------------------------------------------------------------//
-//! Launch a single-thread executor on a stream
-template<class F>
-void launch_single(char const* label, F const& execute_thread, StreamId stream)
-{
-    static KernelLauncher<F> const launch_kernel(label);
-    launch_kernel(1, stream, execute_thread);
-}
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -37,35 +28,35 @@ void assign_counters(DeviceGenPtr counters,
                      StreamId stream_id)
 {
     CELER_EXPECT(counters);
-    launch_single("assign-generator-counters",
-                  AssignGeneratorCountersExecutor{counters, value},
-                  stream_id);
+    launch_single_kernel("assign-generator-counters",
+                         stream_id,
+                         AssignGeneratorCountersExecutor{counters, value});
 }
 
 //---------------------------------------------------------------------------//
 void clear_accum(DeviceGenPtr counters, StreamId stream_id)
 {
     CELER_EXPECT(counters);
-    launch_single(
-        "clear-generator-accum", ClearAccumExecutor{counters}, stream_id);
+    launch_single_kernel(
+        "clear-generator-accum", stream_id, ClearAccumExecutor{counters});
 }
 
 //---------------------------------------------------------------------------//
 void clear_generated(DeviceGenPtr counters, StreamId stream_id)
 {
     CELER_EXPECT(counters);
-    launch_single("clear-generator-generated",
-                  ClearGeneratedExecutor{counters},
-                  stream_id);
+    launch_single_kernel("clear-generator-generated",
+                         stream_id,
+                         ClearGeneratedExecutor{counters});
 }
 
 //---------------------------------------------------------------------------//
 void accumulate_buffer(DeviceGenPtr counters, StreamId stream_id)
 {
     CELER_EXPECT(counters);
-    launch_single("accumulate-generator-buffer",
-                  AccumulateBufferExecutor{counters},
-                  stream_id);
+    launch_single_kernel("accumulate-generator-buffer",
+                         stream_id,
+                         AccumulateBufferExecutor{counters});
 }
 
 //---------------------------------------------------------------------------//
@@ -76,9 +67,9 @@ void set_buffer_size(
 {
     CELER_EXPECT(counters);
     CELER_EXPECT(num_selected);
-    launch_single("set-generator-buffer-size",
-                  SetBufferSizeExecutor{counters, num_selected},
-                  stream_id);
+    launch_single_kernel("set-generator-buffer-size",
+                         stream_id,
+                         SetBufferSizeExecutor{counters, num_selected});
 }
 
 //---------------------------------------------------------------------------//
@@ -88,9 +79,9 @@ void update_pending(DeviceGenPtr counters,
 {
     CELER_EXPECT(counters);
     CELER_EXPECT(total);
-    launch_single("update-generator-pending",
-                  UpdatePendingExecutor{counters, total},
-                  stream_id);
+    launch_single_kernel("update-generator-pending",
+                         stream_id,
+                         UpdatePendingExecutor{counters, total});
 }
 
 //---------------------------------------------------------------------------//
@@ -101,10 +92,10 @@ void update_counters(CoreStateCounterRef<MemSpace::device> const& core_counters,
 {
     CELER_EXPECT(core_counters.size() == 1);
     CELER_EXPECT(counters);
-    launch_single("update-generator-counters",
-                  UpdateGeneratorCountersExecutor{
-                      core_counters.data(), counters, state_size},
-                  stream_id);
+    launch_single_kernel("update-generator-counters",
+                         stream_id,
+                         UpdateGeneratorCountersExecutor{
+                             core_counters.data(), counters, state_size});
 }
 
 //---------------------------------------------------------------------------//

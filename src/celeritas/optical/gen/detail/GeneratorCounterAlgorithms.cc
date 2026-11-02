@@ -28,28 +28,28 @@ void assign_counters(
     HostGenPtr counters, GeneratorCounters<> const& value, StreamId)
 {
     CELER_EXPECT(counters);
-    launch_kernel(1, AssignGeneratorCountersExecutor{counters, value});
+    launch_single_kernel(AssignGeneratorCountersExecutor{counters, value});
 }
 
 //---------------------------------------------------------------------------//
 void clear_accum(HostGenPtr counters, StreamId)
 {
     CELER_EXPECT(counters);
-    launch_kernel(1, ClearAccumExecutor{counters});
+    launch_single_kernel(ClearAccumExecutor{counters});
 }
 
 //---------------------------------------------------------------------------//
 void clear_generated(HostGenPtr counters, StreamId)
 {
     CELER_EXPECT(counters);
-    launch_kernel(1, ClearGeneratedExecutor{counters});
+    launch_single_kernel(ClearGeneratedExecutor{counters});
 }
 
 //---------------------------------------------------------------------------//
 void accumulate_buffer(HostGenPtr counters, StreamId)
 {
     CELER_EXPECT(counters);
-    launch_kernel(1, AccumulateBufferExecutor{counters});
+    launch_single_kernel(AccumulateBufferExecutor{counters});
 }
 
 //---------------------------------------------------------------------------//
@@ -59,7 +59,7 @@ void set_buffer_size(HostGenPtr counters,
 {
     CELER_EXPECT(counters);
     CELER_EXPECT(num_selected);
-    launch_kernel(1, SetBufferSizeExecutor{counters, num_selected});
+    launch_single_kernel(SetBufferSizeExecutor{counters, num_selected});
 }
 
 //---------------------------------------------------------------------------//
@@ -69,7 +69,7 @@ void update_pending(HostGenPtr counters,
 {
     CELER_EXPECT(counters);
     CELER_EXPECT(total);
-    launch_kernel(1, UpdatePendingExecutor{counters, total});
+    launch_single_kernel(UpdatePendingExecutor{counters, total});
 }
 
 //---------------------------------------------------------------------------//
@@ -80,9 +80,8 @@ void update_counters(CoreStateCounterRef<MemSpace::host> const& core_counters,
 {
     CELER_EXPECT(core_counters.size() == 1);
     CELER_EXPECT(counters);
-    launch_kernel(1,
-                  UpdateGeneratorCountersExecutor{
-                      core_counters.data(), counters, state_size});
+    launch_single_kernel(UpdateGeneratorCountersExecutor{
+        core_counters.data(), counters, state_size});
 }
 
 //---------------------------------------------------------------------------//

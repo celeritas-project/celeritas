@@ -50,4 +50,18 @@ void launch_kernel(size_type num_threads, F&& execute_thread)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Run an executor on a single thread on CPU.
+ *
+ * This is for kernels that update a small amount of shared data, such as
+ * state counters. Unlike \c launch_kernel , it does not open an OpenMP
+ * parallel region.
+ */
+template<class F>
+void launch_single_kernel(F&& execute_thread)
+{
+    execute_thread(ThreadId{0});
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -134,4 +134,20 @@ void KernelLauncher<F>::operator()(
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Launch an executor on a single device thread.
+ *
+ * This is for kernels that update a small amount of shared data, such as
+ * state counters. One launcher is created for each executor type, named by
+ * the label of its first launch.
+ */
+template<class F>
+void launch_single_kernel(
+    char const* label, StreamId stream_id, F const& execute_thread)
+{
+    static KernelLauncher<F> const launch_kernel(label);
+    launch_kernel(1, stream_id, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
