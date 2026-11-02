@@ -58,7 +58,44 @@ class Copier
 };
 
 //---------------------------------------------------------------------------//
+// FUNCTIONS
 //---------------------------------------------------------------------------//
+
+/*!
+ * Copy a single value from the given memory space to the host.
+ *
+ * If the source is on the device, the copy is enqueued on the given stream
+ * and the stream is synchronized before returning.
+ */
+template<class T, MemSpace M>
+inline std::remove_const_t<T> load_sync(ObserverPtr<T, M> src,
+                                        StreamId stream = {})
+{
+    if constexpr (!std::is_const_v<T>)
+    {
+        return load_sync(ObserverPtr<T const, M>{src}, stream);
+    }
+    else
+    {
+        using value_type = std::remove_const_t<T>;
+        static_assert(is_trivially_copyable_v<value_type>,
+                      "Data is not trivially copyable");
+
+        CELER_EXPECT(src);
+        if constexpr (M == MemSpace::host)
+        {
+            return *static_cast<value_type const*>(src);
+        }
+        else
+        {
+            value_type result{};
+            Copier<value_type, MemSpace::host> copy_from{{&result, 1}, stream};
+            copy_from(M, {static_cast<value_type const*>(src), 1});
+            return result;
+        }
+    }
+}
+
 /*!
  * Copy bytes between two memory spaces.
  */
@@ -71,7 +108,6 @@ inline void copy_bytes(MemSpace dstmem,
     detail::copy_bytes_sync(dstmem, dst, srcmem, src, count);
 }
 
-//---------------------------------------------------------------------------//
 /*!
  * Asynchronously copy bytes between two memory spaces.
  */
@@ -85,7 +121,6 @@ inline void copy_bytes(MemSpace dstmem,
     detail::copy_bytes_async(dstmem, dst, srcmem, src, count, stream);
 }
 
-//---------------------------------------------------------------------------//
 /*!
  * Asynchronously copy bytes between two memory spaces on a stream.
  *
@@ -106,40 +141,6 @@ inline void copy_bytes(ObserverPtr<void, D> dst,
                              stream);
 }
 
-//---------------------------------------------------------------------------//
-/*!
- * Copy a single value from the given memory space to the host.
- *
- * If the source is on the device, the copy is enqueued on the given stream
- * and the stream is synchronized before returning.
- */
-template<class T, MemSpace M>
-std::remove_const_t<T> load_sync(ObserverPtr<T, M> src, StreamId stream)
-{
-    using value_type = std::remove_const_t<T>;
-    static_assert(is_trivially_copyable_v<value_type>,
-                  "Data is not trivially copyable");
-    CELER_EXPECT(src);
-
-    if constexpr (M != MemSpace::device)
-    {
-        return *static_cast<T const*>(src);
-    }
-    else
-    {
-        value_type result;
-        copy_bytes(MemSpace::host,
-                   &result,
-                   M,
-                   static_cast<T const*>(src),
-                   sizeof(value_type),
-                   stream);
-        device().stream(stream).sync();
-        return result;
-    }
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Copy data from the given source and memory space.
  */

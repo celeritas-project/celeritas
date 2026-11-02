@@ -99,9 +99,16 @@ TEST(LoadSyncTest, TEST_IF_CELER_DEVICE(device))
     StreamId stream{0};
     for (int i : range(host_vec.size()))
     {
-        int result = load_sync(
-            ObserverPtr<int, MemSpace::device>{device_vec.data() + i}, stream);
-        EXPECT_EQ(i, result);
+        ObserverPtr<int, MemSpace::device> p{device_vec.data() + i};
+        EXPECT_EQ(i, load_sync(p, stream));
+    }
+    {
+        // Test const overload
+        ObserverPtr<int const, MemSpace::device> p{device_vec.data() + 2};
+        EXPECT_EQ(2, load_sync(p, stream));
+
+        // Test without stream
+        EXPECT_EQ(2, load_sync(p));
     }
 }
 

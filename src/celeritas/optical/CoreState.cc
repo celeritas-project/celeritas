@@ -111,15 +111,9 @@ void CoreState<M>::insert_primaries(Span<TrackInitializer const>)
 template<MemSpace M>
 CoreStateCounters CoreState<M>::sync_get_counters() const
 {
-    auto* counters
-        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
+    auto counters = this->ref().init.counters.data();
     CELER_ASSERT(counters);
-    if constexpr (M == MemSpace::device)
-    {
-        return load_sync(ObserverPtr<CoreStateCounters, M>{counters},
-                         this->stream_id());
-    }
-    return *counters;
+    return load_sync(counters, this->stream_id());
 }
 
 //---------------------------------------------------------------------------//
