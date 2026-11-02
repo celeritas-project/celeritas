@@ -729,7 +729,7 @@ void test_reserve_initializers()
         init.sim.track_id = TrackId{10 + i};
         init.sim.event_id = EventId{i};
         init.particle.particle_id = ParticleId{i};
-        init.particle.energy = units::MevEnergy{1.5 * (i + 1)};
+        init.particle.energy = units::MevEnergy{real_type(1.5) * (i + 1)};
     }
 
     // Copy to the target memory space and grow the buffer
