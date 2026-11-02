@@ -47,20 +47,20 @@ extern char const expected_result_footer[];
  * Get a "least common denominator" for soft comparisons.
  */
 template<class T, class U = T>
-struct CommonPrecision
+struct SoftPrecisionType
 {
     using type = void;
 };
 
 template<class T>
-struct CommonPrecision<T, T>
+struct SoftPrecisionType<T, T>
 {
     using type = T;
 };
 
 #define CELERTEST_COMMON_PRECISION(TEMPLATE, T, U, V) \
     template<TEMPLATE> \
-    struct CommonPrecision<T, U> : CommonPrecision<V> \
+    struct SoftPrecisionType<T, U> : SoftPrecisionType<V> \
     { \
     }
 
@@ -76,7 +76,7 @@ CELERTEST_COMMON_PRECISION(class T, T, Constant, T);
 CELERTEST_COMMON_PRECISION(, Constant, Constant, double);
 
 template<class T, class U = T>
-using CommonPrecision_t = typename CommonPrecision<T, U>::type;
+using CommonPrecision_t = typename SoftPrecisionType<T, U>::type;
 
 /*!
  * Get a default soft comparison function.
@@ -91,10 +91,15 @@ inline constexpr bool can_soft_equiv = !std::is_void_v<CommonPrecision_t<T, U>>;
 
 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 //  FIXME: TRADING NAMESPACES
+//  (these are in the same space as the assertion helper and will be
+//  refactored)
 // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 }  // namespace testdetail
 namespace test
 {
+
+// Expose soft comparator type alias (to be refactored)
+using testdetail::SoftComparator_t;
 
 /*!
  * Perform a soft equality comparison, appending error details on failure.
@@ -108,24 +113,24 @@ bool is_soft_eq(
         return true;
     }
 
-    auto&& msg = helper.fail();
-    msg << "Value of: " << helper.actual_expr()
-        << "\n  Actual: " << repr(actual)
-        << "\nExpected: " << helper.expected_expr()
-        << "\nWhich is: " << repr(expected);
+    auto&& result = helper.fail();
+    result << "Value of: " << helper.actual_expr()
+           << "\n  Actual: " << repr(actual)
+           << "\nExpected: " << helper.expected_expr()
+           << "\nWhich is: " << repr(expected);
 
     if (std::fabs(actual - expected) > comp.abs())
     {
-        msg << '\n'
-            << "- absolute error " << repr(actual - expected)
-            << " exceeds tolerance " << repr(comp.abs());
+        result << '\n'
+               << "- absolute error " << repr(actual - expected)
+               << " exceeds tolerance " << repr(comp.abs());
     }
     if (expected != 0
         && std::fabs(actual - expected) > std::fabs(expected) * comp.rel())
 
     {
-        msg << "\n- relative error " << repr(actual / expected - 1)
-            << " exceeds tolerance " << repr(comp.rel());
+        result << "\n- relative error " << repr(actual / expected - 1)
+               << " exceeds tolerance " << repr(comp.rel());
     }
     return false;
 }
@@ -416,7 +421,6 @@ is_ref_eq(::celeritas::test::AssertionHelper& helper,
 //---------------------------------------------------------------------------//
 // Googletest vector macro implementations (deprecated?)
 //---------------------------------------------------------------------------//
-
 /*!
  * Compare a range of values.
  */
@@ -483,6 +487,7 @@ template<class Iter1, class Iter2, class BinaryOp>
     return result;
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Compare vectors with soft equivalence.
  *
@@ -820,6 +825,7 @@ template<class ContainerE, class ContainerA, class T>
         SoftComparator_t<common_type>(std::forward<T>(cmp_or_tol)));
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Dispatch reference comparison without a special tolerance.
  */
@@ -866,9 +872,6 @@ namespace test
 // Note these are in the same namespace as assertion helper. This should be
 // refactored to clean up recursive testing.
 //---------------------------------------------------------------------------//
-
-// Expose soft comparator type alias (to be refactored)
-using testdetail::SoftComparator_t;
 
 /*!
  * Perform a soft equality comparison, appending error details on failure.
