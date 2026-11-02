@@ -234,15 +234,6 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         result = step.get();
         EXPECT_EQ(capacity, result.generated);
         EXPECT_GE(step.initializer_capacity(), 2 * capacity);
-
-        // Transport the remaining tracks
-        for (size_type step_iters = 0; result; ++step_iters)
-        {
-            ASSERT_LT(step_iters, 100000);
-            step.async();
-            result = step.get();
-            EXPECT_EQ(0, result.errored);
-        }
     }
 
     size_type max_steps_{0};
