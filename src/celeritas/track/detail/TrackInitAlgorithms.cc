@@ -27,11 +27,12 @@ void remove_if_alive(
     TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
     StreamId)
 {
-    auto* start = init.vacancies.data().get();
-    auto* counters = init.counters.data().get();
+    auto* start = &(*init.vacancies.data());
     auto* stop
         = std::remove_if(start, start + init.vacancies.size(), LogicalNot{});
-    counters->num_vacancies = stop - start;
+    auto num_vacancies = make_observer(init.counters.data(),
+                                       &CoreStateCounters::num_vacancies);
+    *num_vacancies = stop - start;
     return;
 }
 

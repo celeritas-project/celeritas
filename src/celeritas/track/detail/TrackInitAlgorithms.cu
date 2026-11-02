@@ -41,13 +41,13 @@ void remove_if_alive(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"remove-if-alive"};
-    auto* counters = init.counters.data().get();
-    select_if_async(
-        init.vacancies.data(),
-        init.vacancies.size(),
-        ObserverPtr<size_type, MemSpace::device>{&counters->num_vacancies},
-        NotNull{},
-        stream_id);
+    auto num_vacancies = make_observer(init.counters.data(),
+                                       &CoreStateCounters::num_vacancies);
+    select_if_async(init.vacancies.data(),
+                    init.vacancies.size(),
+                    num_vacancies,
+                    NotNull{},
+                    stream_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -68,8 +68,7 @@ ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
 {
     ScopedProfiling profile_this{"prefix-sum-counts"};
     // Scan in place
-    exclusive_sum_async(
-        counts.data().get(), counts.data(), counts.size(), stream_id);
+    exclusive_sum_async(counts.data(), counts.data(), counts.size(), stream_id);
     // No synchronization since the next use of the results (data array), which
     // pulls the value from the results, will use another call on this stream
     return make_observer(counts.data().get() + counts.size() - 1);
