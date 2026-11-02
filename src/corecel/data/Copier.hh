@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "ObserverPtr.hh"
@@ -57,29 +58,6 @@ class Copier
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Copy a single value from device to host.
- *
- * The source of the data to copy is the function argument.
- */
-template<class T>
-class ItemCopier
-{
-    static_assert(is_trivially_copyable_v<T>, "Data is not trivially copyable");
-
-  public:
-    //! Default constructor
-    ItemCopier() = default;
-
-    //! Also construct with a stream ID to use for async copy
-    explicit ItemCopier(StreamId stream) : stream_{stream} {}
-
-    inline T operator()(T const* src) const;
-
-  private:
-    StreamId stream_;
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Copy bytes between two memory spaces.
@@ -130,6 +108,39 @@ inline void copy_bytes(ObserverPtr<void, D> dst,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Copy a single value from the given memory space to the host.
+ *
+ * If the source is on the device, the copy is enqueued on the given stream
+ * and the stream is synchronized before returning.
+ */
+template<class T, MemSpace M>
+std::remove_const_t<T> load_sync(ObserverPtr<T, M> src, StreamId stream)
+{
+    using value_type = std::remove_const_t<T>;
+    static_assert(is_trivially_copyable_v<value_type>,
+                  "Data is not trivially copyable");
+    CELER_EXPECT(src);
+
+    if constexpr (M != MemSpace::device)
+    {
+        return *static_cast<T const*>(src);
+    }
+    else
+    {
+        value_type result;
+        copy_bytes(MemSpace::host,
+                   &result,
+                   M,
+                   static_cast<T const*>(src),
+                   sizeof(value_type),
+                   stream);
+        device().stream(stream).sync();
+        return result;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Copy data from the given source and memory space.
  */
 template<class T, MemSpace M>
@@ -150,26 +161,6 @@ void Copier<T, M>::operator()(MemSpace srcmem, Span<T const> src) const
         copy_bytes(
             dstmem, dst_.data(), srcmem, src.data(), src.size() * sizeof(T));
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Copy a value from device to host.
- */
-template<class T>
-T ItemCopier<T>::operator()(T const* src) const
-{
-    T dst;
-    if (stream_)
-    {
-        copy_bytes(
-            MemSpace::host, &dst, MemSpace::device, src, sizeof(T), stream_);
-    }
-    else
-    {
-        copy_bytes(MemSpace::host, &dst, MemSpace::device, src, sizeof(T));
-    }
-    return dst;
 }
 
 //---------------------------------------------------------------------------//

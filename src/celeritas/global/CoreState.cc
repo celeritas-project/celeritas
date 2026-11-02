@@ -153,10 +153,8 @@ CoreStateCounters CoreState<M>::sync_get_counters() const
     CELER_ASSERT(counters);
     if constexpr (M == MemSpace::device)
     {
-        auto result
-            = ItemCopier<CoreStateCounters>{this->stream_id()}(counters);
-        device().stream(this->stream_id()).sync();
-        return result;
+        return load_sync(ObserverPtr<CoreStateCounters, M>{counters},
+                         this->stream_id());
     }
     return *counters;
 }

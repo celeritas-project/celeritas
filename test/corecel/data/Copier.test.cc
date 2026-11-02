@@ -87,20 +87,28 @@ TEST(CopyBytesTest, TEST_IF_CELER_DEVICE(device_memcpy_stream))
     EXPECT_VEC_EQ(host_vec, std::vector<int>(result.begin(), result.end()));
 }
 
-TEST(ItemCopierTest, TEST_IF_CELER_DEVICE(device))
+TEST(LoadSyncTest, TEST_IF_CELER_DEVICE(device))
 {
     // Initialize data on device
     std::vector<int> host_vec{0, 1, 2, 3, 4};
     DeviceVector<int> device_vec(host_vec.size());
     device_vec.copy_to_device(make_span(host_vec));
 
-    // Copy elements to host
-    ItemCopier<int> copy{};
+    // Copy elements to host on a stream
+    device().create_streams(1);
+    StreamId stream{0};
     for (int i : range(host_vec.size()))
     {
-        int result = copy(device_vec.data() + i);
+        int result = load_sync(
+            ObserverPtr<int, MemSpace::device>{device_vec.data() + i}, stream);
         EXPECT_EQ(i, result);
     }
+}
+
+TEST(LoadSyncTest, host)
+{
+    int value = 1234;
+    EXPECT_EQ(1234, load_sync(ObserverPtr<int, MemSpace::host>{&value}, {}));
 }
 
 //---------------------------------------------------------------------------//
