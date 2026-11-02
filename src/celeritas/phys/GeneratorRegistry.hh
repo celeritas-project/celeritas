@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -30,6 +31,7 @@ class GeneratorRegistry
     //! \name Type aliases
     using SPGenerator = std::shared_ptr<GeneratorInterface>;
     using SPConstGenerator = std::shared_ptr<GeneratorInterface const>;
+    using GeneratorFunc = std::function<void(GeneratorInterface const&)>;
     //!@}
 
   public:
@@ -62,14 +64,8 @@ class GeneratorRegistry
     // Find the ID corresponding to an label
     GeneratorId find(std::string const& label) const;
 
-    // Update the host copy of the generator counters
-    void sync_counters(AuxStateVec&) const;
-
-    // Clear the generated counts at the start of a transport loop
-    void clear_generated(AuxStateVec&) const;
-
-    // Reset the generators if the loop aborted early
-    void reset(AuxStateVec&) const;
+    // Apply a function to every generator in order of ID
+    void foreach_generator(GeneratorFunc const& apply) const;
 
   private:
     std::vector<SPGenerator> generators_;

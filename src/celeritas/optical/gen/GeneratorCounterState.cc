@@ -103,7 +103,9 @@ void GeneratorCounterState<M>::copy_async()
  * Synchronize and update the host counters and statistics.
  *
  * The increments accumulated in the state's memory space are added to the
- * accumulated statistics and cleared.
+ * accumulated statistics and cleared. This waits for the counters to be
+ * copied from the device, so it should not be called while stepping except
+ * for diagnostics.
  */
 template<MemSpace M>
 void GeneratorCounterState<M>::sync_counters()

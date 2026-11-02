@@ -50,40 +50,21 @@ GeneratorId GeneratorRegistry::find(std::string const& label) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Update the host copy of the generator counters.
+ * Apply a function to every generator in order of ID.
  *
- * This waits for the generator counters to be copied from the device, so it
- * should not be called while stepping except for diagnostics.
+ * This is used to update the generator states for a stream, for example:
+ * \code
+   gen_reg.foreach_generator([&aux](GeneratorInterface const& gen) {
+       gen.counters(aux).sync_counters();
+   });
+   \endcode
  */
-void GeneratorRegistry::sync_counters(AuxStateVec& aux) const
+void GeneratorRegistry::foreach_generator(GeneratorFunc const& apply) const
 {
+    CELER_EXPECT(apply);
     for (auto id : range(GeneratorId{this->size()}))
     {
-        this->at(id)->counters(aux).sync_counters();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Clear the generated counts at the start of a transport loop.
- */
-void GeneratorRegistry::clear_generated(AuxStateVec& aux) const
-{
-    for (auto id : range(GeneratorId{this->size()}))
-    {
-        this->at(id)->counters(aux).clear_generated();
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reset the generators if the loop aborted early.
- */
-void GeneratorRegistry::reset(AuxStateVec& aux) const
-{
-    for (auto id : range(GeneratorId{this->size()}))
-    {
-        this->at(id)->reset(aux);
+        apply(*this->at(id));
     }
 }
 
