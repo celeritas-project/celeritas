@@ -169,6 +169,7 @@ CELER_CTAD_FUNCTION ObserverPtr(T*) -> ObserverPtr<T>;
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
+
 //! Swap two pointers
 template<class T, MemSpace M>
 CELER_CONSTEXPR_FUNCTION void swap(ObserverPtr<T, M>& lhs,
@@ -177,7 +178,6 @@ CELER_CONSTEXPR_FUNCTION void swap(ObserverPtr<T, M>& lhs,
     return lhs.swap(rhs);
 }
 
-//---------------------------------------------------------------------------//
 //! Create an observer pointer from a pointer in the native memspace.
 template<class T>
 inline ObserverPtr<T> make_observer(T* ptr) noexcept
@@ -185,8 +185,26 @@ inline ObserverPtr<T> make_observer(T* ptr) noexcept
     return ObserverPtr<T>{ptr};
 }
 
-//! Create an observer pointer to a data member in any namespace.
-template<class T, MemSpace M, class U, class C>
+/*!
+ * Create an observer pointer to a data member in any memspace.
+ *
+ * This only uses pointer arithmetic: it is OK to use this function with device
+ * pointers in a host function.
+ *
+ * \par Example
+ *
+ * Get a pointer to the num_vacancies member from an ObserverPtr regardless of
+ * memspace:
+ * \code
+    auto vacancy_ptr = make_observer(counters_ptr, &Counters::num_vacancies);
+ * \endcode
+ */
+template<class T,
+         MemSpace M,
+         class U,
+         class C,
+         std::enable_if_t<std::is_convertible_v<std::remove_const_t<T>*, C*>,
+                          bool> = true>
 CELER_CONSTEXPR_FUNCTION auto make_observer(ObserverPtr<T, M> ptr,
                                             U C::* member) noexcept -> auto
 {

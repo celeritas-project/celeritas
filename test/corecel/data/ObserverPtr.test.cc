@@ -27,6 +27,11 @@ struct ExampleStruct
     int bar{0};
 };
 
+struct ExampleStructDerived : ExampleStruct
+{
+    int baz{0};
+};
+
 class ObserverPtrTest : public ::celeritas::test::Test
 {
   protected:
@@ -53,10 +58,15 @@ TEST_F(ObserverPtrTest, host)
     EXPECT_EQ(nullptr, obs.get());
     EXPECT_TRUE(obs == nullptr);
 
-    auto cobs = make_observer(const_cast<VecInt const*>(&some_data));
-    EXPECT_TRUE((std::is_same_v<decltype(cobs),
-                                ObserverPtr<VecInt const, MemSpace::host>>));
-    EXPECT_EQ(4, cobs->size());
+    auto cobs = make_observer(const_cast<int const*>(some_data.data()));
+    EXPECT_TRUE((
+        std::is_same_v<decltype(cobs), ObserverPtr<int const, MemSpace::host>>));
+    EXPECT_EQ(1, *cobs);
+
+#ifdef CELERITAS_SHOULD_NOT_COMPILE
+    // Const correctness: should not convert from const to mutable
+    ObserverPtr<int>{cobs};
+#endif
 }
 
 TEST_F(ObserverPtrTest, TEST_IF_CELER_DEVICE(device))
@@ -109,6 +119,39 @@ TEST_F(ObserverPtrTest, host_member)
     auto cfoo = make_observer(cstruct_ptr, &ExampleStruct::foo);
     EXPECT_TRUE((
         std::is_same_v<decltype(cfoo), ObserverPtr<int const, MemSpace::host>>));
+}
+
+TEST_F(ObserverPtrTest, host_derived_member)
+{
+    ExampleStructDerived esd;
+    esd.foo = 3;
+    esd.bar = 5;
+    esd.baz = 11;
+
+    auto esd_ptr = make_observer(&esd);
+    {
+        auto baz_ptr = make_observer(esd_ptr, &ExampleStructDerived::baz);
+        EXPECT_EQ(11, *baz_ptr);
+    }
+    {
+        auto foo_ptr = make_observer(esd_ptr, &ExampleStruct::foo);
+        EXPECT_EQ(3, *foo_ptr);
+    }
+    {
+        auto base_ptr = ObserverPtr<ExampleStruct>(esd_ptr);
+#ifdef CELERITAS_SHOULD_NOT_COMPILE
+        make_observer(base_ptr, &ExampleStructDerived::baz);
+#endif
+        // Since ESD::bar is ES::bar, this actually works:
+        auto bar_ptr = make_observer(base_ptr, &ExampleStructDerived::bar);
+        EXPECT_EQ(5, *bar_ptr);
+    }
+    {
+        // Slice base class from derived
+        auto es_cptr = ObserverPtr<ExampleStruct const>(esd_ptr);
+        auto bar_ptr = make_observer(es_cptr, &ExampleStruct::bar);
+        EXPECT_EQ(5, *bar_ptr);
+    }
 }
 
 TEST_F(ObserverPtrTest, TEST_IF_CELER_DEVICE(device_member))
