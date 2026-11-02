@@ -25,22 +25,8 @@ namespace celeritas
 {
 class Constant;
 
-namespace test
-{
-// Forward declare functions from bottom
-template<class T>
-bool is_soft_eq(
-    AssertionHelper& helper, T expected, T actual, EqualOr<SoftEqual<T>> comp);
-
-}  // namespace test
-
 namespace testdetail
 {
-//---------------------------------------------------------------------------//
-
-template<class T>
-using SoftComparator_t = EqualOr<SoftEqual<T>>;
-
 //---------------------------------------------------------------------------//
 // FUNCTION DECLARATIONS
 //---------------------------------------------------------------------------//
@@ -51,14 +37,146 @@ int num_digits(unsigned long val);
 // Return a replacement string if the given string is too long
 char const* trunc_string(int digits, char const* str, char const* trunc);
 
-// Compare two JSON objects
-::testing::AssertionResult IsJsonEq(char const* expected_expr,
-                                    char const* actual_expr,
-                                    std::string_view expected,
-                                    std::string_view actual);
-
 extern char const expected_result_header[];
 extern char const expected_result_footer[];
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get a "least common denominator" for soft comparisons.
+ */
+template<class T, class U = T>
+struct CommonPrecision
+{
+    using type = void;
+};
+
+template<class T>
+struct CommonPrecision<T, T>
+{
+    using type = T;
+};
+
+#define CELERTEST_COMMON_PRECISION(TEMPLATE, T, U, V) \
+    template<TEMPLATE> \
+    struct CommonPrecision<T, U> : CommonPrecision<V> \
+    { \
+    }
+
+// When comparing doubles to floats, use the floating point epsilon for
+// comparison
+CELERTEST_COMMON_PRECISION(, double, float, float);
+CELERTEST_COMMON_PRECISION(, float, double, float);
+// Allow reference type to be an int (i.e. user writes 0 or 1 instead of 0.)
+CELERTEST_COMMON_PRECISION(class T, int, T, T);
+// Allow reference or actual type to be a constant
+CELERTEST_COMMON_PRECISION(class T, Constant, T, T);
+CELERTEST_COMMON_PRECISION(class T, T, Constant, T);
+CELERTEST_COMMON_PRECISION(, Constant, Constant, double);
+
+template<class T, class U = T>
+using CommonPrecision_t = typename CommonPrecision<T, U>::type;
+
+/*!
+ * Get a default soft comparison function.
+ */
+template<class T>
+using SoftComparator_t = EqualOr<SoftEqual<T>>;
+
+//---------------------------------------------------------------------------//
+//! Whether soft equivalence can be performed on the given types.
+template<class T, class U>
+inline constexpr bool can_soft_equiv = !std::is_void_v<CommonPrecision_t<T, U>>;
+
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
+//  FIXME: TRADING NAMESPACES
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
+}  // namespace testdetail
+namespace test
+{
+
+/*!
+ * Perform a soft equality comparison, appending error details on failure.
+ */
+template<class T>
+bool is_soft_eq(
+    AssertionHelper& helper, T expected, T actual, SoftComparator_t<T> comp)
+{
+    if (comp(expected, actual))
+    {
+        return true;
+    }
+
+    auto&& msg = helper.fail();
+    msg << "Value of: " << helper.actual_expr()
+        << "\n  Actual: " << repr(actual)
+        << "\nExpected: " << helper.expected_expr()
+        << "\nWhich is: " << repr(expected);
+
+    if (std::fabs(actual - expected) > comp.abs())
+    {
+        msg << '\n'
+            << "- absolute error " << repr(actual - expected)
+            << " exceeds tolerance " << repr(comp.abs());
+    }
+    if (expected != 0
+        && std::fabs(actual - expected) > std::fabs(expected) * comp.rel())
+
+    {
+        msg << "\n- relative error " << repr(actual / expected - 1)
+            << " exceeds tolerance " << repr(comp.rel());
+    }
+    return false;
+}
+
+}  // namespace test
+namespace testdetail
+{
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
+
+/*!
+ * Predicate for relative error soft equivalence.
+ */
+template<class VE, class VA>
+::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
+                                       char const* actual_expr,
+                                       const VE& expected,
+                                       const VA& actual)
+{
+    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
+
+    using common_type = CommonPrecision_t<VE, VA>;
+    test::AssertionHelper result{expected_expr, actual_expr};
+    is_soft_eq(result,
+               static_cast<common_type>(expected),
+               static_cast<common_type>(actual),
+               SoftComparator_t<common_type>());
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Predicate for relative error soft equivalence.
+ */
+template<class VE, class VA, class T>
+::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
+                                       char const* actual_expr,
+                                       char const*,
+                                       VE const& expected,
+                                       VA const& actual,
+                                       T&& cmp_or_tol)
+{
+    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
+
+    using common_type = CommonPrecision_t<VE, VA>;
+    test::AssertionHelper result{expected_expr, actual_expr};
+    is_soft_eq(result,
+               static_cast<common_type>(expected),
+               static_cast<common_type>(actual),
+               SoftComparator_t<common_type>(std::forward<T>(cmp_or_tol)));
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 // CONTAINER EQUIVALENCE
@@ -110,6 +228,83 @@ struct FVIT
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Check if type T is a container that needs recursive checking.
+ */
+template<class T, class = void>
+struct IsContainer : std::false_type
+{
+};
+
+template<>
+struct IsContainer<std::string> : std::false_type
+{
+};
+
+template<>
+struct IsContainer<std::string_view> : std::false_type
+{
+};
+
+template<class T>
+struct IsContainer<T, std::void_t<typename T::const_iterator>> : std::true_type
+{
+};
+
+template<class T, std::size_t N>
+struct IsContainer<T[N]> : std::true_type
+{
+};
+
+//! Whether a type is a container
+template<class T>
+inline constexpr bool IsContainer_v = IsContainer<T>::value;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the type of a container.
+ */
+template<class T, class = void>
+struct ValueType
+{
+    using type = typename T::value_type;
+};
+
+template<class T, std::size_t N>
+struct ValueType<T[N]>
+{
+    using type = T;
+};
+
+template<class T>
+using ValueType_t = typename ValueType<T>::type;
+
+//---------------------------------------------------------------------------//
+
+//! Whether a container *holds* another container
+template<class T>
+inline constexpr bool IsNestedContainer_v = IsContainer_v<ValueType_t<T>>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Recursively get the underlying scalar type of a container.
+ */
+template<class T, class = void>
+struct ScalarValueType
+{
+    using type = T;
+};
+
+template<class T>
+struct ScalarValueType<T, std::enable_if_t<IsContainer_v<T>>>
+{
+    using type = typename ScalarValueType<ValueType_t<T>>::type;
+};
+
+template<class T>
+using ScalarValueType_t = typename ScalarValueType<T>::type;
+
+//---------------------------------------------------------------------------//
 // CELER_REPR_ATTR IMPLEMENTATION
 //---------------------------------------------------------------------------//
 
@@ -130,45 +325,6 @@ struct StreamableAttr
 // CTAD for C++17
 template<class T>
 StreamableAttr(char const*, T const&) -> StreamableAttr<T>;
-
-//---------------------------------------------------------------------------//
-// EXPECTED RESULT PRINTING
-//---------------------------------------------------------------------------//
-
-/*!
- * Print expected values of a container
- *
- * \todo deprecate: use repr
- */
-template<class Container>
-std::enable_if_t<IsContainer_v<Container>, void> print_expected(
-    Container const& data)
-{
-    using RT = ReprTraits<Container>;
-    using VRT = ReprTraits<typename RT::value_type>;
-
-    std::cout << "static ";
-    VRT::print_type(std::cout, "const ref");
-    std::cout << "[] = ";
-
-    std::ios orig_state(nullptr);
-    orig_state.copyfmt(std::cout);
-    VRT::init(std::cout);
-    RT::print_value(std::cout, data);
-    std::cout.copyfmt(orig_state);
-
-    std::cout << ";\n";
-}
-
-//! Print expected values for a reference result with header/footer
-template<class Result>
-std::enable_if_t<IsRefResult_v<Result>, void> print_expected(
-    Result const& result)
-{
-    std::cout << expected_result_header << Result::class_str
-              << " ref = " << result << ";\n"
-              << expected_result_footer;
-}
 
 //---------------------------------------------------------------------------//
 // is_ref_eq
@@ -258,107 +414,14 @@ is_ref_eq(::celeritas::test::AssertionHelper& helper,
 }
 
 //---------------------------------------------------------------------------//
-// VECTOR FAILURE IMPLEMENTATION
+// Googletest vector macro implementations (deprecated?)
 //---------------------------------------------------------------------------//
-
-/*!
- * Print failure results.
- */
-template<class T1, class T2>
-std::string failure_msg(char const* expected_expr,
-                        char const* actual_expr,
-                        std::vector<FailedValue<T1, T2>> const& failures)
-{
-    using RT1 = ReprTraits<T1>;
-    using RT2 = ReprTraits<T2>;
-    using std::setw;
-
-    // Calculate how many digits we need to space out
-    int idig = num_digits(static_cast<unsigned long>(failures.back().index));
-    int vdig = 16;
-
-    // Construct our own stringstream because google test ignores setw
-    std::ostringstream os;
-    RT2::init(os);
-    RT1::init(os);
-
-    // Print column headers (unless expected/actual is too long)
-    os << setw(idig) << 'i' << ' ' << setw(vdig)
-       << trunc_string(vdig, expected_expr, "EXPECTED") << ' ' << setw(vdig)
-       << trunc_string(vdig, actual_expr, "ACTUAL") << '\n';
-
-    // Loop through failed indices and print values
-    for (auto const& f : failures)
-    {
-        os << setw(idig) << f.index << ' ' << setw(vdig);
-        RT1::print_value(os, f.expected);
-        os << ' ' << setw(vdig);
-        RT2::print_value(os, f.actual);
-        os << '\n';
-    }
-    return os.str();
-}
-
-/*!
- * Print failure results for floating point comparisons.
- */
-template<class T1, class T2>
-std::string float_failure_msg(char const* expected_expr,
-                              char const* actual_expr,
-                              std::vector<FailedValue<T1, T2>> const& failures,
-                              double abs_thresh)
-{
-    using std::setprecision;
-    using std::setw;
-
-    // Calculate how many digits we need to space out the index
-    int idig = num_digits(static_cast<unsigned long>(failures.back().index));
-    int vdig = std::max(std::numeric_limits<T1>::digits10,
-                        std::numeric_limits<T2>::digits10);
-
-    // Construct our own stringstream because google test ignores setw
-    std::ostringstream os;
-    os << setprecision(vdig);
-    vdig += 4;
-
-    // Try to use user-given expressions for headers, but fall back if the
-    // column length is exceeded
-    std::string e_expr(expected_expr);
-    std::string a_expr(actual_expr);
-
-    os << setw(idig) << 'i' << ' ' << setw(vdig)
-       << trunc_string(vdig, expected_expr, "EXPECTED") << setw(vdig)
-       << trunc_string(vdig, actual_expr, "ACTUAL") << setw(vdig)
-       << "Difference" << '\n';
-
-    // Loop through failed indices and print values
-    for (auto const& f : failures)
-    {
-        os << setw(idig) << f.index << ' ' << setw(vdig) << f.expected << ' '
-           << setw(vdig) << f.actual << ' ' << setw(vdig);
-
-        if (std::isinf(f.expected))
-        {
-            os << "---";
-        }
-        else if (std::fabs(f.expected) > abs_thresh)
-        {
-            os << (f.actual - f.expected) / f.expected;
-        }
-        else
-        {
-            os << f.actual - f.expected;
-        }
-        os << '\n';
-    }
-    return os.str();
-}
 
 /*!
  * Compare a range of values.
  */
 template<class Iter1, class Iter2, class BinaryOp>
-::testing::AssertionResult is_range_eq(
+::testing::AssertionResult IsRangeEqImpl(
     Iter1 e_iter,
     Iter1 e_end,
     char const* expected_expr,
@@ -420,53 +483,6 @@ template<class Iter1, class Iter2, class BinaryOp>
     return result;
 }
 
-//---------------------------------------------------------------------------//
-// GTEST MACRO IMPLEMENTATION
-//---------------------------------------------------------------------------//
-
-/*!
- * Predicate for relative error soft equivalence.
- */
-template<class VE, class VA>
-::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
-                                       char const* actual_expr,
-                                       const VE& expected,
-                                       const VA& actual)
-{
-    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
-
-    using common_type = CommonPrecision_t<VE, VA>;
-    test::AssertionHelper result{expected_expr, actual_expr};
-    is_soft_eq(result,
-               static_cast<common_type>(expected),
-               static_cast<common_type>(actual),
-               SoftComparator_t<common_type>());
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Predicate for relative error soft equivalence.
- */
-template<class VE, class VA, class T>
-::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
-                                       char const* actual_expr,
-                                       char const*,
-                                       VE const& expected,
-                                       VA const& actual,
-                                       T&& cmp_or_tol)
-{
-    static_assert(can_soft_equiv<VE, VA>, "Invalid types for soft equivalence");
-
-    using common_type = CommonPrecision_t<VE, VA>;
-    test::AssertionHelper result{expected_expr, actual_expr};
-    is_soft_eq(result,
-               static_cast<common_type>(expected),
-               static_cast<common_type>(actual),
-               SoftComparator_t<common_type>(std::forward<T>(cmp_or_tol)));
-    return result;
-}
-
 /*!
  * Compare vectors with soft equivalence.
  *
@@ -516,14 +532,14 @@ template<class ContainerE, class ContainerA, class BinaryOp>
                                      typename Traits_t::second_type>;
         std::vector<Failed_t> failures;
 
-        ::testing::AssertionResult result = is_range_eq(std::begin(expected),
-                                                        std::end(expected),
-                                                        expected_expr,
-                                                        std::begin(actual),
-                                                        std::end(actual),
-                                                        actual_expr,
-                                                        failures,
-                                                        comp);
+        ::testing::AssertionResult result = IsRangeEqImpl(std::begin(expected),
+                                                          std::end(expected),
+                                                          expected_expr,
+                                                          std::begin(actual),
+                                                          std::end(actual),
+                                                          actual_expr,
+                                                          failures,
+                                                          comp);
 
         if (!result)
         {
@@ -546,6 +562,138 @@ template<class ContainerE, class ContainerA, class BinaryOp>
     }
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Print failure results.
+ */
+template<class T1, class T2>
+std::string failure_msg(char const* expected_expr,
+                        char const* actual_expr,
+                        std::vector<FailedValue<T1, T2>> const& failures)
+{
+    using RT1 = ReprTraits<T1>;
+    using RT2 = ReprTraits<T2>;
+    using std::setw;
+
+    // Calculate how many digits we need to space out
+    int idig = num_digits(static_cast<unsigned long>(failures.back().index));
+    int vdig = 16;
+
+    // Construct our own stringstream because google test ignores setw
+    std::ostringstream os;
+    RT2::init(os);
+    RT1::init(os);
+
+    // Print column headers (unless expected/actual is too long)
+    os << setw(idig) << 'i' << ' ' << setw(vdig)
+       << trunc_string(vdig, expected_expr, "EXPECTED") << ' ' << setw(vdig)
+       << trunc_string(vdig, actual_expr, "ACTUAL") << '\n';
+
+    // Loop through failed indices and print values
+    for (auto const& f : failures)
+    {
+        os << setw(idig) << f.index << ' ' << setw(vdig);
+        RT1::print_value(os, f.expected);
+        os << ' ' << setw(vdig);
+        RT2::print_value(os, f.actual);
+        os << '\n';
+    }
+    return os.str();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print failure results for floating point comparisons.
+ */
+template<class T1, class T2>
+std::string float_failure_msg(char const* expected_expr,
+                              char const* actual_expr,
+                              std::vector<FailedValue<T1, T2>> const& failures,
+                              double abs_thresh)
+{
+    using std::setprecision;
+    using std::setw;
+
+    // Calculate how many digits we need to space out the index
+    int idig = num_digits(static_cast<unsigned long>(failures.back().index));
+    int vdig = std::max(std::numeric_limits<T1>::digits10,
+                        std::numeric_limits<T2>::digits10);
+
+    // Construct our own stringstream because google test ignores setw
+    std::ostringstream os;
+    os << setprecision(vdig);
+    vdig += 4;
+
+    // Try to use user-given expressions for headers, but fall back if the
+    // column length is exceeded
+    std::string e_expr(expected_expr);
+    std::string a_expr(actual_expr);
+
+    os << setw(idig) << 'i' << ' ' << setw(vdig)
+       << trunc_string(vdig, expected_expr, "EXPECTED") << setw(vdig)
+       << trunc_string(vdig, actual_expr, "ACTUAL") << setw(vdig)
+       << "Difference" << '\n';
+
+    // Loop through failed indices and print values
+    for (auto const& f : failures)
+    {
+        os << setw(idig) << f.index << ' ' << setw(vdig) << f.expected << ' '
+           << setw(vdig) << f.actual << ' ' << setw(vdig);
+
+        if (std::isinf(f.expected))
+        {
+            os << "---";
+        }
+        else if (std::fabs(f.expected) > abs_thresh)
+        {
+            os << (f.actual - f.expected) / f.expected;
+        }
+        else
+        {
+            os << f.actual - f.expected;
+        }
+        os << '\n';
+    }
+    return os.str();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print expected values of a container
+ *
+ * \todo deprecate: use repr
+ */
+template<class Container>
+std::enable_if_t<IsContainer_v<Container>, void> print_expected(
+    Container const& data)
+{
+    using RT = ReprTraits<Container>;
+    using VRT = ReprTraits<typename RT::value_type>;
+
+    std::cout << "static ";
+    VRT::print_type(std::cout, "const ref");
+    std::cout << "[] = ";
+
+    std::ios orig_state(nullptr);
+    orig_state.copyfmt(std::cout);
+    VRT::init(std::cout);
+    RT::print_value(std::cout, data);
+    std::cout.copyfmt(orig_state);
+
+    std::cout << ";\n";
+}
+
+//! Print expected values for a reference result with header/footer
+template<class Result>
+std::enable_if_t<IsRefResult_v<Result>, void> print_expected(
+    Result const& result)
+{
+    std::cout << expected_result_header << Result::class_str
+              << " ref = " << result << ";\n"
+              << expected_result_footer;
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Compare two containers.
  */
@@ -591,14 +739,14 @@ template<class ContainerE, class ContainerA>
         typename Traits_t::VecFailedValue failures;
 
         ::testing::AssertionResult result
-            = is_range_eq(std::begin(expected),
-                          std::end(expected),
-                          expected_expr,
-                          std::begin(actual),
-                          std::end(actual),
-                          actual_expr,
-                          failures,
-                          std::equal_to<typename Traits_t::common_type>());
+            = IsRangeEqImpl(std::begin(expected),
+                            std::end(expected),
+                            expected_expr,
+                            std::begin(actual),
+                            std::end(actual),
+                            actual_expr,
+                            failures,
+                            std::equal_to<typename Traits_t::common_type>());
 
         if (!result)
         {
@@ -618,6 +766,7 @@ template<class ContainerE, class ContainerA>
     }
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Compare two containers using soft equivalence.
  */
@@ -641,6 +790,7 @@ template<class ContainerE, class ContainerA>
                               SoftComparator_t<common_type>());
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Compare two containers using soft equivalence.
  *
@@ -699,6 +849,15 @@ template<class E, class A, class T>
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Compare two JSON objects.
+ */
+::testing::AssertionResult IsJsonEq(char const* expected_expr,
+                                    char const* actual_expr,
+                                    std::string_view expected,
+                                    std::string_view actual);
+
+//---------------------------------------------------------------------------//
 }  // namespace testdetail
 
 namespace test
@@ -724,40 +883,6 @@ bool is_eq(AssertionHelper& helper, char const* attrname, T expected, T actual)
 
     helper.fail() << "Expected " << attrname << ": " << repr(expected)
                   << " but got " << repr(actual);
-    return false;
-}
-
-/*!
- * Perform a soft equality comparison, appending error details on failure.
- */
-template<class T>
-bool is_soft_eq(
-    AssertionHelper& helper, T expected, T actual, SoftComparator_t<T> comp)
-{
-    if (comp(expected, actual))
-    {
-        return true;
-    }
-
-    auto&& msg = helper.fail();
-    msg << "Value of: " << helper.actual_expr()
-        << "\n  Actual: " << repr(actual)
-        << "\nExpected: " << helper.expected_expr()
-        << "\nWhich is: " << repr(expected);
-
-    if (std::fabs(actual - expected) > comp.abs())
-    {
-        msg << '\n'
-            << "- absolute error " << repr(actual - expected)
-            << " exceeds tolerance " << repr(comp.abs());
-    }
-    if (expected != 0
-        && std::fabs(actual - expected) > std::fabs(expected) * comp.rel())
-
-    {
-        msg << "\n- relative error " << repr(actual / expected - 1)
-            << " exceeds tolerance " << repr(comp.rel());
-    }
     return false;
 }
 
