@@ -148,6 +148,7 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
 template<MemSpace M>
 CoreStateCounters CoreState<M>::sync_get_counters() const
 {
+    ScopedProfiling profile_this{"sync-get-counters"};
     auto counters = this->ref().init.counters.data();
     CELER_ASSERT(counters);
     return load_sync(counters, this->stream_id());
@@ -163,6 +164,7 @@ CoreStateCounters CoreState<M>::sync_get_counters() const
 template<MemSpace M>
 void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 {
+    ScopedProfiling profile_this{"sync-put-counters"};
     Copier<CoreStateCounters, M> copy{this->ref().init.counters.data(),
                                       this->stream_id()};
     copy(make_observer(&host_counters));

@@ -123,6 +123,12 @@ inline std::remove_const_t<T> load_sync(ObserverPtr<T, M> src,
             Copier<value_type, MemSpace::host> copy_from{
                 ObserverPtr<value_type, MemSpace::host>{&result}, 1, stream};
             copy_from(M, {static_cast<value_type const*>(src), 1});
+            if (stream)
+            {
+                // Since result isn't pinned, the underlying copy call should
+                // have synchronized, but sync explicitly to be clearer.
+                device().stream(stream).sync();
+            }
             return result;
         }
     }
