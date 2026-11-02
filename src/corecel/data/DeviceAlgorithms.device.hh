@@ -8,6 +8,8 @@
 
 #include "corecel/DeviceRuntimeApi.hh"
 
+#include "corecel/sys/ThreadId.hh"
+
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_reduce.cuh>
 #    include <cub/device/device_scan.cuh>
