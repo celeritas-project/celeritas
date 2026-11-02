@@ -57,7 +57,18 @@ class Copier
     {
     }
 
+    // Load from a span of data
     inline void operator()(MemSpace srcmem, Span<T const> src) const;
+
+    // Load from a single element
+    template<MemSpace M2>
+    inline void operator()(ObserverPtr<T const, M2>) const;
+
+    template<MemSpace M2>
+    inline void operator()(ObserverPtr<T, M2> src) const
+    {
+        return (*this)(ObserverPtr<T const, M2>{src});
+    }
 
   private:
     ObserverPtr<T, M> dst_;
@@ -180,6 +191,17 @@ void Copier<T, M>::operator()(MemSpace srcmem, Span<T const> src) const
                    src.data(),
                    size_ * sizeof(T));
     }
+}
+
+/*!
+ * Copy a single element of data from the given source and memory space.
+ */
+template<class T, MemSpace M>
+template<MemSpace M2>
+inline void Copier<T, M>::operator()(ObserverPtr<T const, M2> src) const
+{
+    CELER_EXPECT(src);
+    return (*this)(M2, {static_cast<T const*>(src), 1});
 }
 
 //---------------------------------------------------------------------------//

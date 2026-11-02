@@ -37,6 +37,18 @@ TEST(CopierTest, host)
     EXPECT_EQ(1234, dst_vec.back());
 }
 
+TEST(CopierTest, host_single_el)
+{
+    int temp_dst{-1};
+    int temp_src{123};
+    Copier copy{make_observer(&temp_dst), 1, {}};
+    copy(make_observer(&temp_src));
+    EXPECT_EQ(123, temp_dst);
+    temp_src = 4;
+    copy(make_observer<int const>(&temp_src));
+    EXPECT_EQ(4, temp_dst);
+}
+
 TEST(CopierTest, TEST_IF_CELER_DEVICE(device))
 {
     // Copy host --> device
@@ -87,6 +99,21 @@ TEST(CopyBytesTest, TEST_IF_CELER_DEVICE(device_memcpy_stream))
                                                  stream);
     stream.sync();
     EXPECT_VEC_EQ(host_vec, std::vector<int>(result.begin(), result.end()));
+}
+
+TEST(CopierTest, TEST_IF_CELER_DEVICE(device_single_el))
+{
+    device().create_streams(1);
+    DeviceVector<int> device_vec(1);
+    {
+        int src{1234};
+        device_vec.copy_to_device({&src, 1});
+    }
+
+    int dst{-1};
+    Copier copy{make_observer(&dst), 1, StreamId{0}};
+    copy(ObserverPtr<int const, MemSpace::device>{device_vec.data()});
+    EXPECT_EQ(1234, dst);
 }
 
 TEST(LoadSyncTest, TEST_IF_CELER_DEVICE(device))
