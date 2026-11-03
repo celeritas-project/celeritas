@@ -106,7 +106,7 @@ struct RunnerInput
     // Control
     unsigned int seed{};
     size_type num_track_slots{};  //!< Per-process track slots
-    size_type initializer_capacity{};  //!< Per-process initializer buffer size
+    size_type initializer_capacity{};  //!< Per-process starting capacity
     real_type secondary_stack_factor{};
     size_type max_steps = static_cast<size_type>(-1);  //!< Step *iterations*
     InterpolationType interpolation{InterpolationType::linear};
