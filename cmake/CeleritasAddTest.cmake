@@ -306,8 +306,9 @@ function(celeritas_add_test SOURCE_FILE)
     # Create an executable and link libraries against it
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
 
-    set_property(TARGET ${_TARGET}
-      PROPERTY OUTPUT_NAME "${_OUTPUT_NAME}"
+    set_target_properties("${_TARGET}" PROPERTIES
+      OUTPUT_NAME "${_OUTPUT_NAME}"
+      FOLDER "test/${_PREFIX}"
     )
 
     # Note: for static linking the library order is relevant.

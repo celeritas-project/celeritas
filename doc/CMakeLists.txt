@@ -4,6 +4,7 @@
 #-----------------------------------------------------------------------------#
 
 celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
+set(CMAKE_FOLDER doc)
 
 #-----------------------------------------------------------------------------#
 # DEVELOPER MANUAL (Doxygen)

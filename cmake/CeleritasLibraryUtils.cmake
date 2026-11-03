@@ -113,6 +113,7 @@ function(celeritas_add_src_library target)
   set(_props
     ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
     LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+    FOLDER "${CMAKE_INSTALL_LIBDIR}"
   )
 
   if(CELERITAS_USE_ROOT)
@@ -150,12 +151,18 @@ function(celeritas_add_test_library target)
 
   celeritas_add_library(${ARGV})
 
+  set(_props
+    FOLDER "${CMAKE_INSTALL_LIBDIR}"
+  )
+
   if(CELERITAS_USE_ROOT)
     # Require PIC for static libraries, including "object" RDC lib
-    celeritas_set_target_properties(${target} PROPERTIES
+    list(APPEND _props
       POSITION_INDEPENDENT_CODE ON
     )
   endif()
+
+  celeritas_set_target_properties(${target} PROPERTIES ${_props})
 endfunction()
 
 #-----------------------------------------------------------------------------#
@@ -174,6 +181,9 @@ endfunction()
 
 function(celeritas_add_object_library target)
   add_library(${target} OBJECT ${ARGN})
+  set_target_properties("${target}" PROPERTIES
+    FOLDER "src"
+  )
   install(TARGETS ${target}
     EXPORT celeritas-targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
@@ -193,6 +203,7 @@ function(celeritas_add_executable target)
   )
   set_target_properties("${target}" PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CELERITAS_RUNTIME_OUTPUT_DIRECTORY}"
+    FOLDER "${CMAKE_INSTALL_BINDIR}"
   )
   if(CELERITAS_CODESIGN_APPS)
     add_custom_command(TARGET "${target}" POST_BUILD

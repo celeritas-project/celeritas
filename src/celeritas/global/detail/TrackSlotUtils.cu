@@ -11,6 +11,8 @@
 #include <thrust/random.h>
 #include <thrust/shuffle.h>
 
+#include "corecel/data/ObserverPtr.device.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "corecel/sys/Thrust.device.hh"
 
 namespace celeritas
@@ -30,7 +32,7 @@ void shuffle_track_slots(
     using result_type = thrust::default_random_engine::result_type;
     thrust::default_random_engine g{
         static_cast<result_type>(track_slots->size())};
-    auto start = thrust::device_pointer_cast(track_slots->data().get());
+    auto start = device_pointer_cast(track_slots->data());
     thrust::shuffle(
         thrust_execute_on(stream), start, start + track_slots->size(), g);
     CELER_DEVICE_API_CALL(PeekAtLastError());

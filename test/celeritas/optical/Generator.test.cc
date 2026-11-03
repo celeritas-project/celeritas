@@ -450,15 +450,13 @@ TEST_F(WlsGeneratorTest, abort_early)
     ASSERT_EQ(2, result.counters.generators.size());
 
     {
-        // \todo WLS photons created during the last step are cut but never
-        // accumulated in the WLS generator's pending count
         GeneratorId gen_id(0);
         auto const& gen = result.counters.generators[gen_id.get()];
         EXPECT_EQ("wls-generate", run.params()->gen_reg()->at(gen_id)->label());
         if (Test::is_reference_rng)
         {
-            EXPECT_EQ(216, gen.buffer_size);
-            EXPECT_EQ(318, gen.num_pending);
+            EXPECT_EQ(241, gen.buffer_size);
+            EXPECT_EQ(355, gen.num_pending);
             EXPECT_EQ(318, gen.num_generated);
         }
     }
@@ -473,6 +471,33 @@ TEST_F(WlsGeneratorTest, abort_early)
         {
             EXPECT_EQ(193, gen.num_generated);
         }
+    }
+
+    // Insert more primaries and transport again. Work left over when the
+    // previous loop aborted should be cleared and not generated in this run
+    run.insert();
+    result = run();
+
+    if (Test::is_reference_rng)
+    {
+        EXPECT_EQ(866, result.counters.num_cut);
+    }
+    EXPECT_EQ(1, result.counters.flushes);
+    EXPECT_EQ(8, result.counters.step_iters);
+    EXPECT_EQ(0, result.counters.num_errored);
+    ASSERT_EQ(2, result.counters.generators.size());
+
+    auto const& primary = result.counters.generators[1];
+    EXPECT_EQ(0, primary.buffer_size);
+    EXPECT_EQ(num_photons, primary.num_pending);
+    if (Test::is_reference_rng)
+    {
+        EXPECT_EQ(198, primary.num_generated);
+
+        auto const& wls = result.counters.generators[0];
+        EXPECT_EQ(240, wls.buffer_size);
+        EXPECT_EQ(354, wls.num_pending);
+        EXPECT_EQ(314, wls.num_generated);
     }
 }
 

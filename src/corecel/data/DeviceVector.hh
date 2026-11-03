@@ -38,6 +38,7 @@ namespace celeritas
    \endcode
  *
  * \todo move to detail since this is basically only a backend for Collection
+ * \todo data should return ObserverPtr<T, MemSpace::device>
  */
 template<class T>
 class DeviceVector

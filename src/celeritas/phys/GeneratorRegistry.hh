@@ -65,7 +65,7 @@ class GeneratorRegistry
     // Clear the generated counts at the start of a transport loop
     void clear_generated(AuxStateVec&) const;
 
-    // Reset the generator counters if the loop aborted early
+    // Reset the generators if the loop aborted early
     void reset(AuxStateVec&) const;
 
   private:

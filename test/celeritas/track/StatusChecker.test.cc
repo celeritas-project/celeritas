@@ -29,7 +29,7 @@ void copy_to_device(Collection<T, W, MemSpace::host, I> const& src,
 {
     CELER_EXPECT(src.size() == dst.size());
     Copier<T, MemSpace::device> copy_to_device{
-        dst[AllItems<T, MemSpace::device>{}]};
+        dst[AllItems<T, MemSpace::device>{}], StreamId{}};
     copy_to_device(MemSpace::host, src[AllItems<T, MemSpace::host>{}]);
 }
 

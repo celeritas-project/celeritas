@@ -39,8 +39,8 @@ struct IsNeutralNewTrack
     using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
 
     ParamsPtr params;
-    TrackInitializer const* initializers{nullptr};
-    CoreStateCounters const* counters{nullptr};
+    ObserverPtr<TrackInitializer const> initializers;
+    ObserverPtr<CoreStateCounters const> counters;
 
     CELER_FUNCTION size_type operator()(size_type i) const
     {

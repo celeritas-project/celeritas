@@ -53,6 +53,9 @@ class GeneratorInterface
     //! Get generator counters
     virtual GeneratorStateBase const& counters(AuxStateVec const&) const = 0;
 
+    //! Discard pending work after an aborted loop, keeping accumulated counts
+    virtual void reset(AuxStateVec&) const = 0;
+
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes

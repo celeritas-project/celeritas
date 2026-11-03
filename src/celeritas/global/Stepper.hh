@@ -162,7 +162,7 @@ class StepperInterface
     //! Fixed capacity of each stepper-owned primary buffer
     virtual size_type primary_capacity() const noexcept = 0;
 
-    //! Fixed capacity of the track initializer queue
+    //! Current capacity of the track initializer queue
     virtual size_type initializer_capacity() const noexcept = 0;
 
     //! Fixed capacity of the per-step secondary stack
@@ -364,7 +364,7 @@ class Stepper final : public StepperInterface
         return primary_capacity_;
     }
 
-    // Fixed capacity of the track initializer queue
+    // Current capacity of the track initializer queue
     size_type initializer_capacity() const noexcept final;
 
     //! Fixed capacity of the per-step secondary stack
