@@ -20,10 +20,9 @@ namespace celeritas
 /*!
  * A triangle defined by three vertices.
  *
- * Optional detailed class description, and possibly example usage:
- * \code
-    Tri ...;
-   \endcode
+ * The triangle cannot be degenerate with zero area:
+ *   1. No two vertices can be equal,
+ *   2. The three vertices are not colinear: a + b != c
  */
 template<typename T>
 class Tri
@@ -31,37 +30,29 @@ class Tri
   public:
     //!@{
     //! \name Type aliases
-    using Vertex = Array<T, 3>;
+    using real_type = T;
+    using Real3 = Array<real_type, 3>;
+    using Vertices = Array<Real3, 3>;
     using Intersections = Array<real_type, 1>;
     //!@}
 
   public:
     // Construct from 3 vertices
-    inline Tri(Vertex const& a, Vertex const& b, Vertex const& c);
+    inline Tri(Vertices const& vertices);
 
-    //! Vertex a
-    CELER_FUNCTION Vertex const& a() const { return a_; }
-
-    //! Vertex b
-    CELER_FUNCTION Vertex const& b() const { return b_; }
-
-    //! Vertex c
-    CELER_FUNCTION Vertex const& c() const { return c_; }
+    //! The vertices defining the triangle
+    CELER_FUNCTION Vertices const& verts() const { return verts_; }
 
     // Calculate possible straight-line intersections with this triangle
     inline CELER_FUNCTION Intersections calc_intersections(
-        Vertex const& pos, Vertex const& dir, SurfaceState on_surface) const;
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
   private:
     // Calculate the centroid of the triangle
-    inline CELER_FUNCTION Vertex calc_centroid() const;
+    inline CELER_FUNCTION Real3 calc_centroid() const;
 
-    // Vertex A
-    Vertex a_;
-    // Vertex B
-    Vertex b_;
-    // Vertex C
-    Vertex c_;
+    // Vertices defining the triangle
+    Vertices verts_;
 };
 
 //---------------------------------------------------------------------------//
@@ -71,24 +62,24 @@ class Tri
  * Construct from 3 vertices.
  */
 template<typename T>
-CELER_FUNCTION Tri<T>::Tri(Vertex const& a, Vertex const& b, Vertex const& c)
-    : a_(a), b_(b), c_(c)
+CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
 {
+    // Assert that triangle is not degenerate
+    CELER_ASSERT(verts[0] != verts[1]);
+    CELER_ASSERT(verts[0] != verts[2]);
+    CELER_ASSERT(verts[1] != verts[2]);
+    CELER_ASSERT(verts[0] + verts[1] != verts[2]);
+
     // Edge 1 and Edge 2
-    auto edge1 = b_ - a_;
-    auto edge2 = c_ - a_;
+    auto edge1 = verts_[1] - verts[0];
+    auto edge2 = verts_[2] - verts[0];
 
-    // Calculate the normal vector
-    auto normal = cross_product(edge1, edge2);
-
-    // Check if orientation is CCW relative to global z axis. Swap b and c
-    // vertices if not.
-    Vertex z_axis = {0, 0, 1};
-    auto dot = dot_product(normal, z_axis);
-    if (dot < 0.0)
+    // Check if orientation is CCW relative to global z axis. Swap 2nd and
+    // third vertices if not
+    if (edge1[0] * edge2[1] - edge1[1] * edge2[0] < 0.0)
     {
-        b_ = c;
-        c_ = b;
+        verts_[1] = verts[2];
+        verts_[2] = verts[1];
     }
 }
 
@@ -101,27 +92,20 @@ CELER_FUNCTION Tri<T>::Tri(Vertex const& a, Vertex const& b, Vertex const& c)
  */
 template<typename T>
 CELER_FUNCTION auto Tri<T>::calc_intersections(
-    Vertex const& pos, Vertex const& dir, SurfaceState on_surface) const
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
-    constexpr T epsilon = std::numeric_limits<T>::epsilon();
+    constexpr real_type epsilon = std::numeric_limits<real_type>::epsilon();
 
     // Edge 1 and Edge 2
-    auto edge1 = b_ - a_;
-    auto edge2 = c_ - a_;
+    auto edge1 = verts_[1] - verts_[0];
+    auto edge2 = verts_[2] - verts_[0];
 
     // Calculate the normal vector
     auto normal = cross_product(edge1, edge2);
-    CELER_LOG(diagnostic) << "normal: " << normal;
-
-    // if (dot_product(dir, normal) > 0.0)
-    //{
-    //     CELER_LOG(diagnostic) << "dot_product: " << dot_product(dir,
-    //     normal); return {no_intersection()};
-    // }
 
     auto rayCrossEdge2 = cross_product(dir, edge2);
-    T det = dot_product(edge1, rayCrossEdge2);
+    real_type det = dot_product(edge1, rayCrossEdge2);
 
     // Ray is parallel to triangle
     if (std::fabs(det) < epsilon)
@@ -129,9 +113,9 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
         return {no_intersection()};
     }
 
-    T inv_det = 1.0 / det;
-    auto s = pos - a_;
-    T u = inv_det * dot_product(s, rayCrossEdge2);
+    real_type inv_det = 1.0 / det;
+    auto s = pos - verts_[0];
+    real_type u = inv_det * dot_product(s, rayCrossEdge2);
 
     // Ray passes outside edge2's bounds
     if (u < -epsilon || (u - 1) > epsilon)
@@ -140,7 +124,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     }
 
     auto sCrossEdge1 = cross_product(s, edge1);
-    T v = inv_det * dot_product(dir, sCrossEdge1);
+    real_type v = inv_det * dot_product(dir, sCrossEdge1);
 
     // Ray passes outside edge1's bounds
     if (v < -epsilon || (u + v - 1) > epsilon)
@@ -149,7 +133,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     }
 
     // Compute distance to intersection
-    T t = inv_det * dot_product(edge2, sCrossEdge1);
+    real_type t = inv_det * dot_product(edge2, sCrossEdge1);
 
     if (t > epsilon)
     {
@@ -166,9 +150,9 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
  * Construct from 3 vertices.
  */
 template<typename T>
-CELER_FUNCTION auto Tri<T>::calc_centroid() const -> Vertex
+CELER_FUNCTION auto Tri<T>::calc_centroid() const -> Real3
 {
-    return (a_ + b_ + c_) / 3.0;
+    return (verts_[0] + verts_[1] + verts_[2]) / 3.0;
 }
 
 //---------------------------------------------------------------------------//
