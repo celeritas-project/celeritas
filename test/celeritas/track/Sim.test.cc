@@ -181,6 +181,25 @@ TEST_F(SimTest, generation)
     EXPECT_EQ(0, sim.generation());
 }
 
+TEST_F(SimTest, safety_sphere)
+{
+    SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
+    SimTrackInitializer init;
+    init.track_id = TrackId{0};
+    init.event_id = EventId{0};
+    sim = init;
+    EXPECT_FALSE(sim.safety_sphere());
+
+    sim.safety_sphere({{1, 2, 3}, 0.5});
+    EXPECT_VEC_EQ((Real3{1, 2, 3}), sim.safety_sphere().center);
+    EXPECT_EQ(0.5, sim.safety_sphere().radius);
+
+    // Reinitializing the slot resets the sphere
+    init.track_id = TrackId{1};
+    sim = init;
+    EXPECT_FALSE(sim.safety_sphere());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
