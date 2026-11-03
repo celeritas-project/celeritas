@@ -40,13 +40,18 @@ void GeantNavHistoryUpdater::operator()(Span<VolumeInstanceId const> stack,
     auto nav_stack_size
         = [nav] { return static_cast<size_type>(nav->GetDepth()) + 1; };
 
-    // Loop deeper until stack and nav disagree
+    // Loop deeper until stack and nav disagree. Use the replica number stored
+    // in the history rather than the PV's copy number: the latter is shared
+    // state that may have been changed by another navigator since this
+    // level was added.
     for (auto end_level = std::min<size_type>(stack.size(), nav_stack_size());
          level != end_level;
          ++level)
     {
         auto* pv = nav->GetVolume(level);
-        if (!pv || mapper_.geant_to_id(*pv) != stack[level])
+        if (!pv
+            || mapper_.geant_to_id(*pv, nav->GetReplicaNo(level))
+                   != stack[level])
         {
             break;
         }

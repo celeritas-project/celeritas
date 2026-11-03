@@ -10,6 +10,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Macros.hh"
+
 #include "MultiExceptionHandler.hh"
 #include "ThreadId.hh"
 
@@ -47,6 +49,20 @@ void launch_kernel(size_type num_threads, F&& execute_thread)
         CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
     }
     log_and_rethrow(std::move(capture_exception));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Run an executor on a single thread on CPU.
+ *
+ * This is for kernels that update a small amount of shared data, such as
+ * state counters. Unlike \c launch_kernel , it does not open an OpenMP
+ * parallel region.
+ */
+template<class F>
+CELER_FORCEINLINE void launch_single_kernel(F&& execute_thread)
+{
+    execute_thread(ThreadId{0});
 }
 
 //---------------------------------------------------------------------------//

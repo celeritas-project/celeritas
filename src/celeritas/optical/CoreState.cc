@@ -113,17 +113,10 @@ void CoreState<M>::insert_primaries(Span<TrackInitializer const>)
 template<MemSpace M>
 CoreStateCounters CoreState<M>::sync_get_counters() const
 {
-    auto* counters
-        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
+    ScopedProfiling profile_this{"sync-get-counters"};
+    auto counters = this->ref().init.counters.data();
     CELER_ASSERT(counters);
-    if constexpr (M == MemSpace::device)
-    {
-        auto result
-            = ItemCopier<CoreStateCounters>{this->stream_id()}(counters);
-        device().stream(this->stream_id()).sync();
-        return result;
-    }
-    return *counters;
+    return load_sync(counters, this->stream_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -136,11 +129,9 @@ CoreStateCounters CoreState<M>::sync_get_counters() const
 template<MemSpace M>
 void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 {
-    auto* counters
-        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
-    CELER_ASSERT(counters);
-    Copier<CoreStateCounters, M> copy{{counters, 1}, this->stream_id()};
-    copy(MemSpace::host, {&host_counters, 1});
+    ScopedProfiling profile_this{"sync-put-counters"};
+    Copier copy{this->ref().init.counters.data(), this->stream_id()};
+    copy(make_observer(&host_counters));
     if constexpr (M == MemSpace::device)
     {
         device().stream(this->stream_id()).sync();

@@ -42,6 +42,7 @@ ScopedLogStorer::ScopedLogStorer(Logger* orig, LogLevel min_level)
     // Create a new logger that calls our operator(), replace orig and store
     saved_logger_ = std::make_unique<Logger>(
         std::exchange(*logger_, Logger{std::ref(*this), LogLevel::debug}));
+    mutex_ = std::make_unique<std::mutex>();
 }
 
 //---------------------------------------------------------------------------//
@@ -70,6 +71,8 @@ ScopedLogStorer::~ScopedLogStorer()
 void ScopedLogStorer::operator()(
     LogProvenance prov, LogLevel lev, std::string msg)
 {
+    std::lock_guard<std::mutex> scoped_lock{*mutex_};
+
     static LogLevel const debug_level
         = getenv_loglevel("CELER_LOG_SCOPED", LogLevel::warning);
     if (lev >= debug_level)

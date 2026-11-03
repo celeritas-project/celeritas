@@ -69,7 +69,7 @@
       "inherits": [".release", ".vecgeom", "base"],
       "cacheVariables": {
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
-        "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_ENABLE_TESTING": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" }
       }
     },

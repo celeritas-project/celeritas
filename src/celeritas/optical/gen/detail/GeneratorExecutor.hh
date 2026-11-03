@@ -61,7 +61,7 @@ CELER_FUNCTION void GeneratorExecutor::operator()(ThreadId tid) const
 
     using DistId = ItemId<GeneratorDistributionData>;
 
-    auto* counters = state->init.counters.data().get();
+    auto counters = state->init.counters.data();
 
     // Original code set the number of threads to the minimum between of number
     // of vacancies and the number of pending in the auxiliary state. To avoid

@@ -64,6 +64,9 @@ else()
   set(_fixme_cgs DISABLE)
 endif()
 
+# Associate helper targets with test targets for IDEs
+set(CMAKE_FOLDER test/celeritas)
+
 #-----------------------------------------------------------------------------#
 # LIBRARY
 #-----------------------------------------------------------------------------#
@@ -371,7 +374,6 @@ celeritas_add_test(global/StepperGeant.test.cc
   GPU NT 4
   FILTER ${_stepper_filter}
 )
-celeritas_add_test(global/PrimaryCapacity.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Grid
@@ -411,7 +413,9 @@ function(celeritas_standalone_add_tests basename suite test backend)
 
   if(NOT TARGET "${_target}")
     add_executable(${_target} "${basename}.test.cc")
-    set_property(TARGET ${_target} PROPERTY OUTPUT_NAME "${_output_name}")
+    set_target_properties("${_target}" PROPERTIES
+      OUTPUT_NAME "${_output_name}"
+    )
 
     celeritas_target_link_libraries(${_target}
       ${CELERITASTEST_LINK_LIBRARIES}
@@ -497,6 +501,7 @@ celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
 celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
 celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
+celeritas_add_test(optical/gen/GeneratorCounterState.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat

@@ -70,6 +70,9 @@ void Transporter::transport_impl(CoreState<M>& state) const
     size_type num_step_iters{0};
     size_type num_steps{0};
 
+    auto& aux = *state.aux();
+    auto const& gen_reg = *this->params()->gen_reg();
+
     // Store a pointer to aux data for timing results
     std::vector<double>* accum_time = nullptr;
     if (input_.action_times)
@@ -79,7 +82,9 @@ void Transporter::transport_impl(CoreState<M>& state) const
 
     // Reset the counts that are accumulated during the loop
     state.clear_tallies();
-    this->params()->gen_reg()->clear_generated(*state.aux());
+    gen_reg.foreach_generator([&aux](GeneratorInterface const& gen) {
+        gen.counters(aux).clear_generated();
+    });
     state.async_copy_counters();
     CoreStateCounters counters = state.host_counters().wait();
     auto is_complete = [&counters] {
@@ -135,7 +140,8 @@ void Transporter::transport_impl(CoreState<M>& state) const
         // Add all untransported tracks to 'cut' counter
         counters.num_cut += counters.num_alive + counters.num_pending;
 
-        this->params()->gen_reg()->reset(*state.aux());
+        gen_reg.foreach_generator(
+            [&aux](GeneratorInterface const& gen) { gen.reset(aux); });
         state.reset();
     }
 
