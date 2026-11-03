@@ -28,14 +28,16 @@ if(NOT CELERITAS_ENABLE_TESTING)
 endif()
 
 #-----------------------------------------------------------------------------#
+set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/driver.py")
+set(_gdml_inp "${CELER_APP_DATA_DIR}/${gdml}")
+set(_exe "$<TARGET_FILE:celer-optical>")
+
 function(celer_optical_add_test ext gdml backend)
-  set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/driver.py")
-  set(_gdml_inp "${CELER_APP_DATA_DIR}/${gdml}")
   set(_env
     ${CELER_PYTHONENV}
     ${CELER_G4ENV}
     ${CELER_OMP_ENV}
-    "CELERITAS_EXE=$<TARGET_FILE:celer-optical>"
+    "CELERITAS_EXE=${_exe}"
     "CELER_DISABLE_PARALLEL=1"
     "CELER_CORE_GEO=${CELERITAS_CORE_GEO}"
   )
@@ -67,7 +69,7 @@ function(celer_optical_add_test ext gdml backend)
   )
   set_tests_properties("${_name}" PROPERTIES
     ENVIRONMENT "${_env}"
-    REQUIRED_FILES "${_driver};${_gdml_inp}"
+    REQUIRED_FILES "${_driver};${_exe};${_gdml_inp}"
     LABELS "${_labels}"
     ${_props}
   )
