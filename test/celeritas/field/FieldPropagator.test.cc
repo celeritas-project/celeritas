@@ -315,6 +315,24 @@ TEST_F(TwoBoxesTest, electron_safety_sphere)
         EXPECT_EQ(6, actual.intersects);
     }
     {
+        SCOPED_TRACE("Multiple substeps inside a sphere off the track");
+        SafetySphere around_track{{0, 0, 0}, radius + real_type{1}};
+        auto expected = run(0.5 * pi * radius, {});
+        auto actual = run(0.5 * pi * radius, around_track);
+        expect_same(expected, actual);
+        EXPECT_EQ(7, expected.intersects);
+        EXPECT_EQ(0, actual.intersects);
+    }
+    {
+        SCOPED_TRACE("Reaching the substep limit inside the sphere");
+        SafetySphere around_track{{0, 0, 0}, radius + real_type{1}};
+        auto expected = run(pi * radius, {});
+        auto actual = run(pi * radius, around_track);
+        expect_same(expected, actual);
+        EXPECT_TRUE(actual.prop.looping);
+        EXPECT_EQ(0, actual.intersects);
+    }
+    {
         SCOPED_TRACE("Sphere that doesn't contain the start point");
         SafetySphere stale{{-radius, 0, 0}, sphere.radius};
         auto expected = run(0.5, {});
