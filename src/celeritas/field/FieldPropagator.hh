@@ -11,6 +11,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "geocel/SafetySphere.hh"
 #include "geocel/Types.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -37,6 +38,29 @@ namespace celeritas
  * the closest distance between two positions by the field stepper and the
  * linear projection to the volume boundary.
  *
+ * Each substep normally searches for a boundary along its chord, which is the
+ * most expensive part of propagation. The caller can provide a \em safety
+ * \em sphere, a ball known to contain no boundary (see \c SafetySphere), to
+ * skip these searches. If the sphere's center is \f$ \mathbf{c} \f$ and its
+ * radius is \f$ r \f$, a substep from \f$ \mathbf{x}_0 \f$ to
+ * \f$ \mathbf{x}_1 \f$ is accepted without a search when both
+ * \f[
+   |\mathbf{x}_i - \mathbf{c}| + \delta \le r \,,
+ * \f]
+ * where \f$ \delta \f$ is the intersection tolerance. The ball is convex, so
+ * it then contains the whole search segment (the chord extended by
+ * \f$ \delta \f$). That search would have found no intersection, and the
+ * result is unchanged.
+ *
+ * The sphere is used only if the track starts inside it and not on a
+ * boundary. Once a substep's chord ends outside the sphere, the remaining
+ * substeps search for boundaries as usual, so the start of every substep
+ * accepted through the sphere is known to be inside it.
+ *
+ * \todo Recalculate the sphere during propagation when several substeps are
+ * taken far from a boundary, and reuse it in MSC to avoid recalculating the
+ * safety distance.
+ *
  * \note This follows similar methods to Geant4's G4PropagatorInField class.
  */
 template<class SubstepperT, class GTV>
@@ -55,6 +79,10 @@ class FieldPropagator
 
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
+
+    // Move track, skipping boundary searches inside a safety sphere
+    inline CELER_FUNCTION result_type operator()(real_type dist,
+                                                 SafetySphere const& sphere);
 
   private:
     //! Limit on substeps
@@ -133,10 +161,29 @@ template<class SubstepperT, class GTV>
 CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
     real_type step) -> result_type
 {
+    return (*this)(step, SafetySphere{});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Propagate a charged particle, skipping boundary searches inside a sphere.
+ *
+ * The sphere may come from an earlier position of the track: it is ignored
+ * unless the current position is inside it.
+ */
+template<class SubstepperT, class GTV>
+CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
+    real_type step, SafetySphere const& sphere) -> result_type
+{
     CELER_EXPECT(step > 0);
     result_type result;
     result.boundary = geo_.is_on_boundary();
     result.distance = 0;
+
+    // Skip boundary searches while the substeps stay inside the sphere
+    bool use_sphere
+        = !result.boundary
+          && sphere.contains(state_.pos, this->delta_intersection());
 
     // Break the curved steps into substeps as determined by the driver *and*
     // by the proximity of geometry boundaries. Test for intersection with the
@@ -186,6 +233,20 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
             //   boundary test does lose some accuracy)
             geo_.set_dir(chord.dir);
         }
+
+        if (use_sphere)
+        {
+            if (sphere.contains(substep.state.pos, this->delta_intersection()))
+            {
+                // Both ends of the chord are inside the sphere, so the search
+                // would find no boundary
+                accept_substep(substep);
+                continue;
+            }
+            // The chord leaves the sphere: search for the rest of the step
+            use_sphere = false;
+        }
+
         auto linear_step
             = geo_.find_next_step(chord.length + this->delta_intersection());
 
