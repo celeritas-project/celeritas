@@ -56,6 +56,7 @@ endif()
 
 set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/test-harness.py")
 set(_exe "$<TARGET_FILE:celer-g4>")
+
 set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
 set(_test_ext "cms")
 if(NOT CELERITAS_DEBUG)

@@ -29,10 +29,10 @@ endif()
 
 #-----------------------------------------------------------------------------#
 set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/driver.py")
-set(_gdml_inp "${CELER_APP_DATA_DIR}/${gdml}")
 set(_exe "$<TARGET_FILE:celer-optical>")
 
 function(celer_optical_add_test ext gdml backend)
+  set(_gdml_inp "${CELER_APP_DATA_DIR}/${gdml}")
   set(_env
     ${CELER_PYTHONENV}
     ${CELER_G4ENV}
