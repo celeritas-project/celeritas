@@ -6,14 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <utility>
-
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/random/data/RngData.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -209,41 +206,6 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     fill(CoreStateCounters{}, &data->counters);
 
     CELER_ENSURE(*data);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reallocate the track initializer buffer with a larger capacity.
- *
- * The first \c num_used initializers are copied into the new buffer. On device,
- * the allocation, copy, and release of the old buffer are all ordered on the
- * given stream, so this must be called between steps (or the stream must
- * otherwise order it after any kernels using the initializers). Any
- * references to the state data must be updated afterward.
- */
-template<MemSpace M>
-void reserve_initializers(TrackInitStateData<Ownership::value, M>* data,
-                          size_type num_used,
-                          size_type capacity,
-                          StreamId stream)
-{
-    CELER_EXPECT(data);
-    CELER_EXPECT(num_used <= data->initializers.size());
-    CELER_EXPECT(capacity > data->initializers.size());
-
-    Collection<TrackInitializer, Ownership::value, M> initializers;
-    resize(&initializers, capacity, stream);
-
-    if (num_used > 0)
-    {
-        ItemRange<TrackInitializer> used{ItemId<TrackInitializer>{0},
-                                         ItemId<TrackInitializer>{num_used}};
-        Copier<TrackInitializer, M> copy{initializers[used], stream};
-        copy(M, data->initializers[used]);
-    }
-    data->initializers = std::move(initializers);
-
-    CELER_ENSURE(data->initializers.size() == capacity);
 }
 
 //---------------------------------------------------------------------------//
