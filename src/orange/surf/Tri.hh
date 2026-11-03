@@ -20,9 +20,12 @@ namespace celeritas
 /*!
  * A triangle defined by three vertices.
  *
+ * On construction, the triangle will be updated to a CCW orientation.
+ *
  * The triangle cannot be degenerate with zero area:
  *   1. No two vertices can be equal,
  *   2. The three vertices are not colinear: a + b != c
+ *
  */
 template<typename T>
 class Tri
@@ -108,36 +111,40 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     // Calculate the normal vector
     auto normal = cross_product(edge1, edge2);
 
-    auto rayCrossEdge2 = cross_product(dir, edge2);
-    real_type det = dot_product(edge1, rayCrossEdge2);
+    auto ray_cross_edge2 = cross_product(dir, edge2);
+    real_type det = dot_product(edge1, ray_cross_edge2);
 
     // Ray is parallel to triangle
     if (std::fabs(det) < epsilon)
     {
-        return {no_intersection()};
+        CELER_LOG(diagnostic) << "  RAY PARALLEL TO TRI";
+        return {real_type(no_intersection())};
     }
 
     real_type inv_det = 1.0 / det;
     auto s = pos - verts_[0];
-    real_type u = inv_det * dot_product(s, rayCrossEdge2);
+    real_type u = inv_det * dot_product(s, ray_cross_edge2);
 
-    // Ray passes outside edge2's bounds
-    if (u < -epsilon || (u - 1) > epsilon)
+    // Ray intersects edge2 outside the triangle
+    if (u < epsilon || (u - 1) > epsilon)
     {
-        return {no_intersection()};
+        CELER_LOG(diagnostic) << "  RAY PASSES OUTSIDE OF EDGE2";
+        return {real_type(no_intersection())};
     }
 
-    auto sCrossEdge1 = cross_product(s, edge1);
-    real_type v = inv_det * dot_product(dir, sCrossEdge1);
+    auto s_cross_edge1 = cross_product(s, edge1);
+    real_type v = inv_det * dot_product(dir, s_cross_edge1);
 
-    // Ray passes outside edge1's bounds
-    if (v < -epsilon || (u + v - 1) > epsilon)
+    // Ray intersects edge1 outside the triangle
+    CELER_LOG(diagnostic) << u << ' ' << v;
+    if (v < epsilon || (u + v - 1) > epsilon)
     {
-        return {no_intersection()};
+        CELER_LOG(diagnostic) << "  RAY PASSES OUTSIDE OF EDGE1";
+        return {real_type(no_intersection())};
     }
 
     // Compute distance to intersection
-    real_type t = inv_det * dot_product(edge2, sCrossEdge1);
+    real_type t = inv_det * dot_product(edge2, s_cross_edge1);
 
     if (t > epsilon)
     {
@@ -145,7 +152,8 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     }
     else
     {
-        return {no_intersection()};
+        CELER_LOG(diagnostic) << "  RAY DOESN'T INTERSECT";
+        return {real_type(no_intersection())};
     }
 }
 
