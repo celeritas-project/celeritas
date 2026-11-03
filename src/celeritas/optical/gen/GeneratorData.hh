@@ -182,12 +182,13 @@ struct GeneratorState : public GeneratorStateBase
  * Resize optical buffers.
  */
 template<MemSpace M>
-void resize(
-    GeneratorStateData<Ownership::value, M>* state, StreamId, size_type size)
+void resize(GeneratorStateData<Ownership::value, M>* state,
+            StreamId stream,
+            size_type size)
 {
     CELER_EXPECT(size > 0);
-    resize(&state->distributions, size);
-    resize(&state->offsets, size);
+    resize(&state->distributions, size, stream);
+    resize(&state->offsets, size, stream);
     CELER_ENSURE(*state);
 }
 
