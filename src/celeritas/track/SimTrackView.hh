@@ -119,12 +119,6 @@ class SimTrackView
     // Update along-step action to take
     inline CELER_FUNCTION void along_step_action(ActionId action);
 
-    // Sphere around a previous position known to contain no boundaries
-    inline CELER_FUNCTION SafetySphere const& safety_sphere() const;
-
-    // Save a sphere known to contain no boundaries
-    inline CELER_FUNCTION void safety_sphere(SafetySphere const& sphere);
-
     //// PARAMETER DATA ////
 
     // Particle-dependent parameters for killing looping tracks
@@ -175,7 +169,6 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.step_length[track_slot_] = {};
     states_.post_step_action[track_slot_] = {};
     states_.along_step_action[track_slot_] = {};
-    states_.safety_sphere[track_slot_] = {};
     return *this;
 }
 
@@ -452,31 +445,6 @@ CELER_FUNCTION void SimTrackView::step_length(real_type length)
 {
     CELER_EXPECT(length > 0);
     states_.step_length[track_slot_] = length;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Sphere around a previous position known to contain no boundaries.
- *
- * The sphere is reset (to zero radius) when the track is initialized and is
- * saved by step limiters that calculate the safety distance. It is not updated
- * when the track moves, so users must check that the current position is
- * inside it.
- */
-CELER_FORCEINLINE_FUNCTION SafetySphere const&
-SimTrackView::safety_sphere() const
-{
-    return states_.safety_sphere[track_slot_];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Save a sphere known to contain no boundaries.
- */
-CELER_FUNCTION void SimTrackView::safety_sphere(SafetySphere const& sphere)
-{
-    CELER_EXPECT(sphere.radius >= 0);
-    states_.safety_sphere[track_slot_] = sphere;
 }
 
 //---------------------------------------------------------------------------//

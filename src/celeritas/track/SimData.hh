@@ -12,7 +12,6 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "geocel/SafetySphere.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
@@ -121,10 +120,6 @@ struct SimTrackInitializer
  *
  * \c num_looping_steps will be empty if params doesn't specify any looping
  * threshold.
- *
- * \c safety_sphere is a cache of the most recent safety distance calculated
- * for the track, and the position it was calculated at. It lets geometry
- * navigation skip boundary searches that lie entirely inside the sphere.
  */
 template<Ownership W, MemSpace M>
 struct SimStateData
@@ -151,7 +146,6 @@ struct SimStateData
     Items<ActionId> post_step_action;
     Items<ActionId> along_step_action;
     Items<real_type> weight;
-    Items<SafetySphere> safety_sphere;  //!< Boundary-free sphere
 
     //// METHODS ////
 
@@ -162,8 +156,7 @@ struct SimStateData
                && !parent_ids.empty() && !generations.empty()
                && !event_ids.empty() && !num_steps.empty() && !time.empty()
                && !status.empty() && !step_length.empty()
-               && !post_step_action.empty() && !along_step_action.empty()
-               && !safety_sphere.empty();
+               && !post_step_action.empty() && !along_step_action.empty();
     }
 
     //! State size
@@ -190,7 +183,6 @@ struct SimStateData
         post_step_action = other.post_step_action;
         along_step_action = other.along_step_action;
         weight = other.weight;
-        safety_sphere = other.safety_sphere;
         return *this;
     }
 };
@@ -225,7 +217,6 @@ void resize(SimStateData<Ownership::value, M>* data,
     resize(&data->post_step_action, size);
     resize(&data->along_step_action, size);
     resize(&data->weight, size);
-    resize(&data->safety_sphere, size);
 
     CELER_ENSURE(*data);
 }

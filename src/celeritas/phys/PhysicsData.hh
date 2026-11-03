@@ -9,6 +9,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/StackAllocatorData.hh"
+#include "geocel/SafetySphere.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
@@ -419,6 +420,7 @@ struct PhysicsParamsData
 struct PhysicsTrackState
 {
     real_type interaction_mfp;  //!< Remaining MFP to interaction
+    SafetySphere safety_sphere;  //!< Most recent boundary-free sphere
 
     // TEMPORARY STATE
     real_type macro_xs;  //!< Total cross section for discrete interactions

@@ -59,7 +59,8 @@ inline CELER_FUNCTION Propagation FieldTrackPropagator<Field>::operator()(
     auto propagator = make_mag_field_propagator<DormandPrinceIntegrator>(
         Field{field}, field.options, track.particle(), track.geometry());
 
-    Propagation p = propagator(sim.step_length(), sim.safety_sphere());
+    Propagation p
+        = propagator(sim.step_length(), track.physics_step().safety_sphere());
 
     sim.update_looping(p.looping);
     if (p.looping)

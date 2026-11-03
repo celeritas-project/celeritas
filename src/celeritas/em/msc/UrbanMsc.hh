@@ -128,7 +128,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
             real_type const max_step = msc_helper.max_step();
             safety = geo.find_safety(max_step);
             // Save the safety so propagation can skip boundary searches
-            sim.safety_sphere({geo.pos(), safety});
+            track.physics_step().safety_sphere({geo.pos(), safety});
             if (safety >= max_step)
             {
                 // The nearest boundary is further than the maximum expected
