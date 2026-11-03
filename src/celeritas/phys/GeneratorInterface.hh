@@ -53,9 +53,6 @@ class GeneratorInterface
     //! Get generator counters
     virtual GeneratorStateBase const& counters(AuxStateVec const&) const = 0;
 
-    //! Discard pending work after an aborted loop, keeping accumulated counts
-    virtual void reset(AuxStateVec&) const = 0;
-
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
@@ -85,13 +82,13 @@ struct GeneratorStateBase : public AuxStateInterface
     GeneratorCounters<std::size_t> accum;
 
     //! Update the host counters from the counters in the state's memory
-    virtual void sync_counters() {}
+    virtual void sync_counters() = 0;
 
     //! Clear the generated count at the start of a transport loop
-    virtual void clear_generated() { counters.num_generated = 0; }
+    virtual void clear_generated() = 0;
 
-    //! Discard the current counters after the loop aborted early
-    virtual void reset_counters() { counters = {}; }
+    //! Discard pending work after an aborted loop, keeping accumulated counts
+    virtual void reset_counters() = 0;
 };
 
 //---------------------------------------------------------------------------//

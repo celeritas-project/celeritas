@@ -22,7 +22,6 @@
 #include "celeritas/optical/model/WavelengthShiftModel.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
-#include "GeneratorAction.hh"
 #include "WavelengthShiftGenerator.hh"
 
 #include "detail/GeneratorAlgorithms.hh"
@@ -60,7 +59,7 @@ void update_buffer(WlsGeneratorState<M>& state, StreamId stream_id)
     counters.buffer_size = celeritas::detail::remove_if_invalid(
         state.store.ref().distributions,
         0,
-        counters.buffer_size + state.size,
+        counters.buffer_size + state.num_slots,
         stream_id);
 
     if (counters.buffer_size > 0)
@@ -89,7 +88,7 @@ void update_buffer(WlsGeneratorState<M>& state, StreamId stream_id)
 
 //---------------------------------------------------------------------------//
 /*!
- * Accumulate distributions from the final step and discard all pending work.
+ * Count and discard buffered distributions after an aborted loop.
  *
  * WLS interactions update the core pending count immediately, but their
  * distributions are normally accumulated at the next generation step. After
@@ -100,13 +99,11 @@ void update_buffer(WlsGeneratorState<M>& state, StreamId stream_id)
  * aborts.
  */
 template<MemSpace M>
-void WlsGeneratorState<M>::reset(StreamId stream_id)
+void WlsGeneratorState<M>::reset_counters()
 {
-    update_buffer(*this, stream_id);
-
-    Filler<WlsDistributionData, M> fill{{}, stream_id};
-    fill(this->store.ref().distributions[AllItems<WlsDistributionData, M>{}]);
-    this->counters = {};
+    update_buffer(*this, this->stream_id());
+    this->clear_buffer();
+    GeneratorCounterState<M>::reset_counters();
 }
 
 template struct WlsGeneratorState<MemSpace::host>;
@@ -144,27 +141,17 @@ auto WlsGeneratorAction::create_state(
     // during a step, so the buffer must always hold at least one per slot
     size_type const capacity = std::max(capacity_, size);
 
-    std::unique_ptr<WlsGeneratorStateBase> result;
     if (m == MemSpace::host)
     {
-        result = make_state<MemSpace::host, WlsGeneratorState>(id, capacity);
+        return std::make_unique<WlsGeneratorState<MemSpace::host>>(
+            id, capacity, size);
     }
     else if (m == MemSpace::device)
     {
-        result = make_state<MemSpace::device, WlsGeneratorState>(id, capacity);
+        return std::make_unique<WlsGeneratorState<MemSpace::device>>(
+            id, capacity, size);
     }
-    CELER_ASSERT(result);
-    result->size = size;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Count and discard buffered distributions after an aborted loop.
- */
-void WlsGeneratorAction::reset(AuxStateVec& aux) const
-{
-    get<WlsGeneratorStateBase>(aux, this->aux_id()).reset(aux.stream_id());
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -204,7 +191,7 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     auto& counters = aux_state.counters;
 
     // Compact the buffer and count the new distributions and queued photons
-    CELER_ASSERT(aux_state.size == state.size());
+    CELER_ASSERT(aux_state.num_slots == state.size());
     update_buffer(aux_state, state.stream_id());
 
     if (counters.num_pending > 0)

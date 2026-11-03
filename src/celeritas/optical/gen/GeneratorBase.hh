@@ -14,6 +14,8 @@
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
+#include "GeneratorCounterState.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -68,8 +70,6 @@ class GeneratorBase : virtual public optical::OpticalStepActionInterface,
     GeneratorStateBase& counters(AuxStateVec&) const final;
     // Get generator counters
     GeneratorStateBase const& counters(AuxStateVec const&) const final;
-    // Discard pending work after an aborted loop
-    void reset(AuxStateVec&) const override;
     //!@}
 
     // Update the generator and state counters

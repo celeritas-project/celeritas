@@ -134,8 +134,9 @@ void Transporter::transport_impl(CoreState<M>& state) const
             // Add all untransported tracks to 'cut' counter
             counters.num_cut += counters.num_alive + counters.num_pending;
 
-            gen_reg.foreach_generator(
-                [&aux](GeneratorInterface const& gen) { gen.reset(aux); });
+            gen_reg.foreach_generator([&aux](GeneratorInterface const& gen) {
+                gen.counters(aux).reset_counters();
+            });
             state.reset();
             break;
         }

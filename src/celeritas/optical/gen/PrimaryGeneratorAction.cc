@@ -78,10 +78,19 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(
 /*!
  * Build state data for a stream.
  */
-auto PrimaryGeneratorAction::create_state(MemSpace, StreamId, size_type) const
-    -> UPState
+auto PrimaryGeneratorAction::create_state(
+    MemSpace m, StreamId stream, size_type) const -> UPState
 {
-    return std::make_unique<GeneratorStateBase>();
+    if (m == MemSpace::host)
+    {
+        return std::make_unique<GeneratorCounterState<MemSpace::host>>(stream);
+    }
+    else if (m == MemSpace::device)
+    {
+        return std::make_unique<GeneratorCounterState<MemSpace::device>>(
+            stream);
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
