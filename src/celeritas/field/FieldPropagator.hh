@@ -144,6 +144,21 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
     // since the trial step always decreases *or* the actual position advances.
     real_type remaining = step;
     auto remaining_substeps = this->max_substeps();
+
+    // Accept substep movement inside the current volume and reset the
+    // remaining distance so we can continue toward the next boundary or end of
+    // caller-requested step. Resetting the boundary flag to "false" only
+    // matters in the unlikely case that we successfully shortened the substep
+    // on a reentrant boundary crossing (see the "bump" branch in the loop).
+    auto accept_substep = [&](Substep const& substep) {
+        state_ = substep.state;
+        result.boundary = false;
+        result.distance += substep.length;
+        remaining = step - result.distance;
+        geo_.move_internal(state_.pos);
+        --remaining_substeps;
+    };
+
     do
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
@@ -183,18 +198,8 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
 
         if (!linear_step.boundary)
         {
-            // No boundary intersection along the chord: accept substep
-            // movement inside the current volume and reset the remaining
-            // distance so we can continue toward the next boundary or end of
-            // caller-requested step. Reset the boundary flag to "false" only
-            // in the unlikely case that we successfully shortened the substep
-            // on a reentrant boundary crossing below.
-            state_ = substep.state;
-            result.boundary = false;
-            result.distance += substep.length;
-            remaining = step - result.distance;
-            geo_.move_internal(state_.pos);
-            --remaining_substeps;
+            // No boundary intersection along the chord
+            accept_substep(substep);
         }
         else if (CELER_UNLIKELY(
                      result.boundary
