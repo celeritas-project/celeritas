@@ -10,6 +10,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Macros.hh"
+
 #include "MultiExceptionHandler.hh"
 #include "ThreadId.hh"
 
@@ -58,7 +60,7 @@ void launch_kernel(size_type num_threads, F&& execute_thread)
  * parallel region.
  */
 template<class F>
-void launch_single_kernel(F&& execute_thread)
+CELER_FORCEINLINE void launch_single_kernel(F&& execute_thread)
 {
     execute_thread(ThreadId{0});
 }
