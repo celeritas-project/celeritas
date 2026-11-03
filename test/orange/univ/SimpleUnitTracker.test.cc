@@ -605,6 +605,22 @@ TEST_F(TwoVolumeTest, safety)
 #endif
 }
 
+TEST_F(TwoVolumeTest, intersect_surface)
+{
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    LocalSurfaceId sphere{0};
+
+    // Center of the sphere, where the safety is degenerate
+    EXPECT_SOFT_EQ(1.5,
+                   tracker.intersect_surface({0, 0, 0}, {1, 0, 0}, sphere));
+    EXPECT_SOFT_EQ(1.0,
+                   tracker.intersect_surface({0, 0, 0.5}, {0, 0, 1}, sphere));
+    EXPECT_SOFT_EQ(0.5,
+                   tracker.intersect_surface({0, 0, 2}, {0, 0, -1}, sphere));
+    EXPECT_EQ(inf, tracker.intersect_surface({0, 0, 2}, {0, 0, 1}, sphere));
+    EXPECT_EQ(inf, tracker.intersect_surface({0, 0, 2}, {1, 0, 0}, sphere));
+}
+
 TEST_F(TwoVolumeTest, normal)
 {
     SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});

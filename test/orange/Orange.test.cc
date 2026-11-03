@@ -230,7 +230,7 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_TRUE(next.boundary);
 
     // Move to boundary
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_VEC_SOFT_EQ(Real3({0.5, 0, sqrt_two}), geo.pos());
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
@@ -263,7 +263,7 @@ TEST_F(TwoVolumeTest, simple_track)
     next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2 * sqrt_two - 1.5, next.distance);
     EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     geo.cross_boundary();
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
@@ -278,15 +278,16 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{}, this->impl_surface_id(geo));
 
+    Propagation next;
     {
         // Find distance
-        Propagation next = geo.find_next_step(this->max_step());
+        next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
     }
     {
         // Move to boundary
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
         EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
@@ -305,7 +306,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
     }
     {
         // Find next distance
-        Propagation next = geo.find_next_step(this->max_step());
+        next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(2.98, next.distance);
     }
@@ -318,15 +319,16 @@ TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{}, this->impl_surface_id(geo));
 
+    Propagation next;
     {
         // Find distance
-        Propagation next = geo.find_next_step(this->max_step());
+        next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
     }
     {
         // Move to boundary
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
         EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
@@ -355,15 +357,16 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{}, this->impl_surface_id(geo));
 
+    Propagation next;
     {
         // Find distance
-        Propagation next = geo.find_next_step(this->max_step());
+        next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
     }
     {
         // Move to boundary
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
         EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
@@ -397,15 +400,16 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{}, this->impl_surface_id(geo));
 
+    Propagation next;
     {
         // Find distance
-        Propagation next = geo.find_next_step(this->max_step());
+        next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
     }
     {
         // Move to boundary
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         EXPECT_VEC_SOFT_EQ(Real3({1.49, 0.172916164657906, 0}), geo.pos());
         EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
         EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
@@ -423,7 +427,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
         EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
 
         // Find distance (TODO: this will become an error)
-        Propagation next = geo.find_next_step(this->max_step());
+        next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0, next.distance);
 
@@ -449,8 +453,8 @@ TEST_F(TwoVolumeTest, persistence)
     {
         auto geo = this->make_geo_track_view();
         geo = Initializer_t{{2.5, 0, 0}, {-1, 0, 0}};
-        geo.find_next_step(this->max_step());
-        geo.move_to_boundary();
+        auto next = geo.find_next_step(this->max_step());
+        geo.move_to_boundary(next.distance);
     }
     {
         auto geo = this->make_geo_track_view();
@@ -469,7 +473,7 @@ TEST_F(TwoVolumeTest, persistence)
         auto next = geo.find_next_step(this->max_step());
         EXPECT_SOFT_EQ(3.0, next.distance);
         EXPECT_TRUE(next.boundary);
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         geo.cross_boundary();
         EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
         EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
@@ -523,7 +527,7 @@ TEST_F(TwoVolumeTest, intersect_limited)
     EXPECT_FALSE(next.boundary);
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(geo.move_to_boundary(), DebugError);
+        EXPECT_THROW(geo.move_to_boundary(next.distance), DebugError);
     }
 
     // Move almost to that point, nearby step should be the same
@@ -537,7 +541,7 @@ TEST_F(TwoVolumeTest, intersect_limited)
     next = geo.find_next_step(2.0);
     EXPECT_SOFT_EQ(1.05, next.distance);
     EXPECT_TRUE(next.boundary);
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
     EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
     EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
