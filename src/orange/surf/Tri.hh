@@ -48,11 +48,15 @@ class Tri
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
   private:
-    // Calculate the centroid of the triangle
-    inline CELER_FUNCTION Real3 calc_centroid() const;
+    //// DATA ////
 
     // Vertices defining the triangle
     Vertices verts_;
+    
+    //// METHODS ////
+    
+    // Calculate the centroid of the triangle
+    inline CELER_FUNCTION Real3 calc_centroid() const;
 };
 
 //---------------------------------------------------------------------------//
