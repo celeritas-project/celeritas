@@ -9,7 +9,6 @@
 #include <limits>
 #include <corecel/Macros.hh>
 #include <corecel/cont/Array.hh>
-#include <corecel/io/Logger.hh>  // Remove when done
 #include <corecel/math/ArrayOperators.hh>
 #include <corecel/math/ArrayUtils.hh>
 #include <orange/OrangeTypes.hh>
@@ -117,7 +116,6 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     // Ray is parallel to triangle
     if (std::fabs(det) < epsilon)
     {
-        CELER_LOG(diagnostic) << "  RAY PARALLEL TO TRI";
         return {real_type(no_intersection())};
     }
 
@@ -128,7 +126,6 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     // Ray intersects edge2 outside the triangle
     if (u < epsilon || (u - 1) > epsilon)
     {
-        CELER_LOG(diagnostic) << "  RAY PASSES OUTSIDE OF EDGE2";
         return {real_type(no_intersection())};
     }
 
@@ -136,10 +133,8 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     real_type v = inv_det * dot_product(dir, s_cross_edge1);
 
     // Ray intersects edge1 outside the triangle
-    CELER_LOG(diagnostic) << u << ' ' << v;
     if (v < epsilon || (u + v - 1) > epsilon)
     {
-        CELER_LOG(diagnostic) << "  RAY PASSES OUTSIDE OF EDGE1";
         return {real_type(no_intersection())};
     }
 
@@ -152,7 +147,6 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     }
     else
     {
-        CELER_LOG(diagnostic) << "  RAY DOESN'T INTERSECT";
         return {real_type(no_intersection())};
     }
 }
