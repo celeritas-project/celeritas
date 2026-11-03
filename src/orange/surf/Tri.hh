@@ -43,7 +43,7 @@ class Tri
     //! The vertices defining the triangle
     CELER_FUNCTION Vertices const& verts() const { return verts_; }
 
-    // Calculate possible straight-line intersections with this triangle
+    // Calculate straight-line intersections with this triangle
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
