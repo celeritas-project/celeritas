@@ -162,7 +162,6 @@ VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv) const
 VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv,
                                                         int copy_no) const
 {
-    CELER_EXPECT(copy_no >= 0);
     auto iter = base_vi_.find(&pv);
     if (iter == base_vi_.end())
     {
@@ -172,7 +171,7 @@ VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv,
     VolumeInstanceId result = iter->second;
     if (pv.IsReplicated())
     {
-        CELER_EXPECT(copy_no < pv.GetMultiplicity());
+        CELER_EXPECT(copy_no >= 0 && copy_no < pv.GetMultiplicity());
 
         result = VolumeInstanceId{result.unchecked_get() + copy_no};
     }
