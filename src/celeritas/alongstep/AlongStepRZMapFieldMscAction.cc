@@ -29,6 +29,7 @@
 #include "detail/MscApplier.hh"
 #include "detail/MscStepLimitApplier.hh"
 #include "detail/PropagationApplier.hh"
+#include "detail/SafetyApplier.hh"
 #include "detail/TimeUpdater.hh"
 #include "detail/TrackUpdater.hh"
 
@@ -100,7 +101,12 @@ void AlongStepRZMapFieldMscAction::step(CoreParams const& params,
                 std::forward<decltype(execute_track)>(execute_track)));
     };
 
+    auto const msc_ref = get_msc_ref(msc_.get());
     launch_impl([&](CoreTrackView& track) {
+        if (field_->ref<MemSpace::native>().options.use_safety_sphere)
+        {
+            SafetyApplier{msc_ref, AppliesValid{}}(track);
+        }
         if (this->has_msc())
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);

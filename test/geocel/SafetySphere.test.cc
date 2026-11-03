@@ -19,6 +19,18 @@ TEST(SafetySphereTest, empty)
     SafetySphere sphere;
     EXPECT_FALSE(sphere);
     EXPECT_FALSE(sphere.contains({0, 0, 0}, 0));
+    // The default center isn't a calculated safety
+    EXPECT_FALSE(sphere.is_centered_on({0, 0, 0}));
+}
+
+TEST(SafetySphereTest, zero_radius)
+{
+    // Zero safety is a calculated value, but the sphere still contains nothing
+    SafetySphere sphere{{1, 2, 3}, 0};
+    EXPECT_FALSE(sphere);
+    EXPECT_FALSE(sphere.contains({1, 2, 3}, 0));
+    EXPECT_TRUE(sphere.is_centered_on({1, 2, 3}));
+    EXPECT_FALSE(sphere.is_centered_on({1, 2, 4}));
 }
 
 TEST(SafetySphereTest, contains)

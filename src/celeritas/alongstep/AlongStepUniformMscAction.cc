@@ -27,6 +27,7 @@
 #include "detail/MscApplier.hh"
 #include "detail/MscStepLimitApplier.hh"
 #include "detail/PropagationApplier.hh"
+#include "detail/SafetyApplier.hh"
 #include "detail/TimeUpdater.hh"
 #include "detail/TrackUpdater.hh"
 
@@ -89,7 +90,13 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
                                      CoreStateHost& state) const
 {
     using namespace ::celeritas::detail;
+    auto const msc_ref = get_msc_ref(msc_.get());
     auto execute_track = [&](CoreTrackView& track) {
+        auto const& field = field_->ref<MemSpace::native>();
+        if (field.options.use_safety_sphere)
+        {
+            SafetyApplier{msc_ref, IsInUniformField{field}}(track);
+        }
         if (this->has_msc())
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);

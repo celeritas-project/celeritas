@@ -23,6 +23,7 @@
 #include "detail/FieldTrackPropagator.hh"
 #include "detail/LinearTrackPropagator.hh"
 #include "detail/PropagationApplier.hh"
+#include "detail/SafetyApplier.hh"
 
 // Field classes
 #include "celeritas/field/UniformField.hh"
@@ -36,12 +37,17 @@ namespace celeritas
 void AlongStepUniformMscAction::step(CoreParams const& params,
                                      CoreStateDevice& state) const
 {
+    auto field = field_->ref<MemSpace::native>();
+    if (field.options.use_safety_sphere)
+    {
+        detail::launch_safety(
+            *this, detail::get_msc_ref(msc_.get()), field, params, state);
+    }
     if (this->has_msc())
     {
         detail::launch_limit_msc_step(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }
-    auto field = field_->ref<MemSpace::native>();
     {
         ScopedProfiling profile_this{"propagate"};
 

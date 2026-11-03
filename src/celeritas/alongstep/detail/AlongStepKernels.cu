@@ -16,12 +16,14 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "ElossApplier.hh"
+#include "FieldFunctors.hh"
 #include "FluctELoss.hh"
 #include "LinearTrackPropagator.hh"
 #include "MeanELoss.hh"
 #include "MscApplier.hh"
 #include "MscStepLimitApplier.hh"
 #include "PropagationApplier.hh"
+#include "SafetyApplier.hh"
 #include "TimeUpdater.hh"
 #include "TrackUpdater.hh"
 
@@ -29,6 +31,48 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+//! Launch the start-of-step safety calculation with a field condition
+template<class IF>
+void launch_safety_impl(CoreStepActionInterface const& action,
+                        DeviceCRef<UrbanMscData> const& msc_data,
+                        IF const& is_in_field,
+                        CoreParams const& params,
+                        CoreState<MemSpace::device>& state)
+{
+    ScopedProfiling profile_this{"safety"};
+    auto execute_thread = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        action.action_id(),
+        detail::SafetyApplier<IF>{msc_data, is_in_field});
+    static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+        action, "safety");
+    launch_kernel(action, params, state, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
+//! Calculate the start-of-step safety when the field is in all volumes
+void launch_safety(CoreStepActionInterface const& action,
+                   DeviceCRef<UrbanMscData> const& msc_data,
+                   CoreParams const& params,
+                   CoreState<MemSpace::device>& state)
+{
+    launch_safety_impl(action, msc_data, AppliesValid{}, params, state);
+}
+
+//---------------------------------------------------------------------------//
+//! Calculate the start-of-step safety when only some volumes have a field
+void launch_safety(CoreStepActionInterface const& action,
+                   DeviceCRef<UrbanMscData> const& msc_data,
+                   DeviceCRef<UniformFieldParamsData> const& field,
+                   CoreParams const& params,
+                   CoreState<MemSpace::device>& state)
+{
+    launch_safety_impl(
+        action, msc_data, detail::IsInUniformField{field}, params, state);
+}
+
 //---------------------------------------------------------------------------//
 //! Apply MSC step limiter (UrbanMsc)
 void launch_limit_msc_step(CoreStepActionInterface const& action,

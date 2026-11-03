@@ -19,6 +19,7 @@
 #include "detail/AlongStepKernels.hh"
 #include "detail/FieldTrackPropagator.hh"
 #include "detail/PropagationApplier.hh"
+#include "detail/SafetyApplier.hh"
 
 namespace celeritas
 {
@@ -29,6 +30,11 @@ namespace celeritas
 void AlongStepCartMapFieldMscAction::step(CoreParams const& params,
                                           CoreStateDevice& state) const
 {
+    if (field_->ref<MemSpace::native>().options.use_safety_sphere)
+    {
+        detail::launch_safety(
+            *this, detail::get_msc_ref(msc_.get()), params, state);
+    }
     if (this->has_msc())
     {
         detail::launch_limit_msc_step(
