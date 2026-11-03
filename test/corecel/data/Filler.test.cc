@@ -55,7 +55,7 @@ TEST(FillerTest, TEST_IF_CELER_DEVICE(device))
     // Copy device --> host to check
     std::vector<int> test_vec(device_vec.size());
     {
-        Copier<int, MemSpace::host> copy{make_span(test_vec)};
+        Copier<int, MemSpace::host> copy{make_span(test_vec), StreamId{}};
         copy(MemSpace::device, device_vec.device_ref());
     }
     for (int v : test_vec)

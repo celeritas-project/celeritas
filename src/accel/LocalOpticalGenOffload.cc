@@ -180,10 +180,6 @@ void LocalOpticalGenOffload::Flush()
     // Copy the buffered distributions to device
     generate_->insert(*state_, make_span(buffer_));
 
-    // Update the number of primaries waiting to be generated based on the
-    // number of photons.
-    state_->add_pending(num_photons_);
-
     num_photons_ = 0;
     buffer_.clear();
 

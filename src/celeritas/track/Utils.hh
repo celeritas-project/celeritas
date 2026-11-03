@@ -47,7 +47,8 @@ CELER_FORCEINLINE_FUNCTION size_type index_before(size_type size, ThreadId tid)
  * Create a unique track ID for the given event.
  *
  * \todo This is nondeterministic; we need to calculate the track ID in a
- * reproducible way.
+ * reproducible way. (See TrackInit.test.cc: we disable for OpenMP track
+ * parallel mode.)
  */
 inline CELER_FUNCTION TrackId make_track_id(
     NativeCRef<TrackInitParamsData> const&,
