@@ -52,9 +52,9 @@ class Tri
 
     // Vertices defining the triangle
     Vertices verts_;
-    
+
     //// METHODS ////
-    
+
     // Calculate the centroid of the triangle
     inline CELER_FUNCTION Real3 calc_centroid() const;
 };
