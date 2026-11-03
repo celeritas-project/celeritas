@@ -42,6 +42,8 @@ has a default value but can be overridden with any boolean value.
  HEPMC3_VERBOSE            celeritas HepMC3 debug level integer
  VECGEOM_VERBOSE           celeritas VecGeom CUDA verbosity integer
  CELER_DISABLE             accel     Flag: disable Celeritas offloading entirely
+ CELER_FIELD_DIAGNOSTIC    accel     Flag: instrument field propagation [#fd]_
+ CELER_FIELD_DIA... [#fs]_ accel     Flag: also evaluate the start safety
  CELER_LOG_ALL_LOCAL       accel     Flag: log more messages from all threads
  CELER_KILL_OFFLOAD        accel     Flag: kill offloaded tracks [#ko]_
  CELER_NONFATAL_FLUSH      accel     Flag: print and continue on failure [#nf]_
@@ -68,6 +70,12 @@ has a default value but can be overridden with any boolean value.
 .. [#mp] CELER_MEMPOOL_RELEASE_THRESHOLD changes the amount of memory used for
    the device asynchronous memory pool.
 .. [#bs] CELER_PERFETTO_BUFFER_SIZE_MB
+.. [#fd] See :cpp:class:`celeritas::FieldDiagnostic`. This replaces the field
+   propagation kernels with instrumented ones, so it should not be used when
+   measuring performance.
+.. [#fs] CELER_FIELD_DIAGNOSTIC_ORACLE calculates the safety distance at the
+   start of each field propagation step to count the boundary searches that a
+   safety sphere could avoid.
 .. [#ko] This flag, used by ``accel``, omits Celeritas setup and instead kills
    tracks that would have otherwise been offloaded. This capability can be used
    to estimate a maximum speedup by using Celeritas.

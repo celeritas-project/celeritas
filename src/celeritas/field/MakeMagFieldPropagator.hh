@@ -14,6 +14,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "FieldDriverOptions.hh"
+#include "FieldObserver.hh"
 #include "FieldPropagator.hh"
 #include "FieldSubstepper.hh"
 #include "MagFieldEquation.hh"
@@ -54,18 +55,23 @@ CELER_FUNCTION decltype(auto) make_mag_field_integrator(
  *    &geo);
  * propagate(0.123);
  * \endcode
+ *
+ * The optional observer is shared by the substepper and propagator.
  */
-template<class IntegratorT, class GTV>
+template<class IntegratorT, class GTV, class ObserverT = NullFieldObserver>
 CELER_FUNCTION decltype(auto) make_field_propagator(
     IntegratorT&& integrate,
     FieldDriverOptions const& options,
     ParticleTrackView const& particle,
-    GTV&& geometry)
+    GTV&& geometry,
+    ObserverT observe = {})
 {
     return FieldPropagator{
-        FieldSubstepper{options, ::celeritas::forward<IntegratorT>(integrate)},
+        FieldSubstepper{
+            options, ::celeritas::forward<IntegratorT>(integrate), observe},
         particle,
-        ::celeritas::forward<GTV>(geometry)};
+        ::celeritas::forward<GTV>(geometry),
+        observe};
 }
 
 //---------------------------------------------------------------------------//
@@ -83,19 +89,24 @@ CELER_FUNCTION decltype(auto) make_field_propagator(
  * propagate(0.123);
  * \endcode
  */
-template<template<class EquationT> class IntegratorT, class FieldT, class GTV>
+template<template<class EquationT> class IntegratorT,
+         class FieldT,
+         class GTV,
+         class ObserverT = NullFieldObserver>
 CELER_FUNCTION decltype(auto) make_mag_field_propagator(
     FieldT&& field,
     FieldDriverOptions const& options,
     ParticleTrackView const& particle,
-    GTV&& geometry)
+    GTV&& geometry,
+    ObserverT observe = {})
 {
     return make_field_propagator(
         make_mag_field_integrator<IntegratorT>(
             ::celeritas::forward<FieldT>(field), particle.charge()),
         options,
         particle,
-        ::celeritas::forward<GTV>(geometry));
+        ::celeritas::forward<GTV>(geometry),
+        observe);
 }
 
 //---------------------------------------------------------------------------//

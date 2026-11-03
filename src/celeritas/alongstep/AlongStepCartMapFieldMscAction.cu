@@ -17,8 +17,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepKernels.hh"
-#include "detail/FieldTrackPropagator.hh"
-#include "detail/PropagationApplier.hh"
+#include "detail/FieldPropagationLauncher.device.hh"
 
 namespace celeritas
 {
@@ -36,16 +35,14 @@ void AlongStepCartMapFieldMscAction::step(CoreParams const& params,
     }
     {
         ScopedProfiling profile_this{"propagate"};
-        auto execute_thread = make_along_step_track_executor(
-            params.ptr<MemSpace::native>(),
-            state.ptr(),
-            this->action_id(),
-            detail::PropagationApplier{
-                detail::FieldTrackPropagator<CartMapField>{
-                    field_->ref<MemSpace::native>()}});
-        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            *this, "propagate-cartmap");
-        launch_kernel(*this, params, state, execute_thread);
+        detail::launch_field_propagation<CartMapField>(
+            *this,
+            "propagate-cartmap",
+            IsAlongStepActionEqual{this->action_id()},
+            field_->ref<MemSpace::native>(),
+            field_diag_.get(),
+            params,
+            state);
     }
     if (this->has_msc())
     {

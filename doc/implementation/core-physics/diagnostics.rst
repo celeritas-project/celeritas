@@ -13,6 +13,10 @@ should be considered unstable.
 .. doxygenclass:: celeritas::ActionDiagnostic
 .. doxygenclass:: celeritas::StepDiagnostic
 .. doxygenclass:: celeritas::SlotDiagnostic
+.. doxygenclass:: celeritas::FieldDiagnostic
+
+The field diagnostic output can be summarized with
+:file:`scripts/user/field-diagnostic.py`.
 
 
 Step writers

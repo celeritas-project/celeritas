@@ -11,6 +11,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -210,6 +211,25 @@ void ProblemSetup::operator()(inp::Problem& p) const
     if (!so.slot_diagnostic_prefix.empty())
     {
         p.diagnostics.slot = inp::SlotDiagnostic{so.slot_diagnostic_prefix};
+    }
+
+    p.diagnostics.field = so.field_diagnostic;
+    if (!p.diagnostics.field
+        && getenv_flag("CELER_FIELD_DIAGNOSTIC", false).value)
+    {
+        p.diagnostics.field = inp::FieldDiagnostic{};
+    }
+    if (p.diagnostics.field
+        && getenv_flag("CELER_FIELD_DIAGNOSTIC_ORACLE", false).value)
+    {
+        p.diagnostics.field->oracle_safety = true;
+    }
+    if (p.diagnostics.field)
+    {
+        CELER_LOG(info)
+            << "Instrumenting field propagation"
+            << (p.diagnostics.field->oracle_safety ? " with oracle safety"
+                                                   : "");
     }
 
     // Custom user actions

@@ -23,8 +23,11 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/field/FieldPropagationCounters.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformZField.hh"
+#include "celeritas/field/detail/CountingGeoTrackView.hh"
+#include "celeritas/field/detail/CountingIntegrator.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/geo/GeoData.hh"
@@ -48,6 +51,10 @@ template<class E>
 using DiagnosticDPIntegrator = DiagnosticIntegrator<DormandPrinceIntegrator<E>>;
 
 constexpr bool using_vg = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+
+// Safety distances (and therefore skippable boundary searches) were measured
+// with VecGeom 2
+constexpr bool using_vg2 = using_vg && CELERITAS_VECGEOM_VERSION >= 0x020000;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -141,6 +148,69 @@ struct HorribleZField
         return {0, 0, this->strength * std::sin(this->scale / pos[2])};
     }
 };
+
+//---------------------------------------------------------------------------//
+// Flatten counters that don't depend on the safety distance for comparison
+std::vector<size_type> to_vector(FieldPropagationCounters const& c)
+{
+    return {c.substeps,
+            c.accepted,
+            c.bumped,
+            c.intercepted,
+            c.shortened,
+            c.stuck,
+            c.integrations,
+            c.first_substep_integrations,
+            c.quick_advances,
+            c.chord_iterations,
+            c.accurate_advances,
+            c.accurate_iterations,
+            c.good_step_rejects,
+            c.intersects,
+            c.intersect_hits,
+            c.safeties};
+}
+
+//---------------------------------------------------------------------------//
+// Accumulate counters
+void operator+=(FieldPropagationCounters& lhs,
+                FieldPropagationCounters const& rhs)
+{
+    lhs.substeps += rhs.substeps;
+    lhs.accepted += rhs.accepted;
+    lhs.bumped += rhs.bumped;
+    lhs.intercepted += rhs.intercepted;
+    lhs.shortened += rhs.shortened;
+    lhs.stuck += rhs.stuck;
+    lhs.integrations += rhs.integrations;
+    lhs.first_substep_integrations += rhs.first_substep_integrations;
+    lhs.quick_advances += rhs.quick_advances;
+    lhs.chord_iterations += rhs.chord_iterations;
+    lhs.accurate_advances += rhs.accurate_advances;
+    lhs.accurate_iterations += rhs.accurate_iterations;
+    lhs.good_step_rejects += rhs.good_step_rejects;
+    lhs.intersects += rhs.intersects;
+    lhs.intersect_hits += rhs.intersect_hits;
+    lhs.skippable_intersects += rhs.skippable_intersects;
+    lhs.safeties += rhs.safeties;
+}
+
+//---------------------------------------------------------------------------//
+// Check relationships between counters of a propagation call
+void expect_consistent(FieldPropagationCounters const& c)
+{
+    // One boundary search and one outcome per substep
+    EXPECT_EQ(c.substeps, c.intersects);
+    EXPECT_EQ(c.substeps, c.accepted + c.bumped + c.intercepted + c.shortened);
+    // Each substepper loop iteration integrates once, unless the good step
+    // loop runs out of trials
+    EXPECT_EQ(c.integrations,
+              c.quick_advances + c.chord_iterations + c.accurate_iterations
+                  + c.good_step_rejects);
+    EXPECT_LE(c.first_substep_integrations, c.integrations);
+    EXPECT_LE(c.intersect_hits, c.intersects);
+    EXPECT_LE(c.skippable_intersects, c.intersects - c.intersect_hits);
+}
 
 //---------------------------------------------------------------------------//
 // CONSTANTS
@@ -1120,6 +1190,81 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(nonuniform_field))
 
 //---------------------------------------------------------------------------//
 
+TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_counters))
+{
+    // Same initial conditions as electron_interior
+    real_type const radius{3.8085385437789383};
+    auto particle
+        = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
+    auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
+    UniformZField field(1.0 * units::tesla);
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
+        field, particle.charge());
+    FieldDriverOptions driver_options;
+
+    // Construct a new counting propagator for each step, optionally with an
+    // oracle safety sphere at the starting point
+    auto propagate = [&](real_type step, real_type safety) {
+        FieldPropagationCounters counters;
+        detail::CountingGeoTrackView counting_geo{geo, &counters};
+        if (safety > 0)
+        {
+            counting_geo.set_safety_sphere(geo.pos(), safety);
+        }
+        auto propagate = make_field_propagator(
+            detail::CountingIntegrator{integrate, &counters},
+            driver_options,
+            particle,
+            counting_geo,
+            CountingFieldObserver{&counters});
+        propagate(step);
+        expect_consistent(counters);
+        EXPECT_EQ(integrate.exchange_count(), counters.integrations);
+        EXPECT_EQ(geo.intersect_count(), counters.intersects);
+        EXPECT_EQ(geo.safety_count(), counters.safeties);
+        geo.reset_count();
+        return counters;
+    };
+
+    {
+        SCOPED_TRACE("Short step");
+        auto counters = propagate(1e-2, 0);
+        static size_type const expected_counters[]
+            = {1u, 1u, 0u, 0u, 0u, 0u, 1u, 1u, 0u, 1u, 0u, 0u, 0u, 1u, 0u, 0u};
+        EXPECT_VEC_EQ(expected_counters, to_vector(counters));
+        EXPECT_EQ(0, counters.skippable_intersects);
+    }
+    {
+        SCOPED_TRACE("Quarter turn");
+        auto counters = propagate(0.5 * pi * radius, 0);
+        static size_type const expected_counters[] = {
+            7u, 7u, 0u, 0u, 0u, 0u, 21u, 5u, 0u, 21u, 0u, 0u, 0u, 7u, 0u, 0u};
+        EXPECT_VEC_EQ(expected_counters, to_vector(counters));
+        EXPECT_EQ(0, counters.skippable_intersects);
+    }
+    {
+        SCOPED_TRACE("Quarter turn with safety");
+        real_type safety = geo.find_safety();
+        geo.reset_count();
+        auto counters = propagate(0.5 * pi * radius, safety);
+        static size_type const expected_counters[] = {
+            7u, 7u, 0u, 0u, 0u, 0u, 21u, 5u, 0u, 21u, 0u, 0u, 0u, 7u, 0u, 0u};
+        EXPECT_VEC_EQ(expected_counters, to_vector(counters));
+        if (using_vg2)
+        {
+            EXPECT_EQ(1, counters.skippable_intersects);
+        }
+    }
+    {
+        SCOPED_TRACE("Half turn");
+        // The maximum substep limit is reached
+        auto counters = propagate(pi * radius, 0);
+        static size_type const expected_counters[] = {
+            10u, 10u, 0u, 0u, 0u, 0u, 33u, 6u, 0u, 33u, 0u, 0u, 0u, 10u, 0u, 0u};
+        EXPECT_VEC_EQ(expected_counters, to_vector(counters));
+    }
+}
+
 TEST_F(LayersTest, revolutions_through_layers)
 {
     real_type const radius{3.8085385437789383};
@@ -1166,6 +1311,75 @@ TEST_F(LayersTest, revolutions_through_layers)
     EXPECT_SOFT_NEAR(-0.03453068, geo.dir()[1], coarse_eps);
     EXPECT_SOFT_NEAR(221.48171708, total_length, coarse_eps);
     EXPECT_EQ(148, icross);
+}
+
+TEST_F(LayersTest, TEST_IF_CELERITAS_DOUBLE(counters_through_layers))
+{
+    real_type const radius{3.8085385437789383};
+    auto particle
+        = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
+    auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
+    UniformZField field(1.0 * units::tesla);
+    FieldDriverOptions driver_options;
+
+    int const num_steps = 100;
+    double const step = (2 * pi * radius) / num_steps;
+
+    // Propagate one revolution with a new counting propagator each step, using
+    // the safety at the start of each step as an oracle
+    FieldPropagationCounters total;
+    int icross = 0;
+    for ([[maybe_unused]] auto k : range(num_steps))
+    {
+        real_type safety = geo.is_on_boundary() ? 0 : geo.find_safety();
+
+        FieldPropagationCounters counters;
+        detail::CountingGeoTrackView counting_geo{geo, &counters};
+        counting_geo.set_safety_sphere(geo.pos(), safety);
+        auto propagate = make_field_propagator(
+            detail::CountingIntegrator{
+                make_mag_field_integrator<DormandPrinceIntegrator>(
+                    field, particle.charge()),
+                &counters},
+            driver_options,
+            particle,
+            counting_geo,
+            CountingFieldObserver{&counters});
+        auto result = propagate(step);
+        expect_consistent(counters);
+        total += counters;
+
+        if (result.boundary)
+        {
+            ++icross;
+            geo.cross_boundary();
+        }
+    }
+    EXPECT_EQ(14, icross);
+
+    // Thin layers result in many shortened substeps near boundaries, and the
+    // first substep of each step dominates the integrations
+    static size_type const expected_total[] = {144u,
+                                               96u,
+                                               0u,
+                                               14u,
+                                               34u,
+                                               0u,
+                                               144u,
+                                               100u,
+                                               0u,
+                                               144u,
+                                               0u,
+                                               0u,
+                                               0u,
+                                               144u,
+                                               48u,
+                                               0u};
+    EXPECT_VEC_EQ(expected_total, to_vector(total));
+    if (using_vg2)
+    {
+        EXPECT_EQ(42, total.skippable_intersects);
+    }
 }
 
 TEST_F(LayersTest, revolutions_through_cms_field)

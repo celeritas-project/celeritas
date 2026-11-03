@@ -22,6 +22,7 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/inp/Diagnostics.hh"
 #include "celeritas/inp/Tracking.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/user/RootStepWriter.hh"
@@ -97,6 +98,8 @@ struct RunnerInput
     bool step_diagnostic{};
     int step_diagnostic_bins{1000};
     std::string slot_diagnostic_prefix;  //!< Base name for slot diagnostic
+    //! Instrument field propagation
+    std::optional<inp::FieldDiagnostic> field_diagnostic;
     bool write_track_counts{true};  //!< Output track counts for each step
     bool write_step_times{true};  //!< Output elapsed times for each step
     bool transporter_result{true};  //!< Output transporter result event data

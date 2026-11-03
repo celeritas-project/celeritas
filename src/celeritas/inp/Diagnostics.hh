@@ -106,6 +106,26 @@ struct StepDiagnostic
 
 //---------------------------------------------------------------------------//
 /*!
+ * Characterize the cost of charged particle propagation in a field.
+ *
+ * This replaces the field propagation kernel with an instrumented version
+ * that counts substeps, integrations, and boundary searches, and bins them
+ * by particle type, energy, volume, and step iteration.
+ *
+ * \sa celeritas::FieldDiagnostic
+ */
+struct FieldDiagnostic
+{
+    //! Number of bins (counts per step or track) before overflow
+    size_type bins{100};
+    //! Calculate the safety at the start of each step to evaluate its use
+    bool oracle_safety{false};
+    //! Maximum number of step iterations to record per stream
+    size_type step_records{100000};
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Set up Celeritas built-in diagnostics.
  */
 struct Diagnostics
@@ -143,6 +163,9 @@ struct Diagnostics
 
     //! Bin number of steps per track
     std::optional<StepDiagnostic> step;
+
+    //! Instrument field propagation
+    std::optional<FieldDiagnostic> field;
 
     //! Log the execution progress every N events
     size_type log_frequency{1};

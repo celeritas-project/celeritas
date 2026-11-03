@@ -15,6 +15,7 @@
 #include "corecel/math/SoftEqual.hh"
 
 #include "FieldDriverOptions.hh"
+#include "FieldObserver.hh"
 #include "Types.hh"
 
 #include "detail/FieldUtils.hh"
@@ -54,15 +55,24 @@ namespace celeritas
    s' = s \sqrt{\frac{\epsilon}{h}} \,.
  * \f]
  *
+ * The optional observer is notified of each iteration of the chord search
+ * and of the adaptive error control loops (see \c NullFieldObserver). It is
+ * stored as a private base class so that an empty observer takes no space.
+ *
  * \note This class is based on G4ChordFinder and G4MagIntegratorDriver.
  */
-template<class IntegratorT>
-class FieldSubstepper
+template<class IntegratorT, class ObserverT = NullFieldObserver>
+class FieldSubstepper : private ObserverT
 {
   public:
     // Construct with options data and the integrator
     inline CELER_FUNCTION FieldSubstepper(FieldDriverOptions const& options,
                                           IntegratorT&& integrate);
+
+    // Construct with options data, the integrator, and an observer
+    inline CELER_FUNCTION FieldSubstepper(FieldDriverOptions const& options,
+                                          IntegratorT&& integrate,
+                                          ObserverT observe);
 
     // For a given trial step, advance by a sub_step within a tolerance error
     inline CELER_FUNCTION Substep operator()(real_type step,
@@ -137,6 +147,9 @@ class FieldSubstepper
     // Propose a next step size from a given step size and associated error
     inline CELER_FUNCTION real_type new_step_scale(real_type error_sq) const;
 
+    //! Access the observer
+    CELER_FUNCTION ObserverT const& observe() const { return *this; }
+
     //// COMMON PROPERTIES ////
 
     static CELER_CONSTEXPR_FUNCTION real_type half() { return 0.5; }
@@ -149,16 +162,36 @@ template<class IntegratorT>
 CELER_CTAD_FUNCTION FieldSubstepper(FieldDriverOptions const&, IntegratorT&&)
     -> FieldSubstepper<IntegratorT>;
 
+template<class IntegratorT, class ObserverT>
+CELER_CTAD_FUNCTION FieldSubstepper(
+    FieldDriverOptions const&, IntegratorT&&, ObserverT)
+    -> FieldSubstepper<IntegratorT, ObserverT>;
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct with options and the step advancement functor.
  */
-template<class IntegratorT>
-CELER_FUNCTION FieldSubstepper<IntegratorT>::FieldSubstepper(
+template<class IntegratorT, class ObserverT>
+CELER_FUNCTION FieldSubstepper<IntegratorT, ObserverT>::FieldSubstepper(
     FieldDriverOptions const& options, IntegratorT&& integrate)
-    : options_(options)
+    : FieldSubstepper{
+          options, ::celeritas::forward<IntegratorT>(integrate), ObserverT{}}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with options, the step advancement functor, and an observer.
+ */
+template<class IntegratorT, class ObserverT>
+CELER_FUNCTION FieldSubstepper<IntegratorT, ObserverT>::FieldSubstepper(
+    FieldDriverOptions const& options,
+    IntegratorT&& integrate,
+    ObserverT observe)
+    : ObserverT(observe)
+    , options_(options)
     , integrate_(::celeritas::forward<IntegratorT>(integrate))
 {
     CELER_EXPECT(options_);
@@ -180,13 +213,14 @@ CELER_FUNCTION FieldSubstepper<IntegratorT>::FieldSubstepper(
  * within a reference accuracy. Otherwise, the more accurate step integration
  * (advance_accurate) will be performed.
  */
-template<class IntegratorT>
-CELER_FUNCTION Substep FieldSubstepper<IntegratorT>::operator()(
+template<class IntegratorT, class ObserverT>
+CELER_FUNCTION Substep FieldSubstepper<IntegratorT, ObserverT>::operator()(
     real_type step, OdeState const& state)
 {
     if (step <= options_.minimum_step)
     {
         // If the input is a very tiny step, do a "quick advance".
+        this->observe().quick_advance();
         Substep result;
         result.state = integrate_(step, state).end_state;
         result.length = step;
@@ -210,6 +244,7 @@ CELER_FUNCTION Substep FieldSubstepper<IntegratorT>::operator()(
         // Discard the original end state and advance more accurately with the
         // newly proposed (reduced) step
         real_type next_step = step * this->new_step_scale(next.err_sq);
+        this->observe().accurate_advance();
         next.end = this->accurate_advance(next.end.length, state, next_step);
     }
 
@@ -221,8 +256,8 @@ CELER_FUNCTION Substep FieldSubstepper<IntegratorT>::operator()(
 /*!
  * Find the maximum step length that satisfies a maximum "miss distance".
  */
-template<class IntegratorT>
-CELER_FUNCTION auto FieldSubstepper<IntegratorT>::find_next_chord(
+template<class IntegratorT, class ObserverT>
+CELER_FUNCTION auto FieldSubstepper<IntegratorT, ObserverT>::find_next_chord(
     real_type step, OdeState const& state) const -> ChordSearch
 {
     bool succeeded = false;
@@ -232,6 +267,7 @@ CELER_FUNCTION auto FieldSubstepper<IntegratorT>::find_next_chord(
     do
     {
         // Try with the proposed step
+        this->observe().chord_iteration();
         integrated = integrate_(step, state);
 
         // Check whether the distance to the chord is smaller than the
@@ -273,8 +309,8 @@ CELER_FUNCTION auto FieldSubstepper<IntegratorT>::find_next_chord(
  * TODO: maybe this should be moved out of the substepper into the propagation
  * loop?
  */
-template<class IntegratorT>
-CELER_FUNCTION Substep FieldSubstepper<IntegratorT>::accurate_advance(
+template<class IntegratorT, class ObserverT>
+CELER_FUNCTION Substep FieldSubstepper<IntegratorT, ObserverT>::accurate_advance(
     real_type step, OdeState const& state, real_type hinitial) const
 {
     CELER_ASSERT(step > 0);
@@ -304,6 +340,7 @@ CELER_FUNCTION Substep FieldSubstepper<IntegratorT>::accurate_advance(
     do
     {
         CELER_ASSERT(h > 0);
+        this->observe().accurate_iteration();
         result = this->integrate_step(h, result.end.state);
 
         curve_length += result.end.length;
@@ -334,8 +371,8 @@ CELER_FUNCTION Substep FieldSubstepper<IntegratorT>::accurate_advance(
  *
  * Helper function for accurate_advance.
  */
-template<class IntegratorT>
-CELER_FUNCTION auto FieldSubstepper<IntegratorT>::integrate_step(
+template<class IntegratorT, class ObserverT>
+CELER_FUNCTION auto FieldSubstepper<IntegratorT, ObserverT>::integrate_step(
     real_type step, OdeState const& state) const -> Integration
 {
     CELER_EXPECT(step > 0);
@@ -371,8 +408,8 @@ CELER_FUNCTION auto FieldSubstepper<IntegratorT>::integrate_step(
  * Advance within a relative truncation error and estimate a good step size
  * for the next integration.
  */
-template<class IntegratorT>
-CELER_FUNCTION auto FieldSubstepper<IntegratorT>::one_good_step(
+template<class IntegratorT, class ObserverT>
+CELER_FUNCTION auto FieldSubstepper<IntegratorT, ObserverT>::one_good_step(
     real_type step, OdeState const& state) const -> Integration
 {
     // Perform integration for adaptive step control with the truncation error
@@ -391,6 +428,7 @@ CELER_FUNCTION auto FieldSubstepper<IntegratorT>::one_good_step(
         if (err_sq > 1)
         {
             // Truncation error too large, reduce stepsize with a low bound
+            this->observe().good_step_reject();
             step *= max(this->new_step_scale(err_sq),
                         options_.max_stepping_decrease);
         }
@@ -416,9 +454,9 @@ CELER_FUNCTION auto FieldSubstepper<IntegratorT>::one_good_step(
 /*!
  * Estimate the new predicted step size based on the error estimate.
  */
-template<class IntegratorT>
-CELER_FUNCTION real_type FieldSubstepper<IntegratorT>::new_step_scale(
-    real_type err_sq) const
+template<class IntegratorT, class ObserverT>
+CELER_FUNCTION real_type
+FieldSubstepper<IntegratorT, ObserverT>::new_step_scale(real_type err_sq) const
 {
     CELER_ASSERT(err_sq >= 0);
     return options_.safety

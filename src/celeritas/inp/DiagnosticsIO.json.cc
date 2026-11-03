@@ -95,6 +95,22 @@ void from_json(nlohmann::json const& j, StepDiagnostic& v)
     CELER_JSON_LOAD_OPTION(j, v, bins);
 }
 
+void to_json(nlohmann::json& j, FieldDiagnostic const& v)
+{
+    j = nlohmann::json{
+        CELER_JSON_PAIR(v, bins),
+        CELER_JSON_PAIR(v, oracle_safety),
+        CELER_JSON_PAIR(v, step_records),
+    };
+}
+
+void from_json(nlohmann::json const& j, FieldDiagnostic& v)
+{
+    CELER_JSON_LOAD_OPTION(j, v, bins);
+    CELER_JSON_LOAD_OPTION(j, v, oracle_safety);
+    CELER_JSON_LOAD_OPTION(j, v, step_records);
+}
+
 void to_json(nlohmann::json& j, Diagnostics const& v)
 {
     j = nlohmann::json{
@@ -108,6 +124,7 @@ void to_json(nlohmann::json& j, Diagnostics const& v)
         CELER_JSON_PAIR(v, status_checker),
         CELER_JSON_PAIR_OPTIONAL(v, mctruth),
         CELER_JSON_PAIR_OPTIONAL(v, step),
+        CELER_JSON_PAIR_OPTIONAL(v, field),
         CELER_JSON_PAIR(v, log_frequency),
     };
 }
@@ -124,6 +141,7 @@ void from_json(nlohmann::json const& j, Diagnostics& v)
     CELER_JSON_LOAD_OPTION(j, v, status_checker);
     CELER_JSON_LOAD_OPTIONAL(j, v, mctruth);
     CELER_JSON_LOAD_OPTIONAL(j, v, step);
+    CELER_JSON_LOAD_OPTIONAL(j, v, field);
     CELER_JSON_LOAD_OPTION(j, v, log_frequency);
 }
 

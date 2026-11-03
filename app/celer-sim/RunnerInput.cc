@@ -105,6 +105,7 @@ inp::Problem load_problem(RunnerInput const& ri)
                 return step_diag;
             }();
         }
+        d.field = ri.field_diagnostic;
         d.counters.step = ri.write_track_counts;
         d.counters.event = ri.transporter_result;
         d.status_checker = ri.status_checker;

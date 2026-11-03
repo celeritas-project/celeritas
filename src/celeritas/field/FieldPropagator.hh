@@ -15,6 +15,7 @@
 #include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
+#include "FieldObserver.hh"
 #include "Types.hh"
 
 #include "detail/FieldUtils.hh"
@@ -37,10 +38,14 @@ namespace celeritas
  * the closest distance between two positions by the field stepper and the
  * linear projection to the volume boundary.
  *
+ * The optional observer is notified of the outcome of each substep (see \c
+ * NullFieldObserver). It is stored as a private base class so that an empty
+ * observer takes no space.
+ *
  * \note This follows similar methods to Geant4's G4PropagatorInField class.
  */
-template<class SubstepperT, class GTV>
-class FieldPropagator
+template<class SubstepperT, class GTV, class ObserverT = NullFieldObserver>
+class FieldPropagator : private ObserverT
 {
   public:
     //!@{
@@ -52,6 +57,12 @@ class FieldPropagator
     // Construct with shared parameters and the field driver
     inline CELER_FUNCTION FieldPropagator(
         SubstepperT&& advance, ParticleTrackView const& particle, GTV&& geo);
+
+    // Construct with shared parameters, the field driver, and an observer
+    inline CELER_FUNCTION FieldPropagator(SubstepperT&& advance,
+                                          ParticleTrackView const& particle,
+                                          GTV&& geo,
+                                          ObserverT observe);
 
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
@@ -75,6 +86,11 @@ class FieldPropagator
     SubstepperT advance_;
     GTV geo_;
     OdeState state_;
+
+    //// HELPER FUNCTIONS ////
+
+    //! Access the observer
+    CELER_FUNCTION ObserverT const& observe() const { return *this; }
 };
 
 //---------------------------------------------------------------------------//
@@ -85,16 +101,39 @@ CELER_CTAD_FUNCTION FieldPropagator(
     SubstepperT&&, ParticleTrackView const&, GTV&&)
     -> FieldPropagator<SubstepperT, GTV>;
 
+template<class SubstepperT, class GTV, class ObserverT>
+CELER_CTAD_FUNCTION FieldPropagator(
+    SubstepperT&&, ParticleTrackView const&, GTV&&, ObserverT)
+    -> FieldPropagator<SubstepperT, GTV, ObserverT>;
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared field parameters and the field driver.
  */
-template<class SubstepperT, class GTV>
-CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
+template<class SubstepperT, class GTV, class ObserverT>
+CELER_FUNCTION FieldPropagator<SubstepperT, GTV, ObserverT>::FieldPropagator(
     SubstepperT&& advance, ParticleTrackView const& particle, GTV&& geo)
-    : advance_(::celeritas::forward<SubstepperT>(advance))
+    : FieldPropagator{::celeritas::forward<SubstepperT>(advance),
+                      particle,
+                      ::celeritas::forward<GTV>(geo),
+                      ObserverT{}}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with shared field parameters, the field driver, and an observer.
+ */
+template<class SubstepperT, class GTV, class ObserverT>
+CELER_FUNCTION FieldPropagator<SubstepperT, GTV, ObserverT>::FieldPropagator(
+    SubstepperT&& advance,
+    ParticleTrackView const& particle,
+    GTV&& geo,
+    ObserverT observe)
+    : ObserverT(observe)
+    , advance_(::celeritas::forward<SubstepperT>(advance))
     , geo_(::celeritas::forward<GTV>(geo))
 {
     using MomentumUnits = OdeState::MomentumUnits;
@@ -129,8 +168,8 @@ CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
  *   be slightly higher (again, up to a driver-based tolerance) than the
  *   physical distance travelled.
  */
-template<class SubstepperT, class GTV>
-CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
+template<class SubstepperT, class GTV, class ObserverT>
+CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV, ObserverT>::operator()(
     real_type step) -> result_type
 {
     CELER_EXPECT(step > 0);
@@ -152,6 +191,7 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
         // Advance up to (but probably less than) the remaining step length
         Substep substep = advance_(remaining, state_);
         CELER_ASSERT(substep.length > 0 && substep.length <= remaining);
+        this->observe().substep();
 
         // Check whether the chord for this sub-step intersects a boundary
         auto chord = detail::make_chord(state_.pos, substep.state.pos);
@@ -189,6 +229,7 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
             // caller-requested step. Reset the boundary flag to "false" only
             // in the unlikely case that we successfully shortened the substep
             // on a reentrant boundary crossing below.
+            this->observe().substep_accepted();
             state_ = substep.state;
             result.boundary = false;
             result.distance += substep.length;
@@ -205,6 +246,7 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
             // near tangent). Reduce substep size and try again.
             // TODO: this condition is triggered in ORANGE when on a reentrant
             // boundary
+            this->observe().substep_bumped();
             remaining = substep.length / 2;
         }
         else if (update_length <= this->minimum_substep()
@@ -224,6 +266,7 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
             // post-boundary-crossing track position for consistency, and
             // conservatively reduce the *reported* traveled distance to avoid
             // coincident boundary crossings.
+            this->observe().substep_intercepted();
 
             // Only cross the boundary if the intersect point is less
             // than or exactly on the boundary, or if the crossing
@@ -253,6 +296,7 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
             // The straight-line intercept is too far from substep's end state.
             // Decrease the allowed substep (curved path distance) by the
             // fraction along the chord, and retry the driver step.
+            this->observe().substep_shortened();
             remaining = update_length;
         }
     } while (remaining > this->minimum_substep() && remaining_substeps > 0);
@@ -297,6 +341,7 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
         // Using the just-reapplied direction, hope that we're pointing deeper
         // into the current volume and bump the particle.
         // TODO: move this into a higher-level failure/bump mechanic
+        this->observe().stuck();
         result.distance = celeritas::min(this->bump_distance(), step);
         result.boundary = false;
         axpy(result.distance, dir, &state_.pos);
@@ -323,9 +368,9 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
  * TODO: change delta intersection from property in FieldDriverOptions to
  * another FieldPropagatorOptions
  */
-template<class SubstepperT, class GTV>
+template<class SubstepperT, class GTV, class ObserverT>
 CELER_FUNCTION real_type
-FieldPropagator<SubstepperT, GTV>::delta_intersection() const
+FieldPropagator<SubstepperT, GTV, ObserverT>::delta_intersection() const
 {
     return advance_.delta_intersection();
 }
@@ -334,8 +379,9 @@ FieldPropagator<SubstepperT, GTV>::delta_intersection() const
 /*!
  * Maximum number of substeps.
  */
-template<class SubstepperT, class GTV>
-CELER_FUNCTION short int FieldPropagator<SubstepperT, GTV>::max_substeps() const
+template<class SubstepperT, class GTV, class ObserverT>
+CELER_FUNCTION short int
+FieldPropagator<SubstepperT, GTV, ObserverT>::max_substeps() const
 {
     return advance_.max_substeps();
 }
@@ -344,9 +390,9 @@ CELER_FUNCTION short int FieldPropagator<SubstepperT, GTV>::max_substeps() const
 /*!
  * Distance to bump or to consider a "zero" movement.
  */
-template<class SubstepperT, class GTV>
+template<class SubstepperT, class GTV, class ObserverT>
 CELER_FUNCTION real_type
-FieldPropagator<SubstepperT, GTV>::minimum_substep() const
+FieldPropagator<SubstepperT, GTV, ObserverT>::minimum_substep() const
 {
     return advance_.minimum_step();
 }
@@ -355,8 +401,9 @@ FieldPropagator<SubstepperT, GTV>::minimum_substep() const
 /*!
  * Distance to bump or to consider a "zero" movement.
  */
-template<class SubstepperT, class GTV>
-CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::bump_distance() const
+template<class SubstepperT, class GTV, class ObserverT>
+CELER_FUNCTION real_type
+FieldPropagator<SubstepperT, GTV, ObserverT>::bump_distance() const
 {
     using namespace celeritas::literals;
 

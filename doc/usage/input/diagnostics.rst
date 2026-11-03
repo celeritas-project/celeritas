@@ -18,3 +18,4 @@ Carlo particle transport states.
 .. celerstruct:: inp::Counters
 .. celerstruct:: inp::McTruth
 .. celerstruct:: inp::StepDiagnostic
+.. celerstruct:: inp::FieldDiagnostic
