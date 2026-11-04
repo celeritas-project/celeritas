@@ -68,12 +68,18 @@ class SphereCentered
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the sphere expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
 
   private:
     // Square of the radius
@@ -125,7 +131,16 @@ CELER_FUNCTION SphereCentered::SphereCentered(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense SphereCentered::calc_sense(Real3 const& pos) const
 {
-    return real_to_sense(dot_product(pos, pos) - radius_sq_);
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the sphere expression at a point.
+ */
+CELER_FUNCTION real_type SphereCentered::calc_value(Real3 const& pos) const
+{
+    return dot_product(pos, pos) - radius_sq_;
 }
 
 //---------------------------------------------------------------------------//
@@ -155,7 +170,16 @@ CELER_FUNCTION auto SphereCentered::calc_intersections(
  */
 CELER_FUNCTION Real3 SphereCentered::calc_normal(Real3 const& pos) const
 {
-    return make_unit_vector(pos);
+    return make_unit_vector(this->calc_gradient(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FUNCTION Real3 SphereCentered::calc_gradient(Real3 const& pos) const
+{
+    return {2 * pos[0], 2 * pos[1], 2 * pos[2]};
 }
 
 //---------------------------------------------------------------------------//
