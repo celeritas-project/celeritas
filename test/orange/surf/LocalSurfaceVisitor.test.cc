@@ -179,7 +179,7 @@ TEST_F(SurfaceActionTest, surface_traits_visitor)
             }
             continue;
         }
-        else if (st == SurfaceType::tor)
+        else if (st == SurfaceType::tzc)
         {
             if (CELERITAS_DEBUG && !CELERITAS_ORANGE_TORUS)
             {
