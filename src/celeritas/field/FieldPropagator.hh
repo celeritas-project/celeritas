@@ -76,6 +76,9 @@ class FieldPropagator
     // Search along the chord of a proposed substep and update progress
     inline CELER_FUNCTION void search_substep(Substep const&, Progress* p);
 
+    // Commit a substep to the ODE state but not the geometry
+    inline CELER_FUNCTION void accept_substep(Substep const&, Progress* p);
+
     // Whether more substeps should be taken
     inline CELER_FUNCTION bool has_remaining(Progress const& p) const;
 
@@ -241,18 +244,9 @@ FieldPropagator<SubstepperT, GTV>::search_substep(Substep const& substep,
 
         if (!linear_step.boundary)
         {
-            // No boundary intersection along the chord: accept substep
-            // movement inside the current volume and reset the remaining
-            // distance so we can continue toward the next boundary or end of
-            // caller-requested step. Reset the boundary flag to "false" only
-            // in the unlikely case that we successfully shortened the substep
-            // on a reentrant boundary crossing below.
-            state_ = substep.state;
-            p->result.boundary = false;
-            p->result.distance += substep.length;
-            p->remaining = p->step - p->result.distance;
+            // No boundary intersection along the chord
+            this->accept_substep(substep, p);
             geo_.move_internal(state_.pos);
-            --p->remaining_substeps;
         }
         else if (CELER_UNLIKELY(
                      p->result.boundary
@@ -315,6 +309,27 @@ FieldPropagator<SubstepperT, GTV>::search_substep(Substep const& substep,
             p->remaining = update_length;
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Commit a substep to the ODE state but not the geometry.
+ *
+ * This accepts the substep movement inside the current volume and resets the
+ * remaining distance so we can continue toward the next boundary or end of
+ * caller-requested step. Resetting the boundary flag to "false" only matters
+ * in the unlikely case that we successfully shortened the substep on a
+ * reentrant boundary crossing (see the "bump" branch of \c search_substep ).
+ */
+template<class SubstepperT, class GTV>
+CELER_FUNCTION void FieldPropagator<SubstepperT, GTV>::accept_substep(
+    Substep const& substep, Progress* p)
+{
+    state_ = substep.state;
+    p->result.boundary = false;
+    p->result.distance += substep.length;
+    p->remaining = p->step - p->result.distance;
+    --p->remaining_substeps;
 }
 
 //---------------------------------------------------------------------------//
