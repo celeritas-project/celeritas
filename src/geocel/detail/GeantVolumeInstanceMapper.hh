@@ -63,7 +63,7 @@ class GeantVolumeInstanceMapper
     // Get the volume instance *without* checking replica state
     VolumeInstanceId geant_to_id(G4PV const&, int copy_no) const;
 
-    // Get the volume instance at a history level (zero is world)
+    // Get the volume instance at a nav level (zero for world)
     VolumeInstanceId geant_to_id(G4NavigationHistory const&,
                                  VolumeLevelId level) const;
 
