@@ -59,7 +59,7 @@
       "inherits": ["base"],
       "displayName": "TOOLCHAIN: build with apt-get dependencies",
       "cacheVariables": {
-        "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_ENABLE_TESTING": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILTIN_CLI11": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILTIN_GTest": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_BUILTIN_covfie": { "type": "BOOL", "value": "ON" },
@@ -89,7 +89,7 @@
       "inherits": [".nogtest"],
       "displayName": "CONFIG: build only documentation",
       "cacheVariables": {
-        "BUILD_TESTING": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_ENABLE_TESTING": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_STANDARD": null,
         "CELERITAS_BUILD_APPS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "ON" },
@@ -163,7 +163,7 @@
       "inherits": ["tool-spack"],
       "cacheVariables": {
         "CELERITAS_BUILD_APPS": { "type": "BOOL", "value": "OFF" },
-        "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_ENABLE_TESTING": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CELERITASTEST_G4NT": "1"
       }

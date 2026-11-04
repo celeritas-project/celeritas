@@ -260,6 +260,8 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 {
     input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 4;
+    // Start with a small distribution buffer so that it must grow
+    input_.buffer_capacity = 4;
     this->build_optical_collector();
 
     size_type primaries = 4;
@@ -326,6 +328,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 {
     input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 8;
+    // Start with a small distribution buffer so that it must grow
+    input_.buffer_capacity = 8;
     this->build_optical_collector();
 
     size_type primaries = 8;

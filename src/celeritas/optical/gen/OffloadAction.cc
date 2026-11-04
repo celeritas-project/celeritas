@@ -91,14 +91,15 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
 {
     auto& gen_state
         = get<optical::GeneratorState<M>>(core_state.aux(), data_.gen_id);
-    auto& buffer = gen_state.store.ref().distributions;
     auto& buffer_size = gen_state.counters.buffer_size;
 
-    CELER_VALIDATE(buffer_size + core_state.size() <= buffer.size(),
-                   << "insufficient capacity (" << buffer.size()
-                   << ") for buffered optical photon distribution data (total "
-                      "capacity requirement of "
-                   << buffer_size + core_state.size() << ")");
+    // Grow the buffer if needed to hold the distributions from this step
+    detail::reserve_distributions(&gen_state.store,
+                                  buffer_size,
+                                  buffer_size + core_state.size(),
+                                  core_state.stream_id(),
+                                  this->label());
+    auto& buffer = gen_state.store.ref().distributions;
 
     // Generate the optical distribution data
     this->offload(core_params, core_state);

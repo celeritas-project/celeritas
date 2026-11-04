@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "corecel/Assert.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -248,10 +249,10 @@ void CoreState<M>::reserve_initializers(size_type min_capacity)
                           << capacity << " to " << new_capacity;
 
     ScopedProfiling profile_this{"reserve-initializers"};
-    celeritas::reserve_initializers(&states_.value().init,
-                                    host_counters_.value().num_initializers,
-                                    new_capacity,
-                                    this->stream_id());
+    reserve(&states_.value().init.initializers,
+            host_counters_.value().num_initializers,
+            new_capacity,
+            this->stream_id());
 
     // Update the host reference
     states_.ref().init = states_.value().init;
