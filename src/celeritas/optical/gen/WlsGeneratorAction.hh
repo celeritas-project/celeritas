@@ -79,7 +79,7 @@ class WlsGeneratorAction final : public GeneratorBase
         size_type capacity{};
     };
 
-    // Construct with IDs, WLS model, and buffer capacity
+    // Construct with IDs, WLS model, and initial buffer capacity
     explicit WlsGeneratorAction(Input&&);
 
     //!@{

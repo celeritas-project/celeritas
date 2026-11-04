@@ -110,7 +110,7 @@ struct OpticalStateCapacity : StateCapacity
     static constexpr size_type primaries_per_track = 128;
     static constexpr size_type generators_per_track = 2;
 
-    //! Maximum number of queued photon-generating steps
+    //! Initial number of queued photon-generating steps (grows as needed)
     std::optional<size_type> generators{};
 };
 
