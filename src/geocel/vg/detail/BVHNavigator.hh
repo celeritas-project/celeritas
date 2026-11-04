@@ -320,6 +320,15 @@ class BVHNavigator
 
         return step;
     }
+
+    //-----------------------------------------------------------------------//
+    // Compute the global boundary normal pointing from current to next state.
+    CELER_FUNCTION static bool ComputeNextNormal(
+        VgReal3 const&, NavState const&, NavState const&, VgReal3&)
+    {
+        // Normal direction for VecGeom 1 is unavailable
+        return false;
+    }
 };
 
 //---------------------------------------------------------------------------//

@@ -183,6 +183,7 @@ class VecgeomTrackView
     // Temporary data
     real_type next_step_{0};
     bool failed_{false};
+    Real3 normal_{0, 0, 0};
 
     //// HELPER FUNCTIONS ////
 
@@ -403,8 +404,7 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 {
-    // FIXME: temporarily return a bogus but valid surface normal
-    return this->dir();
+    return normal_;
 }
 
 //---------------------------------------------------------------------------//
@@ -487,6 +487,24 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     axpy(next_step_, dir_, &pos_);
     next_step_ = 0;
     vgstate_.SetBoundaryState(true);
+
+    if (CELERITAS_VECGEOM_VERSION >= 0x020200)
+    {
+        VgReal3 normal;
+        bool success = Navigator::ComputeNextNormal(
+            to_vgvector(pos_), vgstate_, vgnext_, normal);
+
+        if (CELER_UNLIKELY(!success))
+        {
+#if !CELER_DEVICE_COMPILE
+            auto msg = CELER_LOG_LOCAL(error);
+            msg << "Failed to get surface normal at " << repr(pos_) << ' '
+                << lengthunits::native_label;
+#endif
+            failed_ = true;
+        }
+        normal_ = to_array(normal);
+    }
 
     CELER_ENSURE(this->is_on_boundary());
 }
