@@ -2962,13 +2962,15 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     {
         // Skip check
     }
-    else if (test_->geometry_type() == "Geant4")
+    else if (test_->geometry_type() == "ORANGE")
     {
-        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+        // Sign changes after crossing
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     }
     else
     {
-        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+        // Original normal is retained for Geant4, vecgeom
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
     }
 
     EXPECT_FALSE(geo.is_outside());

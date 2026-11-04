@@ -118,6 +118,7 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
 
 //---------------------------------------------------------------------------//
 //! Get and initialize a single-thread host track view
+//! TODO: delete in favor of helper functions
 template<class HP>
 auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos_cm,
                                                  Real3 dir) -> WrappedGeoTrack
