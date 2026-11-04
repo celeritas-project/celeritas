@@ -72,13 +72,26 @@ class GeneratorInterface
  * buffer_size), queued tracks (\c num_pending), and generated tracks (\c
  * num_generated). A difference between the accumulated pending and generated
  * counts indicates there were photons that were queued but never generated.
+ *
+ * Generators whose counters are updated in the state's memory space override
+ * the virtual functions to modify those counters, and \c sync_counters to
+ * copy them back to \c counters and \c accum .
  */
 struct GeneratorStateBase : public AuxStateInterface
 {
-    //! Counts since the start of the optical loop
+    //! Counts since the start of the optical loop (host copy)
     GeneratorCounters<size_type> counters;
     //! Counts accumulated over the event for diagnostics
     GeneratorCounters<std::size_t> accum;
+
+    //! Update the host counters from the counters in the state's memory
+    virtual void sync_counters() {}
+
+    //! Clear the generated count at the start of a transport loop
+    virtual void clear_generated() { counters.num_generated = 0; }
+
+    //! Discard the current counters after the loop aborted early
+    virtual void reset_counters() { counters = {}; }
 };
 
 //---------------------------------------------------------------------------//

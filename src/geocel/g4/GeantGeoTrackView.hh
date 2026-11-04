@@ -313,9 +313,7 @@ VolumeId GeantGeoTrackView::volume_id() const
 VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    G4VPhysicalVolume* pv = touch_handle_()->GetVolume(0);
-    CELER_ASSERT(pv);
-    return params_.vi_mapper->geant_to_id(*pv);
+    return params_.vi_mapper->geant_to_id(*touch_handle_(), 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -361,11 +359,9 @@ void GeantGeoTrackView::foreach_volume_path(F&& visit) const
         = id_cast<VolumeLevelId>(touch->GetHistoryDepth());
     for (auto lev : range(num_vol_levels + 1))
     {
-        VolumeInstanceId vi_id;
-        G4VPhysicalVolume* pv = touch->GetVolume(num_vol_levels - lev);
-        CELER_ASSERT(pv);
-        vi_id = params_.vi_mapper->geant_to_id(*pv);
-        visit(lev, vi_id);
+        visit(lev,
+              params_.vi_mapper->geant_to_id(
+                  *touch, static_cast<int>(num_vol_levels - lev)));
     }
 }
 
