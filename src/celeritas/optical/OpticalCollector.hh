@@ -83,7 +83,7 @@ class OpticalCollector
         //! Number track slots in the optical loop
         size_type num_track_slots{};
 
-        //! Number of steps that have created optical particles
+        //! Initial number of buffered steps that create optical photons
         size_type buffer_capacity{};
 
         //! Threshold number of photons for launching optical loop

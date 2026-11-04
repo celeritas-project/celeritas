@@ -183,18 +183,21 @@ struct WlsGeneratorState final : public WlsGeneratorStateBase
     void reset(StreamId) final;
 };
 
+extern template struct WlsGeneratorState<MemSpace::host>;
+extern template struct WlsGeneratorState<MemSpace::device>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Resize optical buffers.
  */
 template<MemSpace M>
 void resize(WlsGeneratorStateData<Ownership::value, M>* state,
-            StreamId,
+            StreamId stream,
             size_type size)
 {
     CELER_EXPECT(size > 0);
-    resize(&state->distributions, size);
-    resize(&state->offsets, size);
+    resize(&state->distributions, size, stream);
+    resize(&state->offsets, size, stream);
     CELER_ENSURE(*state);
 }
 
