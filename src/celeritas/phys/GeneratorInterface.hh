@@ -70,9 +70,8 @@ class GeneratorInterface
  * num_generated). A difference between the accumulated pending and generated
  * counts indicates there were photons that were queued but never generated.
  *
- * Generators whose counters are updated in the state's memory space override
- * the virtual functions to modify those counters, and \c sync_counters to
- * copy them back to \c counters and \c accum .
+ * The counters are updated in the state's memory space during stepping, and
+ * \c sync_counters copies them back to \c counters and \c accum .
  */
 struct GeneratorStateBase : public AuxStateInterface
 {

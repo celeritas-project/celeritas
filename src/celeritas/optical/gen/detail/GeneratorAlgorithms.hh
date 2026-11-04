@@ -88,18 +88,6 @@ struct ClearTailExecutor
 };
 
 //---------------------------------------------------------------------------//
-// Calculate the inclusive prefix sum of the number of optical photons
-template<class T>
-size_type inclusive_scan_photons(ItemsRef<T, MemSpace::host> const&,
-                                 ItemsRef<size_type, MemSpace::host> const&,
-                                 size_type,
-                                 StreamId);
-template<class T>
-size_type inclusive_scan_photons(ItemsRef<T, MemSpace::device> const&,
-                                 ItemsRef<size_type, MemSpace::device> const&,
-                                 size_type,
-                                 StreamId);
-
 // Calculate the prefix sum of the photon counts and update the pending count
 template<class T>
 void inclusive_scan_photons(ItemsRef<T, MemSpace::host> const&,
@@ -139,16 +127,6 @@ void clear_tail(ItemsRef<T, MemSpace::device> const&,
                 StreamId);
 
 #if !CELER_USE_DEVICE
-template<class T>
-inline size_type inclusive_scan_photons(
-    ItemsRef<T, MemSpace::device> const&,
-    ItemsRef<size_type, MemSpace::device> const&,
-    size_type,
-    StreamId)
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
 template<class T>
 inline void inclusive_scan_photons(ItemsRef<T, MemSpace::device> const&,
                                    ItemsRef<size_type, MemSpace::device> const&,

@@ -32,8 +32,11 @@ class WavelengthShiftModel;
  * Generate photons from optical wavelength shifting distribution data.
  *
  * This samples and initializes optical photons directly in a track slot in a
- * reproducible way. At each step of the optical loop:
- * - The distribution buffer is compacted to remove invalid distributions
+ * reproducible way. Since the buffer size is only known on device, these
+ * operations are launched over a conservative upper bound of the buffer size
+ * (see \c GeneratorCounterState ). At each step of the optical loop:
+ * - The distribution buffer is compacted to remove invalid distributions, and
+ *   the unspecified data left past the compacted buffer is cleared.
  * - An inclusive scan over \c num_photons is computed. All distributions up to
  *   the buffer size are guaranteed to have a positive photon count.
  * - Each thread is assigned to exactly one photon via the cumulative sum \c
@@ -44,8 +47,8 @@ class WavelengthShiftModel;
  *   after all threads assigned to a distribution have generated from it. The
  *   updated counts are used solely to identify exhausted distributions during
  *   the subsequent compaction.
- * - The buffer is compacted again to free space for new distributions that may
- *   be added during the step.
+ * - The buffer is compacted and cleared again to free space for new
+ *   distributions that may be added during the step.
  *
  * This differs from the Cherenkov/scintillation generation in a few ways:
  * - New WLS distributions can be added during the optical stepping loop, so

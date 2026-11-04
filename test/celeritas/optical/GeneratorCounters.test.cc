@@ -314,13 +314,15 @@ CounterResult GeneratorCountersTestBase::run(CoreParams const& params,
     CounterResult result;
     auto const& gen_reg = *params.gen_reg();
 
-    // Append the core counters and each generator's counters
+    // Append the core counters and each generator's counters, which are
+    // updated in the state's memory space
     auto append_all = [&](CoreStateCounters const& counters) {
         result.append(counters);
         for (auto id : range(GeneratorId{gen_reg.size()}))
         {
-            result.gen[gen_reg.id_to_label(id)].append(
-                gen_reg.at(id)->counters(*state.aux()));
+            auto& gen_state = gen_reg.at(id)->counters(*state.aux());
+            gen_state.sync_counters();
+            result.gen[gen_reg.id_to_label(id)].append(gen_state);
         }
     };
 
@@ -545,14 +547,10 @@ TEST_F(WlsSlabGeneratorCountersTest, primary_grow_wls)
 
     auto counts = this->run(params, *state);
 
-    // Check that the WLS distribution buffer grew from its initial capacity
-    size_type capacity = get_capacity();
-    EXPECT_GT(capacity, initial_capacity);
-    if (Test::is_reference_rng)
-    {
-        // Doubled once from the initial capacity
-        EXPECT_EQ(2 * initial_capacity, capacity);
-    }
+    // Check that the WLS distribution buffer grew from its initial capacity.
+    // The final capacity depends on the upper bound of the buffer size, which
+    // depends on when asynchronous copies of the counters complete.
+    EXPECT_GT(get_capacity(), initial_capacity);
 
     // All queued WLS photons were generated without errors
     auto const& wls = counts.gen.at("wls-generate");

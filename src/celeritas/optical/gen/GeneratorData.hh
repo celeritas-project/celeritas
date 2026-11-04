@@ -167,6 +167,9 @@ struct GeneratorState : public GeneratorCounterState<M>
 {
     StateDataStore<GeneratorStateData, M> store;
 
+    //! Whether distributions were added since the photon counts were summed
+    bool needs_scan{false};
+
     //! Construct with stream and buffer capacity
     GeneratorState(StreamId stream, size_type capacity)
         : GeneratorCounterState<M>{stream}, store{stream, capacity}

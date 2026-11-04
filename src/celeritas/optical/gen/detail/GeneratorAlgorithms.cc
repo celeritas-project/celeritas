@@ -25,38 +25,6 @@ namespace detail
 /*!
  * Calculate the inclusive prefix sum of the number of optical photons.
  *
- * \return Total accumulated value
- */
-template<class T>
-size_type inclusive_scan_photons(
-    ItemsRef<T, MemSpace::host> const& buffer,
-    ItemsRef<size_type, MemSpace::host> const& offsets,
-    size_type size,
-    StreamId)
-{
-    CELER_EXPECT(!buffer.empty());
-    CELER_EXPECT(size > 0 && size <= buffer.size());
-    CELER_EXPECT(offsets.size() == buffer.size());
-
-    auto* data = buffer.data().get();
-    auto* result = offsets.data().get();
-
-    size_type acc = 0;
-    auto* const stop = data + size;
-    for (; data != stop; ++data)
-    {
-        acc += GetNumPhotons<T>{}(*data);
-        *result++ = acc;
-    }
-
-    // Return the final value
-    return acc;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the inclusive prefix sum of the number of optical photons.
- *
  * The sum is calculated over a fixed upper bound of the buffer size. The
  * total is stored as the generator's number of pending photons, and the
  * increase is counted as queued photons.
@@ -132,17 +100,6 @@ void clear_tail(ItemsRef<T, MemSpace::host> const& buffer,
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
-
-template size_type inclusive_scan_photons(
-    ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
-    ItemsRef<size_type, MemSpace::host> const&,
-    size_type,
-    StreamId);
-template size_type inclusive_scan_photons(
-    ItemsRef<WlsDistributionData, MemSpace::host> const&,
-    ItemsRef<size_type, MemSpace::host> const&,
-    size_type,
-    StreamId);
 
 #define CELER_INST_GENERATOR_ALGORITHMS(T) \
     template void inclusive_scan_photons( \

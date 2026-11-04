@@ -141,6 +141,12 @@ void Transporter::transport_impl(CoreState<M>& state) const
             break;
         }
     }
+
+    // Update the host copy of the generator counters and statistics
+    gen_reg.foreach_generator([&aux](GeneratorInterface const& gen) {
+        gen.counters(aux).sync_counters();
+    });
+
     if (counters.num_cut > 0)
     {
         CELER_LOG_LOCAL(warning) << "Terminated " << counters.num_cut
