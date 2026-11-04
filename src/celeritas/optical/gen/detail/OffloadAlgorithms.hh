@@ -77,6 +77,9 @@ inline void reserve_distributions(StateDataStore<S, M>* store,
  * copied into it. The store's reference is updated in place, but any copy of
  * it made before this call refers to the released storage and must not be used
  * afterward.
+ *
+ * \tparam S optical::GeneratorStateData or optical::WlsGeneratorStateData
+ * \tparam M Memory space of the distribution buffer
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 void reserve_distributions(StateDataStore<S, M>* store,
