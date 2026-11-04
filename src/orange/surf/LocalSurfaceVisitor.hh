@@ -7,12 +7,11 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
 
 #include "SurfaceTypeTraits.hh"
 
-#include "detail/AllSurfaces.hh"
+#include "detail/AllSurfaces.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -50,7 +49,7 @@ class LocalSurfaceVisitor
     // Apply the function to the surface specified by the given ID
     template<class F>
     inline CELER_FUNCTION decltype(auto) operator()(F&& typed_visitor,
-                                                    LocalSurfaceId t);
+                                                    LocalSurfaceId t) const;
 
   private:
     //// TYPES ////
@@ -102,7 +101,7 @@ CELER_FORCEINLINE_FUNCTION LocalSurfaceVisitor::LocalSurfaceVisitor(
  */
 template<class F>
 CELER_FUNCTION decltype(auto) LocalSurfaceVisitor::operator()(
-    F&& func, LocalSurfaceId id)
+    F&& func, LocalSurfaceId id) const
 {
     CELER_EXPECT(id < surfaces_.size());
 
