@@ -142,7 +142,7 @@ void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
  * Tracks are selected if they interacted with a detector or, if no detectors
  * are used, if their track ID was set during gathering. Device step data is
  * copied asynchronously with \c compact_steps_async and
- * \c copy_compacted_steps.
+ * \c copy_compacted_steps_async.
  */
 void copy_steps(
     DetectorStepOutput* output,
@@ -181,6 +181,7 @@ void copy_steps(
 
     DS_ASSIGN(event_id);
     DS_ASSIGN(parent_id);
+    DS_ASSIGN(generation);
     DS_ASSIGN(primary_id);
     DS_ASSIGN(post_step_action_id);
     DS_ASSIGN(track_step_count);

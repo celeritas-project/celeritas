@@ -66,6 +66,10 @@ jobs:
         run: "true"
 
   ## MAIN JOBS ##
+
+  build-fast-extra:
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-fast-extra.yml
   build-spack:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
@@ -94,9 +98,10 @@ jobs:
   all:
     if: ${{ always() && github.event.pull_request.draft == false }}
     needs:
+      - build-docs
       - build-fast
       - build-ultralite
-      - build-docs
+      - build-fast-extra
       - build-spack
       - build-spack-extra
       - build-codecov

@@ -6,6 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "CliUtils.hh"
 
+#include <iostream>
+#include <sstream>
+#include <string>
+
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"

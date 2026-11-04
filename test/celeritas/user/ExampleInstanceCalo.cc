@@ -66,12 +66,6 @@ ExampleInstanceCalo::ExampleInstanceCalo(
     CELER_VALIDATE(
         std::all_of(volume_ids_.begin(), volume_ids_.end(), Identity{}),
         << "failed to find one or more volumes while constructing SimpleCalo");
-
-    if (celeritas::device())
-    {
-        // Allocate pinned count for compacting device steps
-        num_selected_.resize(1);
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -123,12 +117,12 @@ void ExampleInstanceCalo::process_steps(HostStepState state)
  */
 void ExampleInstanceCalo::process_steps(DeviceStepState state)
 {
-    CELER_EXPECT(num_selected_.size() == 1);
-
     // Compact on device, then wait for the count before copying the data
-    compact_steps_async(state.steps, AsyncResultRef{num_selected_});
-    device().stream(state.stream_id).sync();
-    copy_compacted_steps(&steps_, state.steps, num_selected_.front());
+    auto& stream = device().stream(state.stream_id);
+    compact_steps_async(state.steps, num_selected_);
+    copy_compacted_steps_async(
+        &steps_, state.steps, num_selected_.wait(), stream);
+    stream.sync();
     if (steps_)
     {
         this->process_steps(steps_);

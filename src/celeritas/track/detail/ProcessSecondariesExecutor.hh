@@ -81,9 +81,10 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
     CELER_ASSERT(data.secondary_counts[tid] <= counters.num_secondaries);
     size_type offset = counters.num_secondaries - data.secondary_counts[tid];
 
-    // Save the parent ID since it will be overwritten if a secondary is
-    // initialized in this slot
+    // Save the parent ID and generation since they will be overwritten if a
+    // secondary is initialized in this slot
     TrackId const track_id{sim.track_id()};
+    size_type const generation{sim.generation()};
 
     for (auto const& secondary : track.physics_step().secondaries())
     {
@@ -102,6 +103,7 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
             ti.sim.track_id = make_track_id(params->init, data, sim.event_id());
             ti.sim.primary_id = sim.primary_id();
             ti.sim.parent_id = track_id;
+            ti.sim.generation = generation + 1;
             ti.sim.event_id = sim.event_id();
             ti.sim.time = sim.time();
             ti.sim.weight = sim.weight();

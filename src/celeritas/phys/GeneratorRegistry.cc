@@ -50,13 +50,21 @@ GeneratorId GeneratorRegistry::find(std::string const& label) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Reset the generator counters if the loop aborted early.
+ * Apply a function to every generator in order of ID.
+ *
+ * This is used to update the generator states for a stream, for example:
+ * \code
+   gen_reg.foreach_generator([&aux](GeneratorInterface const& gen) {
+       gen.counters(aux).sync_counters();
+   });
+   \endcode
  */
-void GeneratorRegistry::reset(AuxStateVec& aux) const
+void GeneratorRegistry::foreach_generator(GeneratorFunc const& apply) const
 {
+    CELER_EXPECT(apply);
     for (auto id : range(GeneratorId{this->size()}))
     {
-        this->at(id)->counters(aux).counters = {};
+        apply(*this->at(id));
     }
 }
 

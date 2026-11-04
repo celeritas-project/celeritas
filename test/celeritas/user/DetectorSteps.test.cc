@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/user/DetectorSteps.hh"
 
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/data/ParamsDataStore.hh"
-#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stream.hh"
@@ -55,11 +55,13 @@ void copy_sync_steps(
     DetectorStepOutput* output,
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {
-    std::vector<size_type, PinnedAllocator<size_type>> num_selected(1, 0);
-    compact_steps_async(state, AsyncResultRef{num_selected});
-    device().stream(state.stream_id).sync();
-    CELER_EXPECT(num_selected.front() > 0);
-    copy_compacted_steps(output, state, num_selected.front());
+    auto& stream = device().stream(state.stream_id);
+    AsyncSnapshot<size_type> num_selected;
+    compact_steps_async(state, num_selected);
+    size_type num_valid = num_selected.wait();
+    CELER_EXPECT(num_valid > 0);
+    copy_compacted_steps_async(output, state, num_valid, stream);
+    stream.sync();
 }
 
 //---------------------------------------------------------------------------//

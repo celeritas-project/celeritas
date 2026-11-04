@@ -94,6 +94,14 @@ SquareMatrix<T, N> gemm(matrix::TransposePolicy,
 template<class T, std::size_t N>
 void orthonormalize(SquareMatrix<T, N>* mat);
 
+// Whether a small, dense matrix is the identity within a tolerance
+template<class T, std::size_t N>
+bool is_identity(SquareMatrix<T, N> const& mat, T tol);
+
+// Whether a small, dense matrix is orthonormal within a tolerance
+template<class T, std::size_t N>
+bool is_orthonormal(SquareMatrix<T, N> const& mat, T tol);
+
 // Create an identity 3x3 matrix
 SquareMatrixReal3 make_identity();
 

@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
-#include <algorithm>
 #include <csignal>
 #include <memory>
 #include <mutex>
@@ -43,7 +42,6 @@
 #include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"  // IWYU pragma: keep
-#include "celeritas/global/PrimaryCapacity.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/io/OffloadWriter.hh"
@@ -51,6 +49,7 @@
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/user/StepCollector.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -197,6 +196,14 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (celeritas::device())
     {
         step_ = std::make_shared<Stepper<MemSpace::device>>(std::move(inp));
+        if (hit_processor_)
+        {
+            // Allocate pinned hit output now rather than while stepping
+            auto const& step_collector = params.problem_loaded().step_collector;
+            CELER_ASSERT(step_collector);
+            hit_processor_->reserve(
+                step_collector->step_state<MemSpace::device>(step_->state()));
+        }
     }
     else
     {
@@ -218,6 +225,13 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
     CELER_EXPECT(id != event_id_);
+    // Restarting track IDs (and reseeding) requires the previous event to be
+    // fully transported
+    CELER_VALIDATE(!step_->has_outstanding_result() && !transport_active_
+                       && this->GetBufferSize() == 0,
+                   << "cannot start event " << id
+                   << " before tracks from event " << event_id_
+                   << " are flushed");
 
     event_id_ = id;
     ++run_accum_.events;
@@ -233,6 +247,9 @@ void LocalTransporter::InitializeEvent(int id)
             step_->reseed(id_cast<UniqueEventId>(event_id_));
         }
     }
+    // Track IDs are unique per event and mapped to Geant4 track IDs, so they
+    // must restart at every event even without reseeding
+    step_->reset_track_ids();
 
     // Initialize Geant4 event reconstruction and primary ID mapping
     track_reconstruction_->init_event();
@@ -246,8 +263,11 @@ void LocalTransporter::InitializeEvent(int id)
  * Geant4 \c Push calls. It does not start GPU transport: same-stream ordering
  * guarantees that when stepping begins later, kernels observe the copied
  * primaries. Only one staged batch is currently supported.
+ *
+ * Primaries are admitted regardless of the current initializer capacity: the
+ * stepper grows the initializer buffer as needed before the next step.
  */
-void LocalTransporter::stage_buffered_primaries(StepperResult const& prior)
+void LocalTransporter::stage_buffered_primaries()
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(step_->num_buffered_primaries() > 0);
@@ -255,41 +275,8 @@ void LocalTransporter::stage_buffered_primaries(StepperResult const& prior)
     CELER_EXPECT(step_->staged_primaries().empty());
     CELER_EXPECT(staged_accum_.empty());
 
-    CELER_VALIDATE(step_->num_buffered_primaries()
-                       <= this->available_primary_capacity(prior),
-                   << "primary buffer of size "
-                   << step_->num_buffered_primaries()
-                   << " exceeds available initializer capacity "
-                   << step_->initializer_capacity() << " with " << prior.queued
-                   << " queued and " << prior.alive << " alive tracks");
-
     step_->stage_primaries();
     staged_accum_ = std::exchange(buffered_accum_, {});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate primary capacity after initialization and secondary reservation.
- *
- * Primaries and queued initializers are processed before secondaries are
- * appended. Primaries that fill vacant track slots therefore need no queue
- * space at the end of the step. Any remaining primaries must leave room for
- * the secondary stack, capped at the initializer capacity so configurations
- * with a larger secondary allocation can still admit primaries that fill
- * vacant track slots.
- */
-size_type LocalTransporter::available_primary_capacity(
-    StepperResult const& prior) const
-{
-    CELER_EXPECT(*this);
-
-    detail::PrimaryCapacityInput input;
-    input.track_slots = step_->state().size();
-    input.initializer_capacity = step_->initializer_capacity();
-    input.secondary_capacity = step_->secondary_capacity();
-    input.queued = prior.queued;
-    input.alive = prior.alive;
-    return detail::calc_primary_capacity(input);
 }
 
 //---------------------------------------------------------------------------//
@@ -365,12 +352,17 @@ auto LocalTransporter::complete_step() -> StepperResult
     CELER_EXPECT(*this);
     CELER_EXPECT(step_->has_outstanding_result());
 
+    if (hit_processor_)
+    {
+        // Process hits from the previous step while this one runs
+        hit_processor_->process_copied_steps();
+    }
     auto result = step_->get();
     if (hit_processor_)
     {
-        // Hits were compacted on device during the step: copy them to the
-        // host and process them before the next step can reuse the scratch.
-        hit_processor_->process_pending_steps();
+        // Hits were compacted on device during the step: enqueue their copy
+        // to the host, which the next step's compaction waits for
+        hit_processor_->copy_pending_steps();
     }
     ++step_iters_;
     transport_active_ = static_cast<bool>(result);
@@ -416,6 +408,12 @@ void LocalTransporter::advance_if_ready()
 {
     CELER_EXPECT(*this);
 
+    if (hit_processor_)
+    {
+        // Process lagged hits whose copy to the host has completed
+        hit_processor_->process_copied_steps_if_ready();
+    }
+
     if (!step_->has_outstanding_result())
     {
         if (!step_->staged_primaries().empty())
@@ -450,53 +448,6 @@ auto LocalTransporter::advance_transport() -> StepperResult
 
     this->launch_step();
     return this->complete_step();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Advance transport until the producer buffer fits in the initializer queue.
- *
- * Active tracks may remain when this returns. The completed result guarantees
- * that start-of-step initialization will reduce the existing initializer queue
- * and producer buffer enough to preserve the maximum usable capacity for
- * secondaries generated by the next step.
- */
-auto LocalTransporter::wait_for_initializer_capacity() -> StepperResult
-{
-    CELER_EXPECT(*this);
-    CELER_EXPECT(step_->has_outstanding_result());
-    CELER_EXPECT(step_->num_buffered_primaries() > 0);
-    CELER_EXPECT(step_->staged_primaries().empty());
-
-    ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
-
-    // Consume the current result, then advance only as far as needed to admit
-    // the producer while retaining secondary capacity after initialization.
-    auto track_counts = this->complete_step();
-    size_type const init_capacity = step_->initializer_capacity();
-    size_type const secondary_capacity = step_->secondary_capacity();
-    auto primaries_fit = [this](StepperResult const& result) {
-        return step_->num_buffered_primaries()
-               <= this->available_primary_capacity(result);
-    };
-    while (!primaries_fit(track_counts))
-    {
-        CELER_VALIDATE(
-            track_counts,
-            << "primary buffer of size " << step_->num_buffered_primaries()
-            << " exceeds available initializer capacity " << init_capacity
-            << " with " << track_counts.queued << " queued and "
-            << track_counts.alive << " alive tracks while reserving up to "
-            << std::min(secondary_capacity, init_capacity)
-            << " initializers for secondaries");
-
-        // A false result means the queue is already empty: failure above then
-        // avoids looping when the producer cannot fit an empty core state.
-        track_counts = this->advance_transport();
-        CELER_VALIDATE_OR_KILL_ACTIVE(
-            !interrupted(), << "caught interrupt signal", *step_);
-    }
-    return track_counts;
 }
 
 //---------------------------------------------------------------------------//
@@ -544,7 +495,7 @@ void LocalTransporter::launch_pending_primaries()
             // step. This records whether any active tracks remain so
             // launch_step can distinguish between continuing transport and
             // starting a new batch
-            static_cast<void>(this->complete_step());
+            this->complete_step();
         }
         this->launch_step();
     }
@@ -552,14 +503,12 @@ void LocalTransporter::launch_pending_primaries()
     // Stage and launch any batch remaining in the producer buffer
     if (step_->num_buffered_primaries() > 0)
     {
-        StepperResult track_counts;
         if (step_->has_outstanding_result())
         {
-            // Advance transport only as far as needed to make room for the
-            // buffered primaries while preserving space for secondaries
-            track_counts = this->wait_for_initializer_capacity();
+            // Retrieve the previous step result as above
+            this->complete_step();
         }
-        this->stage_buffered_primaries(track_counts);
+        this->stage_buffered_primaries();
         this->launch_step();
     }
 }
@@ -676,9 +625,12 @@ void LocalTransporter::push_impl(G4Track& g4track)
                    << "' particles");
 
     /*!
-     * \todo Eliminate event ID from primary.
+     * \todo Eliminate the local event ID from primary: it is only used as the
+     * slot for counting tracks.
      */
     track.event_id = EventId{0};
+    // Seed per-track RNGs from the Geant4 event
+    track.unique_event_id = id_cast<UniqueEventId>(event_id_);
 
     step_->push_primary(track);
     ++buffered_accum_.primaries;
@@ -712,10 +664,12 @@ void LocalTransporter::flush_impl()
 
     bool const has_buffered = step_->num_buffered_primaries() > 0;
     bool const has_staged = !step_->staged_primaries().empty();
+    bool const has_hits = hit_processor_ && hit_processor_->has_pending_steps();
 
-    // Rejected primaries have no Stepper state but still need loss accounting.
+    // Rejected primaries have no Stepper state but still need loss accounting,
+    // and hits from a completed step may still need processing.
     if (!step_->has_outstanding_result() && !has_staged && !has_buffered
-        && buffered_accum_.lost_primaries == 0)
+        && !has_hits && buffered_accum_.lost_primaries == 0)
     {
         return;
     }
@@ -748,6 +702,8 @@ void LocalTransporter::flush_impl()
     // Record the number of hits processed during this flush
     if (hit_processor_)
     {
+        // Process hits from the final step
+        hit_processor_->process_copied_steps();
         auto num_hits = hit_processor_->exchange_hits();
         if (num_hits > 0)
         {

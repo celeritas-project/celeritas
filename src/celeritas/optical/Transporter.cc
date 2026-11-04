@@ -63,6 +63,14 @@ void Transporter::transport_impl(CoreState<M>& state) const
     size_type num_step_iters{0};
     size_type num_steps{0};
 
+    auto& aux = *state.aux();
+    auto const& gen_reg = *this->params()->gen_reg();
+
+    // Reset the counts that are accumulated during the loop
+    state.clear_tallies();
+    gen_reg.foreach_generator([&aux](GeneratorInterface const& gen) {
+        gen.counters(aux).clear_generated();
+    });
     auto counters = state.sync_get_counters();
 
     // Store a pointer to aux data for timing results
@@ -124,9 +132,10 @@ void Transporter::transport_impl(CoreState<M>& state) const
                 << counters.num_pending << " queued, " << counters.num_cut
                 << " cut, and " << counters.num_errored << " errored";
             // Add all untransported tracks to 'cut' counter
-            counters.num_cut += counters.num_active + counters.num_pending;
+            counters.num_cut += counters.num_alive + counters.num_pending;
 
-            this->params()->gen_reg()->reset(*state.aux());
+            gen_reg.foreach_generator(
+                [&aux](GeneratorInterface const& gen) { gen.reset(aux); });
             state.reset();
             break;
         }

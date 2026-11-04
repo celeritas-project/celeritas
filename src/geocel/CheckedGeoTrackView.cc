@@ -70,7 +70,8 @@ struct NativeLength
         std::ostringstream msg_; \
         msg_ << "failed during " << WHERE; \
         msg_ << "" WHAT; \
-        throw_cgtv_error(CGTV, std::move(msg_), {}, __FILE__, __LINE__); \
+        throw_cgtv_error( \
+            CGTV, std::move(msg_), {}, CELER_SOURCE_FILE, __LINE__); \
     } while (0)
 
 #define CGTV_VALIDATE_NOT_FAILED(CGTV, WHERE) \
@@ -90,7 +91,7 @@ struct NativeLength
             std::ostringstream msg_; \
             msg_ << "" STREAM_WHAT; \
             throw_cgtv_error( \
-                CGTV, std::move(msg_), #COND, __FILE__, __LINE__); \
+                CGTV, std::move(msg_), #COND, CELER_SOURCE_FILE, __LINE__); \
         } \
     } while (0)
 

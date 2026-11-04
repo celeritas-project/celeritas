@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdint>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
@@ -51,13 +53,22 @@ struct ProcessPrimariesExecutor
 //---------------------------------------------------------------------------//
 /*!
  * Create track initializers from primaries.
+ *
+ * When reseeding each track, the RNG state is initialized from the primary ID
+ * and the primary's unique event ID, falling back to its local event ID if the
+ * unique ID is unset.
+ *
+ * \todo Revisit event IDs and seeding together with the supported
+ * threading/tasking models: the local event ID could be combined with the
+ * stream ID, and the RNG could be seeded from the unique event ID and the
+ * Geant4 track ID (e.g., hashed into 64 bits or used as a 128-bit seed) rather
+ * than from event IDs read from input files.
  */
 CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < primaries.size() || tid < state->size());
 
-    size_type num_initializers
-        = state->init.counters.data().get()->num_initializers;
+    size_type num_initializers = state->init.counters.data()->num_initializers;
 
     // Only state.size() threads participate in this grid-stride loop.
     // Additional threads may be launched to process a larger set of primaries:
@@ -97,10 +108,13 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     // Set the RNG state initializer appropriately dispatched on RNG type
     if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
     {
-        celeritas::initialize_rng_state(params->rng.seed,
-                                        ti.sim.event_id.get(),
-                                        ti.sim.primary_id.get(),
-                                        ti.rng);
+        CELER_ASSERT(primary.unique_event_id || primary.event_id);
+        std::uint64_t event_key = primary.unique_event_id
+                                      ? *primary.unique_event_id
+                                      : *primary.event_id;
+        CELER_ASSERT(primary.primary_id);
+        celeritas::initialize_rng_state(
+            params->rng.seed, event_key, *primary.primary_id, ti.rng);
     }
 
     // Store the initializer

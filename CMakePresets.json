@@ -9,7 +9,7 @@
       "generator": "Ninja",
       "cacheVariables": {
         "Celeritas_CGV_CACHE": "",
-        "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_ENABLE_TESTING": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_DD4hep": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_COMPILER_LAUNCHER": {
@@ -107,7 +107,7 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "Celeritas_CGV_CACHE": "",
-        "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_ENABLE_TESTING": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "OFF" },
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
         "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" }

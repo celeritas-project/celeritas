@@ -20,6 +20,7 @@ namespace celeritas
 class ActionRegistry;
 class AuxParamsRegistry;
 class CoreParams;
+class CoreStateInterface;
 class VolumeParams;
 
 namespace detail
@@ -76,6 +77,11 @@ class StepCollector
 
     // See which data are being gathered
     StepSelection const& selection() const;
+
+    // Access step state
+    template<MemSpace M>
+    StepStateData<Ownership::reference, M> const& step_state(
+        CoreStateInterface const& core) const;
 
   private:
     template<StepPoint P>

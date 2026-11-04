@@ -97,7 +97,6 @@ Stepper<M>::Stepper(Input input)
     {
         // Allocate reusable asynchronous state before stepping begins
         primary_copy_done_ = DeviceEvent{celeritas::device()};
-        step_done_ = DeviceEvent{celeritas::device()};
     }
 
     // Execute beginning-of-run action
@@ -161,22 +160,9 @@ void Stepper<M>::async()
 
     ScopedProfiling profile_this{"step"};
 
-    /*! \todo If we don't have space for all the primaries or secondaries, we
-     * will need to buffer the current track initializers to create room.
-     *
-     * This isn't trivial because we will need to:
-     * - Allocate a new buffer (probably do something like 2x, rounding up to
-     *   nearest power of 2)?
-     * - Update the collection references for track sim
-     * - Update the *copies* of that reference (?) like in track state
-     * - Copy to device to update the on-device references (state.ptr)
-     */
-    size_type max_initializers = this->calc_max_initializers();
-    CELER_VALIDATE(
-        max_initializers <= this->initializer_capacity(),
-        << "insufficient initializer capacity (" << this->initializer_capacity()
-        << ") for a maximum possible requirement of " << max_initializers
-        << ". Increase initializer capacity or decrease track slots");
+    // Grow the initializer buffer if there might not be space for all the
+    // primaries and secondaries
+    state_->reserve_initializers(this->calc_max_initializers());
 
     // Initialize the generated, error, and cut counters to zero and set the
     // number of pending primaries
@@ -191,13 +177,10 @@ void Stepper<M>::async()
         primary_phase_ = PrimaryPhase::submitted;
     }
 
-    // Queue an asynchronous copy of the counters after the step actions
-    // complete, then record the completion event.
+    // Queue an asynchronous copy of the counters after the step actions.
+    // This must be the last work enqueued for the step: its completion is
+    // what ready() and wait() report as the completion of the step.
     state_->async_copy_counters();
-    if constexpr (M == MemSpace::device)
-    {
-        step_done_.record(celeritas::device().stream(state_->stream_id()));
-    }
 
     has_outstanding_result_ = true;
     CELER_ENSURE(primary_phase_ != PrimaryPhase::staged);
@@ -222,7 +205,7 @@ void Stepper<M>::async(SpanConstPrimary primaries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the fixed capacity of the track initializer queue.
+ * Return the current capacity of the track initializer queue.
  *
  * After consuming a step result, callers can compare this with the result's
  * queued initializers and the producer buffer size before staging primaries.
@@ -230,7 +213,7 @@ void Stepper<M>::async(SpanConstPrimary primaries)
 template<MemSpace M>
 size_type Stepper<M>::initializer_capacity() const noexcept
 {
-    return params_->init()->capacity();
+    return state_->initializer_capacity();
 }
 
 //---------------------------------------------------------------------------//
@@ -358,7 +341,7 @@ bool Stepper<M>::ready() const
     CELER_VALIDATE(
         has_outstanding_result_,
         << R"(cannot query whether step has completed without an outstanding step result)");
-    return step_done_.ready();
+    return state_->host_counters().ready();
 }
 
 //---------------------------------------------------------------------------//
@@ -371,7 +354,7 @@ void Stepper<M>::wait() const
     CELER_VALIDATE(
         has_outstanding_result_,
         << R"(cannot wait for step to complete without an outstanding step result)");
-    step_done_.sync();
+    state_->host_counters().sync();
 }
 
 //---------------------------------------------------------------------------//
@@ -389,7 +372,7 @@ auto Stepper<M>::get() -> result_type
         << "cannot get the result without an outstanding step result");
 
     this->wait();
-    auto result = make_stepper_result(state_->host_counters());
+    auto result = make_stepper_result(state_->host_counters().value());
     has_outstanding_result_ = false;
     this->reclaim_submitted_primaries();
     return result;
@@ -465,6 +448,25 @@ void Stepper<M>::reseed(UniqueEventId event_id)
                state_->ref().rng,
                state_->stream_id(),
                event_id);
+    this->reset_track_ids();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restart track ID numbering at the start of an event.
+ *
+ * Track IDs are unique within an event. Resetting them at each event keeps
+ * them small, which lets integrations map them to other ID spaces (e.g.,
+ * Geant4 track IDs) without overflow.
+ */
+template<MemSpace M>
+void Stepper<M>::reset_track_ids()
+{
+    CELER_VALIDATE(
+        !has_outstanding_result_,
+        << "cannot reset track IDs while an asynchronous step is executing");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot reset track IDs with queued primaries");
     params_->init()->reset_track_ids(state_->stream_id(), &state_->ref().init);
 }
 
@@ -524,7 +526,7 @@ size_type Stepper<M>::calc_max_initializers() const
 {
     CELER_EXPECT(!has_outstanding_result_);
 
-    auto const& counters = state_->host_counters();
+    auto const& counters = state_->host_counters().value();
 
     // Number of initializers before initializing new tracks
     size_type pre_init_size = counters.num_initializers

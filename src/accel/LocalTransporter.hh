@@ -67,36 +67,34 @@ struct StepperResult;
  *
  * At most one step result, one staged batch, and one producer batch can be
  * pending. Before reusing a full producer buffer, \c Push submits any staged
- * batch. It then applies backpressure by consuming and advancing the current
- * result only until start-of-step initialization can consume enough queued
- * tracks and primaries to preserve room for the secondary stack. Active tail
- * tracks may remain when a new batch is staged and launched. Calls to \c
- * stage_primaries and \c async can still block on synchronization internal to
- * the current Stepper implementation.
+ * batch. It then consumes the current result and stages and launches the
+ * producer batch alongside any active tail tracks. Primaries are admitted
+ * regardless of the current initializer capacity: the Stepper grows the
+ * initializer buffer as needed before each step. Calls to \c stage_primaries
+ * and \c async can still block on synchronization internal to the current
+ * Stepper implementation.
  * Before accepting each subsequent track, \c Push polls a pending step. If it
  * is ready, its result is consumed and another step is launched whenever
  * existing transport remains or another batch is staged. This allows device
- * transport to progress while Geant4 continues producing primaries. A full
- * producer batch is staged only when it fits alongside queued initializers and
- * leaves the maximum usable initializer capacity for secondaries after vacant
- * track slots have been filled.
+ * transport to progress while Geant4 continues producing primaries.
  *
  * \par Event completion
  *
  * At event end, \c Flush first submits any staged batch. If a partially filled
- * producer buffer remains, it advances the current transport until that batch
- * satisfies the same initializer and secondary-capacity admission rule, then
- * stages and launches the producer batch. It finally steps all transport
+ * producer buffer remains, it stages and launches it after consuming the
+ * current result. It finally steps all transport
  * synchronously to completion. Selection and compaction of device-generated
  * Geant SD data are enqueued on the device during the action launch, so a step
- * is not ready until they complete. The compacted data is copied to the host
- * and reconstructed only when the completed step result is consumed, keeping
- * the host copy and hit processing out of the asynchronous action launch. The
- * current copy still synchronizes before the next step starts. Hit processing
- * and Geant4 track reconstruction
- * are kept alive across the asynchronous work and cleared only after the drain
- * completes. A flush with only rejected primaries still reports and clears
- * their loss accounting.
+ * is not ready until they complete. When the completed step result is
+ * consumed, the copy of the compacted data to the host is enqueued on the
+ * device's memcpy stream without synchronizing, so the next step can start
+ * while it runs; that step's compaction waits for the copy on the device.
+ * These "lagged" hits are reconstructed on the host later, while a subsequent
+ * step is running: when \c Push polls a completed copy, before waiting for the
+ * next step result, or at the end of \c Flush . Hit processing and Geant4
+ * track reconstruction are kept alive across the asynchronous work and
+ * cleared only after the drain completes. A flush with only rejected
+ * primaries or lagged hits still reports and clears their accounting.
  *
  * Host mode has the same buffering interface but no asynchronous overlap: a
  * full producer buffer calls \c Flush and is transported to completion before
@@ -204,13 +202,11 @@ class LocalTransporter final : public TrackOffloadInterface
 
     void flush_impl();
     void push_impl(G4Track&);
-    void stage_buffered_primaries(StepperResult const&);
-    size_type available_primary_capacity(StepperResult const&) const;
+    void stage_buffered_primaries();
     void launch_step();
     StepperResult complete_step();
     void advance_if_ready();
     StepperResult advance_transport();
-    StepperResult wait_for_initializer_capacity();
     void drain_transport();
     void reset_local_state();
     void launch_pending_primaries();

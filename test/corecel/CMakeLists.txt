@@ -27,6 +27,7 @@ celeritas_add_test(Assert.test.cc
   ENVIRONMENT "CELER_COLOR=1;CELER_LOG=debug"
 )
 celeritas_add_test(OpaqueId.test.cc)
+celeritas_add_test(SourceFile.test.cc)
 celeritas_add_test(Types.test.cc)
 
 # Cont
@@ -41,6 +42,7 @@ celeritas_add_device_test(cont/Range
   LINK_LIBRARIES Celeritas::ExtThrust)
 
 # Data
+celeritas_add_test(data/AsyncSnapshot.test.cc GPU)
 celeritas_add_device_test(data/Collection)
 celeritas_add_test(data/Copier.test.cc GPU)
 celeritas_add_test(data/DeviceAllocation.test.cc GPU)

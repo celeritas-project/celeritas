@@ -69,6 +69,18 @@ cmake_dependent_option(CELERITAS_CODESIGN_APPS
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
+# GCC 8 fails to deduce the return type of the lambda used by
+# CELER_SOURCE_FILE inside a discarded `if constexpr` branch
+set(_compiler_robust_constexpr TRUE)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  set(_compiler_robust_constexpr FALSE)
+endif()
+cmake_dependent_option(CELERITAS_TRIM_SOURCE_FILE
+  "Shorten source filenames in log and error messages at compile time" "OFF"
+  "NOT CELERITAS_DEBUG;_compiler_robust_constexpr" OFF
+)
+
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   set(_celeritas_use_device TRUE)
 else()
@@ -78,6 +90,16 @@ cmake_dependent_option(CELERITAS_DEVICE_DEBUG
   "Use verbose debug assertions in device code" "OFF"
   "_celeritas_use_device;CELERITAS_DEBUG" OFF
 )
+
+# Build CTest tree by default when building GoogleTest tests
+# or, if Celeritas is the main project, when CTest BUILD_TESTING option
+# is given (for backward compatibility)
+if(CELERITAS_BUILD_TESTS OR (BUILD_TESTING AND PROJECT_IS_TOP_LEVEL))
+  set(_default_test ON)
+else()
+  set(_default_test OFF)
+endif()
+option(CELERITAS_ENABLE_TESTING "Enable CTest testing" "${_default_test}")
 
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
@@ -108,7 +130,8 @@ else()
   set(_needs_g4vg OFF)
 endif()
 
-if(BUILD_TESTING OR CELERITAS_BUILD_DOCS OR CELERITAS_BUILD_TESTS)
+if((CELERITAS_ENABLE_TESTING AND CELERITAS_BUILD_APPS)
+   OR CELERITAS_BUILD_DOCS)
   set(_needs_python ON)
 else()
   set(_needs_python OFF)
@@ -285,8 +308,6 @@ celeritas_set_default(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY FALSE)
 
 ### Build flags ###
 
-# Default to building CTest tree if using Celeritas tests
-celeritas_set_default(BUILD_TESTING ${CELERITAS_BUILD_TESTS})
 # Default to debug or released based on value of CELERITAS_DEBUG
 if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   if(CELERITAS_DEBUG)
@@ -401,9 +422,9 @@ if(CELERITAS_USE_CLI11)
   celeritas_find_or_builtin_package(CLI11 2.4)
 endif()
 
-if(BUILD_TESTING)
+if(CELERITAS_ENABLE_TESTING)
   # Build the test tree for unit and/or app tests
-  include(CTest)
+  enable_testing()
 endif()
 
 if(CELERITAS_USE_LArSoft)
@@ -799,12 +820,15 @@ if(CELERITAS_BUILD_APPS)
   add_subdirectory(app)
 else()
   # Replacement for running celer-config
-  add_custom_target("get-config"
+  add_custom_target("print-config"
     COMMAND ${CMAKE_COMMAND} -E echo
-      "'get-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
+      "'print-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
     VERBATIM
   )
 endif()
+set_target_properties("print-config" PROPERTIES
+  FOLDER "bin"
+)
 
 #----------------------------------------------------------------------------#
 # DOCUMENTATION

@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
@@ -173,7 +174,7 @@ auto SequenceEngine::operator()() -> result_type
         // Always throw a debug error rather than letting the test crash
         throw DebugError{{DebugErrorType::precondition,
                           "SequenceEngine RNG stream exceeded",
-                          __FILE__,
+                          CELER_SOURCE_FILE,
                           __LINE__}};
     }
     return values_[i_++];

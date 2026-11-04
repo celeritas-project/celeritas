@@ -30,6 +30,15 @@ void initialize_counters(
 }
 
 //---------------------------------------------------------------------------//
+void clear_tallies(CSCDeviceRef const& counters, StreamId stream_id)
+{
+    CELER_EXPECT(counters.size() == 1);
+    detail::ClearTalliesExecutor execute_thread{counters.data()};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "clear-tallies");
+    launch_kernel(1, stream_id, execute_thread);
+}
+
 void add_pending(
     CSCDeviceRef const& counters, size_type count, StreamId stream_id)
 {

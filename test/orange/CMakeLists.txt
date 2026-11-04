@@ -65,6 +65,9 @@ celeritas_add_test(detail/OrientedBoundingZone.test.cc)
 # Logic utilities
 celeritas_add_test(detail/LogicUtils.test.cc)
 
+# Input options
+celeritas_add_test(inp/IO.test.cc LINK_LIBRARIES nlohmann_json::nlohmann_json)
+
 #-----------------------------------------------------------------------------#
 # Input construction
 celeritas_add_test(orangeinp/CsgObject.test.cc)

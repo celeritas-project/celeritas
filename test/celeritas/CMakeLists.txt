@@ -9,8 +9,7 @@ if(CELERITAS_REAL_TYPE STREQUAL "double")
 else()
   # Test relies on "gold" data; don't bother updating
   set(_needs_double DISABLE)
-  # Test has legitimate errors and we should fix if we support
-  # single-precision in the long term
+  # Test has legitimate errors and we should fix to reduce edge cases
   set(_fixme_single DISABLE)
 endif()
 
@@ -28,6 +27,7 @@ else()
   celeritas_get_g4libs(_g4_geo_lib geometry)
   celeritas_get_g4libs(_g4_event_lib event)
   celeritas_get_g4libs(_g4_global_libs global)
+  celeritas_get_g4libs(_g4_run_lib run)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -63,6 +63,9 @@ else()
   # Unit tests haven't yet been updated to include the correct units
   set(_fixme_cgs DISABLE)
 endif()
+
+# Associate helper targets with test targets for IDEs
+set(CMAKE_FOLDER test/celeritas)
 
 #-----------------------------------------------------------------------------#
 # LIBRARY
@@ -233,7 +236,7 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
   celeritas_add_test(ext/detail/HitProcessor.test.cc GPU
-    LINK_LIBRARIES testcel_celeritas_g4
+    LINK_LIBRARIES testcel_celeritas_g4 ${_g4_run_lib}
     ENVIRONMENT "${CELER_G4ENV}")
   celeritas_add_test(ext/GeantTrackReconstruction.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
@@ -285,7 +288,7 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 #-----------------------------------------------------------------------------#
 # Geo
 
-celeritas_add_test(geo/Geometry.test.cc  GPU ${_needs_double} ${_fixme_cgs}
+celeritas_add_test(geo/Geometry.test.cc  GPU ${_fixme_cgs} ${_fixme_single}
   FILTER "SimpleCms*" "TestEm3*" "ThreeSpheres*")
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
@@ -371,7 +374,6 @@ celeritas_add_test(global/StepperGeant.test.cc
   GPU NT 4
   FILTER ${_stepper_filter}
 )
-celeritas_add_test(global/PrimaryCapacity.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Grid
@@ -411,7 +413,9 @@ function(celeritas_standalone_add_tests basename suite test backend)
 
   if(NOT TARGET "${_target}")
     add_executable(${_target} "${basename}.test.cc")
-    set_property(TARGET ${_target} PROPERTY OUTPUT_NAME "${_output_name}")
+    set_target_properties("${_target}" PROPERTIES
+      OUTPUT_NAME "${_output_name}"
+    )
 
     celeritas_target_link_libraries(${_target}
       ${CELERITASTEST_LINK_LIBRARIES}
@@ -461,12 +465,17 @@ function(celeritas_add_standalone_tests basename suite test)
 endfunction()
 
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest cut_multiple_flushes)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
 celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)
 celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest primary)
+celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest abort_early)
 celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
 celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
+celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest offload)
+celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest direct)
+celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
@@ -493,6 +502,7 @@ celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
 celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
 celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
+celeritas_add_test(optical/gen/GeneratorCounterState.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -559,11 +569,11 @@ endif()
 
 celeritas_add_test(user/DetectorSteps.test.cc GPU)
 celeritas_add_test(user/Diagnostic.test.cc
-  GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo} ${_needs_double}
+  GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo}
   FILTER ${_diagnostic_filter}
 )
 celeritas_add_test(user/SlotDiagnostic.test.cc
-  GPU NT 1 ${_needs_geant4} ${_needs_double}
+  GPU NT 1 ${_needs_geant4}
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(user/StepCollector.test.cc

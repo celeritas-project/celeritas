@@ -165,6 +165,7 @@ bool SoftSurfaceEqual::operator()(ConeAligned<T> const& a,
 //! \cond
 ORANGE_INSTANTIATE_OP(ConeAligned);
 //! \endcond
+#undef ORANGE_INSTANTIATE_OP
 
 //---------------------------------------------------------------------------//
 /*!

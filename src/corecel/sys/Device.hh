@@ -124,8 +124,11 @@ class Device
     // Destroy all streams before shutting down CUDA
     void destroy_streams() const;
 
-    // Access a stream
+    // Access the kernel execution stream for a stream ID
     inline Stream& stream(StreamId) const;
+
+    // Access the data transfer stream paired with an execution stream
+    inline Stream& memcpy_stream(StreamId) const;
 
   private:
     //// DATA ////
@@ -145,6 +148,7 @@ class Device
     unsigned int eu_per_cu_{};
     MapStrInt extra_;
     std::vector<Stream> streams_;
+    std::vector<Stream> memcpy_streams_;
 };
 
 //---------------------------------------------------------------------------//
@@ -191,12 +195,34 @@ int Device::device_id() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Access a stream after creating.
+ * Access the kernel execution stream for a stream ID after creating.
+ *
+ * This is the main stream on which a state's kernels are launched. Data
+ * transfers that should overlap with those kernels belong on the paired
+ * \c memcpy_stream .
+ *
+ * \todo Rename to \c execution_stream (and \c memcpy_stream to
+ * \c memory_stream ) once streams are owned by states rather than the device.
  */
 Stream& Device::stream(StreamId id) const
 {
     CELER_EXPECT(id < streams_.size());
     return const_cast<Stream&>(streams_[id.get()]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the data transfer stream paired with an execution stream.
+ *
+ * Each stream ID has an execution stream for kernels (\c stream) and a
+ * "memcpy" stream for asynchronous transfers that can overlap with kernels on
+ * the execution stream. Dependencies between the two must be expressed with
+ * events.
+ */
+Stream& Device::memcpy_stream(StreamId id) const
+{
+    CELER_EXPECT(id < memcpy_streams_.size());
+    return const_cast<Stream&>(memcpy_streams_[id.get()]);
 }
 
 //---------------------------------------------------------------------------//

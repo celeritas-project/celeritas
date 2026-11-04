@@ -6,16 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <array>
-#include <vector>
-
 #include "corecel/Types.hh"
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxState.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/DeviceVector.hh"
-#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -135,6 +132,15 @@ class CoreState final : public CoreStateInterface
     //! Reset the state data
     void reset();
 
+    //! Current capacity of the track initializer buffer
+    size_type initializer_capacity() const
+    {
+        return this->ref().init.initializers.size();
+    }
+
+    // Grow the track initializer buffer to hold at least this many
+    void reserve_initializers(size_type min_capacity);
+
     //// COUNTERS ////
 
     //! Synchronize and copy track initialization counters from device to host
@@ -151,8 +157,11 @@ class CoreState final : public CoreStateInterface
     // Asynchronously copy counters to host-accessible storage
     void async_copy_counters();
 
-    // Access the most recently copied host counters
-    CoreStateCounters const& host_counters() const;
+    //! Access the host counters, which are copied asynchronously
+    AsyncSnapshot<CoreStateCounters> const& host_counters() const
+    {
+        return host_counters_;
+    }
 
     //// AUXILIARY DATA ////
 
@@ -187,11 +196,6 @@ class CoreState final : public CoreStateInterface
     inline auto& native_action_thread_offsets();
 
   private:
-    using PinnedVecCounters
-        = std::vector<CoreStateCounters, PinnedAllocator<CoreStateCounters>>;
-    using CounterStorage
-        = MemSpaceCond_t<M, std::array<CoreStateCounters, 1>, PinnedVecCounters>;
-
     // State data
     StateDataStore<CoreStateData, M> states_;
 
@@ -211,7 +215,7 @@ class CoreState final : public CoreStateInterface
     bool warming_up_{false};
 
     // Preallocated host storage for counters copied after most recent step
-    CounterStorage host_counters_;
+    AsyncSnapshot<CoreStateCounters> host_counters_;
 };
 
 //---------------------------------------------------------------------------//

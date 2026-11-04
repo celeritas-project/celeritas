@@ -75,6 +75,8 @@ class KernelContextException : public RichContextException
     TrackId track() const { return track_; }
     //! Parent track ID
     TrackId parent() const { return parent_; }
+    //! Generations since the track's ancestor was offloaded
+    size_type generation() const { return generation_; }
     //! Step counter
     size_type num_steps() const { return num_steps_; }
     //! Particle type
@@ -100,6 +102,7 @@ class KernelContextException : public RichContextException
     EventId event_;
     TrackId track_;
     TrackId parent_;
+    size_type generation_{0};
     PrimaryId primary_;
     size_type num_steps_;
     ParticleId particle_;

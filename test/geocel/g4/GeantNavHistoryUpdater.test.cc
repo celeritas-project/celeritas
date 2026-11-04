@@ -268,6 +268,84 @@ TEST_F(ReplicaTest, history_updater)
     EXPECT_VEC_EQ(expected_replicas, replicas);
 }
 
+//! Replica PV state changed by an external navigation between updates
+TEST_F(ReplicaTest, stale_replica_state)
+{
+    static IListSView const all_level_names[][2] = {
+        // Leaf replica changes copy
+        {{"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@14"},
+         {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@6"}},
+        // Intermediate replica changes copy
+        {{"world_PV",
+          "fSecondArmPhys",
+          "HadCalorimeter",
+          "HadCalColumn_PV@4",
+          "HadCalCell_PV@1",
+          "HadCalLayer_PV@2"},
+         {"world_PV",
+          "fSecondArmPhys",
+          "HadCalorimeter",
+          "HadCalColumn_PV@2",
+          "HadCalCell_PV@1",
+          "HadCalLayer_PV@2"}},
+    };
+
+    GeantNavHistoryUpdater set_history(*this->geant_geo());
+    InstancePathFinder find_vi_stack(*this->volumes());
+
+    G4TouchableHistory touch;
+    G4NavigationHistory hist;
+    std::vector<double> coords;
+    std::vector<std::string> replicas;
+
+    for (auto const& [old_names, new_names] : all_level_names)
+    {
+        auto old_vols = find_vi_stack(old_names);
+        auto new_vols = find_vi_stack(new_names);
+        CELER_ASSERT(old_vols.size() == old_names.size());
+        CELER_ASSERT(new_vols.size() == new_names.size());
+
+        set_history(make_span(old_vols), &hist);
+
+        // Emulate another navigator (e.g. a Geant4 track) moving the shared
+        // replica PVs into the new state
+        for (auto vi : new_vols)
+        {
+            this->geant_geo()->id_to_geant(vi);
+        }
+
+        set_history(make_span(new_vols), &hist);
+        touch.UpdateYourself(hist.GetTopVolume(), &hist);
+
+        auto const& trans = touch.GetTranslation(0);
+        coords.insert(coords.end(), {trans.x(), trans.y(), trans.z()});
+
+        std::ostringstream os;
+        os << touch.GetReplicaNumber(0);
+        for (auto i : range(1, touch.GetHistoryDepth() + 1))
+        {
+            os << ',' << touch.GetReplicaNumber(i);
+        }
+        replicas.push_back(std::move(os).str());
+    }
+
+    static double const expected_coords[] = {
+        -4604.1823898252,
+        75,
+        5424.6778264911,
+        -4462.0190528383,
+        150,
+        6228.4437038563,
+    };
+    static char const* const expected_replicas[] = {
+        "6,0,0,0",
+        "2,1,2,0,0,0",
+    };
+
+    EXPECT_VEC_SOFT_EQ(expected_coords, coords);
+    EXPECT_VEC_EQ(expected_replicas, replicas);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

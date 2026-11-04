@@ -82,6 +82,7 @@ void BuildOutput::output(JsonPimpl* j) const
             // Only a boolean option is needed
             cfg["debug"] = bool(CELERITAS_DEBUG);
         }
+        cfg["trim_source_file"] = bool(CELERITAS_TRIM_SOURCE_FILE);
 
         cfg["versions"] = [] {
             auto deps = nlohmann::json::object();

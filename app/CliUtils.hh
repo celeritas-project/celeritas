@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <exception>
+#include <string>
 #include <type_traits>
 #include <CLI/CLI.hpp>
 

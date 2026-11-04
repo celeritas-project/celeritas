@@ -277,10 +277,14 @@ CMake variables
 
 :samp:`CELERITAS_BUILTIN_{package}`
   Force a package to be built from an internally downloaded copy (when true/on)
-  or externally installed code (when false/off).
+  or externally installed code (when false/off). This automatically defaults based
+  on whether the package is found externally.
 
-:samp:`CELERITAS_BUILD_{DOCS|TESTS}`
-  Build optional documentation and/or tests.
+:samp:`CELERITAS_BUILD_{APPS|DOCS|TESTS}`
+  Build applications, documentations, and/or unit tests.
+
+:samp:`CELERITAS_ENABLE_TESTING`
+  Activate CTest testing.
 
 ``CELERITAS_CORE_GEO``
   Select the geometry package used by the Celeritas stepping loop. Valid
@@ -314,7 +318,9 @@ CMake variables
   trackslot and track.  With trackslot, each trackslot gets a unique random
   number generator.  With track, every particle track gets a unique random
   number generator.  The track option provides improved reproducibility at
-  greater computational expense.
+  greater computational expense.  Each primary track is seeded from the RNG
+  seed, its (Geant4) event ID, and its primary ID within the event; secondaries
+  branch from their parent's generator.
 
 ``CELERITAS_UNITS``
   Choose the native Celeritas unit system: see :ref:`the unit

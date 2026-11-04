@@ -7,6 +7,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <map>
 #include <string>
 
 #include "corecel/Config.hh"
@@ -101,6 +102,10 @@ struct OrangeGeoFromGeant : public OrangeGeoFromCsg
 
     //! Forcibly copy child volumes that have union boundaries
     bool inline_unions{true};
+
+    //! Rotation matrices that makes the daughters within LVs axis-aligned,
+    //! to improve acceleration. Keys are LV names.
+    std::map<std::string, SquareMatrixReal3> universe_alignment;
 
     //!@}
     //!@{

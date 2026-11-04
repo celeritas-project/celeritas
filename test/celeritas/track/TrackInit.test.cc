@@ -140,7 +140,6 @@ class TrackInitTestBase : public SimpleTestBase
             p.direction = {0, 0, 1};
             p.time = 0;
             p.event_id = EventId{0};
-            // Needed to seed the RNG when reseeding each track
             p.primary_id = PrimaryId{i};
             result.push_back(p);
         }
@@ -294,9 +293,14 @@ TYPED_TEST(TrackInitTest, run)
     // Check the track IDs of the track initializers created from primaries
     {
         auto result = RunResult::from_state(this->state());
-        static int const expected_track_ids[]
-            = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
+
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // TODO: internal track IDs are not reproducible due to atomic add
+            static int const expected_track_ids[]
+                = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+            EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
+        }
     }
 
     // Initialize the primary tracks on device
@@ -307,7 +311,12 @@ TYPED_TEST(TrackInitTest, run)
         auto result = RunResult::from_state(this->state());
         static int const expected_track_ids[]
             = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // TODO: internal track IDs are not reproducible due to atomic add
+            EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+        }
 
         // All primary particles, so no parent
         static int const expected_parent_ids[]
@@ -334,9 +343,12 @@ TYPED_TEST(TrackInitTest, run)
         static int const expected_vacancies[] = {2, 6};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
 
-        // Check the parent IDs for copying the geometry state
-        static int const expected_geo_parent_ids[] = {-1, -1, -1, 5, 8};
-        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // Check the parent IDs for copying the geometry state
+            static int const expected_geo_parent_ids[] = {-1, -1, -1, 5, 8};
+            EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        }
 
         // Check the track IDs of the track initializers created from
         // secondaries. Because IDs are not calculated deterministically and we
@@ -348,10 +360,12 @@ TYPED_TEST(TrackInitTest, run)
                                 std::end(result.init_ids),
                                 [](int id) { return id >= 0 && id <= 18; }));
         ASSERT_EQ(5, result.init_ids.size());
-
-        // First two initializers are from primaries
-        EXPECT_EQ(0, result.init_ids[0]);
-        EXPECT_EQ(1, result.init_ids[1]);
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // First two initializers are from primaries
+            EXPECT_EQ(0, result.init_ids[0]);
+            EXPECT_EQ(1, result.init_ids[1]);
+        }
     }
 
     // Initialize secondaries on device
@@ -364,18 +378,22 @@ TYPED_TEST(TrackInitTest, run)
                                 std::end(result.track_ids),
                                 [](int id) { return id >= 0 && id <= 18; }));
 
-        // Tracks that were not killed should have the same ID
-        EXPECT_EQ(3, result.track_ids[1]);
-        EXPECT_EQ(5, result.track_ids[3]);
-        EXPECT_EQ(7, result.track_ids[5]);
-        EXPECT_EQ(9, result.track_ids[7]);
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // Tracks that were not killed should have the same ID
+            EXPECT_EQ(3, result.track_ids[1]);
+            EXPECT_EQ(5, result.track_ids[3]);
+            EXPECT_EQ(7, result.track_ids[5]);
+            EXPECT_EQ(9, result.track_ids[7]);
 
-        // Two tracks should have the same parent ID = 10
-        int expected_parent_ids[] = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
-        std::sort(std::begin(result.parent_ids), std::end(result.parent_ids));
-        std::sort(std::begin(expected_parent_ids),
-                  std::end(expected_parent_ids));
-        EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+            // Two tracks should have the same parent ID = 10
+            int expected_parent_ids[] = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
+            std::sort(std::begin(result.parent_ids),
+                      std::end(result.parent_ids));
+            std::sort(std::begin(expected_parent_ids),
+                      std::end(expected_parent_ids));
+            EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+        }
 
         // Check the parent IDs for copying the geometry state
         static int const expected_geo_parent_ids[] = {-1, -1, -1};
@@ -453,10 +471,14 @@ TYPED_TEST(TrackInitTest, primaries)
         36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55,
     };
     auto result = RunResult::from_state(this->state());
-    EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+    if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+    {
+        // TODO: internal track IDs are not reproducible due to atomic add
+        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+        EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
+    }
     EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
-    EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
 }
 
 TYPED_TEST(TrackInitTest, extend_from_secondaries)
@@ -644,6 +666,118 @@ TEST_F(TrackInitHostTest, in_place_rng)
     {
         EXPECT_EQ(expected_rng(), actual_rng());
     }
+}
+
+//! Primaries are seeded from their unique event ID, else their local event ID
+TEST_F(TrackInitHostTest, unique_event_rng)
+{
+    if constexpr (CELERITAS_RESEED != CELERITAS_RESEED_TRACK)
+    {
+        GTEST_SKIP() << "RNG is not reseeded for each track";
+    }
+
+    // Primaries share local event and primary IDs; the first falls back to
+    // the local event ID (zero)
+    size_type const num_tracks = 4;
+    std::vector<UniqueEventId> const unique_event_ids{
+        UniqueEventId{}, UniqueEventId{0}, UniqueEventId{1}, UniqueEventId{1}};
+    this->build_states(num_tracks);
+    auto primaries = this->make_primaries(num_tracks);
+    for (auto i : range(num_tracks))
+    {
+        primaries[i].primary_id = PrimaryId{0};
+        primaries[i].unique_event_id = unique_event_ids[i];
+    }
+    this->extend_from_primaries(make_span(primaries));
+    InitializeTracksAction{ActionId{0}}.step(*this->core(), this->state());
+
+    // Draw from each track's RNG, indexed by primary (energy is 1 + index)
+    auto const& rng_params = this->core()->host_ref().rng;
+    auto const& state_ref = this->state().ref();
+    std::vector<RngEngine::result_type> draws(num_tracks);
+    for (auto tid : range(TrackSlotId{num_tracks}))
+    {
+        auto i = static_cast<size_type>(
+                     state_ref.particles.particle_energy[tid] + 0.5)
+                 - 1;
+        ASSERT_LT(i, num_tracks);
+        RngEngine rng(rng_params, state_ref.rng, tid);
+        draws[i] = rng();
+    }
+
+    // Unset unique ID falls back to the local event ID
+    EXPECT_EQ(draws[0], draws[1]);
+    // Different unique events have different streams
+    EXPECT_NE(draws[1], draws[2]);
+    // Same unique event and primary ID give the same stream
+    EXPECT_EQ(draws[2], draws[3]);
+}
+
+//---------------------------------------------------------------------------//
+
+template<MemSpace M>
+void test_reserve_initializers()
+{
+    using InitId = ItemId<TrackInitializer>;
+
+    // Fill the first three of four initializers on host
+    Collection<TrackInitializer, Ownership::value, MemSpace::host> host_inits;
+    resize(&host_inits, 4);
+    for (auto i : range(3u))
+    {
+        auto& init = host_inits[InitId{i}];
+        init.sim.track_id = TrackId{10 + i};
+        init.sim.event_id = EventId{i};
+        init.particle.particle_id = ParticleId{i};
+        init.particle.energy = units::MevEnergy{real_type(1.5) * (i + 1)};
+    }
+
+    // Copy to the target memory space and grow the buffer
+    if constexpr (M == MemSpace::device)
+    {
+        device().create_streams(1);
+    }
+    TrackInitStateData<Ownership::value, M> data;
+    data.initializers = host_inits;
+    reserve_initializers(&data, 3, 10, StreamId{0});
+    EXPECT_EQ(10, data.initializers.size());
+    if constexpr (M == MemSpace::device)
+    {
+        device().stream(StreamId{0}).sync();
+    }
+
+    // The used initializers are preserved
+    host_inits = data.initializers;
+    std::vector<int> track_ids;
+    std::vector<int> event_ids;
+    std::vector<int> particle_ids;
+    std::vector<real_type> energies;
+    for (auto i : range(3u))
+    {
+        auto const& init = host_inits[InitId{i}];
+        track_ids.push_back(id_to_int(init.sim.track_id));
+        event_ids.push_back(id_to_int(init.sim.event_id));
+        particle_ids.push_back(id_to_int(init.particle.particle_id));
+        energies.push_back(init.particle.energy.value());
+    }
+    static int const expected_track_ids[] = {10, 11, 12};
+    EXPECT_VEC_EQ(expected_track_ids, track_ids);
+    static int const expected_event_ids[] = {0, 1, 2};
+    EXPECT_VEC_EQ(expected_event_ids, event_ids);
+    static int const expected_particle_ids[] = {0, 1, 2};
+    EXPECT_VEC_EQ(expected_particle_ids, particle_ids);
+    static real_type const expected_energies[] = {1.5, 3, 4.5};
+    EXPECT_VEC_SOFT_EQ(expected_energies, energies);
+}
+
+TEST(TrackInitDataTest, reserve_initializers_host)
+{
+    test_reserve_initializers<MemSpace::host>();
+}
+
+TEST(TrackInitDataTest, TEST_IF_CELER_DEVICE(reserve_initializers_device))
+{
+    test_reserve_initializers<MemSpace::device>();
 }
 
 //---------------------------------------------------------------------------//

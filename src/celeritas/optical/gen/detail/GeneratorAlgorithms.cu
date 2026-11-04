@@ -57,7 +57,8 @@ size_type inclusive_scan_photons(
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Copy the last element (accumulated total) back to host
-    return ItemCopier<size_type>{stream}(stop.get() - 1);
+    return load_sync(ObserverPtr<size_type, MemSpace::device>{stop.get() - 1},
+                     stream);
 }
 
 //---------------------------------------------------------------------------//
