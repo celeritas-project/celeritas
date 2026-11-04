@@ -256,12 +256,12 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         auto& num_volumes = insert_array("num_volumes");
 
         // Calculate number of surface/volume using universe indexer offsets
-        using SizeId = OpaqueId<size_type>;
         auto const& uidata = data.univ_indexer_data;
         auto calc_local_size = [](auto const& offsets, UnivId uid) {
-            CELER_EXPECT(uid && uid.unchecked_get() + 1 < offsets.size());
-            return offsets[SizeId{uid.unchecked_get() + 1}]
-                   - offsets[SizeId{uid.unchecked_get()}];
+            CELER_EXPECT(uid && uid + 1 < offsets.size());
+            auto end = offsets[uid + 1].get();
+            auto begin = offsets[uid].get();
+            return *end - *begin;
         };
 
         for (auto uid : range(UnivId{data.univ_types.size()}))

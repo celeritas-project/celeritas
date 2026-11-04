@@ -67,18 +67,18 @@ class UniverseIndexer
     //! Total number of surfaces
     CELER_FUNCTION ImplSurfaceId::size_type num_surfaces() const
     {
-        return *ImplSurfaceId{data_.surfaces[this->end_uni()]};
+        ImplSurfaceId total = data_.surfaces[this->end_uni()];
+        return *total;
     }
 
     //! Total number of volumes
     CELER_FUNCTION ImplVolumeId::size_type num_volumes() const
     {
-        return *ImplVolumeId{data_.volumes[this->end_uni()]};
+        ImplVolumeId total = data_.volumes[this->end_uni()];
+        return *total;
     }
 
   private:
-    using SizeId = OpaqueId<size_type>;
-
     //// DATA ////
     DataRef const& data_;
 
@@ -88,10 +88,11 @@ class UniverseIndexer
         return UnivId{this->num_universes()};
     }
 
-    template<class IdT>
-    static inline CELER_FUNCTION auto find_local(DataRef offsets, size_type id);
+    template<class IdT, Ownership W, MemSpace M>
+    static inline CELER_FUNCTION UnivId find_local(
+        Collection<IdT, W, M, UnivId> offsets, IdT id);
 
-    template<class IdT>
+    template<class IdT, Ownership W, MemSpace M>
     static inline CELER_FUNCTION typename IdT::size_type local_size(
         Collection<IdT, W, M, UnivId> offsets, UnivId uni);
 };
@@ -119,7 +120,8 @@ CELER_FUNCTION ImplSurfaceId UniverseIndexer::global_surface(
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(surf < this->local_size(data_.surfaces, uni));
 
-    return data_.surfaces[uni] + surf.unchecked_get();
+    ImplSurfaceId offset = data_.surfaces[uni];
+    return offset + surf.unchecked_get();
 }
 
 //---------------------------------------------------------------------------//
@@ -132,8 +134,8 @@ CELER_FUNCTION ImplVolumeId UniverseIndexer::global_volume(
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(volume < this->local_size(data_.volumes, uni));
 
-    return ImplVolumeId(
-        data_.volumes[SizeId{uni.unchecked_get()}] + volume.unchecked_get());
+    ImplVolumeId offset = data_.volumes[uni];
+    return offset + volume.unchecked_get();
 }
 
 //---------------------------------------------------------------------------//
@@ -146,11 +148,7 @@ CELER_FUNCTION auto UniverseIndexer::local_surface(ImplSurfaceId id) const
     CELER_EXPECT(id < this->num_surfaces());
 
     auto uni = this->find_local(data_.surfaces, id);
-    ImplSurfaceId start_surface = data_.surfaces[uni];
-    LocalSurfaceId surface{id.unchecked_get()};
-
-    auto uni = id_cast<UnivId>(iter - data_.surfaces[AllVals{}].begin());
-    auto surface = id_cast<LocalSurfaceId>(id.unchecked_get() - *iter);
+    auto surface = id_cast<LocalSurfaceId>(id - data_.surfaces[uni]);
     CELER_ENSURE(uni < this->num_universes());
     return {uni, surface};
 }
@@ -164,10 +162,8 @@ CELER_FUNCTION auto UniverseIndexer::local_volume(ImplVolumeId id) const
 {
     CELER_EXPECT(id < this->num_volumes());
 
-    auto univ_id = this->find_local(data_.volumes, id);
-
-    auto uni = id_cast<UnivId>(iter - data_.volumes[AllVals{}].begin());
-    auto volume = id_cast<LocalVolumeId>(id.unchecked_get() - *iter);
+    auto uni = this->find_local(data_.volumes, id);
+    auto volume = id_cast<LocalVolumeId>(id - data_.volumes[uni]);
     CELER_ENSURE(uni < this->num_universes());
     return {uni, volume};
 }
@@ -178,35 +174,39 @@ CELER_FUNCTION auto UniverseIndexer::local_volume(ImplVolumeId id) const
 /*!
  * Locate the given ID in the list of offsets.
  */
-template<class T, class U>
-CELER_FUNCTION auto UniverseIndexer::find_local(
-    Collection<T, W, M, UnivId> offsets, ItemId<T, U> id) -> auto
+template<class IdT, Ownership W, MemSpace M>
+CELER_FUNCTION UnivId UniverseIndexer::find_local(
+    Collection<IdT, W, M, UnivId> offsets, IdT id)
 {
-    CELER_EXPECT(id < offsets[this->end_uni()]);
+    CELER_EXPECT(id < offsets[UnivId{offsets.size() - 1}]);
 
     // Use upper bound to skip past universes with zero surfaces.
-    auto offset_span = offsets[AllItems<T>{}];
+    auto offset_span = offsets[AllItems<IdT>{}];
     auto iter = upper_bound(offset_span.begin(), offset_span.end(), id);
 
-    CELER_ASSERT(iter != offsets[AllVals{}].end());
+    CELER_ASSERT(iter != offset_span.end());
     --iter;
 
-    CELER_ENSURE(*iter <= id);
-    CELER_ENSURE(id < *(iter + 1));
-    return iter;
+    IdT offset = *iter;
+    IdT next_offset = *(iter + 1);
+    CELER_ENSURE(offset <= id);
+    CELER_ENSURE(id < next_offset);
+    return id_cast<UnivId>(iter - offset_span.begin());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the number of elements in the given universe.
  */
-template<class IdT>
+template<class IdT, Ownership W, MemSpace M>
 CELER_FUNCTION auto UniverseIndexer::local_size(
     Collection<IdT, W, M, UnivId> offsets, UnivId uni) ->
     typename IdT::size_type
 {
     CELER_EXPECT(uni && uni + 1 < offsets.size());
-    return offsets[uni + 1] - offsets[uni];
+    IdT end = offsets[uni + 1];
+    IdT begin = offsets[uni];
+    return *end - *begin;
 }
 
 //---------------------------------------------------------------------------//

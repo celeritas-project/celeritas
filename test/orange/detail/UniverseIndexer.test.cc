@@ -32,10 +32,16 @@ class UniverseIndexerTest : public Test
         UniverseIndexerData<Ownership::value, MemSpace::host> data;
 
         auto cb_s = make_builder(&data.surfaces);
-        cb_s.insert_back(surfaces.begin(), surfaces.end());
+        for (size_type value : surfaces)
+        {
+            cb_s.push_back(ImplSurfaceId{value});
+        }
 
         auto cb_v = make_builder(&data.volumes);
-        cb_v.insert_back(volumes.begin(), volumes.end());
+        for (size_type value : volumes)
+        {
+            cb_v.push_back(ImplVolumeId{value});
+        }
 
         data_ = ParamsDataStore<UniverseIndexerData>{std::move(data)};
     }
