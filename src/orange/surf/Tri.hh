@@ -27,6 +27,8 @@ namespace celeritas
  *   1. No two vertices can be equal,
  *   2. The three vertices are not colinear: a + b != c
  *
+ * The ray-triangle intersection utilizes the Moller-Trumbore algorithm.
+ * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
  */
 template<typename T>
 class Tri
@@ -80,7 +82,7 @@ CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
 
     // Check if orientation is CCW relative to global z axis. Swap 2nd and
     // third vertices if not
-    if (edge1[0] * edge2[1] - edge1[1] * edge2[0] < 0.0)
+    if (edge1[0] * edge2[1] - edge1[1] * edge2[0] < real_type{0})
     {
         verts_[1] = verts[2];
         verts_[2] = verts[1];
