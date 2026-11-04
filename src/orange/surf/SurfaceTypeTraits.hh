@@ -50,7 +50,7 @@ ORANGE_SURFACE_TRAITS(s,   Sphere);
 ORANGE_SURFACE_TRAITS(kx,  ConeAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(ky,  ConeAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(kz,  ConeAligned<Axis::z>);
-ORANGE_SURFACE_TRAITS(tor, Toroid);
+ORANGE_SURFACE_TRAITS(tzc, Toroid);
 ORANGE_SURFACE_TRAITS(sq,  SimpleQuadric);
 ORANGE_SURFACE_TRAITS(gq,  GeneralQuadric);
 ORANGE_SURFACE_TRAITS(inv, Involute);
@@ -94,9 +94,9 @@ CELER_CONSTEXPR_FUNCTION decltype(auto) visit_surface_type(F&& func,
         ORANGE_ST_VISIT_CASE(sq);
         ORANGE_ST_VISIT_CASE(gq);
 #if CELERITAS_ORANGE_TORUS
-        ORANGE_ST_VISIT_CASE(tor);
+        ORANGE_ST_VISIT_CASE(tzc);
 #else
-        case SurfaceType::tor:
+        case SurfaceType::tzc:
             CELER_ASSERT_UNREACHABLE();
 #endif
         case SurfaceType::inv:

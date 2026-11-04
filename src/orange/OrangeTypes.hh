@@ -122,7 +122,7 @@ enum class Sense : bool
  * - 1 for `p.|sc|c.c`,
  * - 3 for `c.`,
  * - 4 for `[ps]|k.`,
- * - 6 for tor, inv
+ * - 6 for `t.c|inv`
  * - 7 for `sq`, and
  * - 10 for `gq`.
  *
@@ -155,7 +155,7 @@ enum class SurfaceType : unsigned char
     gq,  //!< General quadric
     end_quadric_,
     begin_other_ = end_quadric_,
-    tor = begin_other_,  //!< Toroid
+    tzc = begin_other_,  //!< Toroid centered on Z
     inv,  //!< Involute
     end_other_,
     size_ = end_other_
