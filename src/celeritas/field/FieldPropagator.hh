@@ -179,7 +179,7 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
  * Start propagating over a step.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::start_step(
+CELER_FORCEINLINE_FUNCTION auto FieldPropagator<SubstepperT, GTV>::start_step(
     real_type step) const -> Progress
 {
     Progress p;
@@ -196,8 +196,8 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::start_step(
  * Whether more substeps should be taken.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION bool FieldPropagator<SubstepperT, GTV>::has_remaining(
-    Progress const& p) const
+CELER_FORCEINLINE_FUNCTION bool
+FieldPropagator<SubstepperT, GTV>::has_remaining(Progress const& p) const
 {
     return p.remaining > this->minimum_substep() && p.remaining_substeps > 0;
 }
@@ -211,8 +211,9 @@ CELER_FUNCTION bool FieldPropagator<SubstepperT, GTV>::has_remaining(
  * substep.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION void FieldPropagator<SubstepperT, GTV>::search_substep(
-    Substep const& substep, Progress* p)
+CELER_FORCEINLINE_FUNCTION void
+FieldPropagator<SubstepperT, GTV>::search_substep(Substep const& substep,
+                                                  Progress* p)
 {
     CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
     CELER_ASSERT(p->result.boundary == geo_.is_on_boundary());
@@ -327,7 +328,7 @@ CELER_FUNCTION void FieldPropagator<SubstepperT, GTV>::search_substep(
  * Update the geometry at the end of the step and return the result.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::finish_step(
+CELER_FORCEINLINE_FUNCTION auto FieldPropagator<SubstepperT, GTV>::finish_step(
     Progress const& p) -> result_type
 {
     result_type result = p.result;
@@ -399,7 +400,7 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::finish_step(
  * another FieldPropagatorOptions
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION real_type
+CELER_FORCEINLINE_FUNCTION real_type
 FieldPropagator<SubstepperT, GTV>::delta_intersection() const
 {
     return advance_.delta_intersection();
@@ -410,7 +411,8 @@ FieldPropagator<SubstepperT, GTV>::delta_intersection() const
  * Maximum number of substeps.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION short int FieldPropagator<SubstepperT, GTV>::max_substeps() const
+CELER_FORCEINLINE_FUNCTION short int
+FieldPropagator<SubstepperT, GTV>::max_substeps() const
 {
     return advance_.max_substeps();
 }
@@ -420,7 +422,7 @@ CELER_FUNCTION short int FieldPropagator<SubstepperT, GTV>::max_substeps() const
  * Distance to bump or to consider a "zero" movement.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION real_type
+CELER_FORCEINLINE_FUNCTION real_type
 FieldPropagator<SubstepperT, GTV>::minimum_substep() const
 {
     return advance_.minimum_step();
@@ -431,7 +433,8 @@ FieldPropagator<SubstepperT, GTV>::minimum_substep() const
  * Distance to bump or to consider a "zero" movement.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::bump_distance() const
+CELER_FORCEINLINE_FUNCTION real_type
+FieldPropagator<SubstepperT, GTV>::bump_distance() const
 {
     using namespace celeritas::literals;
 
