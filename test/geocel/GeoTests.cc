@@ -1281,6 +1281,7 @@ void MultiLevelGeoTest::test_trace() const
 auto MultiLevelGeoTest::get_test_points() -> VecR2
 {
     // Include outer world and center sphere
+    // (Cannot include *outside* world since it's invalid to initialize there)
     VecR2 points{R2{-5, 0}, R2{0, 0}};
 
     // Loop over outer and inner x and y signs
@@ -1374,26 +1375,8 @@ void MultiLevelGeoTest::test_volume_level() const
         all_levels.push_back(id_to_int(id));
     }
 
-    static unsigned int const expected_all_levels[] = {
-        0u,
-        1u,
-        2u,
-        1u,
-        2u,
-        2u,
-        2u,
-        1u,
-        2u,
-        2u,
-        2u,
-        2u,
-        2u,
-        1u,
-        1u,
-        2u,
-        2u,
-        2u,
-    };
+    static int const expected_all_levels[]
+        = {0, 1, 2, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2};
     EXPECT_VEC_EQ(expected_all_levels, all_levels);
 }
 
