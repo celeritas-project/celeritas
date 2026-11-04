@@ -57,90 +57,11 @@ ORANGE_INSTANTIATE_OP(PlaneAligned);
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a name for an along-axis cylinder.
- */
-template<Axis T>
-std::string FaceNamer::Impl::operator()(CylCentered<T> const&) const
-{
-    return {'c', to_char(T)};
-}
-
-//! \cond
-ORANGE_INSTANTIATE_OP(CylCentered);
-//! \endcond
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a name for a centered sphere.
- */
-std::string FaceNamer::Impl::operator()(SphereCentered const&) const
-{
-    return "s";
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a name for an axis-aligned cylinder.
- */
-template<Axis T>
-std::string FaceNamer::Impl::operator()(CylAligned<T> const&) const
-{
-    return {'c', to_char(T)};
-}
-
-//! \cond
-ORANGE_INSTANTIATE_OP(CylAligned);
-//! \endcond
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct a name for a general plane.
  */
 std::string FaceNamer::Impl::operator()(Plane const&) const
 {
     return "p" + std::to_string(state_->num_plane++);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a name for a sphere.
- */
-std::string FaceNamer::Impl::operator()(Sphere const&) const
-{
-    return "s";
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a name for an involute.
- */
-std::string FaceNamer::Impl::operator()(Involute const&) const
-{
-    return "inv";
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a name for a cone.
- */
-template<Axis T>
-std::string FaceNamer::Impl::operator()(ConeAligned<T> const&) const
-{
-    return {'k', to_char(T)};
-}
-
-//! \cond
-ORANGE_INSTANTIATE_OP(ConeAligned);
-//! \endcond
-#undef ORANGE_INSTANTIATE_OP
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a name for a simple quadric.
- */
-std::string FaceNamer::Impl::operator()(SimpleQuadric const&) const
-{
-    return "sq";
 }
 
 //---------------------------------------------------------------------------//
@@ -158,15 +79,6 @@ std::string FaceNamer::Impl::operator()(GeneralQuadric const&) const
         result += std::to_string(gqid);
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a name for a toroid.
- */
-std::string FaceNamer::Impl::operator()(Toroid const&) const
-{
-    return "tor";
 }
 
 //---------------------------------------------------------------------------//
