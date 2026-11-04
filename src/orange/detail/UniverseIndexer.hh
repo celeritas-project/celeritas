@@ -71,11 +71,23 @@ class UniverseIndexer
         return *total;
     }
 
+    //! Number of surfaces in a universe
+    CELER_FUNCTION LocalSurfaceId::size_type num_surfaces(UnivId uni) const
+    {
+        return this->local_size(data_.surfaces, uni);
+    }
+
     //! Total number of volumes
     CELER_FUNCTION ImplVolumeId::size_type num_volumes() const
     {
         ImplVolumeId total = data_.volumes[this->end_uni()];
         return *total;
+    }
+
+    //! Number of volumes in a universe
+    CELER_FUNCTION LocalVolumeId::size_type num_volumes(UnivId uni) const
+    {
+        return this->local_size(data_.volumes, uni);
     }
 
   private:

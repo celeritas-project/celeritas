@@ -60,6 +60,8 @@ TEST_F(UniverseIndexerTest, single)
     EXPECT_EQ(1, indexer.num_universes());
     EXPECT_EQ(4, indexer.num_surfaces());
     EXPECT_EQ(10, indexer.num_volumes());
+    EXPECT_EQ(4, indexer.num_surfaces(UnivId{0}));
+    EXPECT_EQ(10, indexer.num_volumes(UnivId{0}));
 
     EXPECT_EQ(ImplSurfaceId(0),
               indexer.global_surface(UnivId{0}, LocalSurfaceId{0}));
@@ -119,6 +121,12 @@ TEST_F(UniverseIndexerTest, multi)
     EXPECT_EQ(6, indexer.num_surfaces());
     EXPECT_EQ(5, indexer.num_volumes());
     EXPECT_EQ(4, indexer.num_universes());
+
+    for (auto u : range(surfaces_per_uni.size()))
+    {
+        EXPECT_EQ(surfaces_per_uni[u], indexer.num_surfaces(UnivId{u}));
+        EXPECT_EQ(cells_per_uni[u], indexer.num_volumes(UnivId{u}));
+    }
 
     unsigned int global_surface = 0;
     for (auto u : range(surfaces_per_uni.size()))
