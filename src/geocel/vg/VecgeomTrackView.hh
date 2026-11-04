@@ -485,11 +485,12 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
 
     // Move next step
     axpy(next_step_, dir_, &pos_);
-    next_step_ = 0;
     vgstate_.SetBoundaryState(true);
 
-    if (CELERITAS_VECGEOM_VERSION >= 0x020200)
+    if (CELERITAS_VECGEOM_VERSION >= 0x020200
+        && next_step_ > this->extra_push())
     {
+        // Don't recalculate normal if bumping on a reentrant surface
         VgReal3 normal;
         bool success = Navigator::ComputeNextNormal(
             to_vgvector(pos_), vgstate_, vgnext_, normal);
@@ -505,6 +506,8 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
         }
         normal_ = to_array(normal);
     }
+
+    next_step_ = 0;
 
     CELER_ENSURE(this->is_on_boundary());
 }
