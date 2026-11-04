@@ -42,9 +42,9 @@ namespace celeritas
  *
  * This torus can be defined with the following quartic equation:
  * \f[
- *   (x^2 + y^2 + p*y^2 + B_0) - A_0 * (x^2 + y^2) = 0
+ *   (x^2 + y^2 + p*z^2 + B_0)^2 - 4 r^2 * (x^2 + y^2) = 0
  * \f]
- * where \f$p = a^2/b^2 \f$,  \f$A_0 = 4 r^2 \f$, and \f$ B_0 = (r^2-a^2)\f$.
+ * where \f$p = a^2/b^2 \f$, \f$A_0 = 4 r^2 \f$, and \f$ B_0 = (r^2-a^2)\f$.
  *
  * The intersection is calculated using an algorithm from
  * \cite{arvo-graphicsgems-1995}.
