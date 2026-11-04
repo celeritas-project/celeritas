@@ -183,15 +183,17 @@ VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv,
 /*!
  * Get the volume instance at a depth in a touchable.
  *
- * Depth zero is the touchable's current (deepest) volume. The replica number
+ * Depth zero is the touchable's current (deepest) volume, \em opposite
+ * of \c VolumeLevelId . The replica number
  * recorded in the touchable is used rather than the PV's copy number, since
  * replica PV state is shared by all tracks and navigators on a thread.
  */
 VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
     GeantTouchableBase const& touch, int depth) const
 {
+    CELER_EXPECT(depth >= 0 && depth <= touch.GetHistoryDepth());
     G4PV const* pv = touch.GetVolume(depth);
-    CELER_EXPECT(pv);
+    CELER_ASSERT(pv);
     return this->geant_to_id(*pv, touch.GetReplicaNumber(depth));
 }
 
