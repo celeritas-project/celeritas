@@ -239,6 +239,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     std::copy(init.dir.begin(), init.dir.end(), dir_.begin());
     next_step_ = -1;
     safety_radius_ = -1;  // Assume *not* on a boundary
+    normal_ = {0, 0, 0};
 
     g4pos_ = native_to_geant<ClhepLength>(pos_);
     g4dir_ = to_g4vector(dir_);
@@ -272,6 +273,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
         // Copy values from the parent state
         GeantGeoTrackView other(ParamsRef{}, state_, init.parent);
         pos_ = other.pos_;
+        normal_ = other.normal_;
         safety_radius_ = other.safety_radius_;
         g4pos_ = other.g4pos_;
         g4dir_ = other.g4dir_;
