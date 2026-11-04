@@ -177,13 +177,13 @@ class VecgeomTrackView
     VgNavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
+    Real3& normal_;
 
     //!@}
 
     // Temporary data
     real_type next_step_{0};
     bool failed_{false};
-    Real3 normal_{0, 0, 0};
 
     //// HELPER FUNCTIONS ////
 
@@ -215,6 +215,7 @@ CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
     , vgnext_{states.next_state[tid]}
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
+    , normal_(states.normal[tid])
 {
 }
 
@@ -235,6 +236,7 @@ CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
     failed_ = false;
+    normal_ = {0, 0, 0};
 
     // Initialize direction
     dir_ = init.dir;

@@ -823,6 +823,13 @@ void FourLevelsGeoTest::test_reentrant_normal() const
     {
         EXPECT_EQ(GeoStatus::error, geo.geo_status());
     }
+
+    if (test_->geometry_type() == "VecGeom" && geo.check_normal())
+    {
+        EXPECT_VEC_EQ((Real3{-1, 0, 0}), geo.normal());
+        geo = test_->make_initializer({15.5, 10, 10}, {-1, 0, 0});
+        EXPECT_VEC_EQ((Real3{0, 0, 0}), geo.normal());
+    }
 }
 
 //---------------------------------------------------------------------------//
