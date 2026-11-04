@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/NumericLimits.hh"
@@ -20,19 +19,6 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Calculate the sense of a surface at a given position.
-struct CalcSense
-{
-    Real3 const& pos;
-
-    template<class S>
-    CELER_FUNCTION SignedSense operator()(S const& surf)
-    {
-        return surf.calc_sense(this->pos);
-    }
-};
-
-//---------------------------------------------------------------------------//
 //! Get the number of intersections of a surface
 struct NumIntersections
 {
@@ -41,19 +27,6 @@ struct NumIntersections
     {
         using S = typename ST::type;
         return typename S::Intersections{}.size();
-    }
-};
-
-//---------------------------------------------------------------------------//
-//! Calculate the outward normal at a position.
-struct CalcNormal
-{
-    Real3 const& pos;
-
-    template<class S>
-    CELER_FUNCTION Real3 operator()(S const& surf)
-    {
-        return surf.calc_normal(this->pos);
     }
 };
 
