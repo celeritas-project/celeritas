@@ -18,6 +18,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "geocel/Types.hh"
 #include "geocel/VolumeVisitor.hh"
 
 namespace celeritas
@@ -186,19 +187,18 @@ VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv,
  * Level zero is the world volume, matching \c VolumeLevelId . The replica
  * number recorded in the history is used rather than the PV's copy number,
  * since replica PV state is shared by all tracks and navigators on a thread.
- * A null volume at the requested level returns a null ID.
+ * The history \em cannot be "outside", i.e., the depth is greater than 0
+ * or the top volume is not a nullptr.
  */
 VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
     G4NavigationHistory const& history, VolumeLevelId level) const
 {
     CELER_EXPECT(level <= id_cast<VolumeLevelId>(history.GetDepth()));
+    CELER_EXPECT(level > VolumeLevelId{0} || history.GetDepth() > 0
+                 || history.GetVolume(0) != nullptr);
     G4int g4_level = static_cast<G4int>(*level);
-    G4PV const* pv = history.GetVolume(g4_level);
-    if (!pv)
-    {
-        return {};
-    }
-    return this->geant_to_id(*pv, history.GetReplicaNo(g4_level));
+    return this->geant_to_id(*history.GetVolume(g4_level),
+                             history.GetReplicaNo(g4_level));
 }
 
 //---------------------------------------------------------------------------//
