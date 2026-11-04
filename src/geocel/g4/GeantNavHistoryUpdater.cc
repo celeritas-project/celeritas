@@ -36,7 +36,7 @@ void GeantNavHistoryUpdater::operator()(Span<VolumeInstanceId const> stack,
     CELER_EXPECT(std::all_of(stack.begin(), stack.end(), Identity{}));
     CELER_EXPECT(nav);
 
-    size_type level = 0;
+    VolumeLevelId level{0};
     auto nav_stack_size
         = [nav] { return static_cast<size_type>(nav->GetDepth()) + 1; };
 
@@ -44,20 +44,18 @@ void GeantNavHistoryUpdater::operator()(Span<VolumeInstanceId const> stack,
     // in the history rather than the PV's copy number: the latter is shared
     // state that may have been changed by another navigator since this
     // level was added.
-    for (auto end_level = std::min<size_type>(stack.size(), nav_stack_size());
+    for (auto end_level = id_cast<VolumeLevelId>(
+             std::min<size_type>(stack.size(), nav_stack_size()));
          level != end_level;
          ++level)
     {
-        auto* pv = nav->GetVolume(level);
-        if (!pv
-            || mapper_.geant_to_id(*pv, nav->GetReplicaNo(level))
-                   != stack[level])
+        if (mapper_.geant_to_id(*nav, level) != stack[*level])
         {
             break;
         }
     }
 
-    if (CELER_UNLIKELY(level == 0))
+    if (CELER_UNLIKELY(level == VolumeLevelId{0}))
     {
         // Top level disagrees: this should likely only happen when we're
         // outside (i.e. stack is empty)
@@ -76,16 +74,18 @@ void GeantNavHistoryUpdater::operator()(Span<VolumeInstanceId const> stack,
     else if (level < nav_stack_size())
     {
         // Decrease nav stack to the parent's level
-        nav->BackLevel(nav_stack_size() - level);
-        CELER_ASSERT(nav_stack_size() == level);
+        nav->BackLevel(nav_stack_size() - *level);
+        CELER_ASSERT(nav_stack_size() == *level);
     }
 
     // Add all remaining levels: see G4Navigator::LocateGlobalPoint
     // Note that the mapper's id_to_geant functionality updates the G4PV
     // appropriately if a replica
-    for (auto end_level = stack.size(); level != end_level; ++level)
+    for (auto end_level = id_cast<VolumeLevelId>(stack.size());
+         level != end_level;
+         ++level)
     {
-        auto& pv = mapper_.id_to_geant(stack[level]);
+        auto& pv = mapper_.id_to_geant(stack[*level]);
         nav->NewLevel(const_cast<G4PV*>(&pv), pv.VolumeType(), pv.GetCopyNo());
     }
 

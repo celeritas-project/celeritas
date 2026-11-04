@@ -8,8 +8,8 @@
 
 #include <string>
 #include <G4LogicalVolume.hh>
+#include <G4NavigationHistory.hh>
 #include <G4ReplicaNavigation.hh>
-#include <G4TouchableHistory.hh>
 #include <G4VPVParameterisation.hh>
 #include <G4VPhysicalVolume.hh>
 
@@ -181,20 +181,24 @@ VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv,
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume instance at a depth in a touchable.
+ * Get the volume instance at a level in the navigation history.
  *
- * Depth zero is the touchable's current (deepest) volume, \em opposite
- * of \c VolumeLevelId . The replica number
- * recorded in the touchable is used rather than the PV's copy number, since
- * replica PV state is shared by all tracks and navigators on a thread.
+ * Level zero is the world volume, matching \c VolumeLevelId . The replica
+ * number recorded in the history is used rather than the PV's copy number,
+ * since replica PV state is shared by all tracks and navigators on a thread.
+ * A null volume at the requested level returns a null ID.
  */
 VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
-    GeantTouchableBase const& touch, int depth) const
+    G4NavigationHistory const& history, VolumeLevelId level) const
 {
-    CELER_EXPECT(depth >= 0 && depth <= touch.GetHistoryDepth());
-    G4PV const* pv = touch.GetVolume(depth);
-    CELER_ASSERT(pv);
-    return this->geant_to_id(*pv, touch.GetReplicaNumber(depth));
+    CELER_EXPECT(level <= id_cast<VolumeLevelId>(history.GetDepth()));
+    G4int g4_level = static_cast<G4int>(*level);
+    G4PV const* pv = history.GetVolume(g4_level);
+    if (!pv)
+    {
+        return {};
+    }
+    return this->geant_to_id(*pv, history.GetReplicaNo(g4_level));
 }
 
 //---------------------------------------------------------------------------//

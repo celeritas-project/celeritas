@@ -63,8 +63,9 @@ class GeantVolumeInstanceMapper
     // Get the volume instance *without* checking replica state
     VolumeInstanceId geant_to_id(G4PV const&, int copy_no) const;
 
-    // Get the volume instance at a touchable depth (zero is deepest)
-    VolumeInstanceId geant_to_id(GeantTouchableBase const&, int depth) const;
+    // Get the volume instance at a history level (zero is world)
+    VolumeInstanceId geant_to_id(G4NavigationHistory const&,
+                                 VolumeLevelId level) const;
 
     // Return and (if replica) update the volume from an instance ID.
     G4PV const& id_to_geant(VolumeInstanceId) const;
@@ -98,7 +99,7 @@ inline VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const&,
     CELER_ASSERT_UNREACHABLE();
 }
 inline VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
-    GeantTouchableBase const&, int) const
+    G4NavigationHistory const&, VolumeLevelId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
