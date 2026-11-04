@@ -39,10 +39,15 @@ namespace celeritas
 void AlongStepRZMapFieldMscAction::step(CoreParams const& params,
                                         CoreStateDevice& state) const
 {
-    if (field_->ref<MemSpace::native>().options.use_safety_sphere)
+    bool const use_sphere
+        = field_->ref<MemSpace::native>().options.use_safety_sphere;
+    if (this->has_msc() || use_sphere)
     {
-        detail::launch_safety(
-            *this, detail::get_msc_ref(msc_.get()), params, state);
+        detail::launch_safety(*this,
+                              detail::get_msc_ref(msc_.get()),
+                              detail::UsesFieldSafety{use_sphere},
+                              params,
+                              state);
     }
     if (this->has_msc())
     {

@@ -22,23 +22,15 @@ namespace celeritas
  * segment whose two end points are inside the sphere is entirely inside it and
  * therefore crosses no boundary.
  *
- * A default-constructed sphere has a negative radius, indicating that no
- * safety has been calculated. It contains no points, and neither does a sphere
- * with a safety distance of zero.
+ * A default-constructed sphere has zero radius and contains no points.
  */
 struct SafetySphere
 {
     Real3 center{0, 0, 0};  //!< Point where the safety was calculated [len]
-    real_type radius{-1};  //!< Safety distance at the center [len]
+    real_type radius{0};  //!< Safety distance at the center [len]
 
     //! Whether the sphere has a nonzero radius
     explicit CELER_FUNCTION operator bool() const { return radius > 0; }
-
-    //! Whether the safety distance was calculated at this exact point
-    CELER_FUNCTION bool is_centered_on(Real3 const& pos) const
-    {
-        return radius >= 0 && center == pos;
-    }
 
     // Whether a point is inside the sphere by at least a tolerance
     inline CELER_FUNCTION bool contains(Real3 const& pos, real_type tol) const;
@@ -55,7 +47,7 @@ struct SafetySphere
  * \f[
    |\mathbf{x} - \mathbf{c}| + \delta \le r \,.
  * \f]
- * An empty sphere (zero or negative radius) contains no points.
+ * An empty sphere (zero radius) contains no points.
  */
 CELER_FUNCTION bool SafetySphere::contains(Real3 const& pos,
                                            real_type tol) const

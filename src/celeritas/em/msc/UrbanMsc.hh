@@ -119,8 +119,8 @@ CELER_FUNCTION real_type UrbanMsc::max_safety(CoreTrackView const& track) const
 /*!
  * Update the physical and geometric step lengths.
  *
- * If the safety was already calculated at the current position (see \c
- * max_safety ), it is reused rather than calculated again.
+ * The safety distance must have been calculated at the current position, up
+ * to at least \c max_safety , before this is called.
  */
 CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
 {
@@ -144,13 +144,12 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
         real_type safety = 0;
         if (!geo.is_on_boundary())
         {
-            // Find the safety up to the potential travel radius of the
-            // particle unless it was calculated earlier in this step
+            // Use the safety calculated earlier in this step up to the
+            // potential travel radius of the particle
             real_type const max_step = msc_helper.max_step();
             auto const& sphere = track.physics_step().safety_sphere();
-            safety = sphere.is_centered_on(geo.pos())
-                         ? sphere.radius
-                         : geo.find_safety(max_step);
+            CELER_ASSERT(sphere.center == geo.pos());
+            safety = sphere.radius;
             if (safety >= max_step)
             {
                 // The nearest boundary is further than the maximum expected

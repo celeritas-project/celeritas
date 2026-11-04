@@ -64,7 +64,7 @@ struct FieldDriverOptions
     //! Maximum number of substeps in the field propagator
     short int max_substeps = 10;
 
-    //! Calculate the start-of-step safety to skip boundary searches
+    //! Use the start-of-step safety to skip boundary searches
     bool use_safety_sphere = true;
 
     //! Initial step tolerance

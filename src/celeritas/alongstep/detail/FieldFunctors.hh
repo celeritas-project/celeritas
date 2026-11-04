@@ -75,5 +75,38 @@ struct IsAlongStepLinear
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Whether field propagation uses the safety sphere, the same for all tracks.
+ *
+ * This is false for an along-step action without a field.
+ */
+struct UsesFieldSafety
+{
+    bool enabled;
+
+    template<class T>
+    CELER_FUNCTION bool operator()(T const&) const
+    {
+        return enabled;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether a track uses the safety sphere for uniform field propagation.
+ */
+struct UsesUniformFieldSafety
+{
+    NativeCRef<UniformFieldParamsData> field;
+
+    template<class T>
+    CELER_FUNCTION bool operator()(T const& track) const
+    {
+        return field.options.use_safety_sphere
+               && IsInUniformField{field}(track);
+    }
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

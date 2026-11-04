@@ -33,10 +33,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 //! Launch the start-of-step safety calculation with a field condition
-template<class IF>
+template<class UF>
 void launch_safety_impl(CoreStepActionInterface const& action,
                         DeviceCRef<UrbanMscData> const& msc_data,
-                        IF const& is_in_field,
+                        UF const& uses_field_safety,
                         CoreParams const& params,
                         CoreState<MemSpace::device>& state)
 {
@@ -45,32 +45,32 @@ void launch_safety_impl(CoreStepActionInterface const& action,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         action.action_id(),
-        detail::SafetyApplier<IF>{msc_data, is_in_field});
+        detail::SafetyApplier<UF>{msc_data, uses_field_safety});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "safety");
     launch_kernel(action, params, state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
-//! Calculate the start-of-step safety when the field is in all volumes
+//! Calculate the start-of-step safety for all tracks in the action
 void launch_safety(CoreStepActionInterface const& action,
                    DeviceCRef<UrbanMscData> const& msc_data,
+                   UsesFieldSafety const& uses_field_safety,
                    CoreParams const& params,
                    CoreState<MemSpace::device>& state)
 {
-    launch_safety_impl(action, msc_data, AppliesValid{}, params, state);
+    launch_safety_impl(action, msc_data, uses_field_safety, params, state);
 }
 
 //---------------------------------------------------------------------------//
-//! Calculate the start-of-step safety when only some volumes have a field
+//! Calculate the start-of-step safety with a field in some volumes
 void launch_safety(CoreStepActionInterface const& action,
                    DeviceCRef<UrbanMscData> const& msc_data,
-                   DeviceCRef<UniformFieldParamsData> const& field,
+                   UsesUniformFieldSafety const& uses_field_safety,
                    CoreParams const& params,
                    CoreState<MemSpace::device>& state)
 {
-    launch_safety_impl(
-        action, msc_data, detail::IsInUniformField{field}, params, state);
+    launch_safety_impl(action, msc_data, uses_field_safety, params, state);
 }
 
 //---------------------------------------------------------------------------//

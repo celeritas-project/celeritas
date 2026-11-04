@@ -23,6 +23,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "detail/ElossApplier.hh"
+#include "detail/FieldFunctors.hh"
 #include "detail/FieldTrackPropagator.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
@@ -103,10 +104,11 @@ void AlongStepRZMapFieldMscAction::step(CoreParams const& params,
 
     auto const msc_ref = get_msc_ref(msc_.get());
     launch_impl([&](CoreTrackView& track) {
-        if (field_->ref<MemSpace::native>().options.use_safety_sphere)
-        {
-            SafetyApplier{msc_ref, AppliesValid{}}(track);
-        }
+        SafetyApplier{
+            msc_ref,
+            UsesFieldSafety{
+                field_->ref<MemSpace::native>().options.use_safety_sphere}}(
+            track);
         if (this->has_msc())
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);

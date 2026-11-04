@@ -37,11 +37,14 @@ namespace celeritas
 void AlongStepUniformMscAction::step(CoreParams const& params,
                                      CoreStateDevice& state) const
 {
-    auto field = field_->ref<MemSpace::native>();
-    if (field.options.use_safety_sphere)
+    auto const& field = field_->ref<MemSpace::native>();
+    if (this->has_msc() || field.options.use_safety_sphere)
     {
-        detail::launch_safety(
-            *this, detail::get_msc_ref(msc_.get()), field, params, state);
+        detail::launch_safety(*this,
+                              detail::get_msc_ref(msc_.get()),
+                              detail::UsesUniformFieldSafety{field},
+                              params,
+                              state);
     }
     if (this->has_msc())
     {
