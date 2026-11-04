@@ -66,7 +66,7 @@ class Toroid
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
     {
-        return SurfaceType::tor;
+        return SurfaceType::tzc;
     }
 
     //! Safety distance is calculable w/xy of normal and ellipse safety
