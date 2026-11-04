@@ -7,11 +7,13 @@
 #pragma once
 
 #include <limits>
-#include <corecel/Macros.hh>
-#include <corecel/cont/Array.hh>
-#include <corecel/math/ArrayOperators.hh>
-#include <corecel/math/ArrayUtils.hh>
-#include <orange/OrangeTypes.hh>
+
+#include "corecel/Macros.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {
@@ -40,10 +42,10 @@ class Tri
 
   public:
     // Construct from 3 vertices
-    inline Tri(Vertices const& vertices);
+    inline explicit CELER_FUNCTION Tri(Vertices const& verts);
 
     //! The vertices defining the triangle
-    CELER_FUNCTION Vertices const& verts() const { return verts_; }
+    inline CELER_FUNCTION Vertices const& verts() const { return verts_; }
 
     // Calculate straight-line intersections with this triangle
     inline CELER_FUNCTION Intersections calc_intersections(
@@ -54,11 +56,6 @@ class Tri
 
     // Vertices defining the triangle
     Vertices verts_;
-
-    //// METHODS ////
-
-    // Calculate the centroid of the triangle
-    inline CELER_FUNCTION Real3 calc_centroid() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -70,11 +67,12 @@ class Tri
 template<typename T>
 CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
 {
-    // Assert that triangle is not degenerate
-    CELER_ASSERT(verts[0] != verts[1]);
-    CELER_ASSERT(verts[0] != verts[2]);
-    CELER_ASSERT(verts[1] != verts[2]);
-    CELER_ASSERT(verts[0] + verts[1] != verts[2]);
+    // Check that triangle is not degenerate
+    CELER_EXPECT([&] {
+        auto edge1 = verts[1] - verts[0];
+        auto edge2 = verts[2] - verts[0];
+        return !soft_zero(norm(cross_product(edge1, edge2)));
+    }());
 
     // Edge 1 and Edge 2
     auto edge1 = verts_[1] - verts[0];
@@ -101,20 +99,15 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
-    constexpr real_type epsilon = std::numeric_limits<real_type>::epsilon();
-
     // Edge 1 and Edge 2
     auto edge1 = verts_[1] - verts_[0];
     auto edge2 = verts_[2] - verts_[0];
-
-    // Calculate the normal vector
-    auto normal = cross_product(edge1, edge2);
 
     auto ray_cross_edge2 = cross_product(dir, edge2);
     real_type det = dot_product(edge1, ray_cross_edge2);
 
     // Ray is parallel to triangle
-    if (std::fabs(det) < epsilon)
+    if (soft_zero(det))
     {
         return {real_type(no_intersection())};
     }
@@ -124,7 +117,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     real_type u = inv_det * dot_product(s, ray_cross_edge2);
 
     // Ray intersects edge2 outside the triangle
-    if (u < epsilon || (u - 1) > epsilon)
+    if (u < real_type{0} || u > real_type{1})
     {
         return {real_type(no_intersection())};
     }
@@ -133,7 +126,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     real_type v = inv_det * dot_product(dir, s_cross_edge1);
 
     // Ray intersects edge1 outside the triangle
-    if (v < epsilon || (u + v - 1) > epsilon)
+    if (v < real_type{0} || u + v > real_type{1})
     {
         return {real_type(no_intersection())};
     }
@@ -141,7 +134,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     // Compute distance to intersection
     real_type t = inv_det * dot_product(edge2, s_cross_edge1);
 
-    if (t > epsilon)
+    if (t > real_type{0})
     {
         return {t};
     }
@@ -149,16 +142,6 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     {
         return {real_type(no_intersection())};
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from 3 vertices.
- */
-template<typename T>
-CELER_FUNCTION auto Tri<T>::calc_centroid() const -> Real3
-{
-    return (verts_[0] + verts_[1] + verts_[2]) / 3.0;
 }
 
 //---------------------------------------------------------------------------//
