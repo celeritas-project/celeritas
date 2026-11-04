@@ -26,6 +26,11 @@ namespace detail
 template<class T, MemSpace M>
 using ItemsRef = Collection<T, Ownership::reference, M>;
 
+//! Native pointer to a buffer size for use in class templates. Declared at
+//! namespace scope because nvcc can fail to compile the unaliased type as a
+//! member of a class template in unity builds.
+using BufferSizePtr = ObserverPtr<size_type const, MemSpace::native>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Find the index of the distribution from which to generate the primary.
@@ -60,7 +65,7 @@ template<class T>
 struct BufferedPhotonCount
 {
     ObserverPtr<T const, MemSpace::native> data;
-    ObserverPtr<size_type const, MemSpace::native> size;
+    BufferSizePtr size;
 
     CELER_FUNCTION size_type operator()(size_type i) const
     {
@@ -76,7 +81,7 @@ template<class T>
 struct ClearTailExecutor
 {
     ObserverPtr<T, MemSpace::native> data;
-    ObserverPtr<size_type const, MemSpace::native> size;
+    BufferSizePtr size;
 
     CELER_FUNCTION void operator()(ThreadId tid) const
     {
