@@ -193,7 +193,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
  *
  * The alignment is either 1) explicitly defined by the user, 2) calculated
  * automatically is a sufficient number of daughters share a non-axis-aligned
- * rotation, or 3) no aligned. Results are cached per LV. An entry with an
+ * rotation, or 3) not aligned. Results are cached per LV. An entry with an
  * empty alignment means the volume has been checked and is not aligned. If the
  * volume is not aligned, a nullptr is returned.
  */
@@ -236,8 +236,7 @@ auto ProtoConstructor::find_common_rotation(LogicalVolume const& lv) const
 {
     size_type const num_daughters = lv.children.size();
 
-    // Early return if there is no chance we are prohibited from doing universe
-    // alignment
+    // Early return if we are prohibited from doing universe alignment
     if (opts_.align_daughter_threshold == 0
         || num_daughters < opts_.align_daughter_threshold || is_union(lv.solid))
     {

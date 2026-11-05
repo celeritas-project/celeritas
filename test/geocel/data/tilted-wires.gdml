@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!--
-  The geometry, a simplified version of DUNE, is a 100 cm world box holding
-  three copies of the same thin plane box (0.2 × 24 × 30 cm) at x = −6, −2, +2,
-  each with four 20 cm copper wire tubes at y = −6, −2, 2, 6:
+  This geometry, a simplified version of DUNE, is a 100 cm x 100 cm x 100 cm
+  world cube holding three copies of the same thin plane box (0.2 × 24 × 30 cm)
+  at x = −6, −2, +2, each with four 20 cm copper wire tubes at y = −6, −2, 2, 6:
 
   - plane_u: all four wires rotated 30 degrees around x
   - plane_v: three with a −30 degrees rotation and one with a +30 degrees

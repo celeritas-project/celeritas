@@ -1076,7 +1076,7 @@ TEST_F(TiltedWiresTest, aligned)
     EXPECT_EQ("{{-2,0,0}}", transform_string(daughters[1].transform));
     EXPECT_EQ("{{2,0,0}}", transform_string(daughters[2].transform));
 
-    // Wires in plane_u are axis-aligned cylinders (no general quadratics)
+    // Wires in plane_u are axis-aligned cylinders (no general quadrics)
     auto u = this->build_unit(protos, UnivId{1});
     static char const* const expected_surface_strings[] = {
         "Plane: z=-13",
