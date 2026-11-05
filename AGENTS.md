@@ -25,6 +25,13 @@ As an agent, you are OBLIGATED to add an annotation with your identity and model
 - `orange/`: Native Celeritas geometry engine
 - `celeritas/`: Physics (EM processes, particles, materials)
 - `accel/`: Geant4 integration layer
+- `contrib/claude-plugin/`: user-facing Claude Code plugin (skills for
+  downstream users, distributed via `.claude-plugin/marketplace.json`). This
+  is distinct from the contributor skills in `.claude/skills/`. When changing
+  public integration surfaces (`SetupOptions` members, `/celer/` UI commands,
+  `CELER_*` environment variables, CMake helpers, or files the plugin cites),
+  update the plugin in the same change; `scripts/ci/check-claude-plugin.py`
+  (run by `pre-commit`) flags stale references.
 
 Libraries depend strictly downward:
 `corecel` → `geocel` → `orange` → `celeritas` → `accel`,

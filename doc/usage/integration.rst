@@ -162,4 +162,5 @@ setting up:
 
 See :ref:`example_geant` for examples of integrating Geant4, and
 :ref:`api_g4_interface` for detailed documentation of the Geant4 integration
-interface.
+interface. The :ref:`claude_plugin` can guide an AI coding assistant through
+these integration steps.

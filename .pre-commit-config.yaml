@@ -43,6 +43,14 @@ repos:
         types_or: [yaml, json, css]
         additional_dependencies:
           - prettier@3.9.6
+      - id: check-claude-plugin
+        name: check Claude Code plugin references
+        entry: python scripts/ci/check-claude-plugin.py
+        language: python
+        pass_filenames: false
+        # Plugin text references src/, doc/, example/, ... so changes there
+        # can invalidate it too
+        files: '^(\.claude-plugin|contrib|src|app|doc|example|cmake|scripts)/'
 
   # Spell checking
   - repo: https://github.com/codespell-project/codespell

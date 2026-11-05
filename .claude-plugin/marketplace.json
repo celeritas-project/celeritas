@@ -1,0 +1,17 @@
+{
+  "name": "celeritas",
+  "owner": {
+    "name": "Celeritas contributors",
+    "url": "https://github.com/celeritas-project/celeritas"
+  },
+  "description": "Claude Code plugins for users of Celeritas, the GPU-accelerated particle transport library for HEP detector simulation",
+  "plugins": [
+    {
+      "name": "celeritas",
+      "source": "./contrib/claude-plugin",
+      "description": "Link Celeritas from CMake, add GPU offload to Geant4 applications, and diagnose Celeritas installations and runs",
+      "category": "development",
+      "tags": ["geant4", "hep", "gpu", "simulation"]
+    }
+  ]
+}

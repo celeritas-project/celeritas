@@ -1,0 +1,21 @@
+{
+  "name": "celeritas",
+  "displayName": "Celeritas",
+  "description": "Help downstream users link Celeritas from CMake, add GPU offload to Geant4 applications, and diagnose Celeritas installations and runs",
+  "author": {
+    "name": "Celeritas contributors",
+    "url": "https://github.com/celeritas-project/celeritas"
+  },
+  "homepage": "https://celeritas-project.github.io/celeritas/user/usage/claude-plugin.html",
+  "repository": "https://github.com/celeritas-project/celeritas",
+  "license": "Apache-2.0 OR MIT",
+  "keywords": [
+    "celeritas",
+    "geant4",
+    "hep",
+    "gpu",
+    "cuda",
+    "hip",
+    "detector-simulation"
+  ]
+}
