@@ -43,6 +43,16 @@ also includes an example use case for building an application using Celeritas.
 These scripts are used by developers and by the Celeritas CMake code itself to
 generate files, set up development machines, and analyze the codebase.
 
+## Claude Code cloud sessions
+
+`dev/claude-cloud-setup.sh` is a setup script for a Claude Code cloud
+environment (paste it into the environment's "Setup script" field). It installs
+the same spack environment as the main `build-spack` CI job under
+`/opt/celeritas`, using only the public Celeritas buildcache, in about three
+minutes so that the environment snapshot is cached between sessions. In a
+cloud session `build.sh` selects `cmake-presets/claude-cloud.json`
+automatically, so `scripts/build.sh base` configures, builds, and tests.
+
 # Docker scripts
 
 The `docker` subdirectory contains scripts for setting up and maintaining
