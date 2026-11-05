@@ -3,7 +3,7 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# Run on excl (or any ubuntu24 system) to build and upload, or use the
+# Run on excl (or any ubuntu26 system) to build and upload, or use the
 # container in scripts/docker/buildcache (see scripts/docker/README.md)
 #-----------------------------------------------------------------------------#
 
@@ -29,7 +29,7 @@ if ! command -v spack >/dev/null 2>&1; then
 fi
 
 OS=$(spack arch --operating-system)
-EXPECTED_OS="ubuntu24.04"
+EXPECTED_OS="ubuntu26.04"
 if [ "${OS}" != "${EXPECTED_OS}" ]; then
   log error "Current OS is ${OS} but needs to be ${EXPECTED_OS}"
   exit 1
@@ -40,7 +40,7 @@ fi
 # using parse-spack-versions.py
 spack debug report
 
-CELER_BASE_IMAGE=ubuntu:24.04
+CELER_BASE_IMAGE=ubuntu:26.04
 CELER_BUILDCACHE=celeritas
 
 export CELER_SPACK_VIEW=false

@@ -33,7 +33,7 @@ concurrency:
 jobs:
   metadata:
     name: "Save job metadata"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       # Event file is needed for pull_request_completed to provide the fork's context
       - name: Upload event file
@@ -60,7 +60,7 @@ jobs:
       - build-docs
       - build-fast
       - build-ultralite
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Success
         run: "true"
@@ -107,7 +107,7 @@ jobs:
       - build-codecov
       - build-docker
       - build-regression
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       unsuccessful: ${{ steps.check.outputs.unsuccessful }}
     steps:

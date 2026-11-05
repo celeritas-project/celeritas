@@ -27,7 +27,7 @@ jobs:
     uses: ./.github/workflows/build-docs.yml
 
   update-pubs:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Check out Celeritas doc base
         uses: actions/checkout@v7
@@ -63,7 +63,7 @@ jobs:
           git push
 
   build-jekyll:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [update-pubs]
     outputs:
       artifact-id: ${{ steps.upload.outputs.artifact-id }}
@@ -87,7 +87,7 @@ jobs:
           retention-days: 1
 
   assemble:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [build-docs, build-jekyll]
     outputs:
       artifact-id: ${{ steps.upload.outputs.artifact-id }}
