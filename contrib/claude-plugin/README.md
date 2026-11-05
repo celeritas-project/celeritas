@@ -28,6 +28,7 @@ default: run `/plugin marketplace update celeritas` to pick up changes.
 | `/celeritas:cmake-link` | Write or fix downstream `CMakeLists.txt` (`find_package`, `celeritas_target_link_libraries`, CUDA RDC) |
 | `/celeritas:geant4-offload` | Add or adjust Celeritas offload in a Geant4 application (`SetupOptions`, SDs, fields, UI macros, validation) |
 | `/celeritas:framework-integration` | Integrate with DD4hep/DDG4, LArSoft/art, or custom/task-based frameworks (Gaudi, CMSSW, Athena) |
+| `/celeritas:review-integration` | Review existing integration code for problems, using the `integration-reviewer` agent |
 | `/celeritas:new-offload-app` | Start a new Geant4+Celeritas app from the offload template matching the installed version |
 | `/celeritas:standalone-input` | Write or fix input for `celer-sim`, `celer-optical`, `celer-g4`, `celer-geo`, `celer-export-geant` |
 | `/celeritas:library-api` | Use Celeritas from C++ without Geant4 offload: programmatic transport, geometry, step data, custom GPU actions |
@@ -63,8 +64,9 @@ suite. Each case runs Claude on a task and grades the result. By default
 each case runs twice, once with the plugin and once without, and the report
 shows the score difference (Δ). Every run is a real Claude session billed to
 your credentials, so run the suite locally when skills change or before a
-release, not on every commit. Run it from a Celeritas source checkout:
-scaffolds copy fixtures from `example/geant4/`.
+release, not on every commit. The target must be the plugin inside a Celeritas
+source checkout, because scaffolds copy fixtures from `example/geant4/`. Your
+working directory does not matter, as long as the target path points there.
 
 | Tier (tag) | Needs | Command |
 |------------|-------|---------|

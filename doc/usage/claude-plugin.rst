@@ -67,6 +67,9 @@ also be invoked directly:
        plugin, the LArSoft ``PDFullSimCeler`` module (see
        :ref:`plugins_larsoft`), or custom and task-based frameworks such as
        Gaudi, CMSSW, and Athena.
+   * - ``/celeritas:review-integration``
+     - Review existing integration code for problems, using the
+       ``celeritas:integration-reviewer`` agent described below.
    * - ``/celeritas:new-offload-app``
      - Start a new Geant4 application from the offload template (see
        :ref:`example_template`) at the tag matching the installed version.
