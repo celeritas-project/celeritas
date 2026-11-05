@@ -54,12 +54,13 @@ jobs:
         if: >-
           ${{ steps.update.outcome != 'failure'
               && fromJSON(steps.update.outputs.DIFF_COUNT) > 0 }}
-        continue-on-error: true
+        env:
+          EMAIL: "${{github.triggering_actor}}@users.noreply.github.com"
         run: |
-          git commit \
+          git \
             -c user.name="Github Action" \
-            -c user.email="${{github.triggering_actor}}@users.noreply.github.com" \
-            -am "Update publications"
+            -c user.email="${EMAIL}" \
+            commit -am "Update publications"
           git push
 
   build-jekyll:
