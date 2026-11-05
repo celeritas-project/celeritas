@@ -72,13 +72,22 @@ scaffolds copy fixtures from `example/geant4/`.
 | `fixture` | `--scaffold`; `Edit` for edits; `Bash` (sandboxed) for the doctor case | `claude plugin eval contrib/claude-plugin --tag fixture --scaffold --allow-tools Edit Bash --no-publish` |
 | `build` | Celeritas, Geant4, and CMake on `PATH`; a non-root user with the Bash sandbox (`bubblewrap`, `socat` on Linux) | `claude plugin eval contrib/claude-plugin --tag build --scaffold --allow-tools Edit Write Bash --no-publish` |
 
+Use these commands as written: the flags are not optional, and the target is
+the checkout path. A bare `claude plugin eval celeritas` evaluates the
+installed copy of the plugin with no scaffolds and no `Edit` or `Bash`, so
+only the `smoke` cases can pass. The other cases start in an empty workspace
+and score 0 whatever the skills do, with notes such as `cannot pass with the
+granted tools` or `does not exist`. Adding the flags to that command is not
+enough: the installed copy has no `example/geant4/`, so scaffolds that copy
+fixtures from it fail.
+
 Useful options:
 - `--runs 1` or `--ablation none` for a quick, cheaper check.
 - `--max-cost-usd <n>` as a hard budget.
 - `--model <id>` to pin the model when comparing runs over time.
 - `--case <name>` to rerun one case.
 
-With `--runs 1`, the smoke and fixture tiers each cost about $0.60 with
+With `--runs 1`, the smoke and fixture tiers each cost about $1.20 with
 both arms (measured November 2026 with the default eval model). The default
 of two runs per case roughly doubles that. Results go to `evals/results/`
 (gitignored). The `build` case is the slowest: Claude
