@@ -99,33 +99,30 @@ code:
 ```diff
 --- example/geant4/trackingmanager-offload.cc
 +++ example/geant4/trackingmanager-offload.cc
-@@ -31,2 +31,4 @@
+@@ -33,8 +33,13 @@
+ #endif
 
 +// Celeritas
 +#include <CeleritasG4.hh>
++
+ // Celeritas convenience utils
+ #include <corecel/Assert.hh>
+ #include <corecel/io/Logger.hh>
 
++using TMI = celeritas::TrackingManagerIntegration;
++
+ namespace
+ {
 ```
 
-Celeritas uses the run action to set up and tear down cleanly:
+Celeritas integrates into the tracking loop primarily using the
+`G4VTrackingManager` interface. Register the Celeritas tracking manager with the
+physics list and set the offload options before initializing the run manager:
 ```diff
---- example/accel/trackingmanager-offload.cc
-+++ example/accel/trackingmanager-offload.cc
-@@ -133,2 +138,3 @@ class RunAction final : public G4UserRunAction
-     {
-+        TMI::Instance().BeginOfRunAction(run);
-     }
-@@ -136,2 +142,3 @@ class RunAction final : public G4UserRunAction
-     {
-+        TMI::Instance().EndOfRunAction(run);
-     }
-```
-
-And integrates into the tracking loop primarily using the `G4TrackingManager`
-interface:
-```diff
---- example/accel/trackingmanager-offload.cc
-+++ example/accel/trackingmanager-offload.cc
-@@ -203,4 +235,8 @@ int main()
+--- example/geant4/trackingmanager-offload.cc
++++ example/geant4/trackingmanager-offload.cc
+@@ -207,9 +212,15 @@ int main()
+     run_manager->SetUserInitialization(new DetectorConstruction{});
 
 +    auto& tmi = TMI::Instance();
 +
@@ -133,11 +130,23 @@ interface:
      auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
 +    physics_list->RegisterPhysics(
 +        new celeritas::TrackingManagerConstructor(&tmi));
+     run_manager->SetUserInitialization(physics_list);
+     run_manager->SetUserInitialization(new ActionInitialization());
+
++    tmi.SetOptions(MakeOptions());
++
+     run_manager->Initialize();
 ```
+
+No run action changes are needed: `TrackingManagerIntegration` sets up and
+tears down Celeritas automatically through Geant4 state hooks.
 
 More flexible alternatives to this high level interface, compatible with other
 run manager implementations and older versions of Geant4, are described in the
-manual.
+manual. These (`UserActionIntegration` and `FastSimulationIntegration`) still
+require calling `BeginOfRunAction` and `EndOfRunAction` from the user run
+action: see `example/geant4/simple-offload.cc` and
+`example/geant4/fastsim-offload.cc`.
 
 [integration]: https://celeritas-project.github.io/celeritas/user/usage/integration.html
 
