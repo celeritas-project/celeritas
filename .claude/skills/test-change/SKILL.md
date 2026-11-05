@@ -7,8 +7,12 @@ Verify a change by building and running only the affected tests.
 
 ## 1. Pick a build directory
 
-Use an existing configured `build-*` directory at the repo root (the one the
-user named, otherwise the most recently built). Do not configure a new one.
+Find an existing configured directory (in decreasing preference):
+- user-specified if applicable
+- `build*` in repo root (most recently built)
+- check `.clangd` for `CompileFlags.CompilationDatabase`
+
+If none is available, STOP and ask user for instructions.
 
 Always build through `cmake --build`: it uses the `ninja` recorded in
 `CMakeCache.txt`, which is often not on `PATH` (e.g. a Spack view).
