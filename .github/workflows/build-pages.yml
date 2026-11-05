@@ -131,7 +131,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v7
         with:
-          name: github-pages
+          name: github-pages # Exact name required by actions/deploy-pages
           path: ${{ runner.temp }}/artifact.tar
           retention-days: 1
           if-no-files-found: error
