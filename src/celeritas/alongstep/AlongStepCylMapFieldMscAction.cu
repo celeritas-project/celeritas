@@ -39,13 +39,11 @@ namespace celeritas
 void AlongStepCylMapFieldMscAction::step(CoreParams const& params,
                                          CoreStateDevice& state) const
 {
-    bool const use_sphere
-        = field_->ref<MemSpace::native>().options.use_safety_sphere;
-    if (this->has_msc() || use_sphere)
+    if (this->has_msc()
+        || field_->ref<MemSpace::native>().options.use_safety_sphere)
     {
         detail::launch_safety(*this,
                               detail::get_msc_ref<MemSpace::native>(msc_.get()),
-                              detail::UsesFieldSafety{use_sphere},
                               params,
                               state);
     }

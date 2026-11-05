@@ -27,34 +27,19 @@ namespace detail
  * searches. This must run before either of them, while the track is at the
  * start of the step.
  *
- * The search distance is the greater of the two distances requested:
- * - MSC needs the safety up to the maximum travel distance of the particle,
- *   which is usually much larger than the step, and
- * - a track that uses the sphere in a field needs at most the length of the
- *   step (the physical step length is never less than the geometric path after
- *   MSC).
+ * The search distance is the step length or, if MSC applies to the track, the
+ * maximum travel distance of the particle if that is greater. The step length
+ * is conservative for field propagation since it is the physical step, and the
+ * geometric path after MSC is never longer.
  *
- * Tracks that need neither, or that start on a boundary, keep their previous
- * sphere.
- *
- * \tparam UF Function-like condition for whether a track's field propagation
- * uses the sphere
+ * Tracks that start on a boundary keep their previous sphere.
  */
-template<class UF>
 struct SafetyApplier
 {
     inline CELER_FUNCTION void operator()(CoreTrackView const& track);
 
     NativeCRef<UrbanMscData> msc;  //!< MSC data (empty if MSC is disabled)
-    UF uses_field_safety;
 };
-
-//---------------------------------------------------------------------------//
-// DEDUCTION GUIDES
-//---------------------------------------------------------------------------//
-template<class UF>
-CELER_CTAD_FUNCTION SafetyApplier(NativeCRef<UrbanMscData> const&, UF&&)
-    -> SafetyApplier<UF>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -79,10 +64,9 @@ inline UrbanMscData<Ownership::const_reference, M> get_msc_ref(
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Calculate and save the safety sphere for a track if needed.
+ * Calculate and save the safety sphere for a track.
  */
-template<class UF>
-CELER_FUNCTION void SafetyApplier<UF>::operator()(CoreTrackView const& track)
+CELER_FUNCTION void SafetyApplier::operator()(CoreTrackView const& track)
 {
     auto sim = track.sim();
     auto geo = track.geometry();
@@ -91,14 +75,11 @@ CELER_FUNCTION void SafetyApplier<UF>::operator()(CoreTrackView const& track)
         return;
     }
 
-    real_type max_safety = 0;
+    real_type max_safety = sim.step_length();
     if (msc)
     {
-        max_safety = UrbanMsc{msc}.max_safety(track);
-    }
-    if (uses_field_safety(track))
-    {
-        max_safety = celeritas::max(max_safety, sim.step_length());
+        max_safety
+            = celeritas::max(max_safety, UrbanMsc{msc}.max_safety(track));
     }
 
     if (max_safety > 0)

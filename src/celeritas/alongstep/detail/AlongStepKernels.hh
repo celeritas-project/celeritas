@@ -11,8 +11,6 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackDataFwd.hh"
 
-#include "FieldFunctors.hh"
-
 namespace celeritas
 {
 namespace detail
@@ -21,13 +19,6 @@ namespace detail
 //! Calculate the safety at the start of the step
 void launch_safety(CoreStepActionInterface const& action,
                    DeviceCRef<UrbanMscData> const& msc_data,
-                   UsesFieldSafety const& uses_field_safety,
-                   CoreParams const& params,
-                   CoreState<MemSpace::device>& state);
-
-void launch_safety(CoreStepActionInterface const& action,
-                   DeviceCRef<UrbanMscData> const& msc_data,
-                   UsesUniformFieldSafety const& uses_field_safety,
                    CoreParams const& params,
                    CoreState<MemSpace::device>& state);
 

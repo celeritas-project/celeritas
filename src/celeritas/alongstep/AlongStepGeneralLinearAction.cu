@@ -24,11 +24,8 @@ void AlongStepGeneralLinearAction::step(CoreParams const& params,
 {
     if (this->has_msc())
     {
-        detail::launch_safety(*this,
-                              msc_->ref<MemSpace::native>(),
-                              detail::UsesFieldSafety{false},
-                              params,
-                              state);
+        detail::launch_safety(
+            *this, msc_->ref<MemSpace::native>(), params, state);
         detail::launch_limit_msc_step(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }

@@ -91,10 +91,14 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
 {
     using namespace ::celeritas::detail;
     auto const msc_ref = get_msc_ref<MemSpace::native>(msc_.get());
+    bool const calc_safety
+        = this->has_msc()
+          || field_->ref<MemSpace::native>().options.use_safety_sphere;
     auto execute_track = [&](CoreTrackView& track) {
-        SafetyApplier{msc_ref,
-                      UsesUniformFieldSafety{field_->ref<MemSpace::native>()}}(
-            track);
+        if (calc_safety)
+        {
+            SafetyApplier{msc_ref}(track);
+        }
         if (this->has_msc())
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);

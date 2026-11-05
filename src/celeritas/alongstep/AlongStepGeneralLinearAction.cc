@@ -22,7 +22,6 @@
 #include "celeritas/phys/PhysicsParams.hh"
 
 #include "detail/ElossApplier.hh"
-#include "detail/FieldFunctors.hh"
 #include "detail/FluctELoss.hh"  // IWYU pragma: associated
 #include "detail/LinearTrackPropagator.hh"
 #include "detail/MeanELoss.hh"  // IWYU pragma: associated
@@ -95,8 +94,7 @@ void AlongStepGeneralLinearAction::step(CoreParams const& params,
     launch_impl([&](CoreTrackView& track) {
         if (this->has_msc())
         {
-            SafetyApplier{msc_->ref<MemSpace::native>(),
-                          UsesFieldSafety{false}}(track);
+            SafetyApplier{msc_->ref<MemSpace::native>()}(track);
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
         PropagationApplier{LinearTrackPropagator{}}(track);

@@ -16,7 +16,6 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "ElossApplier.hh"
-#include "FieldFunctors.hh"
 #include "FluctELoss.hh"
 #include "LinearTrackPropagator.hh"
 #include "MeanELoss.hh"
@@ -32,45 +31,21 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Launch the start-of-step safety calculation with a field condition
-template<class UF>
-void launch_safety_impl(CoreStepActionInterface const& action,
-                        DeviceCRef<UrbanMscData> const& msc_data,
-                        UF const& uses_field_safety,
-                        CoreParams const& params,
-                        CoreState<MemSpace::device>& state)
+//! Calculate the safety at the start of the step
+void launch_safety(CoreStepActionInterface const& action,
+                   DeviceCRef<UrbanMscData> const& msc_data,
+                   CoreParams const& params,
+                   CoreState<MemSpace::device>& state)
 {
     ScopedProfiling profile_this{"safety"};
-    auto execute_thread = make_along_step_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        action.action_id(),
-        detail::SafetyApplier<UF>{msc_data, uses_field_safety});
+    auto execute_thread
+        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
+                                         state.ptr(),
+                                         action.action_id(),
+                                         detail::SafetyApplier{msc_data});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "safety");
     launch_kernel(action, params, state, execute_thread);
-}
-
-//---------------------------------------------------------------------------//
-//! Calculate the start-of-step safety for all tracks in the action
-void launch_safety(CoreStepActionInterface const& action,
-                   DeviceCRef<UrbanMscData> const& msc_data,
-                   UsesFieldSafety const& uses_field_safety,
-                   CoreParams const& params,
-                   CoreState<MemSpace::device>& state)
-{
-    launch_safety_impl(action, msc_data, uses_field_safety, params, state);
-}
-
-//---------------------------------------------------------------------------//
-//! Calculate the start-of-step safety with a field in some volumes
-void launch_safety(CoreStepActionInterface const& action,
-                   DeviceCRef<UrbanMscData> const& msc_data,
-                   UsesUniformFieldSafety const& uses_field_safety,
-                   CoreParams const& params,
-                   CoreState<MemSpace::device>& state)
-{
-    launch_safety_impl(action, msc_data, uses_field_safety, params, state);
 }
 
 //---------------------------------------------------------------------------//
