@@ -72,7 +72,7 @@ working directory does not matter, as long as the target path points there.
 |------------|-------|---------|
 | `smoke` | Nothing extra | `claude plugin eval contrib/claude-plugin --tag smoke --no-publish` |
 | `fixture` | `--scaffold`; `Edit` for edits; `Bash` (sandboxed) for the doctor case | `claude plugin eval contrib/claude-plugin --tag fixture --scaffold --allow-tools Edit Bash --no-publish` |
-| `build` | Celeritas, Geant4, and CMake on `PATH`; a non-root user with the Bash sandbox (`bubblewrap`, `socat` on Linux) | `claude plugin eval contrib/claude-plugin --tag build --scaffold --allow-tools Edit Write Bash --no-publish` |
+| `build` | Celeritas, Geant4, and CMake on `PATH`, installed outside your home directory; a non-root user with the Bash sandbox (`bubblewrap`, `socat` on Linux) | `claude plugin eval contrib/claude-plugin --tag build --scaffold --allow-tools Edit Write Bash --no-publish` |
 
 Use these commands as written: the flags are not optional, and the target is
 the checkout path. A bare `claude plugin eval celeritas` evaluates the
@@ -95,7 +95,10 @@ of two runs per case roughly doubles that. Results go to `evals/results/`
 (gitignored). The `build` case is the slowest: Claude
 edits the example, builds it against the host install with the environment
 the scaffold records in `build-env.sh`, and runs it. Eval runs do not inherit
-your shell environment.
+your shell environment. The Bash sandbox also cannot read your home directory,
+so CMake cannot find an install there, and no option widens that. The scaffold
+stops with an error if Celeritas or Geant4 is under your home directory, so a
+Spack environment in your home cannot run this tier.
 
 When adding a case, give it one of the tags above, a skill-fired indicator
 (`tool_used` with `tool: Skill`), and at least one grader that a run without

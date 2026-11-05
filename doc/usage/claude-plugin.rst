@@ -117,7 +117,8 @@ gives Claude a realistic task, such as adding offload to the Geant4 example,
 fixing CUDA linking, or reviewing a broken integration. It then grades the
 result, both with and without the plugin. Cases are tagged ``smoke`` (cheap,
 no setup), ``fixture`` (copies files from :file:`example/geant4`), and
-``build`` (compiles and runs against a local Geant4 and Celeritas install).
+``build`` (compiles and runs against a Geant4 and Celeritas install outside
+the home directory).
 Running the suite starts real Claude sessions billed to the user's
 credentials, so maintainers run it locally after substantive skill changes and
 before releases. The plugin's :file:`README.md` lists the commands.
