@@ -39,6 +39,7 @@ under review.
    run manager's thread count can be zero or too small.
 
 **Options**
+
 7. `make_along_step` is set and matches the Geant4 field (zero field ->
    `UniformAlongStepFactory()`; uniform -> the same strength and direction;
    maps -> the same map). Units: uniform field strengths are tesla.
@@ -50,6 +51,7 @@ under review.
     unless the code deliberately offloads nothing for optical offload.
 
 **Sensitive detectors and truth**
+
 11. If the geometry has no SDs, `sd.enabled = false`.
 12. SD options provide everything `ProcessHits` reads. Flag disabled data
     that is used, e.g. `GetTrack()` with `sd.track = false`, copy numbers
@@ -61,6 +63,7 @@ under review.
     secondaries have none of these (IDs count down from `INT_MAX`).
 
 **Build and runtime**
+
 14. Every target that links Celeritas, directly or transitively, uses
     `celeritas_target_link_libraries` (or links `<target>_final` for forced
     `SHARED` plugins). `find_package(Celeritas ...)` requests a compatible

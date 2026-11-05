@@ -15,8 +15,7 @@ itself use the project skills in the repository's `.claude/skills/`.
 
 To keep the plugin consistent with an installed Celeritas release, add the
 marketplace at that release's tag instead:
-`/plugin marketplace add celeritas-project/celeritas@vX.Y.Z`. Only releases
-made after the plugin was added contain it. Without a pinned tag, the plugin
+`/plugin marketplace add celeritas-project/celeritas#vX.Y.Z`. Without a pinned tag, the plugin
 follows the default branch. Third-party marketplaces do not auto-update by
 default: run `/plugin marketplace update celeritas` to pick up changes.
 
