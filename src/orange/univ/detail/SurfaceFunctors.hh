@@ -109,10 +109,9 @@ class CalcIntersections
         , pos_(pos)
         , dir_(dir)
         , on_face_idx_(on_face.unchecked_get())
-        , fill_isect_(!is_simple)
         , face_(next_face.face)
         , distance_(next_face.distance)
-        , isect_(next_face.isect)
+        , isect_(!is_simple ? next_face.isect : nullptr)
     {
         CELER_EXPECT(face_ && distance_);
     }
@@ -160,6 +159,18 @@ class CalcIntersections
   private:
     //// DATA ////
 
+    IsNotFurtherThan is_valid_isect_;
+    Real3 const& pos_;
+    Real3 const& dir_;
+    size_type const on_face_idx_;
+    FaceId* const face_;
+    real_type* const distance_;
+    size_type* const isect_;
+    FaceId::size_type face_idx_{0};
+    size_type isect_idx_{0};
+
+    //// HELPERS ////
+
     template<class T>
     CELER_FUNCTION void solve_and_store(T const& input)
     {
@@ -182,24 +193,13 @@ class CalcIntersections
         {
             face_[isect_idx_] = FaceId{face_idx_};
             distance_[isect_idx_] = dist;
-            if (fill_isect_)
+            if (isect_)
             {
                 isect_[isect_idx_] = isect_idx_;
             }
             ++isect_idx_;
         }
     }
-
-    IsNotFurtherThan is_valid_isect_;
-    Real3 const& pos_;
-    Real3 const& dir_;
-    size_type const on_face_idx_;
-    bool const fill_isect_;
-    FaceId* const face_;
-    real_type* const distance_;
-    size_type* const isect_;
-    FaceId::size_type face_idx_{0};
-    size_type isect_idx_{0};
 };
 
 //---------------------------------------------------------------------------//
