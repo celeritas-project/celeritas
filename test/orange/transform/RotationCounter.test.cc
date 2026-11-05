@@ -61,8 +61,8 @@ TEST(RotationCounterTest, distinct)
     RotationCounter rc;
     for (auto i : range(8))
     {
-        rc(Transformation{make_rotation(Axis::x, Turn{0.05 * i}),
-                          Real3{0, 0, 0}});
+        Turn const turn{static_cast<real_type>(0.05 * i)};
+        rc(Transformation{make_rotation(Axis::x, turn), Real3{0, 0, 0}});
     }
     EXPECT_EQ(8, rc.num_rotations());
 
