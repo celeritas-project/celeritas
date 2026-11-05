@@ -38,6 +38,7 @@ OPTION_RE = re.compile(r"\bopts\.((?:\w+\.)*\w+)")
 UI_CMD_RE = re.compile(r"(?<![\w/])/celer/[\w/]*")
 QUALIFIED_RE = re.compile(r"\b(?:celeritas|inp)::(?:\w+::)*(\w+)")
 MD_LINK_RE = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
+INLINE_CODE_RE = re.compile(r"`[^`]*`")
 SKILL_DIR_RE = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/([\w./-]+)")
 FRONT_MATTER_RE = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 
@@ -128,7 +129,13 @@ def check_markdown(checker, path, refs):
     if len(parts) >= 3 and parts[0] == "skills":
         skill_dir = PLUGIN_DIR / parts[0] / parts[1]
 
+    in_fence = False
     for lineno, line in enumerate(text.splitlines(), start=1):
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+        # Markdown links are only meaningful outside code
+        prose = "" if in_fence else INLINE_CODE_RE.sub("", line)
+
         for match in REPO_PATH_RE.finditer(line):
             token = match.group(1).rstrip(".,:;")
             if not repo_path_exists(token):
@@ -167,7 +174,7 @@ def check_markdown(checker, path, refs):
                     lineno,
                     f"'{match.group(0)}': '{name}' does not appear in any src/ header",
                 )
-        for target in MD_LINK_RE.findall(line):
+        for target in MD_LINK_RE.findall(prose):
             if "://" in target or target.startswith("mailto:"):
                 continue
             if not (path.parent / target).exists():

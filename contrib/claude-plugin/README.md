@@ -1,8 +1,9 @@
 # Celeritas plugin for Claude Code
 
-This plugin helps people who *use* Celeritas: adding GPU offload to a Geant4
-application, linking Celeritas from CMake, and diagnosing Celeritas runs. It
-does not need a Celeritas source checkout. Contributors working on Celeritas
+This plugin helps people who *use* Celeritas: installing it, linking it from
+CMake, adding GPU offload to Geant4 applications and experiment frameworks,
+running the standalone apps, tuning performance, and diagnosing runs. It does
+not need a Celeritas source checkout. Contributors working on Celeritas
 itself use the project skills in the repository's `.claude/skills/`.
 
 ## Install
@@ -24,12 +25,24 @@ default: run `/plugin marketplace update celeritas` to pick up changes.
 | Skill | Use it to |
 |-------|-----------|
 | `/celeritas:doctor` | Detect the installed Celeritas, its build options (GPU, geometry, MPI, debug), Geant4, and GPU visibility |
+| `/celeritas:install` | Choose and run an installation: Spack variants, CMake options and presets, compatibility constraints |
 | `/celeritas:cmake-link` | Write or fix downstream `CMakeLists.txt` (`find_package`, `celeritas_target_link_libraries`, CUDA RDC) |
 | `/celeritas:geant4-offload` | Add or adjust Celeritas offload in a Geant4 application (`SetupOptions`, SDs, fields, UI macros, validation) |
+| `/celeritas:framework-integration` | Integrate with DD4hep/DDG4, LArSoft/art, or custom/task-based frameworks (Gaudi, CMSSW, Athena) |
+| `/celeritas:new-offload-app` | Start a new Geant4+Celeritas app from the offload template matching the installed version |
+| `/celeritas:standalone-input` | Write or fix input for `celer-sim`, `celer-optical`, `celer-g4`, `celer-geo`, `celer-export-geant` |
+| `/celeritas:performance-tuning` | Estimate achievable speedup, size capacities, read timers, and profile |
 | `/celeritas:troubleshoot` | Match Celeritas errors to fixes and summarize `celeritas.out.json` |
 
 Claude also loads these skills automatically when a request matches their
 description.
+
+## Agent
+
+`celeritas:integration-reviewer` is a read-only reviewer that audits
+integration code (setup order, threading, options, sensitive detectors, MC
+truth, CMake) and returns ranked findings. Ask Claude to "review this
+Celeritas integration", or delegate to the agent by name.
 
 ## Design
 

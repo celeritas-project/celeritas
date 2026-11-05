@@ -23,9 +23,8 @@ read-only and always exits 0. It prints `key=value` facts, then `warn=` and
 `note=` lines, then the raw `celer-config` JSON.
 
 If nothing is found, ask how Celeritas is provided (Spack environment, module,
-container, custom prefix) before guessing; the `install` instructions in the
-user documentation cover new installs:
-https://celeritas-project.github.io/celeritas/user/usage/installation.html
+container, custom prefix) before guessing. For a new installation, use the
+`install` skill.
 
 ## 2. Interpret
 

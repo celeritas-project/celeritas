@@ -57,7 +57,8 @@ https://celeritas-project.github.io/celeritas/user/usage/execution/environment.h
 For results that differ from Geant4, follow the validation steps in the
 `geant4-offload` skill (`references/validation.md` there). Check the field,
 ignored processes, SD options, and MC-truth assumptions before suspecting
-physics.
+physics. For slow runs, use `performance-tuning`. For problems in the
+integration code itself, the `integration-reviewer` agent can audit it.
 
 ## 4. Report
 

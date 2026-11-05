@@ -83,12 +83,20 @@ def candidate_prefixes(argv):
     """Yield (source, prefix) pairs in priority order."""
     if len(argv) > 1:
         yield ("argument", Path(argv[1]))
-    for var in ("Celeritas_ROOT", "CELERITAS_ROOT", "CELER_INSTALL_DIR"):
+    # CELERITAS_DIR is the install prefix exported by larceler-env
+    for var in (
+        "Celeritas_ROOT",
+        "CELERITAS_ROOT",
+        "CELERITAS_DIR",
+        "CELER_INSTALL_DIR",
+    ):
         if os.environ.get(var):
             yield (var, Path(os.environ[var]))
     if os.environ.get("Celeritas_DIR"):
-        # <prefix>/lib/cmake/Celeritas
-        yield ("Celeritas_DIR", Path(os.environ["Celeritas_DIR"]).parents[2])
+        # CMake package directory: <prefix>/lib/cmake/Celeritas
+        cmake_dir = Path(os.environ["Celeritas_DIR"])
+        if len(cmake_dir.parents) > 2:
+            yield ("Celeritas_DIR", cmake_dir.parents[2])
     exe = shutil.which("celer-config")
     if exe:
         yield ("PATH", Path(exe).resolve().parent.parent)
@@ -304,7 +312,8 @@ def main(argv):
         report.fact("celeritas.found", "no")
         report.warn(
             "no Celeritas installation found: looked at the argument, "
-            "Celeritas_ROOT, CELERITAS_ROOT, CELER_INSTALL_DIR, Celeritas_DIR, "
+            "Celeritas_ROOT, CELERITAS_ROOT, CELERITAS_DIR, CELER_INSTALL_DIR, "
+            "Celeritas_DIR, "
             "celer-config on PATH, CMAKE_PREFIX_PATH, and 'spack location -i "
             "celeritas'; load the environment (e.g. 'spack load celeritas') "
             "or pass the install prefix"

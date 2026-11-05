@@ -7,9 +7,10 @@ AI coding assistant plugin
 ==========================
 
 Celeritas provides a plugin for the `Claude Code`_ AI coding assistant. It
-helps users who *integrate* Celeritas, rather than develop it: linking
-Celeritas from CMake, adding offload to a Geant4 application, and diagnosing
-Celeritas runs. The plugin does not need a Celeritas source checkout.
+helps users who *integrate* Celeritas, rather than develop it: installing and
+linking Celeritas, adding offload to Geant4 applications and experiment
+frameworks, running the standalone applications, tuning performance, and
+diagnosing runs. The plugin does not need a Celeritas source checkout.
 
 .. _Claude Code: https://code.claude.com
 
@@ -48,6 +49,10 @@ also be invoked directly:
        geometry, MPI, debug), the Geant4 version and data, and GPU
        visibility, and flag inconsistencies such as a GPU architecture
        mismatch.
+   * - ``/celeritas:install``
+     - Choose an installation route and configuration: Spack variants, CMake
+       options and presets, and geometry/GPU/Geant4 compatibility (see
+       :ref:`infrastructure`).
    * - ``/celeritas:cmake-link``
      - Write or fix downstream CMake code: ``find_package``,
        ``celeritas_target_link_libraries``, CUDA relocatable device code, and
@@ -57,9 +62,28 @@ also be invoked directly:
        by Geant4 version, :cpp:class:`celeritas::SetupOptions`, sensitive
        detectors, magnetic fields, UI macros, and validation against pure
        Geant4.
+   * - ``/celeritas:framework-integration``
+     - Integrate with experiment frameworks: the DD4hep/DDG4 ``CelerPhysics``
+       plugin, the LArSoft ``PDFullSimCeler`` module (see
+       :ref:`plugins_larsoft`), or custom and task-based frameworks such as
+       Gaudi, CMSSW, and Athena.
+   * - ``/celeritas:new-offload-app``
+     - Start a new Geant4 application from the offload template (see
+       :ref:`example_template`) at the tag matching the installed version.
+   * - ``/celeritas:standalone-input``
+     - Write or update input for ``celer-sim``, ``celer-optical``,
+       ``celer-g4``, ``celer-geo``, and ``celer-export-geant`` (see
+       :ref:`json-input`).
+   * - ``/celeritas:performance-tuning``
+     - Estimate the achievable speedup, size track capacities, read timers,
+       and profile (see :ref:`profiling`).
    * - ``/celeritas:troubleshoot``
      - Match Celeritas error messages to causes and fixes, and summarize the
        ``celeritas.out.json`` diagnostic output.
+
+The ``celeritas:integration-reviewer`` agent audits integration code (setup
+order, threading, options, sensitive detectors, MC truth, CMake) without
+modifying it, and returns ranked findings.
 
 Design and maintenance
 ----------------------

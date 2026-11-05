@@ -44,15 +44,18 @@ run_manager->Initialize();
   cannot be set before G4RunManager is constructed" or "options cannot be set
   after Celeritas is constructed" otherwise.
 - Register `TrackingManagerConstructor` on the same physics list Geant4
-  uses, exactly once. In frameworks that build the physics list elsewhere,
-  register it where the framework assembles physics constructors. DD4hep/DDG4
-  users can use the bundled `CelerPhysics` physics plugin instead
-  (`src/ddceler/CelerPhysics.hh`, example in `example/ddceler/`).
-- Remove legacy `BeginOfRunAction`/`EndOfRunAction` calls to the tracking
-  manager integration: they are now no-ops and print a warning. The
-  fast-simulation and user-action integrations *do* still require them, in a
-  run action created for both master (`BuildForMaster`) and workers. See
-  `example/geant4/fastsim-offload.cc` and `example/geant4/simple-offload.cc`.
+  uses, exactly once. For experiment frameworks (DD4hep, LArSoft, Gaudi,
+  CMSSW, Athena, ...) use the `framework-integration` skill instead.
+- Run actions depend on the Celeritas version:
+  - **Celeritas 0.7 and later:** the tracking manager integration sets up
+    and tears down automatically. Remove legacy `BeginOfRunAction`/
+    `EndOfRunAction` calls to it: they are no-ops that print a warning.
+  - **Celeritas 0.6:** call `tmi.BeginOfRunAction(run)` and
+    `tmi.EndOfRunAction(run)` from a user run action, created for both
+    master (`BuildForMaster`) and workers.
+  - The fast-simulation and user-action integrations always require these
+    calls. See `example/geant4/fastsim-offload.cc` and
+    `example/geant4/simple-offload.cc`.
 
 ## 3. Write the options
 
@@ -84,7 +87,9 @@ alternatively be set from macros: see [references/ui-macros.md](references/ui-ma
    summary and any warnings.
 2. Run the same macro with `CELER_DISABLE=1` (pure Geant4) and compare
    physics observables. Follow [references/validation.md](references/validation.md).
-3. If something fails, use the `troubleshoot` skill.
+3. If something fails, use the `troubleshoot` skill. For speed, use
+   `performance-tuning`. To have the integration reviewed, delegate to the
+   `integration-reviewer` agent.
 
 ## Checklist
 

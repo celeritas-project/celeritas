@@ -9,7 +9,7 @@
     {
       "name": "celeritas",
       "source": "./contrib/claude-plugin",
-      "description": "Link Celeritas from CMake, add GPU offload to Geant4 applications, and diagnose Celeritas installations and runs",
+      "description": "Install and link Celeritas, add GPU offload to Geant4 applications and experiment frameworks, run the standalone apps, tune performance, and diagnose runs",
       "category": "development",
       "tags": ["geant4", "hep", "gpu", "simulation"]
     }

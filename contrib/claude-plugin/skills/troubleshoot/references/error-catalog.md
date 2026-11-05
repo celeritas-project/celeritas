@@ -37,6 +37,8 @@ the source at the user's version for the fragment.
 | "cannot call Integration::GetState from master thread" | Accessing per-thread state from master | Call it from worker-thread code only |
 | "cannot access shared params when Celeritas is disabled or outside of a run" | `GetParams` called with `CELER_DISABLE` set or outside a run | Guard with `GetMode()` |
 | "both CELER_DISABLE and CELER_KILL_OFFLOAD" | Both variables set | Unset one |
+| "is out of range for the reported number of worker threads" | Task-based or framework run manager reports fewer threads than actually run Geant4 work | Set `opts.get_num_streams` to the true maximum number of worker threads (see the `framework-integration` skill) |
+| "perhaps local offload is being built on a non-worker thread?" | Thread-local Celeritas setup called from a thread that is not a Geant4 worker | Move the worker initialization into worker-thread code |
 | "is not available in Celeritas", "cannot offload '", "has no physics processes defined" (warning) | Unsupported particle in `opts.offload_particles` | Remove it; default offload is e-, e+, gamma |
 
 ## Physics and data
@@ -54,6 +56,7 @@ the source at the user's version for the fragment.
 |------------------|-------|-----|
 | "number of step iterations exceeded the allowed maximum" | `opts.max_step_iters` reached: tracks are stuck or looping | Set `opts.max_steps` to kill looping tracks. Export `CELER_NONFATAL_FLUSH=1` to print and kill active tracks instead of aborting. Save `opts.offload_output_file` to reproduce in `celer-sim`. Report geometry/navigation issues upstream |
 | "offloaded tracks were not flushed" | Run ended with buffered tracks (missing end-of-event call, or an earlier exception) | With user-action or fast-sim integration, call `EndOfEventAction`; look earlier in the log for the first error |
+| "failed to activate device when `sys.device` was set" | Standalone input requests a GPU (`system.device`) but none is usable | Check `doctor` GPU facts; unset `CELER_DISABLE_DEVICE`, or remove `system.device` to run on CPU |
 | "primary buffer capacity of" ... "exceeded" | More primaries queued than the primary capacity (standalone or custom drivers) | Increase the primary capacity (`auto_flush`/`primaries`) |
 | "has CUDA compute capability of" ... "code may mysteriously die at runtime" (warning) | GPU architecture not in the compiled `CMAKE_CUDA_ARCHITECTURES` | Rebuild Celeritas (and VecGeom) for this GPU |
 | "MPI was not initialized (needed to construct a communicator)" | Celeritas built with MPI, app not MPI-aware | `export CELER_DISABLE_PARALLEL=1`, or initialize MPI in the app |
