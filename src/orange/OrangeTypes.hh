@@ -11,6 +11,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -160,6 +161,32 @@ enum class SurfaceType : unsigned char
     end_other_,
     size_ = end_other_
 };
+
+//! Groups of surfaces with shared intersection solvers
+enum class SurfaceTypeGroup
+{
+    planar,
+    quadric,
+    quartic
+};
+
+//! Get the intersection solver group for a surface type
+CELER_CONSTEXPR_FUNCTION SurfaceTypeGroup surface_type_group(SurfaceType st)
+{
+    if (st >= SurfaceType::begin_planar_ && st < SurfaceType::end_planar_)
+    {
+        return SurfaceTypeGroup::planar;
+    }
+    if (st >= SurfaceType::begin_quadric_ && st < SurfaceType::end_quadric_)
+    {
+        return SurfaceTypeGroup::quadric;
+    }
+    if (st == SurfaceType::tzc)
+    {
+        return SurfaceTypeGroup::quartic;
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
 
 //---------------------------------------------------------------------------//
 /*!
