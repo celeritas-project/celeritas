@@ -1,7 +1,7 @@
 {
   "name": "celeritas",
   "displayName": "Celeritas",
-  "description": "Help downstream users install and link Celeritas, add GPU offload to Geant4 applications and experiment frameworks, run the standalone apps, tune performance, and diagnose runs",
+  "description": "Help downstream users install and link Celeritas, add GPU offload to Geant4 applications and experiment frameworks, run the standalone apps, use Celeritas as a C++ library, tune performance, and diagnose runs",
   "author": {
     "name": "Celeritas contributors",
     "url": "https://github.com/celeritas-project/celeritas"

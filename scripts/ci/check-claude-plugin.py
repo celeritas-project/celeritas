@@ -14,6 +14,7 @@ Run from anywhere: ``python3 scripts/ci/check-claude-plugin.py``.
 """
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -21,6 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PLUGIN_DIR = ROOT / "contrib" / "claude-plugin"
 MARKETPLACE = ROOT / ".claude-plugin" / "marketplace.json"
+EVALS_DIRNAME = "evals"
 
 ENVIRONMENT_DOC = ROOT / "doc" / "usage" / "execution" / "environment.rst"
 SETUP_OPTIONS = ROOT / "src" / "accel" / "SetupOptions.hh"
@@ -32,6 +34,13 @@ UI_MESSENGER = ROOT / "src" / "accel" / "SetupOptionsMessenger.cc"
 REPO_PATH_RE = re.compile(
     r"(?<![\w/.${}<>-])"
     r"((?:src|app|example|doc|cmake|scripts|test)/[\w.+\-/{},*]*[\w*}/])"
+)
+# Installed-header style paths, e.g. `accel/SetupOptions.hh`, which live
+# under src/ in the repository
+INSTALLED_PATH_RE = re.compile(
+    r"(?<![\w/.${}<>-])"
+    r"((?:corecel|geocel|orange|celeritas|accel|ddceler|larceler)/"
+    r"[\w.+\-/{},*]*\.(?:hh|cc|cu|fcl))\b"
 )
 ENV_VAR_RE = re.compile(r"\bCELER_[A-Z0-9_]+\b")
 OPTION_RE = re.compile(r"\bopts\.((?:\w+\.)*\w+)")
@@ -140,6 +149,12 @@ def check_markdown(checker, path, refs):
             token = match.group(1).rstrip(".,:;")
             if not repo_path_exists(token):
                 checker.error(path, lineno, f"repository path '{token}' does not exist")
+        for match in INSTALLED_PATH_RE.finditer(line):
+            token = match.group(1)
+            if not repo_path_exists("src/" + token):
+                checker.error(
+                    path, lineno, f"header path '{token}' does not exist under src/"
+                )
         for name in ENV_VAR_RE.findall(line):
             if name not in refs["env"]:
                 checker.error(
@@ -249,9 +264,38 @@ def check_manifests(checker):
         )
 
 
+def check_evals(checker):
+    """Check the structure of the eval suite (cases, graders, scaffolds)."""
+    evals_dir = PLUGIN_DIR / EVALS_DIRNAME
+    if not evals_dir.is_dir():
+        return
+    scaffold_re = re.compile(r"^\s*scaffold_script:\s*['\"]?([^'\"\s]+)", re.MULTILINE)
+    for case in sorted(p for p in evals_dir.iterdir() if p.is_dir()):
+        if case.name.startswith("_") or case.name == "results":
+            continue
+        case_yaml = case / "case.yaml"
+        if not ((case / "prompt.md").is_file() or case_yaml.is_file()):
+            checker.error(case, 0, "eval case needs prompt.md or case.yaml")
+            continue
+        if not any((case / "graders").glob("*.md")) and not (
+            case_yaml.is_file() and "graders:" in case_yaml.read_text(encoding="utf-8")
+        ):
+            checker.error(case, 0, "eval case has no graders")
+        if case_yaml.is_file():
+            for script in scaffold_re.findall(case_yaml.read_text(encoding="utf-8")):
+                path = case / script
+                if not path.is_file():
+                    checker.error(
+                        case_yaml, 0, f"scaffold_script '{script}' does not exist"
+                    )
+                elif not os.access(path, os.X_OK):
+                    checker.error(path, 0, "scaffold script is not executable")
+
+
 def main():
     checker = Checker()
     check_manifests(checker)
+    check_evals(checker)
 
     refs = {
         "env": load_env_vars(),
@@ -265,6 +309,9 @@ def main():
     for agent in sorted(PLUGIN_DIR.glob("agents/*.md")):
         check_front_matter(checker, agent, "agent")
     for md in sorted(PLUGIN_DIR.rglob("*.md")):
+        # Eval prompts and graders refer to files in the eval workspace
+        if EVALS_DIRNAME in md.relative_to(PLUGIN_DIR).parts[:1]:
+            continue
         check_markdown(checker, md, refs)
 
     for msg in checker.errors:

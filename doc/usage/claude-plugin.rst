@@ -74,6 +74,10 @@ also be invoked directly:
      - Write or update input for ``celer-sim``, ``celer-optical``,
        ``celer-g4``, ``celer-geo``, and ``celer-export-geant`` (see
        :ref:`json-input`).
+   * - ``/celeritas:library-api``
+     - Use Celeritas from C++ without Geant4 offload: programmatic standalone
+       transport, geometry-only use, step data collection, and custom GPU
+       step actions (see :ref:`api`).
    * - ``/celeritas:performance-tuning``
      - Estimate the achievable speedup, size track capacities, read timers,
        and profile (see :ref:`profiling`).
@@ -99,7 +103,18 @@ versions the plugin by git commit, so no release step is needed to publish
 updates.
 
 The script :file:`scripts/ci/check-claude-plugin.py` runs as a pre-commit
-hook. It fails if the plugin refers to a repository file, environment
-variable, ``SetupOptions`` member, ``/celer/`` UI command, or ``celeritas::``
-class that no longer exists. When changing any of these, update the plugin in
-the same pull request.
+hook. It fails if the plugin refers to a repository file or header,
+environment variable, ``SetupOptions`` member, ``/celer/`` UI command, or
+``celeritas::`` class that no longer exists. When changing any of these,
+update the plugin in the same pull request.
+
+The plugin also has an evaluation suite in
+:file:`contrib/claude-plugin/evals`, run with ``claude plugin eval``. Each case
+gives Claude a realistic task, such as adding offload to the Geant4 example,
+fixing CUDA linking, or reviewing a broken integration. It then grades the
+result, both with and without the plugin. Cases are tagged ``smoke`` (cheap,
+no setup), ``fixture`` (copies files from :file:`example/geant4`), and
+``build`` (compiles and runs against a local Geant4 and Celeritas install).
+Running the suite starts real Claude sessions billed to the user's
+credentials, so maintainers run it locally after substantive skill changes and
+before releases. The plugin's :file:`README.md` lists the commands.

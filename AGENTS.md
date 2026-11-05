@@ -31,7 +31,11 @@ As an agent, you are OBLIGATED to add an annotation with your identity and model
   public integration surfaces (`SetupOptions` members, `/celer/` UI commands,
   `CELER_*` environment variables, CMake helpers, or files the plugin cites),
   update the plugin in the same change; `scripts/ci/check-claude-plugin.py`
-  (run by `pre-commit`) flags stale references.
+  (run by `pre-commit`) flags stale references. After substantive skill
+  edits, run the eval suite's smoke tier
+  (`claude plugin eval contrib/claude-plugin --tag smoke --no-publish`; costs
+  API usage, see the plugin README). When the integration classes accept
+  `inp::FrameworkInput` (1.0), add the planned `migrate-to-1.0` skill.
 
 Libraries depend strictly downward:
 `corecel` → `geocel` → `orange` → `celeritas` → `accel`,

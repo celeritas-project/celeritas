@@ -19,7 +19,8 @@ authority for field names and meanings is the user's *installed*
 | Save Geant4 physics tables for runs without Geant4 | `celer-export-geant` | GDML + physics options JSON |
 
 Run or recall `doctor` first. GPU, geometry engine, ROOT and HepMC3
-availability all depend on the build.
+availability all depend on the build. To drive the same problem from C++
+instead of JSON, use the `library-api` skill.
 
 ## 2. Start from the defaults
 

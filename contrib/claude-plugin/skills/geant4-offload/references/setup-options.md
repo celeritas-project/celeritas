@@ -72,4 +72,4 @@ https://celeritas-project.github.io/celeritas/user/implementation/optical-physic
 | Field | Guidance |
 |-------|----------|
 | `opts.slot_diagnostic_prefix` | Write per-slot occupancy diagnostics (plot with `scripts/user/plot-slot-diagnostic.py` from the Celeritas source). |
-| `opts.add_user_actions` | Callback receiving `CoreParams` to insert custom device actions (see `example/offload-template/src/StepDiagnostic.hh`). The API may change between releases. |
+| `opts.add_user_actions` | Callback receiving `CoreParams` to insert custom device actions (see `example/offload-template/src/StepDiagnostic.hh` and the `library-api` skill's `references/device-actions.md`). The API may change between releases. |
