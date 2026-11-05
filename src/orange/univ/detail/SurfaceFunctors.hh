@@ -132,26 +132,23 @@ class CalcIntersections
         else if constexpr (surface_type_group(Surface::surface_type())
                            == SurfaceTypeGroup::planar)
         {
-            if (on_surface == SurfaceState::on)
+            if (on_surface == SurfaceState::off)
             {
-                // On surface so cannot reintersect
-                ++face_idx_;
-                return;
+                // Can only intersect if not on the surface
+                this->solve_and_store(
+                    surf.calc_intersection_planar(pos_, dir_, on_surface));
             }
-
-            this->store_intersections(detail::solve_intersections(
-                surf.calc_intersection_planar(pos_, dir_, on_surface)));
         }
         else if constexpr (surface_type_group(Surface::surface_type())
                            == SurfaceTypeGroup::quadric)
         {
-            this->store_intersections(detail::solve_intersections(
-                surf.calc_intersection_quadratic(pos_, dir_, on_surface)));
+            this->solve_and_store(
+                surf.calc_intersection_quadratic(pos_, dir_, on_surface));
         }
         else
         {
-            this->store_intersections(detail::solve_intersections(
-                surf.calc_intersection_quartic(pos_, dir_, on_surface)));
+            this->solve_and_store(
+                surf.calc_intersection_quartic(pos_, dir_, on_surface));
         }
         // Increment to next face
         ++face_idx_;
@@ -163,23 +160,33 @@ class CalcIntersections
   private:
     //// DATA ////
 
-    template<size_type NumIntersections>
-    CELER_FUNCTION void store_intersections(
-        Array<real_type, NumIntersections> const& all_dist)
+    template<class T>
+    CELER_FUNCTION void solve_and_store(T const& input)
+    {
+        return this->store_intersections(detail::solve_intersections(input));
+    }
+
+    template<size_type N>
+    CELER_FUNCTION void store_intersections(Array<real_type, N> const& all_dist)
     {
         for (real_type dist : all_dist)
         {
-            CELER_ASSERT(dist > 0);
-            if (is_valid_isect_(dist))
+            this->store_intersection(dist);
+        }
+    }
+
+    CELER_FUNCTION void store_intersection(real_type dist)
+    {
+        CELER_EXPECT(dist > 0);
+        if (is_valid_isect_(dist))
+        {
+            face_[isect_idx_] = FaceId{face_idx_};
+            distance_[isect_idx_] = dist;
+            if (fill_isect_)
             {
-                face_[isect_idx_] = FaceId{face_idx_};
-                distance_[isect_idx_] = dist;
-                if (fill_isect_)
-                {
-                    isect_[isect_idx_] = isect_idx_;
-                }
-                ++isect_idx_;
+                isect_[isect_idx_] = isect_idx_;
             }
+            ++isect_idx_;
         }
     }
 
