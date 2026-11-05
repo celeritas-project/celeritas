@@ -60,11 +60,19 @@ CELER_CTAD_FUNCTION SafetyApplier(NativeCRef<UrbanMscData> const&, UF&&)
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Get native MSC data for the applier, or empty data if MSC is disabled.
+ * Get MSC data for the applier, or empty data if MSC is disabled.
+ *
+ * This is called from host code in both host and device sources, where \c
+ * MemSpace::native differs. The memory space must be a template parameter:
+ * otherwise the two versions, which differ only by return type, share a symbol
+ * and the linker keeps just one of them.
  */
-inline NativeCRef<UrbanMscData> get_msc_ref(UrbanMscParams const* msc)
+template<MemSpace M>
+inline UrbanMscData<Ownership::const_reference, M> get_msc_ref(
+    UrbanMscParams const* msc)
 {
-    return msc ? msc->ref<MemSpace::native>() : NativeCRef<UrbanMscData>{};
+    using RefT = UrbanMscData<Ownership::const_reference, M>;
+    return msc ? msc->ref<M>() : RefT{};
 }
 
 //---------------------------------------------------------------------------//

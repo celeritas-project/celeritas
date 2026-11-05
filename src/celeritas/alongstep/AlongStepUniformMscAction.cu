@@ -41,7 +41,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
     if (this->has_msc() || field.options.use_safety_sphere)
     {
         detail::launch_safety(*this,
-                              detail::get_msc_ref(msc_.get()),
+                              detail::get_msc_ref<MemSpace::native>(msc_.get()),
                               detail::UsesUniformFieldSafety{field},
                               params,
                               state);

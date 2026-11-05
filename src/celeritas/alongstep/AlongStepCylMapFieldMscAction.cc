@@ -97,7 +97,7 @@ void AlongStepCylMapFieldMscAction::step(CoreParams const& params,
                 std::forward<decltype(execute_track)>(execute_track)));
     };
 
-    auto const msc_ref = get_msc_ref(msc_.get());
+    auto const msc_ref = get_msc_ref<MemSpace::native>(msc_.get());
     launch_impl([&](CoreTrackView& track) {
         SafetyApplier{
             msc_ref,

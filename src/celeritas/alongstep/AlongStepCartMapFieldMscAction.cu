@@ -35,7 +35,7 @@ void AlongStepCartMapFieldMscAction::step(CoreParams const& params,
     if (this->has_msc() || use_sphere)
     {
         detail::launch_safety(*this,
-                              detail::get_msc_ref(msc_.get()),
+                              detail::get_msc_ref<MemSpace::native>(msc_.get()),
                               detail::UsesFieldSafety{use_sphere},
                               params,
                               state);
