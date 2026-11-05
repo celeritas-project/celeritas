@@ -65,19 +65,31 @@ class FaceNamer
 
         //// OPERATORS ////
 
-        // Default surface doesn't have a counter
-        template<class T>
-        std::string operator()(T const&) const
-        {
-            return to_cstring(T::surface_type());
-        }
-
         template<Axis T>
         std::string operator()(PlaneAligned<T> const&) const;
 
+        template<Axis T>
+        std::string operator()(CylCentered<T> const&) const;
+
+        std::string operator()(SphereCentered const&) const;
+
+        template<Axis T>
+        std::string operator()(CylAligned<T> const&) const;
+
         std::string operator()(Plane const&) const;
 
+        std::string operator()(Sphere const&) const;
+
+        template<Axis T>
+        std::string operator()(ConeAligned<T> const&) const;
+
+        std::string operator()(SimpleQuadric const&) const;
+
         std::string operator()(GeneralQuadric const&) const;
+
+        std::string operator()(Involute const&) const;
+
+        std::string operator()(Toroid const&) const;
     };
 };
 
