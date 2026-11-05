@@ -56,6 +56,10 @@ ctest --test-dir <build-dir>  -R '^(celeritas/em/KleinNishina)($|:)' --output-on
 Run through CTest, not the executable directly: CTest sets data paths, GPU
 disabling, and Geant4 environment variables.
 
+Changed file names may not directly match build system/target names: e.g.,
+`src/celeritas/ext/GeantImporter.cc` → `src/celeritas/CMakeFiles/celeritas_geant4.dir/ext/GeantImporter.cc.o`
+and `celeritas/ext/GeantImporter.test.cc` → `test/celeritas/ext_GeantImporter`.
+
 If library sources changed and no specific test maps to them, run the whole
 package directory, e.g. `-R '^celeritas/em/'`.
 
