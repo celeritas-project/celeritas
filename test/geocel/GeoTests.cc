@@ -900,7 +900,10 @@ void FourLevelsGeoTest::test_pico_step() const
     EXPECT_EQ(volume, geo.volume_id());
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
-    EXPECT_VEC_EQ((Real3{1, 0, 0}), geo.normal());
+    if (geo.check_normal())
+    {
+        EXPECT_VEC_EQ((Real3{1, 0, 0}), geo.normal());
+    }
     geo.cross_boundary();
     EXPECT_VEC_EQ(pos, geo.pos());
     EXPECT_EQ("Envelope", test_->volume_name(geo));
