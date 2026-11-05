@@ -23,7 +23,7 @@
 #   /opt/celeritas/env             spack environment (from env-ci-base.yaml)
 #   /opt/celeritas/install         spack install tree
 #   /opt/celeritas/view            spack view: CMAKE_PREFIX_PATH
-#   /opt/celeritas/bin             cmake/ctest/ninja/ccache/spack, on PATH
+#   /usr/local/bin                 links to cmake/ctest/ninja/ccache, spack
 #-----------------------------------------------------------------------------#
 
 set -Eeu
@@ -200,13 +200,13 @@ spack clean --stage --downloads >/dev/null
 #-----------------------------------------------------------------------------#
 # Shell environment
 #
-# Claude Code shells keep only PATH (not other exports) from the profile, so
-# the CMake presets use absolute paths and this only sets PATH: tools needed
-# for building come first, everything else in the view (including its
-# python3) comes *after* the system tools.
+# Claude Code's shells ignore changes the setup script makes to ~/.bashrc
+# and /etc/profile.d, so link the build tools (and a spack wrapper) into
+# /usr/local/bin, which precedes the system's older cmake in /usr/bin on the
+# default PATH. The rest of the view stays off PATH, and the CMake presets
+# use absolute paths.
 
-bindir="${CELER_OPT}/bin"
-mkdir -p "${bindir}"
+bindir=/usr/local/bin
 for exe in cmake ctest cpack ccmake ninja ccache; do
   ln -sf "${CELER_OPT}/view/bin/${exe}" "${bindir}/${exe}"
 done
@@ -220,25 +220,6 @@ chmod +x "${bindir}/spack"
 # Full activation (e.g., for ROOT) with: . /opt/celeritas/activate.sh
 spack env activate --sh -d "${envdir}" >"${CELER_OPT}/activate.sh"
 
-path_snippet="# >>> celeritas-cloud >>>
-case \":\${PATH}:\" in
-  *:${bindir}:*) ;;
-  *) export PATH=\"${bindir}:\${PATH}:${CELER_OPT}/view/bin\" ;;
-esac
-# <<< celeritas-cloud <<<"
-printf '%s\n' "${path_snippet}" >/etc/profile.d/celeritas-cloud.sh
-# Prepend to bashrc so that it runs before the non-interactive early return
-bashrc="${HOME}/.bashrc"
-if ! grep -q 'celeritas-cloud' "${bashrc}" 2>/dev/null; then
-  {
-    printf '%s\n' "${path_snippet}"
-    if [ -f "${bashrc}" ]; then
-      cat "${bashrc}"
-    fi
-  } >"${bashrc}.tmp"
-  mv "${bashrc}.tmp" "${bashrc}"
-fi
-
 "${bindir}/ccache" --max-size=5G >/dev/null
 
 #-----------------------------------------------------------------------------#
@@ -248,8 +229,8 @@ log info "Installing pre-commit hooks"
 if python3 -m pip install -q --root-user-action=ignore pre-commit \
     || python3 -m pip install -q --root-user-action=ignore \
          --break-system-packages pre-commit; then
-  if ! (cd "${CELER_SOURCE_DIR}" && PATH="${bindir}:${PATH}" \
-          scripts/dev/install-commit-hooks.sh >"${logdir}/pre-commit.log" 2>&1); then
+  if ! (cd "${CELER_SOURCE_DIR}" \
+          && scripts/dev/install-commit-hooks.sh >"${logdir}/pre-commit.log" 2>&1); then
     log warning "failed to install pre-commit hooks: see ${logdir}/pre-commit.log"
   fi
 else

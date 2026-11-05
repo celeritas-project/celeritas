@@ -52,6 +52,10 @@ the same spack environment as the main `build-spack` CI job under
 minutes so that the environment snapshot is cached between sessions. In a
 cloud session `build.sh` selects `cmake-presets/claude-cloud.json`
 automatically, so `scripts/build.sh base` configures, builds, and tests.
+Since each cloud session starts from a shallow clone without tags,
+`dev/claude-cloud-session.sh` runs as a SessionStart hook (see
+`.claude/settings.json`) to fetch the full history and tags for version
+detection.
 
 # Docker scripts
 
