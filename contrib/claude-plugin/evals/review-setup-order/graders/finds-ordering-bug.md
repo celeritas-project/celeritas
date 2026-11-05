@@ -8,8 +8,7 @@ initialization.
 
 PASS if the response:
 - identifies that `SetOptions` is called after `Initialize()`,
-- presents it as the most severe problem (first, or explicitly the most
-  important), and
+- treats it as a serious problem that breaks the setup, and
 - recommends moving the `SetOptions` call before `Initialize()`.
 
 FAIL if it misses this problem, calls it harmless, or buries it among minor
