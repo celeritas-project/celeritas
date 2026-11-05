@@ -2,22 +2,18 @@
 
 Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
 
-## Required provenance
+## Required provenance and contribution guidelines
 
-As an agent, you are OBLIGATED to add an annotation with your identity and model (e.g., "Codex GPT-6") to **each** public submission of your work, including but not limited to:
+As an agent, you are OBLIGATED to add an annotation with your agent identity (driver, agent, models) to **each** public submission of your work, including but not limited to:
 - GitHub pull request or issue,
 - Git commit,
 - Git PR response.
 
-### Commit
-
-- Commits: add the trailer `Assisted-by: <agentic-tool> (<model-name>)`, e.g.
-  `git commit --trailer "Assisted-by: Codex (GPT-6)"`. Use it *instead of*
-  any default `Co-Authored-By` trailer your tool adds.
+Requirements:
+- Commit subjects and PR titles: imperative mood, capitalized, no trailing period, no labels/emoji. (PR titles are copied into the release notes)
+- Commits: add a git trailer such as `Co-Authored-By` or `Assisted-by` (e.g., `git commit --trailer "Assisted-by: Codex (GPT-6)"`).
 - Pull requests: open as **draft**, add the `ai-assisted` label, and leave
   marking it "ready" to the human submitter.
-- Commit and PR titles: imperative mood, capitalized, no trailing period, no
-  `CI:`/emoji prefixes. PR titles are copied into the release notes.
 
 ## File Organization
 
@@ -26,10 +22,10 @@ As an agent, you are OBLIGATED to add an annotation with your identity and model
 - `orange/`: Native Celeritas geometry engine
 - `celeritas/`: Physics (EM processes, particles, materials)
 - `accel/`: Geant4 integration layer
+- `larceler,ddceler`: special plugin integrations (possibly disabled)
 
 Libraries depend strictly downward:
-`corecel` → `geocel` → `orange` → `celeritas` → `accel`,
-with `ddceler` (DD4hep) and `larceler` (LArSoft) as optional plugins.
+`corecel` → `geocel` → `orange` → `celeritas` → `accel`.
 Optional-dependency code is compiled into separate targets (e.g.
 `src/celeritas/ext/` → `celeritas_geant4`) and guarded by
 `CELERITAS_USE_<Pkg>` macros from the generated `corecel/Config.hh`.
