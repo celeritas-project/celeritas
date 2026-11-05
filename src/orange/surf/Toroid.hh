@@ -11,9 +11,10 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/FerrariSolver.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
+
+#include "detail/IntersectionSolver.hh"
 
 namespace celeritas
 {
@@ -115,6 +116,11 @@ class Toroid
     // Calculate the toroid expression at a point
     inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
 
+    // Prepare intersection inputs for the shared quartic solver
+    inline CELER_FUNCTION detail::QuarticIntersectionInput
+    calc_intersection_quartic(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
@@ -204,21 +210,20 @@ CELER_FUNCTION auto Toroid::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
-    Real5 abcde = calc_intersection_polynomial(pos, dir, on_surface);
-    FerrariSolver solve{};  // Default tolerance
-    Intersections roots;
+    return detail::solve_intersections(
+        this->calc_intersection_quartic(pos, dir, on_surface));
+}
 
-    if (on_surface == SurfaceState::on)
-    {
-        auto [a, b, c, d, e] = abcde;
-        roots = solve(Real4{a, b, c, d});
-    }
-    else
-    {
-        roots = solve(abcde);
-    }
-
-    return roots;
+//---------------------------------------------------------------------------//
+/*!
+ * Prepare input values for the shared quartic intersection solver.
+ */
+CELER_FUNCTION auto Toroid::calc_intersection_quartic(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    -> detail::QuarticIntersectionInput
+{
+    return {this->calc_intersection_polynomial(pos, dir, on_surface),
+            on_surface};
 }
 
 //---------------------------------------------------------------------------//

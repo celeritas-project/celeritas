@@ -13,7 +13,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/SenseUtils.hh"
 
-#include "detail/QuadraticSolver.hh"
+#include "detail/IntersectionSolver.hh"
 
 namespace celeritas
 {
@@ -70,6 +70,11 @@ class SphereCentered
 
     // Calculate the sphere expression at a point
     inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
+    // Prepare intersection inputs for the shared quadratic solver
+    inline CELER_FUNCTION detail::QuadraticIntersectionInput
+    calc_intersection_quadratic(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
@@ -151,17 +156,21 @@ CELER_FUNCTION auto SphereCentered::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
-    using namespace celeritas::literals;
+    return detail::solve_intersections(
+        this->calc_intersection_quadratic(pos, dir, on_surface));
+}
 
-    detail::QuadraticSolver solve_quadric(1.0_r, dot_product(pos, dir));
-    if (on_surface == SurfaceState::off)
-    {
-        return solve_quadric(dot_product(pos, pos) - radius_sq_);
-    }
-    else
-    {
-        return solve_quadric();
-    }
+//---------------------------------------------------------------------------//
+/*!
+ * Prepare input values for the shared quadratic intersection solver.
+ */
+CELER_FUNCTION auto SphereCentered::calc_intersection_quadratic(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    -> detail::QuadraticIntersectionInput
+{
+    real_type const half_b = dot_product(pos, dir);
+    real_type const c = dot_product(pos, pos) - radius_sq_;
+    return {1, half_b, c, on_surface};
 }
 
 //---------------------------------------------------------------------------//
