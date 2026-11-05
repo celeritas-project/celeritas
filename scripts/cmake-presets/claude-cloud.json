@@ -11,15 +11,10 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
         "CMAKE_PREFIX_PATH": { "type": "PATH", "value": "/opt/celeritas/view" },
-        "CMAKE_C_COMPILER": {
-          "type": "FILEPATH",
-          "value": "/usr/bin/clang-18"
-        },
         "CMAKE_CXX_COMPILER": {
           "type": "FILEPATH",
           "value": "/usr/bin/clang++-18"
         },
-        "CMAKE_C_COMPILER_LAUNCHER": "/opt/celeritas/view/bin/ccache",
         "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/celeritas/view/bin/ccache",
         "CMAKE_CXX_STANDARD": { "type": "STRING", "value": "20" },
         "CMAKE_CXX_EXTENSIONS": { "type": "BOOL", "value": "OFF" },
