@@ -1,8 +1,6 @@
 #!/bin/sh
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
-# Stand-in for celer-config: a CUDA build for compute capability 70 running on
-# a capability 80 device. Mirrors the corecel/io/BuildOutput.cc layout.
 if [ "$1" = "--device" ]; then
   device=',"device":{"name":"NVIDIA A100-SXM4-40GB","capability":80,"num_devices":1,"platform":"CUDA","total_global_mem":42298834944,"debug":false}'
 else
