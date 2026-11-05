@@ -17,9 +17,10 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Presentations
 
+- S. R. Johnson, S. C. Tognini, A. L. Lund, *et al*. "Celeritas: GPU simulation update". *HEP-CCE All Hands Meeting*, 21 Oct 2026. [presentation](https://events.cels.anl.gov/event/951/contributions/1985/attachments/968/2704/celeritas-cce.pdf)
 - S. R. Johnson. "Celeritas SciDAC update 2026". *SciDAC PI meeting*, 01 Aug 2026.
 - S. Tognini. "Full-fidelity DUNE optical photon simulations on GPU with Celeritas". *American Physiacl Society Division of Particles and Fields 2026*, 20 Jul 2026. [presentation](https://indico.fnal.gov/event/72820/contributions/341182/)
-- H. Johnson. "Celeritas: Full-Fidelity Optical Photon Simulation on GPU". *New Perspectives 2026*, 17 Jul 2026. [presentation](https://indico.fnal.gov/event/73553/contributions/344392/)
+- H. Hollenbeck. "Celeritas: Full-Fidelity Optical Photon Simulation on GPU". *New Perspectives 2026*, 17 Jul 2026. [presentation](https://indico.fnal.gov/event/73553/contributions/344392/)
 - S. Diedrichs, S. R. Johnson. "Production-quality, high-throughput detector simulation with GPUs". *CHEP 2026*, 28 May 2026. [presentation](https://indico.cern.ch/event/1471803/contributions/7018863/)
 - R. Gupta. "Celeritas: Accelerating HEP Simulations using GPU". *HSF-India Scientific Workshop*, 06 May 2026. [presentation](https://indico.cern.ch/event/1649033/timetable/#20260504)
 - R. Gupta. "Celeritas: Accelerating HEP Simulations using GPU". *HSF-India*, 28 Apr 2026. [presentation](https://indico.cern.ch/event/1649043/)
@@ -31,8 +32,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. R. Johnson. "Celeritas for WLCG". *Heterogeneous Architectures in WLCG*, 03 Dec 2025. [presentation](https://indico.cern.ch/event/1526077/contributions/6773808/attachments/3185466/5667936/celeritas-wlcg.pdf)
 - S. R. Johnson. "Integrating Geant4 with GPUs: EM physics and beyond". *Geant4 Collaboration Meeting*, 23 Oct 2025. [presentation](https://indico.cern.ch/event/1554191/contributions/6741375/)
 - S. R. Johnson. "ORANGE geometry construction for Geant4". *Geant4 Collaboration Meeting*, 21 Oct 2025. [presentation](https://indico.cern.ch/event/1554191/contributions/6731700/)
-- S. R. Johnson. "New integrations and capabilities in Celeritas". *SciDAC PI meeting*, 16 Sep 2025.
 - S. Tognini. "Muon-catalyzed fusion beamline simulation using Celeritas". *SciDAC PI meeting*, 16 Sep 2025.
+- S. R. Johnson. "New integrations and capabilities in Celeritas". *SciDAC PI meeting*, 16 Sep 2025.
 - S. R. Johnson. "Celeritas SciDAC update: toward production use". *SciDAC PI meeting*, 16 Sep 2025.
 - H. Hollenbeck. "GPU-accelerated Optical Physics in Detector Simulations". *ACAT 2025*, 11 Sep 2025. [presentation](https://indico.cern.ch/event/1488410/contributions/6562823/attachments/3132977/5558230/hollenbeck-celeritas.pdf)
 - O. Strong. "Analyzing Precision Loss in Ray-Toroid Intersections". 19 Aug 2025.
@@ -47,8 +48,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. R. Johnson. "Five years of Celeritas: R&D status update". *Delta Geant4 assessment of simulation R&D projects: AdePT and Celeritas*, 26 Mar 2025. [presentation](https://indico.cern.ch/event/1507476/contributions/6343926/attachments/3039428/5368372/celeritas-overview.pdf)
 - S. R. Johnson. "Celeritas and an HPC perspective of detector simulation R&D". *Community input on the European Strategy for Particle Physics Update*, 22 Nov 2024. [presentation](https://indico.cern.ch/event/1475445/contributions/6235433/attachments/2972914/5232586/celeritas-esppu.pdf)
 - H. Hollenbeck. "Towards GPU Accelerated Full Simulation of Optical Calorimetry with Celeritas". *Coordinating Panel for Advanced Detectors Workshop (CPAD 2024)*, 20 Nov 2024. [presentation](https://indico.phy.ornl.gov/event/510/contributions/2176/attachments/1681/3915/hollenbeck-celeritas.pdf)
-- S. Johnson, H. Hollenbeck, S. Y. Jun, *et al*. "Optical physics in celeritas: status of an upcoming capability". *SWIFT-HEP Workshop*, 12 Nov 2024. [presentation](https://indico.cern.ch/event/1466097/contributions/6216512/attachments/2965789/5217806/celeritas-optical-photon.pdf)
 - B. Morgan. "Summary/Updates on Integration of AdePT/Celeritas in Experiments". *SWIFT-HEP Workshop*, 12 Nov 2024. [presentation](https://indico.cern.ch/event/1466097/contributions/6216504/attachments/2965776/5217783/BenMorgan-SWIFT-HEP-112024.pdf)
+- S. Johnson, H. Hollenbeck, S. Y. Jun, *et al*. "Optical physics in celeritas: status of an upcoming capability". *SWIFT-HEP Workshop*, 12 Nov 2024. [presentation](https://indico.cern.ch/event/1466097/contributions/6216512/attachments/2965789/5217806/celeritas-optical-photon.pdf)
 - S. R. Johnson. "Accelerating detector simulations with Celeritas: Performance improvements and new capabilities". *Conference on Computing in High Energy and Nuclear Physics (CHEP) 2024*, 21 Oct 2024. [presentation](https://indico.cern.ch/event/1338689/contributions/6015932/attachments/2951364/5189225/celeritas-srj.pdf)
 - S. R. Johnson. "Continuing advancements in Celeritas for EM physics". *29th Geant4 Collaboration Meeting*, 09 Oct 2024. [presentation](https://indico.cern.ch/event/1455551/contributions/6149900/attachments/2943707/5172533/celeritas-g4-2024.pdf)
 - S. R. Johnson. "Achievements and challenges in ORANGE surface geometry". *29th Geant4 Collaboration Meeting*, 08 Oct 2024. [presentation](https://indico.cern.ch/event/1455551/contributions/6153015/attachments/2942316/5170093/orange-g4-2024.pdf)
@@ -68,21 +69,21 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. R. Johnson. "Celeritas: computational challenges and possible FASTMath solutions". *FASTMath All Hands*, 02 Nov 2023.
 - S. R. Johnson. "High Energy Physics  Monte Carlo on GPU: Celeritas". *Monte Carlo Computational Summit*, 25 Oct 2023.
 - S. R. Johnson. "Celeritas v0.3: EM offloading for Geant4". *28th Geant4 Collaboration Meeting*, 28 Sep 2023. [presentation](https://indico.cern.ch/event/1307331/contributions/5579735/)
-- S. R. Johnson, E. Biondo, T. Evans, *et al*. "ORANGE surface geometry progress". *28th Geant4 Collaboration Meeting*, 26 Sep 2023. [presentation](https://indico.cern.ch/event/1307331/contributions/5542557/attachments/2720424/4728287/geant-orange.pdf)
 - G. Lima. "In-memory Geometry Converter". *28th Geant4 Collaboration Meeting*, 26 Sep 2023. [presentation](https://indico.cern.ch/event/1307331/contributions/5542808/)
+- S. R. Johnson, E. Biondo, T. Evans, *et al*. "ORANGE surface geometry progress". *28th Geant4 Collaboration Meeting*, 26 Sep 2023. [presentation](https://indico.cern.ch/event/1307331/contributions/5542557/attachments/2720424/4728287/geant-orange.pdf)
 - S. Tognini. "Celeritas: Focused talk: initial results". *SciDAC-5 PI Meeting*, 13 Sep 2023.
-- T. Evans. "Celeritas: overview". *SciDAC-5 PI Meeting*, 13 Sep 2023.
 - A. Lund, T. M. Evans, M. Demarteau, *et al*. "Celeritas: HEP detector simulation on GPUs". *SciDAC-5 PI Meeting*, 13 Sep 2023.
+- T. Evans. "Celeritas: overview". *SciDAC-5 PI Meeting*, 13 Sep 2023.
 - S. R. Johnson. "Celeritas: EM physics on GPUs". *CalVision general meeting*, 08 Jun 2023. [presentation](https://indico.fnal.gov/event/59490/)
 - S. R. Johnson. "Celeritas: EM physics on GPUs  and a path to full-featured accelerated detector simulation". *CHEP 2023*, 08 May 2023. [presentation](https://indico.jlab.org/event/459/contributions/11818/attachments/9324/13745/srj-chep.pdf)
 - S. Tognini. "Celeritas: A GPU Monte Carlo Detector simulation code for HEP". *Amherst Center for Fundamental Interactions Seminar*, 11 Apr 2023.
 - S. Tognini. "Celeritas: Using GPUs to accelerate HEP detector simulation". *APS*, 03 Apr 2023. [presentation](https://meetings.aps.org/Meeting/APR24/Session/D14.6)
-- S. R. Johnson. "Unbounded surface models and ORANGE". *SWIFT-HEP Collaboration Meeting*, 30 Mar 2023. [presentation](https://indico.cern.ch/event/1215829/contributions/5306568/)
 - B. Morgan, S. R. Johnson. "Update on AdePT/Celeritas". *SWIFT-HEP Collaboration Meeting*, 30 Mar 2023. [presentation](https://indico.cern.ch/event/1215829/contributions/5306565/)
+- S. R. Johnson. "Unbounded surface models and ORANGE". *SWIFT-HEP Collaboration Meeting*, 30 Mar 2023. [presentation](https://indico.cern.ch/event/1215829/contributions/5306568/)
 - S. R. Johnson. "Celeritas v0.2: Geant4 Integration for CMS". *CMS Phase 2 SW Meeting*, 10 Mar 2023. [presentation](https://indico.cern.ch/event/1247039/#16-celeritas-project)
 - S. R. Johnson. "First steps toward ATLAS/Celeritas integration". *ATLAS Simulation Meeting*, 01 Mar 2023. [presentation](https://indico.cern.ch/event/1257309/)
-- J. Esseiva, S. R. Johnson, T. Evans, *et al*. "Accelerating full detector simulation with Celeritas". *Annual LBNL ATLAS Meeting*, 24 Feb 2023.
 - S. R. Johnson. "Celeritas ATLAS close-out". *Celeritas/ATLAS Hackathon*, 24 Feb 2023. [presentation](https://indico.cern.ch/event/1257763/)
+- J. Esseiva, S. R. Johnson, T. Evans, *et al*. "Accelerating full detector simulation with Celeritas". *Annual LBNL ATLAS Meeting*, 24 Feb 2023.
 - S. R. Johnson. "Celeritas v0.2: Offloading EM tracks to GPU from Geant4". *RPM Seminar*, 21 Feb 2023. [presentation](https://rpm.physics.lbl.gov/event/speaker-seth-r-johnson-ornl-tittle-celeritas-v0-2-a-new-monte-carlo-particle-transport-code-for-detector-simulation-on-gpus/)
 - S. R. Johnson. "Celeritas v0.2: CMS update". *CMS Simulation Meeting*, 17 Feb 2023. [presentation](https://indico.cern.ch/event/1254081/#52-the-celeritas-project-repor)
 - W. Pokorski, S. R. Johnson. "Update on R&D activities". *Geant4 Technical Forum R&D update*, 02 Feb 2023. [presentation](https://indico.cern.ch/event/1232331/contributions/5224862/)
@@ -92,19 +93,19 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. R. Johnson. "Celeritas Version 0.1: CMS update". *CMS Simulation Meeting*, 23 Sep 2022. [presentation](https://indico.cern.ch/event/1197830/#116-progress-of-the-celeritas)
 - A. Lund. "Celeritas: GPU-accelerated particle transport for detector simulation in HEP experiments". *CPS Seminar*, 02 Sep 2022. [presentation](https://www.anl.gov/event/celeritas-gpuaccelerated-particle-transport-for-detector-simulation-in-high-energy-physics)
 - S. Tognini. "Celeritas: HEP detector simulation on GPUs [Snowmass]". *Snowmass*, 18 Jul 2022. [poster](https://indico.fnal.gov/event/22303/sessions/20790/#20220718)
-- T. Evans. "Exascale Computing at ORNL Past, Current, and Future: Opportunities for High Energy Physics". *CERN Computing Seminar*, 29 Jun 2022. [presentation](https://indico.cern.ch/event/1175052/)
 - S. R. Johnson. "Celeritas: GPU detector simulation". *Compute Accelerator Forum*, 29 Jun 2022. [presentation](https://indico.cern.ch/event/1160438/)
-- S. R. Johnson. "Celeritas: conclusion and challenges". *HSF Detector Simulation on GPU Community Meeting*, 06 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
+- T. Evans. "Exascale Computing at ORNL Past, Current, and Future: Opportunities for High Energy Physics". *CERN Computing Seminar*, 29 Jun 2022. [presentation](https://indico.cern.ch/event/1175052/)
 - S. Tognini. "Experiment integration". *HSF Detector Simulation on GPU Community Meeting*, 06 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
 - S. Y. Jun. "Celeritas integration ideas: Acceleritas". *HSF Detector Simulation on GPU Community Meeting*, 06 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
-- S. R. Johnson. "Celeritas physics interface". *HSF Detector Simulation on GPU Community Meeting*, 05 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
+- S. R. Johnson. "Celeritas: conclusion and challenges". *HSF Detector Simulation on GPU Community Meeting*, 06 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
 - S. Tognini. "Celeritas physics validation". *HSF Detector Simulation on GPU Community Meeting*, 05 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
 - S. Y. Jun. "Celeritas Physics Perspectives". *HSF Detector Simulation on GPU Community Meeting*, 05 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
-- S. Y. Jun. "Celeritas Magnetic Field". *HSF Detector Simulation on GPU Community Meeting*, 04 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
+- S. R. Johnson. "Celeritas physics interface". *HSF Detector Simulation on GPU Community Meeting*, 05 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
 - G. Lima. "Celeritas geometry – VecGeom". *HSF Detector Simulation on GPU Community Meeting*, 04 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
+- S. Y. Jun. "Celeritas Magnetic Field". *HSF Detector Simulation on GPU Community Meeting*, 04 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
 - S. R. Johnson. "Celeritas: ORANGE". *HSF Detector Simulation on GPU Community Meeting*, 04 May 2022. [presentation](https://indico.cern.ch/event/1123314/contributions/4774266/attachments/2436843/4174845/2b-orange.pdf)
-- S. R. Johnson. "Celeritas project and code overview". *HSF Detector Simulation on GPU Community Meeting*, 03 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
 - A. Lund, P. Romano. "Celeritas performance". *HSF Detector Simulation on GPU Community Meeting*, 03 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
+- S. R. Johnson. "Celeritas project and code overview". *HSF Detector Simulation on GPU Community Meeting*, 03 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
 - T. Evans, S. Tognini, S. R. Johnson, *et al*. "HEP-CCE: Celeritas". *HEP-CCE All Hands Meeting*, 21 Apr 2022. [presentation](https://indico.fnal.gov/event/53750/contributions/239772/)
 - W. Pokorski, S. R. Johnson. "2022 Work-plan for R&D". *Geant4 Technical Forum R&D update*, 24 Mar 2022. [presentation](https://indico.cern.ch/event/1139613/contributions/4788825/)
 - S. Tognini. "Celeritas: Bringing Exascale computing to HEP detector simulation". *Physics and Astronomy Colloquium*, 22 Mar 2022.
@@ -113,8 +114,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - S. R. Johnson, T. Evans, P. Canal, *et al*. "Celeritas: Status and Plans". *HSF Detector Simulation Working Group Meeting*, 12 Apr 2021. [presentation](https://indico.cern.ch/event/1019940/#4-celeritas-status-plans)
 - W. Pokorski, S. R. Johnson. "Geant4 R&D: activities for 2021". *Geant4 Technical Forum R&D update*, 11 Mar 2021. [presentation](https://indico.cern.ch/event/1011728/contributions/4252276/)
 - T. Evans, S. R. Johnson, P. Canal, *et al*. "Celeritas: toward GPU-based particle transport for detector simulations in HEP experiments". *HSF-WLCG Workshop*, 23 Nov 2020.
-- T. Evans, S. R. Johnson, S. Tognini, *et al*. "Celeritas: toward GPU-based particle transport for detector simulations in HEP experiments". *Geant4 R&D Task Force Meeting*, 14 Apr 2020.
 - T. Evans, S. Hamilton. "Monte Carlo neutron transport in the ECP Coupled Monte Carlo Neutronics and Fluid Flow Simulation of Small Modular Reactor (ExaSMR) project". *Geant4 R&D Task Force Meeting*, 14 Apr 2020.
+- T. Evans, S. R. Johnson, S. Tognini, *et al*. "Celeritas: toward GPU-based particle transport for detector simulations in HEP experiments". *Geant4 R&D Task Force Meeting*, 14 Apr 2020.
 
 ## Journal articles
 
@@ -132,6 +133,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Code
 
+- S. R. Johnson, A. Lund, J. Esseiva, E. Biondo, H. Hollenbeck, Philippe Canal, Rashika Gupta, Stefano Tognini,  Loren Schwiebert, Soon Yung Jun, Greg Davidson, Sakib Rahman, Ben Morgan, Owen Strong, Guilherme Lima, Tarek Gaddar, Lance Bullerwell, Stephen Nicholas Swatman, Seth R. Johnson, Amanda Lund, Philippe Canal, E. Biondo, J. Esseiva, H. Hollenbeck, S. Tognini, G. Lima, R. Gupta, S. Y. Jun, S. Rahman, B. Morgan, G. Davidson, L. Schwiebert, S. R. Johnson, P. Canal, M. Demarteau, T. Evans, B. Morgan, S. Tognini, J. Esseiva, R. Gupta, A. Lund, G. Davidson, E. Biondo, S. Y. Jun, H. Hollenbeck, L. Schwiebert, G. Lima, S. Rahman. "[Celeritas 0.7 *v0.7.0-rc.1*](https://zenodo.org/doi/10.5281/zenodo.23104914)". Oct 2026.
 - S. R. Johnson, A. Lund, J. Esseiva, P. Canal, E. Biondo, H. Hollenbeck, S. Tognini, L. Bullerwell, S. Y. Jun, G. Lima, D. L-G, S. Rahman, B. Morgan, P. Romano, T. Evans, M. Demarteau. "[Celeritas 0.6 *v0.6.0*](https://zenodo.org/doi/10.5281/zenodo.15281109)". Apr 2025.
 - S. R. Johnson, G. Lima, B. Morgan. "[G4VG 1.0 *v1.0.0*](https://zenodo.org/doi/10.5281/zenodo.15450226)". Jan 2025.
 - S. R. Johnson, A. Lund, J. Esseiva, S. Y. Jun, G. Lima, S. Tognini, B. Morgan, H. Hollenbeck, V. H. L. Montiel, P. Canal, E. Biondo, S. Hart, D. L-G, P. Heywood, T. Evans, M. Demarteau. "[Celeritas 0.5 *v0.5.0*](https://zenodo.org/doi/10.5281/zenodo.15175891)". Oct 2024.

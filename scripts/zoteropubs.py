@@ -10,8 +10,8 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 from dateutil.parser import parse as parse_date
+from pyzotero import zotero
 
-API_KEY = None
 
 def log(text):
     sys.stderr.write(text)
@@ -19,8 +19,8 @@ def log(text):
 
 
 def data_from(iterable):
-    for entry in iterable:
-        yield entry["data"]
+    for item in iterable:
+        yield item["data"]
 
 
 DEFAULT_DATETIME = datetime(year=2000, month=1, day=1)
@@ -57,9 +57,15 @@ def collection_items_top(zot, name, *, limit=8):
 
 
 def get_citation_key(item):
+    citekey = item.get("citationKey", None)
+    if citekey:
+        return citekey.strip()
+
+    # Backward compatibility
     for line in item["extra"].splitlines():
         (key, _, value) = line.partition(":")
         if key.lower() == "citation key":
+            log(f"\n warning: old citation key: {item}\n")
             return value.strip()
     return None
 
@@ -112,7 +118,8 @@ def format_presentation(e):
     if meeting := e.get("meetingName"):
         bits.append(f"*{meeting}*,")
 
-    bits.append(parse_date_as(e["date"], "%d %b %Y") + ".")
+    if date := e.get("date"):
+        bits.append(parse_date_as(date, "%d %b %Y") + ".")
 
     if url := e.get("url"):
         pt = e.get("presentationType", "").lower() or "presentation"
@@ -122,7 +129,7 @@ def format_presentation(e):
 
 
 def format_paper(e):
-    bits = []
+    bits: list[str] = []
     append_citation_key(bits, e)
     append_names(bits, e["creators"], limit=5)
 
@@ -138,7 +145,11 @@ def format_paper(e):
     if place := e.get("place"):
         bits.append(f"{place},")
 
-    bits.append(parse_date_as(e["date"], "%b %Y") + ".")
+    if date := e.get("date"):
+        bits.append(parse_date_as(date, "%d %b %Y") + ".")
+    else:
+        # Replace commma with period
+        bits[-1] = bits[-1][:-1] + "."
 
     if doi := e.get("DOI"):
         bits.append(f"[{doi}](https://doi.org/{doi})")
@@ -166,10 +177,24 @@ def format_software(e):
     return " ".join(bits)
 
 
+def item_sort_key(item):
+    date = item.get("date", "").strip()
+    if not date:
+        log(f"\n error: missing date: {item}\n")
+        date = "Jan 1 1970"
+
+    try:
+        citekey = item["citationKey"]
+    except KeyError:
+        log(f"\n error: missing citation key: {item}\n")
+        citekey = ""
+
+    return (parse_date(date), citekey)
+
+
 def sorted_data_by_date(items):
     entries = data_from(items)
-    entries = (e for e in entries if e.get("date"))
-    return sorted(entries, key=lambda e: parse_date(e["date"]), reverse=True)
+    return sorted(entries, key=item_sort_key, reverse=True)
 
 
 def print_bibliography(get_collection_items, out):
@@ -211,7 +236,7 @@ These publications are extracted from the Celeritas team's Zotero database.""",
 
 def print_references(get_collection_items, out):
     print(
-        f"""\
+        """\
 <!--
 NOTE: this page is generated automatically from
 https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/generate-pubs.py
