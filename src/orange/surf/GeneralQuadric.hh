@@ -15,7 +15,7 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
-#include "detail/QuadraticSolver.hh"
+#include "detail/IntersectionSolver.hh"
 
 namespace celeritas
 {
@@ -100,6 +100,11 @@ class GeneralQuadric
     // Calculate the quadric expression at a point
     inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
 
+    // Prepare intersection inputs for the shared quadratic solver
+    inline CELER_FUNCTION detail::QuadraticIntersectionInput
+    calc_intersection_quadratic(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
@@ -175,6 +180,18 @@ CELER_FUNCTION auto GeneralQuadric::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
+    return detail::solve_intersections(
+        this->calc_intersection_quadratic(pos, dir, on_surface));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Prepare input values for the shared quadratic intersection solver.
+ */
+CELER_FUNCTION auto GeneralQuadric::calc_intersection_quadratic(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    -> detail::QuadraticIntersectionInput
+{
     real_type const x = pos[0];
     real_type const y = pos[1];
     real_type const z = pos[2];
@@ -191,7 +208,7 @@ CELER_FUNCTION auto GeneralQuadric::calc_intersections(
     real_type c = ((a_ * x + d_ * y + g_) * x + (b_ * y + e_ * z + h_) * y
                    + (c_ * z + f_ * x + i_) * z + j_);
 
-    return detail::QuadraticSolver::solve_general(a, b / 2, c, on_surface);
+    return {a, b / 2, c, on_surface};
 }
 
 //---------------------------------------------------------------------------//

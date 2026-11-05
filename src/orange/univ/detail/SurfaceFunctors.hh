@@ -8,8 +8,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "orange/surf/detail/IntersectionSolver.hh"
 
 #include "Types.hh"
 #include "Utils.hh"
@@ -120,9 +121,16 @@ class CalcIntersections
     template<class S>
     CELER_FUNCTION void operator()(S const& surf)
     {
+        using Surface = S;
         auto on_surface = (on_face_idx_ == face_idx_) ? SurfaceState::on
                                                       : SurfaceState::off;
-        if constexpr (typename S::Intersections{}.size() == 1)
+        if constexpr (Surface::surface_type() == SurfaceType::inv)
+        {
+            CELER_ASSERT_UNREACHABLE();
+            return;
+        }
+        else if constexpr (surface_type_group(Surface::surface_type())
+                           == SurfaceTypeGroup::planar)
         {
             if (on_surface == SurfaceState::on)
             {
@@ -130,26 +138,20 @@ class CalcIntersections
                 ++face_idx_;
                 return;
             }
+
+            this->store_intersections(detail::solve_intersections(
+                surf.calc_intersection_planar(pos_, dir_, on_surface)));
         }
-
-        // Calculate distance to surface along this direction
-        auto all_dist = surf.calc_intersections(pos_, dir_, on_surface);
-
-        // Copy possible intersections and this surface to the output
-        for (real_type dist : all_dist)
+        else if constexpr (surface_type_group(Surface::surface_type())
+                           == SurfaceTypeGroup::quadric)
         {
-            CELER_ASSERT(dist > 0);
-            if (is_valid_isect_(dist))
-            {
-                // Save intersection in the list
-                face_[isect_idx_] = FaceId{face_idx_};
-                distance_[isect_idx_] = dist;
-                if (fill_isect_)
-                {
-                    isect_[isect_idx_] = isect_idx_;
-                }
-                ++isect_idx_;
-            }
+            this->store_intersections(detail::solve_intersections(
+                surf.calc_intersection_quadratic(pos_, dir_, on_surface)));
+        }
+        else
+        {
+            this->store_intersections(detail::solve_intersections(
+                surf.calc_intersection_quartic(pos_, dir_, on_surface)));
         }
         // Increment to next face
         ++face_idx_;
@@ -160,6 +162,26 @@ class CalcIntersections
 
   private:
     //// DATA ////
+
+    template<size_type NumIntersections>
+    CELER_FUNCTION void store_intersections(
+        Array<real_type, NumIntersections> const& all_dist)
+    {
+        for (real_type dist : all_dist)
+        {
+            CELER_ASSERT(dist > 0);
+            if (is_valid_isect_(dist))
+            {
+                face_[isect_idx_] = FaceId{face_idx_};
+                distance_[isect_idx_] = dist;
+                if (fill_isect_)
+                {
+                    isect_[isect_idx_] = isect_idx_;
+                }
+                ++isect_idx_;
+            }
+        }
+    }
 
     IsNotFurtherThan is_valid_isect_;
     Real3 const& pos_;

@@ -13,7 +13,7 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
-#include "detail/QuadraticSolver.hh"
+#include "detail/IntersectionSolver.hh"
 
 namespace celeritas
 {
@@ -93,6 +93,11 @@ class CylCentered
 
     // Calculate the cylinder expression at a point
     inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
+    // Prepare intersection inputs for the shared quadratic solver
+    inline CELER_FUNCTION detail::QuadraticIntersectionInput
+    calc_intersection_quadratic(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
@@ -205,29 +210,25 @@ CELER_FUNCTION auto CylCentered<T>::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
-    // 1 - (\omega \dot t)^2 where t is axis of cylinder
+    return detail::solve_intersections(
+        this->calc_intersection_quadratic(pos, dir, on_surface));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Prepare input values for the shared quadratic intersection solver.
+ */
+template<Axis T>
+CELER_FUNCTION auto CylCentered<T>::calc_intersection_quadratic(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    -> detail::QuadraticIntersectionInput
+{
     real_type const a = 1 - ipow<2>(dir[to_int(T)]);
-
-    if (a < ipow<2>(Tolerance<>::sqrt_quadratic()))
-    {
-        // No intersection if we're traveling along the cylinder axis
-        return {no_intersection(), no_intersection()};
-    }
-
     real_type const u = pos[to_int(U)];
     real_type const v = pos[to_int(V)];
-
-    // b/2 = \omega \dot (x - x_0)
-    detail::QuadraticSolver solve_quadric(
-        a, dir[to_int(U)] * u + dir[to_int(V)] * v);
-    if (on_surface == SurfaceState::on)
-    {
-        // Solve degenerate case (c=0)
-        return solve_quadric();
-    }
-
-    // c = (x - x_0) \dot (x - x_0) - R * R
-    return solve_quadric(ipow<2>(u) + ipow<2>(v) - radius_sq_);
+    real_type const half_b = dir[to_int(U)] * u + dir[to_int(V)] * v;
+    real_type const c = ipow<2>(u) + ipow<2>(v) - radius_sq_;
+    return {a, half_b, c, on_surface};
 }
 
 //---------------------------------------------------------------------------//
