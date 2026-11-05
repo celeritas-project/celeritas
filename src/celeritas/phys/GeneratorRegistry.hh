@@ -79,7 +79,7 @@ class GeneratorRegistry
 /*!
  * Access mutable generator at the given ID.
  */
-auto GeneratorRegistry::at(GeneratorId id) -> SPGenerator const&
+GeneratorRegistry::SPGenerator const& GeneratorRegistry::at(GeneratorId id)
 {
     CELER_EXPECT(id < this->size());
     return generators_[id.unchecked_get()];

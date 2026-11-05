@@ -191,7 +191,7 @@ void SharedParams::Initialize(SetupOptions const& options)
  *
  * This can only be called after \c Initialize.
  */
-auto SharedParams::Params() -> SPParams const&
+SharedParams::SPParams const& SharedParams::Params()
 {
     CELER_EXPECT(mode_ == Mode::enabled);
     CELER_EXPECT(std::holds_alternative<setup::ProblemLoaded>(loaded_.problem));

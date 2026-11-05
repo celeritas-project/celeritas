@@ -67,7 +67,7 @@ class AuxParamsRegistry
 /*!
  * Access mutable params at the given ID.
  */
-auto AuxParamsRegistry::at(AuxId id) -> SPParams const&
+AuxParamsRegistry::SPParams const& AuxParamsRegistry::at(AuxId id)
 {
     CELER_EXPECT(id < params_.size());
     return params_[id.unchecked_get()];
