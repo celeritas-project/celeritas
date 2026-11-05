@@ -17,6 +17,9 @@ If none is available, STOP and ask user for instructions.
 Always build through `cmake --build`: it uses the `ninja` recorded in
 `CMakeCache.txt`, which is often not on `PATH` (e.g. a Spack view).
 
+If, after configuring, `test/Testing` does not exist, it may mean CTest+GoogleTest are not enabled.
+Reconfigure with `CELERITAS_BUILD_TESTS` and `CELERITAS_ENABLE_TESTING` set to `ON`.
+
 ## 2. Map changed files to tests
 
 Changed files: `$ARGUMENTS` if given, else `git status --porcelain` plus

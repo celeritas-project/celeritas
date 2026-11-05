@@ -85,16 +85,4 @@ its existing test before creating a new test file.
 
 ## Running and debugging
 
-Configure with `CELERITAS_BUILD_TESTS` enabled, build the test target, then run
-the smallest relevant CTest selection from the build directory. For example:
-
-```sh
-ctest --test-dir build -R 'corecel/math/SpanUtils' --output-on-failure
-ctest --test-dir build -V -R 'corecel/math/'
-```
-
-CTest's registered name may differ from the executable path, especially for
-MPI or filtered tests; use `ctest -N` to inspect matching names. For a quick
-iteration, a test executable can also be run directly with
-`--gtest_filter=SuiteName.TestName`. See `@doc/development/testing.rst` for the
-full testing and debugging guide.
+See the `test-change/SKILL.md` file.
