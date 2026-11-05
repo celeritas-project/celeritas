@@ -213,7 +213,13 @@ auto ProtoConstructor::find_alignment(LogicalVolume const& lv)
             iter->second = std::move(align);
         }
     }
-    return iter->second ? &(iter->second.value()) : nullptr;
+
+    auto const& align = iter->second;
+    if (!align.has_value())
+    {
+        return nullptr;
+    }
+    return &align.value();
 }
 
 //---------------------------------------------------------------------------//
