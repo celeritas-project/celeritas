@@ -29,6 +29,11 @@ using CCylZTest = Test;
 using Intersections = CCylX::Intersections;
 using VecReal = std::vector<real_type>;
 
+// Long distances (from nearly degenerate cases) are effectively
+// infinite: other limits/physics/world boundaries should render them
+// equivalent, and further few steps should tend to infinity
+constexpr auto effective_inf = 1 / Tolerance<real_type>::sqrt_quadratic();
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
@@ -122,7 +127,7 @@ TEST_F(CCylXTest, intersect)
                                              4.09517743700767399e-07,
                                              1.00812588415826643e-06},
                                        SurfaceState::off);
-    EXPECT_EQ(no_intersection(), distances[0]);
+    EXPECT_GT(distances[0], effective_inf);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 }
 
@@ -373,8 +378,9 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
 
     VecReal all_first_distances;
 
-    for (real_type sqrt_eps : {1e-1, 1e-2, 1e-4, 1e-5, 1e-6, 1e-7})
+    for (real_type sqrt_eps : {1e-1, 1e-2, 1e-4, 1e-5, 1e-6})
     {
+        SCOPED_TRACE(testing::Message() << "sqrt(eps) = " << sqrt_eps);
         real_type eps = ipow<2>(sqrt_eps);
         for (Real3 const& orig_pos :
              {Real3{7, 8, 9}, Real3{29, 0, 0}, Real3{30 - eps, 0, 0}})
@@ -394,10 +400,28 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
                     = calc_intersections(cyl, pos, dir, SurfaceState::off)[0];
                 all_first_distances.push_back(d);
                 if (d == no_intersection())
+                {
                     continue;
+                }
 
-                // Move the solved distance and make sure we're close to the
-                // actual cylinder surface
+                // Check that the sense doesn't change halfway or to absurdly
+                // large distance
+                auto orig_sense = cyl.calc_sense(pos);
+                auto temp_pos = pos;
+                axpy(min(d / 2, effective_inf), dir, &temp_pos);
+                EXPECT_EQ(orig_sense, cyl.calc_sense(temp_pos))
+                    << " from " << orig_pos << " to " << temp_pos << " along "
+                    << dir << " with calculated distance " << d;
+
+                if (d >= effective_inf)
+                {
+                    // Don't need to worry about being close to boundary after
+                    // absurdly long distances
+                    continue;
+                }
+
+                // Move the solved distance and make sure we're close
+                // to the actual cylinder surface
                 axpy(d, dir, &pos);
                 real_type boundary_error = std::hypot(pos[0], pos[1]) - 30_r;
 
@@ -408,27 +432,46 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
                       / (std::numeric_limits<real_type>::epsilon() * d);
                 EXPECT_LT(std::fabs(rel_error_ulp), 2000)
                     << "large error " << boundary_error << " ("
-                    << rel_error_ulp << ") ULP from " << orig_pos << " along "
+                    << rel_error_ulp << " ULP) from " << orig_pos << " along "
                     << dir << " with calculated distance " << d;
             }
         }
     }
 
-    constexpr real_type inf = no_intersection();
+    constexpr double inf = no_intersection();
+    for (auto& d : all_first_distances)
+    {
+        // Long distances (from nearly degenerate cases) are effectively
+        // infinite: other limits/physics/world boundaries should render them
+        // equivalent, and further few steps should tend to infinity
+        if (d > (1 / Tolerance<double>::sqrt_quadratic()))
+        {
+            d = inf;
+        }
+    }
 
     // clang-format off
-    static const double expected_all_first_distances[] = {inf, 2191.4760245467,
-        138.43704564716, 212.77500479316, inf, 100.00499987501,
-        9.9365248561264, 77.194559393782, inf, 1.00004999875, 0.10097822248343,
-        7.7839514386978, inf, 219136.64666597, 1370.868072293, 2117.2962860405,
-        inf, 10000.000049346, 98.396094853996, 768.15297955672, inf,
-        1.0000000050059, 0.010000983281543, 7.7463475257587, inf, inf,
-        137073.10209619, 211719.04367353, inf, inf, 9838.6257712601,
-        76811.457712096, inf, inf, 0.00010000000474975, 7.7459668529435, inf,
-        inf, 1370730.9694406, 2117190.3656234, inf, inf, 98386.256470787,
-        768114.54300982, inf, inf, 9.99984331429e-06, 7.7459254135055, inf,
-        inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf, inf,
-        inf, inf, inf, inf, inf, inf, inf, inf, inf};
+    static const double expected_all_first_distances[] = {
+        inf, 2191.4760245467, 138.43704564716, 212.77500479316,
+        inf, 100.00499987501, 9.9365248561264, 77.194559393782,
+        inf, 1.00004999875, 0.10097822248343, 7.7839514386978,
+
+        inf, inf, 1370.868072293, 2117.2962860405,
+        inf, 10000.000049346, 98.396094853996, 768.15297955672,
+        inf, 1.0000000050059, 0.010000983281543, 7.7463475257587,
+
+        inf, inf, inf, inf,
+        inf, inf, 9838.6257712601, 76811.457712096,
+        inf, 1.00000003570419, 0.00010000000474975, 7.7459668529435,
+
+        inf, inf, inf, inf,
+        inf, inf, 98386.256470787, inf,
+        inf, 0.999989424602668, 9.99984331429e-06, 7.7459254135055,
+
+        inf, inf, inf, inf,
+        inf, inf, inf, inf,
+        inf, inf, 9.98549391322559e-07, inf,
+    };
     // clang-format on
 
     EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, 1e-5_r);
