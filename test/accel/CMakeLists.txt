@@ -106,7 +106,7 @@ add_custom_target(test_accel_integration
   COMMENT "Build accel integration test executables"
 )
 
-function(celeritas_add_integration_tests basename suite test)
+function(add_integration_tests basename suite test)
   set(_target "${CELERITASTEST_DIR}_${basename}")
   set(_name "${CELERITASTEST_DIR}/${basename}")
 
@@ -145,19 +145,19 @@ endfunction()
 
 foreach(_basename IN ITEMS FastSimulationIntegration TrackingManagerIntegration UserActionIntegration)
   # Add every combination of test for LArSphere.run
-  celeritas_add_integration_tests(
+  add_integration_tests(
     ${_basename} LarSphere run
   )
 
   # Test OpNovice with optical-friendly run manager types
-  celeritas_add_integration_tests(
+  add_integration_tests(
     ${_basename} OpNoviceOptical run
     OFFLOAD cpu gpu g4
     ${_optical_args}
   )
 
   # Do TestEm3 only with celeritas cpu/gpu and serial run manager
-  celeritas_add_integration_tests(
+  add_integration_tests(
     ${_basename} TestEm3 run
     OFFLOAD cpu gpu
     RMTYPE serial
@@ -166,90 +166,90 @@ foreach(_basename IN ITEMS FastSimulationIntegration TrackingManagerIntegration 
 endforeach()
 
 # Test that Fast Simulation setup fails if particles/regions are not correct
-celeritas_add_integration_tests(
+add_integration_tests(
   FastSimulationIntegration LarSphereSetupFailure run
   OFFLOAD cpu
   RMTYPE serial
 )
 
 # Test state dependent output
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration LarSphere state_dep
   OFFLOAD g4
 )
 
 # Test that the UI integration works (and ignores if Celeritas is disabled)
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration LarSphere run_ui
   OFFLOAD cpu g4
   RMTYPE serial mt
 )
 
 # Test that the UI integration fails if options aren't set
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration LarSphere no_set_options
   OFFLOAD cpu
   RMTYPE serial mt
 )
 
 # Test automatic state-dependent hooks without manual run action calls
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration TMIAutoHooks run
   OFFLOAD cpu
   RMTYPE serial mt
 )
 
 # Test that legacy manual run action calls are harmless and warn
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration LegacyTMIHooks run
   OFFLOAD cpu
   RMTYPE serial mt
 )
 
 # Test optical
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration LarSphereOptical run
   OFFLOAD cpu gpu g4
   ${_optical_args}
 )
 
 # Test with optical physics offloading distributions
-celeritas_add_integration_tests(
+add_integration_tests(
   UserActionIntegration LarSphereOpticalTrackOffload run
   OFFLOAD cpu gpu g4
   ${_optical_args}
 )
 
 # Test optical surface physics
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration OpticalSurfaces run
   OFFLOAD cpu gpu g4
   ${_optical_args}
 )
 
 # Test cleanup after runtime error
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration TestEm3 max_step_iters_error
   OFFLOAD cpu gpu
   RMTYPE serial
 )
 
 # Test that we can safely flush and restore primaries multiple times per event
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration WaterSphere run_small_flush
   OFFLOAD cpu gpu
   RMTYPE serial mt
 )
 
 # Test that primary batches can exceed the initial initializer capacity
-celeritas_add_integration_tests(
+add_integration_tests(
   TrackingManagerIntegration WaterSphere run_small_initializers
   OFFLOAD cpu gpu
   RMTYPE serial mt
 )
 
 # Test with optical physics offloading distributions
-celeritas_add_integration_tests(
+add_integration_tests(
   UserActionIntegration LarSphereOpticalOffload run
   OFFLOAD cpu gpu g4
   ${_optical_args}
