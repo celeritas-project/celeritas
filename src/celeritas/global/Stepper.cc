@@ -147,9 +147,24 @@ void Stepper<M>::warm_up()
  * Primaries in the producer buffer remain there unless they have first been
  * staged.
  *
- * Existing synchronization within the action sequence can still block this
- * call. Removing those counter-dependent synchronization points is handled
- * separately.
+ * The actions in the sequence do not synchronize by default. On a device,
+ * these are the exceptions that can block this call:
+ * - Action timers (\c inp::Timers::action or \c inp::DeviceDebug::sync_stream
+ *   ) synchronize the stream after \em every action, and step timers (\c
+ *   inp::Timers::step ) synchronize it at the end of the step. Timing results
+ *   therefore do not reflect the overlap of asynchronous execution.
+ * - Sorting tracks (a \c TrackOrder that reindexes the track slots) uses
+ *   Thrust algorithms, which synchronize.
+ * - Builds without CUB or hipCUB (\c CELER_USE_THRUST ) fall back to Thrust
+ *   for the device algorithms, so compacting and scanning data synchronizes.
+ * - Debugging and output actions: \c StatusChecker copies state data to the
+ *   host after every action, \c SlotDiagnostic copies its data to the host
+ *   every step, and a \c StepInterface callback may do its own host work.
+ * - Optical photon offloading compacts the distributions and counts their
+ *   photons with Thrust every step.
+ * - Launching the optical stepping loop: the host waits for each optical step,
+ *   and the loop runs to completion inside this step once enough optical
+ *   photons are pending.
  */
 template<MemSpace M>
 void Stepper<M>::async()
@@ -425,6 +440,27 @@ void Stepper<M>::kill_active()
                            << state_->sync_get_counters().num_active
                            << " active tracks";
     detail::kill_active(*params_, *state_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Complete buffered work once all tracks have been transported.
+ *
+ * Some actions defer work across steps using asynchronously copied counters,
+ * so they cannot detect the final step of the stepping loop. This executes
+ * the end-of-transport actions (for example, transporting the remaining
+ * buffered optical photons) and should be called after the last step result
+ * has been retrieved, before the next event is started.
+ */
+template<MemSpace M>
+void Stepper<M>::end_transport()
+{
+    CELER_VALIDATE(!has_outstanding_result_,
+                   << "cannot end transport with an outstanding step result");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot end transport with queued primaries");
+    ScopedProfiling profile_this{"end-transport"};
+    actions_->end_transport(*params_, *state_);
 }
 
 //---------------------------------------------------------------------------//
