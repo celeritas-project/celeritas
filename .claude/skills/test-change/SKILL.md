@@ -12,7 +12,7 @@ Find an existing configured directory (in decreasing preference):
 - `build*` in repo root (most recently built)
 - check `.clangd` for `CompileFlags.CompilationDatabase`
 
-If none is available, try the `build-local` skill to make a build directory.
+If none is available, try the `configure-local` skill to make a build directory.
 If that fails, STOP immediately and ask the user for further instructions.
 
 Always build through `cmake --build`: it uses the `ninja` recorded in

@@ -26,6 +26,10 @@ developers.
 6. Configure
 7. Build, if the presets file is configured to do so
 8. Run tests, if the presets file is configured to do so
+
+Informational messages are printed to stderr.
+Important variables (CMAKE, ENV_SCRIPT) and CMake preset lists
+are sent to stdout.
 '
 }
 
@@ -287,6 +291,7 @@ OLD_XDG_CACHE_HOME="${XDG_CACHE_HOME}"
 # Load environment paths using the system name
 ENV_SCRIPT="$(get_system_env "${SYSTEM_NAME}")"
 if [ -n "${ENV_SCRIPT}" ]; then
+  printf "ENV_SCRIPT=%s\n" "${ENV_SCRIPT}"
   source_script "${ENV_SCRIPT}"
 fi
 if [ -n "${APPTAINER_NAME}" ]; then
@@ -394,7 +399,7 @@ RETCODE=$?
 if ${needs_env}; then
   log warning "Environment (cmake and/or pre-commit) differs from user"
   log info "Recommend sourcing ${ENV_SCRIPT} in ${rc_file}"
-  log info "Use cmake=${CMAKE}"
+  printf "CMAKE=%s\n" "${CMAKE}"
 fi
 
 exit $RETCODE
