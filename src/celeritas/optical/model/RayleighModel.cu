@@ -26,11 +26,11 @@ void RayleighModel::step(CoreParams const& params, CoreStateDevice& state) const
 {
 #if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
     // Advance the random number generator
-    auto execute_rng_advance
-        = make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                      state.ptr,
-                                      this->action_id(),
-                                      InteractionApplier{RNGExecutor{}});
+    auto execute_rng_advance = make_action_thread_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr,
+        this->action_id(),
+        InteractionApplier{RngAdvanceExecutor{}});
     static ActionLauncher<decltype(execute_rng_advance)> const launch_rng_kernel(
         *this);
     launch_rng_kernel(state, execute_rng_advance);

@@ -108,7 +108,7 @@ void RayleighModel::step(CoreParams const& params, CoreStateHost& state) const
         make_action_thread_executor(params.ptr<MemSpace::native>(),
                                     state.ptr,
                                     this->action_id(),
-                                    InteractionApplier{RNGExecutor{}}));
+                                    InteractionApplier{RngAdvanceExecutor{}}));
 #endif
 
     launch_action(
