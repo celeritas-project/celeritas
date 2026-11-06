@@ -14,7 +14,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/Environment.hh"
-#include "geocel/BoundingBoxIO.json.hh"
+#include "geocel/BoundingBoxIO.json.hh"  // IWYU pragma: keep
 #include "orange/OrangeTypes.hh"
 
 #include "OrangeData.hh"
@@ -25,6 +25,7 @@
 
 #include "detail/BvhData.hh"
 #include "detail/BvhView.hh"
+#include "detail/UniverseIndexer.hh"
 
 namespace celeritas
 {
@@ -255,21 +256,15 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         auto& num_surfaces = insert_array("num_surfaces");
         auto& num_volumes = insert_array("num_volumes");
 
-        // Calculate number of surface/volume using universe indexer offsets
-        auto const& uidata = data.univ_indexer_data;
-        auto calc_local_size = [](auto const& offsets, UnivId uid) {
-            CELER_EXPECT(uid && uid + 1 < offsets.size());
-            auto end = offsets[uid + 1].get();
-            auto begin = offsets[uid].get();
-            return *end - *begin;
-        };
+        // Calculate the number of surfaces and volumes with the indexer
+        detail::UniverseIndexer indexer{data.univ_indexer_data};
 
         for (auto uid : range(UnivId{data.univ_types.size()}))
         {
             type.push_back(to_cstring(data.univ_types[uid]));
             label.push_back(orange_->universes().at(uid));
-            num_surfaces.push_back(calc_local_size(uidata.surfaces, uid));
-            num_volumes.push_back(calc_local_size(uidata.volumes, uid));
+            num_surfaces.push_back(indexer.num_surfaces(uid));
+            num_volumes.push_back(indexer.num_volumes(uid));
         }
 
         // Include structure information if requested by the user
