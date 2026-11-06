@@ -182,8 +182,9 @@ find_command() {
 setup_ccache() {
   CCACHE_PROGRAM="$(find_command ccache)"
   if [ -n "${CCACHE_PROGRAM}" ]; then
-    log info "Using ccache: ${CCACHE_PROGRAM}"
+    log debug "Using ccache: ${CCACHE_PROGRAM}"
     check_ccache_usage
+    # NOTE: CCACHE_PROGRAM is used by CMake via CMakePresets.json
     export CCACHE_PROGRAM
   fi
 }
@@ -360,12 +361,12 @@ fi
 
 try_build() {
   log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"
-  cmake --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
+  ${CMAKE} --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
   if $NO_BUILD; then
     return 0
   fi
   log info "Building with --preset=${CMAKE_PRESET}"
-  if ! cmake --build --preset="${CMAKE_PRESET}"; then
+  if ! ${CMAKE} --build --preset="${CMAKE_PRESET}"; then
     log error "build failed: check configuration and build errors above"
     return 1
   fi
@@ -374,7 +375,7 @@ try_build() {
     log warning "Celeritas built but some tests failed"
     log info "Ask the Celeritas team whether the failures indicate an actual error"
     log info "Provide the system configuration:"
-    cmake --build --preset=${CMAKE_PRESET} --target print-config
+    ${CMAKE} --build --preset=${CMAKE_PRESET} --target print-config
     RETCODE=1
   else
     log info "Celeritas was successfully built and tested for development!"
@@ -391,8 +392,9 @@ try_build "$@"
 RETCODE=$?
 
 if ${needs_env}; then
-  log warning "Environment changed: suggest adding the following to ${rc_file}:"
-  printf '. %s\n' "${ENV_SCRIPT}" >&2
+  log warning "Environment (cmake and/or pre-commit) differs from user"
+  log info "Recommend sourcing ${ENV_SCRIPT} in ${rc_file}"
+  log info "Use cmake=${CMAKE}"
 fi
 
 exit $RETCODE
