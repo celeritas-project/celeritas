@@ -73,21 +73,32 @@ jobs:
             }
 
   # On success, delete branch-specific caches
+  process-pr-number:
+    runs-on: ubuntu-24.04
+    outputs:
+      number: ${{ steps.extract.outputs.number }}
+    steps:
+      - name: Extract PR number
+        id: extract
+        uses: actions/github-script@v9
+        env:
+          HEAD_REF: ${{ github.event.merge_group.head_ref }}
+        with:
+          script: |
+            // branch name format: gh-readonly-queue/{base_branch}/pr-{pr_number}-{head_sha}
+            const match = process.env.HEAD_REF.match(/\/pr-(\d+)-/);
+            if (!match) {
+              core.setFailed(`Could not extract PR number from ${process.env.HEAD_REF}`);
+              return;
+            }
+            core.setOutput('number', match[1]);
+
   clear-branch-cache:
     uses: ./.github/workflows/clear-cache.yml
-    needs: ["all"]
-    if: ${{ jobs.all.outcome == 'success' }}
+    needs: ["all", "process-pr-number"]
+    if: ${{ needs.all.result == 'success' && needs.process-pr-number.result == 'success' }}
     with:
       key: ".*"
-      # branch name format: gh-readonly-queue/{base_branch}/pr-{pr_number}-{head_sha}
-      ref: >-
-        ${{ format('refs/pull/{0}/merge',
-              split(
-                split(
-                  github.event.merge_group.head_ref,
-                  '/'
-                )[4],
-              '-')[1]
-            ) }}
+      ref: refs/pull/${{ needs.process-pr-number.outputs.number }}/merge
 
 # vim: set nowrap tw=100:
