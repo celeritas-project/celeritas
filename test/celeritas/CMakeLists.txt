@@ -424,7 +424,6 @@ function(add_g4_optical_test basename suite test backend)
     )
   endif()
 
-  set(_env ${CELER_G4ENV})
   set(_disabled FALSE)
 
   if(NOT CELERITAS_USE_Geant4)
@@ -444,34 +443,20 @@ function(add_g4_optical_test basename suite test backend)
     COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
   )
 
-  set(_labels "unit")
-
-  if(backend STREQUAL "cpu")
-    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-      list(APPEND _env "CELER_DISABLE_DEVICE=1")
-    endif()
-  elseif(backend STREQUAL "gpu")
-    # Set option to disable GPU environment
-    celeritas_get_disable_device(CELER_DISABLE_DEVICE)
-
-    list(APPEND _test_props RESOURCE_LOCK gpu)
-    list(APPEND _labels gpu)
-    if(CELER_DISABLE_DEVICE)
-      set(_disabled TRUE)
-    endif()
-  else()
-    message(SEND_ERROR "Invalid backend type ${backend}")
-  endif()
-
+  set(_test_props)
   if(_disabled)
-    list(APPEND _test_props DISABLED TRUE)
+    set(_test_props DISABLED TRUE)
   endif()
 
-  set_tests_properties("${_test_name}" PROPERTIES
-    ENVIRONMENT "${_env}"
-    LABELS "${_labels}"
-    ${_test_props}
-  )
+  if(CELERITAS_USE_Geant4)
+    celeritas_g4_set_tests_properties(
+      "${_test_name}" unit "${backend}" serial ${_test_props})
+  else()
+    set_tests_properties("${_test_name}" PROPERTIES
+      LABELS unit
+      ${_test_props}
+    )
+  endif()
 endfunction()
 
 function(add_g4_optical_tests basename suite test)

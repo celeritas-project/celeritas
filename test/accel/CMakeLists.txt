@@ -11,8 +11,6 @@ if(NOT CELERITAS_USE_covfie)
   set(_needs_covfie DISABLE)
 endif()
 
-include(CeleritasG4Tests)
-
 # Associate helper targets with test targets for IDEs
 set(CMAKE_FOLDER test/accel)
 
