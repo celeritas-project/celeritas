@@ -12,6 +12,7 @@
 #include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/Environment.hh"
 #include "geocel/BoundingBoxIO.json.hh"  // IWYU pragma: keep
@@ -150,14 +151,11 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     };
     auto const& data = orange_->host_ref();
 
-#define OPO_PAIR(DATA, NAME) {#NAME, DATA.NAME}
-#define OPO_SIZE_PAIR(DATA, NAME) {#NAME, DATA.NAME.size()}
-
     // Save param scalars
     obj["scalars"] = {
-        OPO_PAIR(data.scalars, num_univ_levels),
-        OPO_PAIR(data.scalars, max_intersections),
-        OPO_PAIR(data.scalars, tol),
+        CELER_JSON_PAIR(data.scalars, num_univ_levels),
+        CELER_JSON_PAIR(data.scalars, max_intersections),
+        CELER_JSON_PAIR(data.scalars, tol),
     };
     if (orange_tracking_logic != LogicNotation::infix)
     {
@@ -165,6 +163,8 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         // it always exists as member data in the scalars
         obj["scalars"]["max_csg_levels"] = data.scalars.max_csg_levels;
     }
+
+#define OPO_SIZE_PAIR(DATA, NAME) {#NAME, DATA.NAME.size()}
 
     // Save sizes
     obj["sizes"] = {
@@ -203,7 +203,6 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     }();
 
 #undef OPO_SIZE_PAIR
-#undef OPO_PAIR
 
     // Write BVH metadata as a struct of arrays
     {
