@@ -232,6 +232,7 @@ well as several helper applications and front ends.
    usage/integration.rst
    usage/execution.rst
    usage/input.rst
+   usage/claude-plugin.rst
 
 .. ***************************************************************************
 

@@ -21,6 +21,7 @@ Testing
 /build*
 /install*
 /spack-build*
+/contrib/claude-plugin/evals/results/
 
 # Specific directories in the top level
 /.claude/

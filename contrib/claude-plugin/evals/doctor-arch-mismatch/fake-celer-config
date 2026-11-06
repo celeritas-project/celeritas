@@ -1,0 +1,11 @@
+#!/bin/sh
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+if [ "$1" = "--device" ]; then
+  device=',"device":{"name":"NVIDIA A100-SXM4-40GB","capability":80,"num_devices":1,"platform":"CUDA","total_global_mem":42298834944,"debug":false}'
+else
+  device=''
+fi
+cat <<EOF
+{"version":"0.7.0","config":{"use":["cuda","geant4","hepmc3","vecgeom"],"build_type":"Release","real_type":"double","units":"clhep","constants":"CODATA2018","openmp":"disabled","core_geo":"VecGeom","core_rng":"XORWOW","gpu_architectures":"70","reseed":"trackslot","debug":[],"trim_source_file":true,"versions":{"CUDA":"12.6.20","Geant4":"11.3.0","VecGeom":"2.2.0","HepMC3":"3.3.0"},"geant4":"MT","vecgeom":"CUDA"}${device}}
+EOF
