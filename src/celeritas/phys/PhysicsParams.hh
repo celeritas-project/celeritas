@@ -59,7 +59,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
-    using SPConstProcess = std::shared_ptr<Process const>;
+    using SPConstProcess = std::shared_ptr<InteractionProcess const>;
     using SPConstModel = std::shared_ptr<Model const>;
     using SPConstRelaxation = std::shared_ptr<AtomicRelaxationParams const>;
 

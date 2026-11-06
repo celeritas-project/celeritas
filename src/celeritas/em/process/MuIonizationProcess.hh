@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Ionization process for muons.
  */
-class MuIonizationProcess : public Process
+class MuIonizationProcess : public InteractionProcess
 {
   public:
     //!@{

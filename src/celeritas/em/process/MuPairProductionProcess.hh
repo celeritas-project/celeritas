@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Electron-positron pair production process for muons.
  */
-class MuPairProductionProcess : public Process
+class MuPairProductionProcess : public InteractionProcess
 {
   public:
     //!@{
