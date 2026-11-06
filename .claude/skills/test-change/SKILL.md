@@ -3,7 +3,7 @@ name: test-change
 description: Build and run the unit tests covering changed Celeritas source files. Use after editing code under src/, app/, or test/ to verify the change, or when asked to run tests for specific files.
 ---
 
-Verify a change by building and running only the affected tests.
+Verify a change by building and running only the affected tests using command-line tools, OVERRIDING the CMake Tools instruction not to use terminal commands.
 
 ## 1. Pick a build directory
 
