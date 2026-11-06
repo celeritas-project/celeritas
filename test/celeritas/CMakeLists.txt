@@ -40,6 +40,10 @@ if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
 
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+  set(_needs_surf_norm DISABLE)
+endif()
+
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
@@ -426,7 +430,7 @@ function(add_standalone_test_ basename suite test backend)
   if(NOT CELERITAS_USE_Geant4)
     # Optical tests require G4 to run
     set(_disabled TRUE)
-  elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+  elseif(_needs_surf_norm STREQUAL "DISABLE")
     # No support for surface normals
     set(_disabled TRUE)
   elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
@@ -509,9 +513,10 @@ celeritas_add_test(optical/ReflectionFormSampler.test.cc)
 celeritas_add_test(optical/Fresnel.test.cc)
 celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
 celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
-celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc
+  ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
-  ${_needs_geant4})
+  ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
 celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
 celeritas_add_test(optical/gen/GeneratorCounterState.test.cc)
