@@ -152,7 +152,6 @@ def build_input(cfg: RunConfig) -> dict:
         num_optical_tracks = 8192
         optical_capacity = {
             "tracks": num_optical_tracks,
-            "generators": 4 * max_steps * num_optical_tracks,
             "primaries": num_optical_tracks,
         }
         control["optical_capacity"] = optical_capacity
@@ -239,7 +238,7 @@ def validate_output(j: dict, inp: dict, use_device: bool) -> None:
         }
     if not use_device and "lar" in inp["problem"]["model"]["geometry"]:
         expected_opt_sizes = {
-            "generators": 8388608,
+            "generators": 16384,
             "tracks": 8192,
             "primaries": 8192,
         }

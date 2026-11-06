@@ -58,7 +58,7 @@ CELER_FUNCTION void UpdateSumExecutor::operator()(TrackSlotId tid) const
     // We deferred the check for the number of vacancies, but capped the
     // updates at num_vacancies in the GeneratorExecutor functor if it was
     // less than num_gen, so make the same adjustment here.
-    auto* counters = state->init.counters.data().get();
+    auto counters = state->init.counters.data();
     size_type num_generated = min(num_gen, counters->num_vacancies);
 
     auto& offset = offload.offsets[ItemId<size_type>(tid.get())];

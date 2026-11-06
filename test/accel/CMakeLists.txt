@@ -13,6 +13,9 @@ endif()
 
 include(CeleritasG4Tests)
 
+# Associate helper targets with test targets for IDEs
+set(CMAKE_FOLDER test/accel)
+
 #-----------------------------------------------------------------------------#
 # Library
 celeritas_get_g4libs(_g4_libs
@@ -106,8 +109,8 @@ function(celeritas_add_integration_tests basename suite test)
   if(NOT TARGET "${_target}")
     add_executable("${_target}" "${basename}.test.cc")
     add_dependencies(test_accel_integration "${_target}")
-    set_property(TARGET ${_target}
-      PROPERTY OUTPUT_NAME "${basename}"
+    set_target_properties("${_target}" PROPERTIES
+      OUTPUT_NAME "${basename}"
     )
     celeritas_target_link_libraries(${_target}
       ${CELERITASTEST_LINK_LIBRARIES}
@@ -231,6 +234,13 @@ celeritas_add_integration_tests(
 # Test that we can safely flush and restore primaries multiple times per event
 celeritas_add_integration_tests(
   TrackingManagerIntegration WaterSphere run_small_flush
+  OFFLOAD cpu gpu
+  RMTYPE serial mt
+)
+
+# Test that primary batches can exceed the initial initializer capacity
+celeritas_add_integration_tests(
+  TrackingManagerIntegration WaterSphere run_small_initializers
   OFFLOAD cpu gpu
   RMTYPE serial mt
 )
