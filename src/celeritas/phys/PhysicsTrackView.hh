@@ -221,6 +221,7 @@ CELER_FUNCTION PhysicsTrackView& PhysicsTrackView::operator=(
     Initializer_t const&)
 {
     this->state().interaction_mfp = 0;
+    this->state().safety_sphere = {};
     this->state().msc_range = {};
     return *this;
 }

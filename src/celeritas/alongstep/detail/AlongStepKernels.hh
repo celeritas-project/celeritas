@@ -16,6 +16,13 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+//! Calculate the safety at the start of the step
+void launch_safety(CoreStepActionInterface const& action,
+                   DeviceCRef<UrbanMscData> const& msc_data,
+                   CoreParams const& params,
+                   CoreState<MemSpace::device>& state);
+
+//---------------------------------------------------------------------------//
 //! Apply MSC step limiter (UrbanMsc)
 void launch_limit_msc_step(CoreStepActionInterface const& action,
                            DeviceCRef<UrbanMscData> const& msc_data,

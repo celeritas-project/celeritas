@@ -245,6 +245,136 @@ TEST_F(TwoBoxesTest, electron_interior)
     }
 }
 
+TEST_F(TwoBoxesTest, electron_safety_sphere)
+{
+    // Same circular track as electron_interior: centered on the origin with a
+    // radius well inside the inner box
+    real_type const radius{3.8085385437789383};
+    Real3 const start_pos{radius, 0, 0};
+    Real3 const start_dir{0, 1, 0};
+    auto particle
+        = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
+    UniformZField field(1.0 * units::tesla);
+    auto integrate = make_mag_field_integrator<DormandPrinceIntegrator>(
+        field, particle.charge());
+    FieldDriverOptions driver_options;
+
+    struct Result
+    {
+        Propagation prop;
+        Real3 pos;
+        Real3 dir;
+        size_type intersects{};
+    };
+
+    // Propagate a fresh track from the start point
+    auto run = [&](real_type step, SafetySphere const& sphere) {
+        auto geo = this->make_geo_track_view(start_pos, start_dir);
+        auto propagate
+            = make_field_propagator(integrate, driver_options, particle, geo);
+        Result r;
+        r.prop = propagate(step, sphere);
+        r.pos = geo.pos();
+        r.dir = geo.dir();
+        r.intersects = geo.intersect_count();
+        return r;
+    };
+
+    // The results with and without the sphere must be identical
+    auto expect_same = [](Result const& expected, Result const& actual) {
+        EXPECT_EQ(expected.prop.distance, actual.prop.distance);
+        EXPECT_EQ(expected.prop.boundary, actual.prop.boundary);
+        EXPECT_EQ(expected.prop.looping, actual.prop.looping);
+        EXPECT_VEC_EQ(expected.pos, actual.pos);
+        EXPECT_VEC_EQ(expected.dir, actual.dir);
+    };
+
+    SafetySphere sphere;
+    {
+        auto geo = this->make_geo_track_view(start_pos, start_dir);
+        sphere.center = geo.pos();
+        sphere.radius = geo.find_safety();
+    }
+    EXPECT_SOFT_EQ(5 - radius, sphere.radius);
+
+    {
+        SCOPED_TRACE("Step inside the sphere");
+        auto expected = run(0.5, {});
+        auto actual = run(0.5, sphere);
+        expect_same(expected, actual);
+        EXPECT_EQ(1, expected.intersects);
+        EXPECT_EQ(0, actual.intersects);
+    }
+    {
+        SCOPED_TRACE("Quarter turn leaving the sphere");
+        auto expected = run(0.5 * pi * radius, {});
+        auto actual = run(0.5 * pi * radius, sphere);
+        expect_same(expected, actual);
+        EXPECT_EQ(7, expected.intersects);
+        // Only the first substep is inside the sphere
+        EXPECT_EQ(6, actual.intersects);
+    }
+    {
+        SCOPED_TRACE("Multiple substeps inside a sphere off the track");
+        SafetySphere around_track{{0, 0, 0}, radius + real_type{1}};
+        auto expected = run(0.5 * pi * radius, {});
+        auto actual = run(0.5 * pi * radius, around_track);
+        expect_same(expected, actual);
+        EXPECT_EQ(7, expected.intersects);
+        EXPECT_EQ(0, actual.intersects);
+    }
+    {
+        SCOPED_TRACE("Reaching the substep limit inside the sphere");
+        SafetySphere around_track{{0, 0, 0}, radius + real_type{1}};
+        auto expected = run(pi * radius, {});
+        auto actual = run(pi * radius, around_track);
+        expect_same(expected, actual);
+        EXPECT_TRUE(actual.prop.looping);
+        EXPECT_EQ(0, actual.intersects);
+    }
+    {
+        SCOPED_TRACE("Sphere that doesn't contain the start point");
+        SafetySphere stale{{-radius, 0, 0}, sphere.radius};
+        auto expected = run(0.5, {});
+        auto actual = run(0.5, stale);
+        expect_same(expected, actual);
+        EXPECT_EQ(expected.intersects, actual.intersects);
+    }
+}
+
+TEST_F(TwoBoxesTest, safety_sphere_on_boundary)
+{
+    // Electron moving along the field lines leaves the inner box at z = 5
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
+    UniformZField field(1.0 * units::tesla);
+    auto integrate = make_mag_field_integrator<DormandPrinceIntegrator>(
+        field, particle.charge());
+    FieldDriverOptions driver_options;
+
+    {
+        auto geo = this->make_geo_track_view({0, 0, 0}, {0, 0, 1});
+        auto propagate
+            = make_field_propagator(integrate, driver_options, particle, geo);
+        auto result = propagate(10.0);
+        EXPECT_TRUE(result.boundary);
+        EXPECT_SOFT_EQ(5.0, result.distance);
+        geo.cross_boundary();
+        EXPECT_EQ("world", this->volume_name(geo));
+    }
+
+    // A sphere containing the boundary point would be invalid, but it must be
+    // ignored anyway because the track starts on a boundary
+    auto geo = this->make_checked_track_view();
+    ASSERT_TRUE(geo.is_on_boundary());
+    SafetySphere bogus{geo.pos(), 10};
+    auto propagate
+        = make_field_propagator(integrate, driver_options, particle, geo);
+    auto result = propagate(1.0, bogus);
+    EXPECT_SOFT_EQ(1.0, result.distance);
+    EXPECT_FALSE(result.boundary);
+    EXPECT_EQ(1, geo.intersect_count());
+}
+
 TEST_F(TwoBoxesTest, positron_interior)
 {
     // Initialize position and direction so its curved track (radius 1) is

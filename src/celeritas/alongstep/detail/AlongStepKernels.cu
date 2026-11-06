@@ -22,6 +22,7 @@
 #include "MscApplier.hh"
 #include "MscStepLimitApplier.hh"
 #include "PropagationApplier.hh"
+#include "SafetyApplier.hh"
 #include "TimeUpdater.hh"
 #include "TrackUpdater.hh"
 
@@ -29,6 +30,24 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+//! Calculate the safety at the start of the step
+void launch_safety(CoreStepActionInterface const& action,
+                   DeviceCRef<UrbanMscData> const& msc_data,
+                   CoreParams const& params,
+                   CoreState<MemSpace::device>& state)
+{
+    ScopedProfiling profile_this{"safety"};
+    auto execute_thread
+        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
+                                         state.ptr(),
+                                         action.action_id(),
+                                         detail::SafetyApplier{msc_data});
+    static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+        action, "safety");
+    launch_kernel(action, params, state, execute_thread);
+}
+
 //---------------------------------------------------------------------------//
 //! Apply MSC step limiter (UrbanMsc)
 void launch_limit_msc_step(CoreStepActionInterface const& action,

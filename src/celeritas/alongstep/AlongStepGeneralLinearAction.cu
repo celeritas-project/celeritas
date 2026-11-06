@@ -17,14 +17,15 @@ namespace celeritas
 /*!
  * Launch the along-step action on device.
  *
- * The six kernels should correspond to the six function calls in \c
- * AlongStep.
+ * The kernels should correspond to the function calls in the host \c step .
  */
 void AlongStepGeneralLinearAction::step(CoreParams const& params,
                                         CoreStateDevice& state) const
 {
     if (this->has_msc())
     {
+        detail::launch_safety(
+            *this, msc_->ref<MemSpace::native>(), params, state);
         detail::launch_limit_msc_step(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }

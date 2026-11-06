@@ -11,6 +11,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "geocel/SafetySphere.hh"
 #include "geocel/Types.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -37,6 +38,25 @@ namespace celeritas
  * the closest distance between two positions by the field stepper and the
  * linear projection to the volume boundary.
  *
+ * Each substep normally searches for a boundary along its chord, which is the
+ * most expensive part of propagation. The caller can provide a \em safety
+ * \em sphere, a ball known to contain no boundary (see \c SafetySphere), to
+ * skip these searches. If the sphere's center is \f$ \mathbf{c} \f$ and its
+ * radius is \f$ r \f$, a substep from \f$ \mathbf{x}_0 \f$ to
+ * \f$ \mathbf{x}_1 \f$ is accepted without a search when both
+ * \f[
+   |\mathbf{x}_i - \mathbf{c}| + \delta \le r \,,
+ * \f]
+ * where \f$ \delta \f$ is the intersection tolerance. The ball is convex, so
+ * it then contains the whole search segment (the chord extended by
+ * \f$ \delta \f$). That search would have found no intersection, and the
+ * result is unchanged.
+ *
+ * Propagation with a sphere has two phases. While substeps stay inside the
+ * sphere, the loop only integrates the field and doesn't interact with the
+ * geometry. The first substep that ends outside the sphere, and all those
+ * after it, search for boundaries as usual.
+ *
  * \note This follows similar methods to Geant4's G4PropagatorInField class.
  */
 template<class SubstepperT, class GTV>
@@ -55,6 +75,10 @@ class FieldPropagator
 
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
+
+    // Move track, skipping boundary searches inside a safety sphere
+    inline CELER_FUNCTION result_type operator()(real_type dist,
+                                                 SafetySphere const& sphere);
 
   private:
     //// TYPES ////
@@ -173,6 +197,70 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
         // Advance up to (but probably less than) the remaining step length
         this->search_substep(advance_(p.remaining, state_), &p);
     } while (this->has_remaining(p));
+
+    return this->finish_step(p);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Propagate a charged particle, skipping boundary searches inside a sphere.
+ *
+ * The sphere may come from an earlier position of the track: it is ignored
+ * unless the track starts inside it and not on a boundary.
+ *
+ * The geometry is untouched while substeps stay inside the sphere. The substep
+ * that leaves the sphere has already been integrated, and integration updates
+ * the substepper's state, so it is passed on to the boundary search rather
+ * than being calculated again.
+ */
+template<class SubstepperT, class GTV>
+CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
+    real_type step, SafetySphere const& sphere) -> result_type
+{
+    CELER_EXPECT(step > 0);
+
+    real_type const tol = this->delta_intersection();
+    if (geo_.is_on_boundary() || !sphere.contains(state_.pos, tol))
+    {
+        return (*this)(step);
+    }
+
+    // Take substeps inside the sphere using only field integration
+    Progress p = this->start_step(step);
+    Substep substep;
+    bool is_inside;
+    do
+    {
+        substep = advance_(p.remaining, state_);
+        is_inside = sphere.contains(substep.state.pos, tol);
+        if (is_inside)
+        {
+            this->accept_substep(substep, &p);
+        }
+    } while (is_inside && this->has_remaining(p));
+
+    if (p.result.distance > 0)
+    {
+        geo_.move_internal(state_.pos);
+    }
+
+    if (!is_inside)
+    {
+        if (p.result.distance > 0)
+        {
+            // The search uses the current direction if the chord is too short
+            // to provide one
+            geo_.set_dir(make_unit_vector(state_.mom));
+        }
+
+        // Search from the substep that leaves the sphere to the end of the
+        // step
+        this->search_substep(substep, &p);
+        while (this->has_remaining(p))
+        {
+            this->search_substep(advance_(p.remaining, state_), &p);
+        }
+    }
 
     return this->finish_step(p);
 }

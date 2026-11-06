@@ -113,6 +113,7 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
         auto& action_reg = *this->action_reg();
         UniformFieldParams::Input field_inp;
         field_inp.strength = {0, 0, 1};
+        field_inp.driver_options.use_safety_sphere = use_safety_sphere_;
 
         auto msc = UrbanMscParams::from_import(
             *this->particle(), *this->material(), this->imported_data());
@@ -127,6 +128,7 @@ class SimpleCmsAlongStepTest : public SimpleCmsTestBase,
     size_type bpd_{14};
     bool msc_{true};
     bool fluct_{false};
+    bool use_safety_sphere_{true};
 };
 
 #define SimpleCmsFieldVolAlongStepTest \
@@ -699,6 +701,37 @@ TEST_F(SimpleCmsAlongStepTest, msc_field)
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(1, result.alive);
     }
+}
+
+// Disabling the safety sphere must give the same results as msc_field
+TEST_F(SimpleCmsAlongStepTest, msc_field_no_safety_sphere)
+{
+    if (!Test::is_reference_rng)
+    {
+        GTEST_SKIP() << "Not using reference RNG";
+    }
+    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        GTEST_SKIP() << "Not using double precision";
+    }
+
+    use_safety_sphere_ = false;
+
+    real_type const tol = 1e-10;
+    size_type num_tracks = 128;
+    Input inp;
+    inp.particle_id = this->particle()->find(pdg::electron());
+    inp.energy = MevEnergy{10};
+    inp.phys_mfp = 2;
+    inp.position = {250, 250, 0};
+    inp.direction = {0, -1, 0};
+
+    auto result = this->run(inp, num_tracks);
+    EXPECT_SOFT_NEAR(0.42355220700686919, result.displacement, tol);
+    EXPECT_SOFT_NEAR(0.7454707400628271, result.angle, tol);
+    EXPECT_SOFT_NEAR(0.47856565916792532, result.step, tol);
+    EXPECT_EQ("eloss-range", result.action);
+    EXPECT_REAL_EQ(1, result.alive);
 }
 
 TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)

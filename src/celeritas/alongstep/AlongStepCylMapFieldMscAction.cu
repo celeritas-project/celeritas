@@ -23,6 +23,7 @@
 #include "detail/MscApplier.hh"
 #include "detail/MscStepLimitApplier.hh"
 #include "detail/PropagationApplier.hh"
+#include "detail/SafetyApplier.hh"
 #include "detail/TimeUpdater.hh"
 #include "detail/TrackUpdater.hh"
 
@@ -38,6 +39,14 @@ namespace celeritas
 void AlongStepCylMapFieldMscAction::step(CoreParams const& params,
                                          CoreStateDevice& state) const
 {
+    if (this->has_msc()
+        || field_->ref<MemSpace::native>().options.use_safety_sphere)
+    {
+        detail::launch_safety(*this,
+                              detail::get_msc_ref<MemSpace::native>(msc_.get()),
+                              params,
+                              state);
+    }
     if (this->has_msc())
     {
         detail::launch_limit_msc_step(

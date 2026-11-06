@@ -43,6 +43,9 @@ class UrbanMsc
     inline CELER_FUNCTION bool is_applicable(CoreTrackView const&,
                                              real_type step) const;
 
+    // Distance up to which the step limiter needs the safety
+    inline CELER_FUNCTION real_type max_safety(CoreTrackView const&) const;
+
     // Update the physical and geometric step lengths
     inline CELER_FUNCTION void limit_step(CoreTrackView const&);
 
@@ -92,7 +95,32 @@ CELER_FUNCTION bool UrbanMsc::is_applicable(CoreTrackView const& track,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Distance up to which the step limiter needs the safety.
+ *
+ * Because the MSC behavior changes based on whether the *total* track range is
+ * close to a boundary, rather than whether the next steps are closer, we need
+ * to find the safety distance up to the potential travel radius of the
+ * particle at its current energy. The result is zero if the step limiter
+ * doesn't need the safety for this track.
+ */
+CELER_FUNCTION real_type UrbanMsc::max_safety(CoreTrackView const& track) const
+{
+    real_type const step = track.sim().step_length();
+    if (!this->is_applicable(track, step) || step <= shared_.params.min_step)
+    {
+        return 0;
+    }
+    auto par = track.particle();
+    auto phys = track.physics();
+    return detail::UrbanMscHelper{shared_, par, phys}.max_step();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Update the physical and geometric step lengths.
+ *
+ * The safety distance must have been calculated at the current position, up
+ * to at least \c max_safety , before this is called.
  */
 CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
 {
@@ -116,12 +144,12 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
         real_type safety = 0;
         if (!geo.is_on_boundary())
         {
-            // Because the MSC behavior changes based on whether the *total*
-            // track range is close to a boundary, rather than whether the next
-            // steps are closer, we need to find the safety distance up to the
-            // potential travel radius of the particle at its current energy.
+            // Use the safety calculated earlier in this step up to the
+            // potential travel radius of the particle
             real_type const max_step = msc_helper.max_step();
-            safety = geo.find_safety(max_step);
+            auto const& sphere = track.physics_step().safety_sphere();
+            CELER_ASSERT(sphere.center == geo.pos());
+            safety = sphere.radius;
             if (safety >= max_step)
             {
                 // The nearest boundary is further than the maximum expected

@@ -420,6 +420,21 @@ TEST_F(PhysicsTrackViewHostTest, step_view)
     }
 }
 
+TEST_F(PhysicsTrackViewHostTest, safety_sphere)
+{
+    PhysicsTrackView phys = this->make_track_view("gamma", PhysMatId{0});
+    PhysicsStepView step = this->make_step_view("gamma");
+    EXPECT_FALSE(step.safety_sphere());
+
+    step.safety_sphere({{1, 2, 3}, 0.5});
+    EXPECT_VEC_EQ((Real3{1, 2, 3}), step.safety_sphere().center);
+    EXPECT_EQ(0.5, step.safety_sphere().radius);
+
+    // Reinitializing the slot resets the sphere
+    phys = PhysicsTrackInitializer{};
+    EXPECT_FALSE(step.safety_sphere());
+}
+
 TEST_F(PhysicsTrackViewHostTest, processes)
 {
     // Gamma
