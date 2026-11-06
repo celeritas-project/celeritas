@@ -24,7 +24,9 @@
 #include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
+#include "geocel/UniqueVolumeToString.hh"
 #include "geocel/VolumeParams.hh"
+#include "geocel/VolumePathAccumulator.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
@@ -1279,6 +1281,7 @@ void MultiLevelGeoTest::test_trace() const
 auto MultiLevelGeoTest::get_test_points() -> VecR2
 {
     // Include outer world and center sphere
+    // (Cannot include *outside* world since it's invalid to initialize there)
     VecR2 points{R2{-5, 0}, R2{0, 0}};
 
     // Loop over outer and inner x and y signs
@@ -1299,7 +1302,64 @@ auto MultiLevelGeoTest::get_test_points() -> VecR2
     return points;
 }
 
-//---------------------------------------------------------------------------//
+void MultiLevelGeoTest::test_unique_instance() const
+{
+    auto gtv = test_->make_checked_track_view();
+    auto const& vols = test_->volumes();
+    ASSERT_TRUE(vols);
+    VolumePathAccumulator accum{vols->host_ref()};
+    UniqueVolumeToString to_string_path{vols};
+    auto max_uid = vols->num_unique_instances();
+
+    std::vector<std::string> paths;
+
+    for (auto xy : this->get_test_points())
+    {
+        SCOPED_TRACE(::testing::Message{} << "(x,y) = " << xy);
+        gtv = test_->make_initializer({xy[0], xy[1], 0}, {0, 0, 1});
+
+        // Accumulate all levels, *including* world
+        VolumeUniqueInstanceId uid;
+        gtv.foreach_volume_path(
+            [&uid, accum](VolumeLevelId, VolumeInstanceId vi_id) {
+                uid = accum(uid, vi_id);
+            });
+
+        if (uid < max_uid)
+        {
+            paths.emplace_back(to_string_path(uid));
+        }
+        else
+        {
+            paths.emplace_back("ERROR@" + stream_to_string(xy));
+        }
+    }
+
+    // See MultiLevelGeoTest::test_volume_stack
+    static char const* const expected_paths[] = {
+        "world_PV",
+        "world_PV/topsph1",
+        "world_PV/topbox1/boxsph1@0",
+        "world_PV/topbox1",
+        "world_PV/topbox1/boxtri@0",
+        "world_PV/topbox1/boxsph2@0",
+        "world_PV/topbox2/boxsph1@0",
+        "world_PV/topbox2",
+        "world_PV/topbox2/boxtri@0",
+        "world_PV/topbox2/boxsph2@0",
+        "world_PV/topbox4/boxtri@1",
+        "world_PV/topbox4/boxsph2@1",
+        "world_PV/topbox4/boxsph1@1",
+        "world_PV/topbox4",
+        "world_PV/topbox3",
+        "world_PV/topbox3/boxsph2@0",
+        "world_PV/topbox3/boxsph1@0",
+        "world_PV/topbox3/boxtri@0",
+    };
+
+    EXPECT_VEC_EQ(expected_paths, paths);
+}
+
 void MultiLevelGeoTest::test_volume_level() const
 {
     std::vector<VolumeLevelId::size_type> all_levels;
@@ -1315,26 +1375,8 @@ void MultiLevelGeoTest::test_volume_level() const
         all_levels.push_back(id_to_int(id));
     }
 
-    static unsigned int const expected_all_levels[] = {
-        0u,
-        1u,
-        2u,
-        1u,
-        2u,
-        2u,
-        2u,
-        1u,
-        2u,
-        2u,
-        2u,
-        2u,
-        2u,
-        1u,
-        1u,
-        2u,
-        2u,
-        2u,
-    };
+    static int const expected_all_levels[]
+        = {0, 1, 2, 1, 2, 2, 2, 1, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2};
     EXPECT_VEC_EQ(expected_all_levels, all_levels);
 }
 
