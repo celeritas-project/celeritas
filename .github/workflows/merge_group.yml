@@ -72,4 +72,22 @@ jobs:
               core.setFailed(`Jobs did not succeed: ${unsuccessful.join(', ')}`);
             }
 
+  # On success, delete branch-specific caches
+  clear-branch-cache:
+    uses: ./.github/workflows/clear-cache.yml
+    needs: ["all"]
+    if: ${{ jobs.all.outcome == 'success' }}
+    with:
+      key: ".*"
+      # branch name format: gh-readonly-queue/{base_branch}/pr-{pr_number}-{head_sha}
+      ref: >-
+        ${{ format('refs/pull/{0}/merge',
+              split(
+                split(
+                  github.event.merge_group.head_ref,
+                  '/'
+                )[4],
+              '-')[1]
+            ) }}
+
 # vim: set nowrap tw=100:
