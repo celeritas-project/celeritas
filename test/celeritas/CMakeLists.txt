@@ -403,13 +403,9 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 #-----------------------------------------------------------------------------#
 # Optical
 
-function(celeritas_standalone_add_tests basename suite test backend)
+function(add_g4_optical_test basename suite test backend)
   string(REPLACE "/" "_" _output_name "${basename}")
   set(_target "${CELERITASTEST_DIR}_${_output_name}")
-
-  if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "Geant4")
-    list(APPEND _test_props DISABLED TRUE)
-  endif()
 
   if(NOT TARGET "${_target}")
     add_executable(${_target} "${basename}.test.cc")
@@ -424,13 +420,23 @@ function(celeritas_standalone_add_tests basename suite test backend)
     )
   endif()
 
+  set(_env ${CELER_G4ENV})
+  set(_disabled FALSE)
+
+  if(NOT CELERITAS_USE_Geant4)
+    # Optical tests require G4 to run
+    set(_disabled TRUE)
+  elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+    # No support for surface normals
+    set(_disabled TRUE)
+  endif()
+
   set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
   add_test(
     NAME "${_test_name}"
     COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
   )
 
-  set(_env ${CELER_G4ENV})
   set(_labels "unit")
 
   if(backend STREQUAL "cpu")
@@ -444,10 +450,14 @@ function(celeritas_standalone_add_tests basename suite test backend)
     list(APPEND _test_props RESOURCE_LOCK gpu)
     list(APPEND _labels gpu)
     if(CELER_DISABLE_DEVICE)
-      list(APPEND _test_props DISABLED TRUE)
+      set(_disabled TRUE)
     endif()
   else()
     message(SEND_ERROR "Invalid backend type ${backend}")
+  endif()
+
+  if(_disabled)
+    list(APPEND _test_props DISABLED TRUE)
   endif()
 
   set_tests_properties("${_test_name}" PROPERTIES
@@ -457,25 +467,24 @@ function(celeritas_standalone_add_tests basename suite test backend)
   )
 endfunction()
 
-function(celeritas_add_standalone_tests basename suite test)
+function(add_g4_optical_tests basename suite test)
   foreach(_backend IN ITEMS cpu gpu)
-    celeritas_standalone_add_tests(${basename} ${suite} ${test}
-      ${_backend})
+    add_g4_optical_test(${basename} ${suite} ${test} ${_backend})
   endforeach()
 endfunction()
 
-celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
-celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest cut_multiple_flushes)
-celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
-celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
-celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)
-celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest primary)
-celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest abort_early)
-celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
-celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
-celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest offload)
-celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest direct)
-celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary)
+add_g4_optical_tests(optical/Generator LArSphereGeneratorTest primary)
+add_g4_optical_tests(optical/Generator LArSphereGeneratorTest cut_multiple_flushes)
+add_g4_optical_tests(optical/Generator LArSphereGeneratorTest direct)
+add_g4_optical_tests(optical/Generator LArSphereGeneratorTest offload)
+add_g4_optical_tests(optical/Generator DuneGeneratorTest offload)
+add_g4_optical_tests(optical/Generator WlsGeneratorTest primary)
+add_g4_optical_tests(optical/Generator WlsGeneratorTest abort_early)
+add_g4_optical_tests(optical/Detector DetectorTest simple)
+add_g4_optical_tests(optical/Detector DetectorTest stress)
+add_g4_optical_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest offload)
+add_g4_optical_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest direct)
+add_g4_optical_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
