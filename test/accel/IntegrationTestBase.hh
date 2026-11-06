@@ -19,6 +19,7 @@
 
 class G4RunManager;
 class G4Run;
+class G4UserStackingAction;
 class G4UserSteppingAction;
 class G4UserTrackingAction;
 class G4Event;
@@ -80,6 +81,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
     using UPPhysicsList = std::unique_ptr<G4VModularPhysicsList>;
     using UPTrackAction = std::unique_ptr<G4UserTrackingAction>;
     using UPStepAction = std::unique_ptr<G4UserSteppingAction>;
+    using UPStackAction = std::unique_ptr<G4UserStackingAction>;
     using UPSensDet = std::unique_ptr<G4VSensitiveDetector>;
     using LocalFunc = std::function<void(StreamId)>;
     //!@}
@@ -123,6 +125,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
 
     // Create optional stepping action (local, default null)
     virtual UPStepAction make_stepping_action();
+
+    // Create optional stacking action (local, default null)
+    virtual UPStackAction make_stacking_action();
 
     // Create Celeritas setup options
     virtual SetupOptions make_setup_options();

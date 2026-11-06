@@ -138,6 +138,23 @@ enum class TrackStatus : std::uint_least8_t
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Why a track is being handed back from Celeritas to the host application.
+ *
+ * A handed-back track is killed in Celeritas at the end of the step in which
+ * it is marked, and its end-of-step state is transferred so that the host
+ * application (e.g., Geant4) can continue transporting it.
+ */
+enum class HandBackReason : std::uint_least8_t
+{
+    none = 0,  //!< Track is not handed back
+    region,  //!< Track entered a region that is transported on CPU
+    interaction,  //!< Track underwent an interaction sampled on CPU
+    user,  //!< Track was marked by a user action
+    size_
+};
+
+//---------------------------------------------------------------------------//
 //! Differentiate between result data at the beginning and end of a step.
 enum class StepPoint
 {
@@ -254,6 +271,9 @@ char const* to_cstring(MatterState);
 
 // Get a string corresponding to a track stats
 char const* to_cstring(TrackStatus);
+
+// Get a string corresponding to a hand-back reason
+char const* to_cstring(HandBackReason);
 
 // Get a string corresponding to a track ordering policy
 char const* to_cstring(TrackOrder);

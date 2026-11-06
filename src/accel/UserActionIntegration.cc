@@ -110,9 +110,15 @@ UserActionIntegration::UserActionIntegration() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * No verification is performed by the user action.
+ * Verify that unsupported options are disabled.
  */
-void UserActionIntegration::verify_local_setup() {}
+void UserActionIntegration::verify_local_setup()
+{
+    auto& singleton = detail::IntegrationSingleton::instance();
+    CELER_VALIDATE(!singleton.setup_options().hand_back,
+                   << "handing tracks back to Geant4 is only supported by the "
+                      "tracking manager integration");
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

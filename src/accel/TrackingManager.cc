@@ -124,6 +124,10 @@ void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 /*!
  * Offload the incoming track to Celeritas.
  *
+ * Tracks that Celeritas handed back to Geant4 are instead tracked on CPU with
+ * the standard Geant4 tracking manager, so that they aren't immediately
+ * offloaded again.
+ *
  * This will \em not be called in the "master" thread of an MT run.
  */
 void TrackingManager::HandOverOneTrack(G4Track* track)
@@ -146,6 +150,15 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
 
     if (*transport_)
     {
+        bool processed{false};
+        CELER_TRY_HANDLE(processed = transport_->ProcessHandedBack(track),
+                         ExceptionConverter("celer.track.hand_back", params_));
+        if (processed)
+        {
+            // Geant4 tracked (and took ownership of) the handed-back track
+            return;
+        }
+
         // Offload this track to Celeritas for transport
         CELER_TRY_HANDLE(transport_->Push(*track),
                          ExceptionConverter("celer.track.push", params_));

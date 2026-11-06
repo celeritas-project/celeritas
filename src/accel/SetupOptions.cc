@@ -8,6 +8,7 @@
 
 #include <CLHEP/Random/Random.h>
 #include <G4ParticleDefinition.hh>
+#include <G4Version.hh>
 
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -147,6 +148,12 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         p.scoring.sd = to_inp(so.sd);
     }
+
+    CELER_VALIDATE(!so.hand_back || G4VERSION_NUMBER >= 1100,
+                   << "the current version of Geant4 (" << G4VERSION_NUMBER
+                   << ") is too old to support handing back tracks (11.0 or "
+                      "higher is required)");
+    p.tracking.hand_back = so.hand_back;
 
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {

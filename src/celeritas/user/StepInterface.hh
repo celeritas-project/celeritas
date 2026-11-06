@@ -40,6 +40,16 @@ struct StepState
  * for a thread with no energy deposition will be cleared even if it is in a
  * sensitive detector. Otherwise entries with zero energy deposition will
  * remain.
+ *
+ * The \c hand_back filter selects only tracks that were marked during the
+ * step with \c SimTrackView::hand_back : the gathered data is their state at
+ * the end of the step in which they were killed. It is exclusive of the
+ * detector filter.
+ *
+ * Callbacks are invoked at the end of the step's action sequence, during an
+ * asynchronous stepper launch. Implementations of the device callback may
+ * enqueue work on the state's stream but must not synchronize it: the
+ * gathered data is valid until the next step is launched.
  */
 class StepInterface
 {
@@ -58,6 +68,8 @@ class StepInterface
         MapVolumeDetector detectors;
         //! Only select data with nonzero energy deposition (if detectors)
         bool nonzero_energy_deposition{false};
+        //! Only select tracks handed back to the host (exclusive of detectors)
+        bool hand_back{false};
     };
 
   public:

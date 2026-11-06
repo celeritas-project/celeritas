@@ -21,17 +21,27 @@ class G4VUserTrackInformation;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Origin of a track reconstructed from Celeritas
+enum class TrackOrigin
+{
+    offloaded,  //!< Same track as the one offloaded from Geant4
+    secondary,  //!< Track created by Celeritas
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Manage track information for reconstruction.
  *
  * This class handles the bookkeeping of Geant4 track information needed
- * to reconstruct tracks during hit processing. It maintains mappings between
- * Celeritas PrimaryID and Geant4 track data.
+ * to reconstruct tracks during hit processing and when handing tracks back to
+ * Geant4. It maintains mappings between Celeritas PrimaryID and Geant4 track
+ * data.
  *
  * \par Usage
  * - \c init_event
  * - \c acquire (multiple times)
- * - \c view (may be interleaved with acquire)
+ * - \c view (may be interleaved with acquire) to process hits
+ * - \c create (may be interleaved with acquire) to hand tracks back
  * - \c clear (once all active tracks are used up)
  * - then it can be initialized with a new event, or new primaries can be
  *   added to the current event.
@@ -60,7 +70,10 @@ namespace celeritas
  *
  * \par User information
  * The user information of an offloaded track is owned by this class from \c
- * acquire until \c clear .
+ * acquire until the track is handed back to Geant4 (\c create transfers it to
+ * the new \c G4Track) or until \c clear . Since only the offloaded track
+ * itself refers to it, no other Celeritas track can observe it after the
+ * transfer.
  */
 class GeantTrackReconstruction
 {
@@ -70,6 +83,7 @@ class GeantTrackReconstruction
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     using SPStep = std::shared_ptr<G4Step>;
     using EventIdGetter = int (*)();
+    using UPTrack = std::unique_ptr<G4Track>;
     //!@}
 
   public:
@@ -101,6 +115,13 @@ class GeantTrackReconstruction
                                 TrackId parent,
                                 size_type generation) const;
 
+    // Create a new track to hand back to Geant4
+    [[nodiscard]] UPTrack create(ParticleId particle,
+                                 PrimaryId primary,
+                                 TrackId track,
+                                 TrackId parent,
+                                 size_type generation);
+
     //! Creator process reported for tracks created by Celeritas
     G4VProcess const& placeholder_process() const { return *placeholder_; }
 
@@ -121,13 +142,15 @@ class GeantTrackReconstruction
         int track_id() const { return track_id_; }
         //! Restore the G4Track from the reconstruction data
         void restore(G4Track&) const;
+        //! Restore the G4Track and transfer the user information to it
+        void hand_back(G4Track&);
 
       private:
         //! Original Geant4 track ID
         int track_id_{-1};
         //! Original Geant4 parent ID
         int parent_id_{0};
-        //! User track information
+        //! User track information (until handed back)
         std::unique_ptr<G4VUserTrackInformation> user_info_;
         //! Process that created the track
         G4VProcess const* creator_process_{nullptr};
@@ -148,12 +171,20 @@ class GeantTrackReconstruction
 
     // Get acquired data for a primary
     AcquiredData const& acquired(PrimaryId) const;
+    AcquiredData& acquired(PrimaryId);
 
     // Restore the saved identity of an offloaded track
     G4Track& view(ParticleId, PrimaryId) const;
 
     // Get the shared track for a particle type and attach it to the step
     G4Track& view(ParticleId) const;
+
+    // Set the Geant4 identity of a track created by Celeritas
+    void set_created_identity(G4Track&,
+                              AcquiredData const&,
+                              TrackId track,
+                              TrackId parent,
+                              size_type generation) const;
 };
 
 //---------------------------------------------------------------------------//
