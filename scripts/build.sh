@@ -7,7 +7,7 @@
 set -e
 
 _usage() {
-  echo "Usage: $0 PRESET_NAME [CMAKE_ARGS...]"
+  echo "Usage: $0 [--no-build] PRESET_NAME [CMAKE_ARGS...]"
   echo "       $0 [-h | --help]"
   echo "       $0 [-L | --list-presets]"
 }
@@ -336,6 +336,13 @@ setup_presets "${SYSTEM_NAME}"
 setup_ccache
 
 # Check arguments and give presets if missing
+if [ $1 = "--no-build" ]; then
+  NO_BUILD=true
+  shift
+else
+  NO_BUILD=false
+fi
+
 CMAKE_PRESET=$1
 shift
 if [ "${CMAKE_PRESET}" = "--list-presets" ] || [ "${CMAKE_PRESET}" = "-L" ]; then
@@ -351,27 +358,41 @@ if [ "${CMAKE_PRESET}" = "--list-presets" ] || [ "${CMAKE_PRESET}" = "-L" ]; the
   exit 0
 fi
 
-# Configure, build, and test
-log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"
-cmake --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
-log info "Building with --preset=${CMAKE_PRESET}"
-if cmake --build --preset="${CMAKE_PRESET}"; then
+try_build() {
+  log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"
+  cmake --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
+  if $NO_BUILD; then
+    return 0
+  fi
+  log info "Building with --preset=${CMAKE_PRESET}"
+  if ! cmake --build --preset="${CMAKE_PRESET}"; then
+    log error "build failed: check configuration and build errors above"
+    return 1
+  fi
   log info "Testing with --preset=${CMAKE_PRESET} --timeout 15"
-  if ctest --preset="${CMAKE_PRESET}" --timeout 15; then
-    log info "Celeritas was successfully built and tested for development!"
-  else
+  if ! ctest --preset="${CMAKE_PRESET}" --timeout 15; then
     log warning "Celeritas built but some tests failed"
     log info "Ask the Celeritas team whether the failures indicate an actual error"
     log info "Provide the system configuration:"
     cmake --build --preset=${CMAKE_PRESET} --target print-config
+    RETCODE=1
+  else
+    log info "Celeritas was successfully built and tested for development!"
+    RETCODE=0
   fi
 
+  # Install precommit hooks even if tests fail
   install_precommit_if_git
-else
-  log error "build failed: check configuration and build errors above"
-fi
+  return $RETCODE
+}
+
+# Configure, build, and test
+try_build "$@"
+RETCODE=$?
 
 if ${needs_env}; then
-  log warning "Environment changed: please manually add the following to ${rc_file}:"
+  log warning "Environment changed: suggest adding the following to ${rc_file}:"
   printf '. %s\n' "${ENV_SCRIPT}" >&2
 fi
+
+exit $RETCODE
