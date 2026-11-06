@@ -19,9 +19,9 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
-#include "RNGExecutor.hh"
 #include "RayleighExecutor.hh"
 #include "RayleighMfpCalculator.hh"
+#include "RngAdvanceExecutor.hh"
 
 namespace celeritas
 {
