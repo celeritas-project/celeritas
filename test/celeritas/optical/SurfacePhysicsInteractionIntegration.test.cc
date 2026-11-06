@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 
 #include "corecel/math/Turn.hh"
+#include "celeritas/inp/Tracking.hh"
+#include "celeritas/optical/SimParams.hh"
 
 #include "SurfacePhysicsIntegrationTestBase.hh"
 #include "celeritas_test.hh"
@@ -313,13 +315,32 @@ class SurfacePhysicsIntegrationBackPaintedTest
 /*!
  * Transmit through a gap layer, backscatter, and transmit back.
  *
- * Crossing the surface takes three steps, the last two of which happen only
- * on the surface (the track does not move).
+ * Crossing the surface takes three surface physics iterations. With one
+ * iteration per step (the default) this takes three steps, the last two of
+ * which happen only on the surface (the track does not move). More surface
+ * substeps per step let the track cross in fewer step iterations.
  */
 class SurfacePhysicsIntegrationLayeredStepsTest
     : public SurfacePhysicsIntegrationTestBase
 {
   public:
+    SPConstOpticalSim build_optical_sim() override
+    {
+        inp::OpticalTrackingLimits limits;
+        limits.surface_substeps = surface_substeps_;
+        return std::make_shared<SimParams>(limits);
+    }
+
+    //! Run photons normal to the surface and return their step counts
+    std::vector<size_type> run_num_steps()
+    {
+        CollectNumSteps result;
+        this->create_collector(result);
+        this->initialize_run();
+        this->run_step(RealTurn{0});
+        return result.num_steps;
+    }
+
     void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
     {
         PhysSurfaceId phys_surface{0};
@@ -342,6 +363,9 @@ class SurfacePhysicsIntegrationLayeredStepsTest
         input.interaction.trivial.emplace(phys_surface,
                                           TrivialInteractionMode::backscatter);
     }
+
+  protected:
+    size_type surface_substeps_{1};
 };
 
 //---------------------------------------------------------------------------//
@@ -523,12 +547,23 @@ TEST_F(SurfacePhysicsIntegrationBackPaintedTest, backpainted)
 // Step iterations during a surface crossing count toward the track's steps
 TEST_F(SurfacePhysicsIntegrationLayeredStepsTest, num_steps)
 {
-    CollectNumSteps result;
-    this->create_collector(result);
-    this->initialize_run();
-    this->run_step(RealTurn{0});
+    EXPECT_EQ(std::vector<size_type>(100, 3), this->run_num_steps());
+}
 
-    EXPECT_EQ(std::vector<size_type>(100, 3), result.num_steps);
+//---------------------------------------------------------------------------//
+// Two surface iterations per step: backscatter happens in the first step
+TEST_F(SurfacePhysicsIntegrationLayeredStepsTest, two_substeps)
+{
+    surface_substeps_ = 2;
+    EXPECT_EQ(std::vector<size_type>(100, 2), this->run_num_steps());
+}
+
+//---------------------------------------------------------------------------//
+// Enough surface iterations to cross the layered surface in a single step
+TEST_F(SurfacePhysicsIntegrationLayeredStepsTest, three_substeps)
+{
+    surface_substeps_ = 3;
+    EXPECT_EQ(std::vector<size_type>(100, 1), this->run_num_steps());
 }
 
 //---------------------------------------------------------------------------//
