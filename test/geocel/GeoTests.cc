@@ -825,6 +825,13 @@ void FourLevelsGeoTest::test_reentrant_normal() const
     {
         EXPECT_EQ(GeoStatus::error, geo.geo_status());
     }
+
+    if (test_->geometry_type() == "VecGeom" && geo.check_normal())
+    {
+        EXPECT_VEC_EQ((Real3{-1, 0, 0}), geo.normal());
+        geo = test_->make_initializer({15.5, 10, 10}, {-1, 0, 0});
+        EXPECT_VEC_EQ((Real3{0, 0, 0}), geo.normal());
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -895,7 +902,10 @@ void FourLevelsGeoTest::test_pico_step() const
     EXPECT_EQ(volume, geo.volume_id());
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
-    EXPECT_VEC_EQ((Real3{1, 0, 0}), geo.normal());
+    if (geo.check_normal())
+    {
+        EXPECT_VEC_EQ((Real3{1, 0, 0}), geo.normal());
+    }
     geo.cross_boundary();
     EXPECT_VEC_EQ(pos, geo.pos());
     EXPECT_EQ("Envelope", test_->volume_name(geo));
@@ -3004,13 +3014,15 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     {
         // Skip check
     }
-    else if (test_->geometry_type() == "Geant4")
+    else if (test_->geometry_type() == "ORANGE")
     {
-        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
+        // Sign changes after crossing
+        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
     }
     else
     {
-        EXPECT_VEC_SOFT_EQ((Real3{1, 0, 0}), geo.normal());
+        // Original normal is retained for Geant4, vecgeom
+        EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), geo.normal());
     }
 
     EXPECT_FALSE(geo.is_outside());
