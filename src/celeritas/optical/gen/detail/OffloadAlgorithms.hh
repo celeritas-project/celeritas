@@ -17,7 +17,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/WavelengthShiftData.hh"
 
 #include "../GeneratorData.hh"
 
@@ -27,7 +26,6 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 using celeritas::optical::GeneratorDistributionData;
-using celeritas::optical::WlsDistributionData;
 
 template<class T, MemSpace M>
 using ItemsRef = Collection<T, Ownership::reference, M>;

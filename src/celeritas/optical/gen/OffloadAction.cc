@@ -106,8 +106,11 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
 
     // Compact the buffer, returning the total number of valid distributions
     size_type start = buffer_size;
-    buffer_size = detail::remove_if_invalid(
+    auto counters = gen_state.counters;
+    counters.buffer_size = detail::remove_if_invalid(
         buffer, start, start + core_state.size(), core_state.stream_id());
+    gen_state.assign(counters);
+    gen_state.needs_scan = true;
 
     // Count the number of optical photons that would be generated from the
     // distributions created in this step and update the number of pending

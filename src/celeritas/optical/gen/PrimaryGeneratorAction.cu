@@ -30,16 +30,16 @@ void PrimaryGeneratorAction::generate(CoreParams const& params,
 {
     CELER_EXPECT(state.aux());
 
-    auto const& aux_state = this->counters(*state.aux());
+    auto& aux_state = this->counter_state<MemSpace::device>(*state.aux());
 
     // Generate optical photons in vacant track slots
     detail::PrimaryGeneratorExecutor execute{params.ptr<MemSpace::native>(),
                                              state.ptr(),
                                              data_,
-                                             params_.device_ref()};
+                                             params_.device_ref(),
+                                             aux_state.device_counters()};
     static ActionLauncher<decltype(execute)> const launch(*this);
-    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
-    launch(num_gen, state.stream_id(), execute);
+    launch(state, execute);
 }
 
 //---------------------------------------------------------------------------//
