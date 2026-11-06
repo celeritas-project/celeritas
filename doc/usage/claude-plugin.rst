@@ -27,10 +27,9 @@ install the plugin:
 
 The marketplace follows the default branch unless a tag is given. To match the
 skills to an installed Celeritas release, pin the marketplace to that
-release's tag, e.g. ``/plugin marketplace add
-celeritas-project/celeritas@vX.Y.Z``. Only releases made after the plugin was
-added contain it. Claude Code does not automatically update third-party
-marketplaces: run ``/plugin marketplace update celeritas`` to pick up changes.
+release's tag, e.g. ``/plugin marketplace add celeritas-project/celeritas#vX.Y.Z``.
+Claude Code does not automatically update third-party marketplaces:
+run ``/plugin marketplace update celeritas`` to pick up changes.
 
 Skills
 ------
