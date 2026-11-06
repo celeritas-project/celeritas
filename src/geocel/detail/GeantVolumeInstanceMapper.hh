@@ -16,6 +16,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class G4NavigationHistory;
 
 namespace celeritas
 {
@@ -85,6 +86,13 @@ class GeantVolumeInstanceMapper
 
     void update_replica(G4PV&, VolumeInstanceId) const;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Get the navigation depth of a G4 navigation path: 0 for outside, 1 for world
+VolumeLevelId get_num_volume_levels(G4NavigationHistory const& nav);
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)

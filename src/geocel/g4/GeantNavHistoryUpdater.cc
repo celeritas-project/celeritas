@@ -37,22 +37,13 @@ void GeantNavHistoryUpdater::operator()(Span<VolumeInstanceId const> stack,
     CELER_EXPECT(std::all_of(stack.begin(), stack.end(), Identity{}));
     CELER_EXPECT(nav);
 
-    // Access the nav level (depth) if not outside
-    auto get_nav_level
-        = [nav] { return id_cast<VolumeLevelId>(nav->GetDepth() + 1); };
-
-    VolumeLevelId level{0};
-    auto end_level
-        = std::min(id_cast<VolumeLevelId>(stack.size()), get_nav_level());
-    if (CELER_UNLIKELY(end_level == VolumeLevelId{1}
-                       && nav->GetTopVolume() == nullptr))
-    {
-        // G4 history represents an "outside" volume as depth-1 with nullptr
-        end_level = VolumeLevelId{0};
-    }
+    auto const init_nav_levels = detail::get_num_volume_levels(*nav);
 
     // Loop deeper until stack and nav disagree (note that the nav encodes the
     // replica ID for parameterised volumes)
+    VolumeLevelId level{0};
+    auto end_level
+        = std::min(init_nav_levels, id_cast<VolumeLevelId>(stack.size()));
     while (level != end_level
            && (mapper_.geant_to_id(*nav, level) == stack[*level]))
     {
@@ -75,11 +66,11 @@ void GeantNavHistoryUpdater::operator()(Span<VolumeInstanceId const> stack,
             nav->SetFirstEntry(nullptr);
         }
     }
-    else if (level < get_nav_level())
+    else if (level < init_nav_levels)
     {
         // Decrease nav stack to the parent's level
-        nav->BackLevel(get_nav_level() - level);
-        CELER_ASSERT(get_nav_level() == level);
+        nav->BackLevel(init_nav_levels - level);
+        CELER_ASSERT(detail::get_num_volume_levels(*nav) == level);
     }
 
     // Add all remaining levels: see G4Navigator::LocateGlobalPoint
@@ -93,9 +84,8 @@ void GeantNavHistoryUpdater::operator()(Span<VolumeInstanceId const> stack,
     }
 
     // Depth will match unless it's empty
-    CELER_ENSURE(get_nav_level() == id_cast<VolumeLevelId>(stack.size())
-                 || (stack.empty() && nav->GetDepth() == 0
-                     && nav->GetTopVolume() == nullptr));
+    CELER_ENSURE(level == id_cast<VolumeLevelId>(stack.size()));
+    CELER_ENSURE(detail::get_num_volume_levels(*nav) == level);
 }
 
 //---------------------------------------------------------------------------//
