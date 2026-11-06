@@ -128,7 +128,7 @@ jobs:
                 } catch (error) {
                   return this.handleError(error, cache, attempt);
                 }
-                return "success";
+                return "deleted";
               }
 
               async delete(cache) {
