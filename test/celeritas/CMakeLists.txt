@@ -488,6 +488,7 @@ celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest offload)
 celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest direct)
 celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary)
+celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary_grow_wls)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
