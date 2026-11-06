@@ -277,10 +277,14 @@ CMake variables
 
 :samp:`CELERITAS_BUILTIN_{package}`
   Force a package to be built from an internally downloaded copy (when true/on)
-  or externally installed code (when false/off).
+  or externally installed code (when false/off). This automatically defaults based
+  on whether the package is found externally.
 
-:samp:`CELERITAS_BUILD_{DOCS|TESTS}`
-  Build optional documentation and/or tests.
+:samp:`CELERITAS_BUILD_{APPS|DOCS|TESTS}`
+  Build applications, documentations, and/or unit tests.
+
+:samp:`CELERITAS_ENABLE_TESTING`
+  Activate CTest testing.
 
 ``CELERITAS_CORE_GEO``
   Select the geometry package used by the Celeritas stepping loop. Valid

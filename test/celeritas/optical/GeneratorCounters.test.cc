@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/sys/ActionGroups.hh"
 #include "corecel/sys/Device.hh"
@@ -24,6 +25,7 @@
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/Transporter.hh"
+#include "celeritas/optical/WavelengthShiftData.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
@@ -430,7 +432,6 @@ TEST_F(WlsSlabGeneratorCountersTest, primary)
     // Create primary generator input with WLS enabled
     osi_.geant_setup.wavelength_shifting.emplace();
     osi_.geant_setup.wavelength_shifting2.emplace();
-    osi_.problem.capacity.generators = 32;
     osi_.problem.generator = [] {
         inp::OpticalPrimaryGenerator gen;
         gen.primaries = 49;
@@ -490,6 +491,66 @@ TEST_F(WlsSlabGeneratorCountersTest, primary)
     {
         EXPECT_REF_EQ(expected_counts, counts);
     }
+}
+
+TEST_F(WlsSlabGeneratorCountersTest, primary_grow_wls)
+{
+    // Use a small initial buffer capacity so the buffer must grow
+    constexpr size_type num_track_slots = 4;
+    constexpr size_type initial_capacity = 4;
+
+    osi_.geant_setup.wavelength_shifting.emplace();
+    osi_.geant_setup.wavelength_shifting2.emplace();
+    osi_.problem.capacity.generators = initial_capacity;
+    osi_.problem.generator = [] {
+        inp::OpticalPrimaryGenerator gen;
+        gen.primaries = 49;
+        gen.energy = inp::MonoenergeticDistribution{9.5e-6};
+        gen.angle = inp::IsotropicDistribution{};
+        gen.shape = inp::PointDistribution{{0, 0, 0}};
+        return gen;
+    }();
+
+    // Construct the params and state
+    auto loaded = setup::standalone_input(osi_);
+    auto const& params = *loaded.problem.transporter->params();
+    auto state = this->make_state(params, num_track_slots);
+
+    // Create and insert optical distribution data.
+    auto generator = std::dynamic_pointer_cast<PrimaryGeneratorAction>(
+        loaded.problem.generator);
+    ASSERT_TRUE(generator);
+    generator->insert(*state);
+
+    auto const* wls_aux = dynamic_cast<AuxParamsInterface const*>(
+        params.gen_reg()->at(params.gen_reg()->find("wls-generate")).get());
+    ASSERT_TRUE(wls_aux);
+
+    // Get the current capacity of the WLS distribution buffer
+    auto get_capacity = [&aux = *state->aux(), id = wls_aux->aux_id()] {
+        return celeritas::device()
+                   ? get<WlsGeneratorState<MemSpace::device>>(aux, id).store.size()
+                   : get<WlsGeneratorState<MemSpace::host>>(aux, id).store.size();
+    };
+    EXPECT_EQ(initial_capacity, get_capacity());
+
+    auto counts = this->run(params, *state);
+
+    // Check that the WLS distribution buffer grew from its initial capacity
+    size_type capacity = get_capacity();
+    EXPECT_GT(capacity, initial_capacity);
+    if (Test::is_reference_rng)
+    {
+        // Doubled once from the initial capacity
+        EXPECT_EQ(2 * initial_capacity, capacity);
+    }
+
+    // All queued WLS photons were generated without errors
+    auto const& wls = counts.gen.at("wls-generate");
+    EXPECT_EQ(wls.accum_pending.back(), wls.accum_generated.back());
+    EXPECT_GT(wls.accum_generated.back(), 0);
+    EXPECT_EQ(0, counts.pending.back());
+    EXPECT_EQ(0, counts.errored.back());
 }
 
 TEST_F(LarSphereGeneratorCountersTest, direct)

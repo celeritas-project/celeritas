@@ -7,9 +7,11 @@
 #pragma once
 
 #include <numeric>
+#include <utility>
 #include <vector>
 
 #include "Collection.hh"
+#include "CollectionBuilder.hh"
 #include "Copier.hh"
 #include "Filler.hh"
 
@@ -50,6 +52,44 @@ void fill_sequence(Collection<T, W, M, I>* dst, StreamId stream)
     std::iota(src.begin(), src.end(), T{0});
     Copier<T, M> copy{(*dst)[AllItems<T, M>{}], stream};
     copy(MemSpace::host, make_span(src));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reallocate the collection with a larger capacity.
+ *
+ * The first \c num_used elements are copied into the new storage. On device,
+ * the allocation, copy, and release of the old storage are all ordered on the
+ * given stream, so the stream must order this after any kernels using the
+ * collection.
+ *
+ * \warning This invalidates all references, spans, and pointers to the
+ * collection's data, including copies in device memory. The caller must
+ * update them before they are used again.
+ */
+template<class T, MemSpace M, class I>
+void reserve(Collection<T, Ownership::value, M, I>* col,
+             size_type num_used,
+             size_type capacity,
+             StreamId stream)
+{
+    CELER_EXPECT(col);
+    CELER_EXPECT(num_used <= col->size());
+    CELER_EXPECT(capacity > col->size());
+    CELER_EXPECT(stream);
+
+    Collection<T, Ownership::value, M, I> result;
+    resize(&result, capacity, stream);
+
+    if (num_used > 0)
+    {
+        Range<I> used{I{0}, I{num_used}};
+        Copier<T, M> copy{result[used], stream};
+        copy(M, (*col)[used]);
+    }
+    *col = std::move(result);
+
+    CELER_ENSURE(col->size() == capacity);
 }
 
 //---------------------------------------------------------------------------//

@@ -28,15 +28,16 @@ celeritas_target_link_libraries(celer-geo ${LIBRARIES})
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT BUILD_TESTING)
+if(NOT CELERITAS_ENABLE_TESTING)
   return()
 endif()
 
 set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/test-harness.py")
 set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
+set(_exe "$<TARGET_FILE:celer-geo>")
 set(_env
   ${CELER_PYTHONENV}
-  "CELERITAS_EXE=$<TARGET_FILE:celer-geo>"
+  "CELERITAS_EXE=${_exe}"
   "CELER_DISABLE_PARALLEL=1"
 )
 set(_props
@@ -64,7 +65,7 @@ function(celer_app_test ext)
 
   set_tests_properties("app/celer-geo:${ext}" PROPERTIES
     ENVIRONMENT "${_env};${_extra_env}"
-    REQUIRED_FILES "${_driver};${_model}"
+    REQUIRED_FILES "${_driver};${_exe};${_model}"
     LABELS "${_labels}"
     ${_props} ${_extra_props}
   )

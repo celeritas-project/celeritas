@@ -223,7 +223,7 @@ inline void copy_collection(
 
         // Copy across memory boundary with raw pointer/size
         // (cannot use make_span since dst could be DeviceVector)
-        Copier<T, DM> copy_to_dst{{dst->data(), dst->size()}};
+        Copier<T, DM> copy_to_dst{{dst->data(), dst->size()}, StreamId{}};
         copy_to_dst(SM, src);
     }
 }

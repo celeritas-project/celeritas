@@ -68,8 +68,7 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < primaries.size() || tid < state->size());
 
-    size_type num_initializers
-        = state->init.counters.data().get()->num_initializers;
+    size_type num_initializers = state->init.counters.data()->num_initializers;
 
     // Only state.size() threads participate in this grid-stride loop.
     // Additional threads may be launched to process a larger set of primaries:

@@ -31,6 +31,12 @@ ActionGroups<P, S>::ActionGroups(ActionRegistry const& reg)
             // Add stepping action to our array
             step_actions_.push_back(std::move(step_act));
         }
+        if (auto end_act
+            = std::dynamic_pointer_cast<EndTransportActionT const>(base))
+        {
+            // Add end-of-transport action to our array
+            end_transport_.push_back(std::move(end_act));
+        }
     }
 
     // Loop over all mutable actions

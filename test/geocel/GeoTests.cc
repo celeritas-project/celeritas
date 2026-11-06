@@ -17,6 +17,7 @@
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/BoundingBox.hh"
@@ -2291,6 +2292,7 @@ void SolidsGeoTest::test_trace() const
                 ref.halfway_safeties[7] = 33.070197064425;
             }
         }
+        auto tol = test_->tracking_tol();
         if (test_->geometry_type() == "VecGeom"
             || (CELERITAS_GEANT4_USOLIDS && test_->geometry_type() == "Geant4"))
         {
@@ -2298,8 +2300,20 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[4] = 17.4966506197896;
             ref.halfway_safeties[6] = 17.5;
             ref.halfway_safeties[8] = 29.1115376091067;
-            ref.halfway_safeties[14] = 19.0382940808067;
             ref.halfway_safeties[15] = 0.5;
+
+            // VecGeom 2.2.0 and older use the infinite extension of the
+            // lower genPocone1 section, underestimating its safety. Upstream
+            // master (VecGeom@39d29437) returns the exact safety but still
+            // reports version 2.2.0, so accept either value.
+            constexpr real_type old_genpoly_safety = 19.0382940808067;
+            if (vecgeom_version() <= Version{2, 2, 0}
+                && result.halfway_safeties.size() > 14
+                && SoftEqual{tol.safety, tol.safety}(
+                    old_genpoly_safety, result.halfway_safeties[14]))
+            {
+                ref.halfway_safeties[14] = old_genpoly_safety;
+            }
 
             if (vecgeom_version() < Version{2, 0})
             {
@@ -2315,7 +2329,6 @@ void SolidsGeoTest::test_trace() const
         }
         delete_orange_safety(*test_, ref, result);
 
-        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {
