@@ -6,14 +6,18 @@
 //---------------------------------------------------------------------------//
 #include "GeantPhysicsLoader.hh"
 
+#include <algorithm>
 #include <typeindex>
 #include <unordered_map>
 #include <G4Cerenkov.hh>
+#include <G4Decay.hh>
+#include <G4DecayTable.hh>
 #include <G4ElementData.hh>
 #include <G4Material.hh>
 #include <G4MaterialPropertiesTable.hh>
 #include <G4MuPairProduction.hh>
 #include <G4MuPairProductionModel.hh>
+#include <G4MuonDecayChannel.hh>
 #include <G4MuonMinusAtomicCapture.hh>
 #include <G4OpAbsorption.hh>
 #include <G4OpBoundaryProcess.hh>
@@ -21,6 +25,7 @@
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
 #include <G4Scintillation.hh>
+#include <G4VDecayChannel.hh>
 #include <G4VProcess.hh>
 #include <G4Version.hh>
 
@@ -48,6 +53,7 @@
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
 #include "celeritas/optical/Types.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantMaterialPropertyGetter.hh"
 #include "GeantOpticalMatHelper.hh"
@@ -178,14 +184,6 @@ GeantPhysicsLoader::GeantPhysicsLoader(ImportData& imported,
  */
 bool GeantPhysicsLoader::operator()(G4VProcess const& p)
 {
-    if (!visited_.insert(&p).second)
-    {
-        // Already inserted
-        CELER_LOG(debug) << "Already loaded process \"" << p.GetProcessName()
-                         << "\"";
-        return true;
-    }
-
     using MemberFuncPtr = size_type (GeantPhysicsLoader::*)(G4VProcess const&);
     using PairNameMfptr = std::pair<char const*, MemberFuncPtr>;
     using TypeHandlerMap = std::unordered_map<std::type_index, PairNameMfptr>;
@@ -236,6 +234,17 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
         return false;
     }
 
+    if (!visited_.insert(&p).second)
+    {
+        // Already loaded (a process may be shared by several particles). Only
+        // recognized processes are tracked so that a shared unrecognized
+        // process, such as decay, is passed to the other loaders for each
+        // particle.
+        CELER_LOG(debug) << "Already loaded process \"" << p.GetProcessName()
+                         << "\"";
+        return true;
+    }
+
     size_type result{0};
     try
     {
@@ -270,6 +279,7 @@ bool GeantPhysicsLoader::operator()(GeantParticleView const& particle,
 
     // clang-format off
     static TypeHandlerMap const type_to_handler{
+        GPL_TYPE_FUNC(G4Decay,            decay),
         GPL_TYPE_FUNC(G4MuPairProduction, mu_pair_production),
     };
     // clang-format on
@@ -589,6 +599,46 @@ size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load per-particle decay channels.
+ *
+ * Only muon decay through a single \c G4MuonDecayChannel is supported: it is
+ * enabled for the particle if found. Decay of any other particle or through
+ * any other channel is skipped with a warning.
+ */
+size_type GeantPhysicsLoader::decay(GeantParticleView const& particle,
+                                    G4VProcess const&)
+{
+    PDGNumber const pdg = particle.pdg();
+    G4DecayTable const* table = particle.definition().GetDecayTable();
+
+    bool const is_supported = [&] {
+        if (!table || !(pdg == pdg::mu_minus() || pdg == pdg::mu_plus()))
+        {
+            return false;
+        }
+        return table->entries() == 1
+               && dynamic_cast<G4MuonDecayChannel const*>(
+                   table->GetDecayChannel(0));
+    }();
+    if (!is_supported)
+    {
+        CELER_LOG(warning) << "Ignoring unsupported decay of particle '"
+                           << particle.name() << "'";
+        return 0;
+    }
+
+    auto& parents = imported_.decay_physics.muon.parents;
+    if (std::find(parents.begin(), parents.end(), pdg) != parents.end())
+    {
+        // Already loaded
+        return 0;
+    }
+    parents.push_back(pdg);
+    return 1;
 }
 
 //---------------------------------------------------------------------------//

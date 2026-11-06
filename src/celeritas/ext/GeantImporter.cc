@@ -174,6 +174,8 @@ struct ProcessFilter
                 return (which & DataSelection::optical);
             case G4ProcessType::fHadronic:
                 return (which & DataSelection::hadron);
+            case G4ProcessType::fDecay:
+                return (which & DataSelection::em);
             default:
                 return false;
         }
@@ -726,7 +728,8 @@ auto import_processes(GeantImporter::DataSelection selected,
         // Load per-particle data (runs alongside process-level loader)
         // TODO: should call legacy_import_process if needed, and return early
         // if data is imported
-        load_physics(GeantParticleView{particle}, process);
+        bool const loaded_particle
+            = load_physics(GeantParticleView{particle}, process);
 
         // TODO: move implementation to GeantPhysicsLoader
         if (auto const* gg_process
@@ -770,7 +773,7 @@ auto import_processes(GeantImporter::DataSelection selected,
                               std::make_move_iterator(new_msc_models.begin()),
                               std::make_move_iterator(new_msc_models.end()));
         }
-        else
+        else if (!loaded_particle)
         {
             CELER_LOG(error)
                 << "Cannot load unknown process '" << process.GetProcessName()

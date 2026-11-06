@@ -69,6 +69,11 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
             Process const& p = *physics_->process(id);
             label.push_back(p.label());
         }
+        if (auto const& decay = physics_->decay_process())
+        {
+            // Decay is the last process
+            label.push_back(decay->label());
+        }
         obj["processes"] = {{"label", std::move(label)}};
     }
 

@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "corecel/inp/Grid.hh"
+#include "celeritas/inp/DecayPhysics.hh"
 #include "celeritas/inp/Particle.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/PhysicsModel.hh"
@@ -110,6 +111,7 @@ struct ImportData
 
     // Physics groups
     inp::OpticalPhysics optical_physics;  //! DISABLE ROOT
+    inp::DecayPhysics decay_physics;
 
     // Muon-catalyzed fusion
     inp::MucfPhysics mucf_physics;

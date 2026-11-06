@@ -36,6 +36,7 @@
 
 
 // Input data
+#pragma link C++ class celeritas::inp::DecayPhysics+;
 #pragma link C++ class celeritas::inp::Grid+;
 #pragma link C++ class celeritas::inp::Interpolation+;
 #pragma link C++ class celeritas::inp::MucfAtomTransferRate+;
@@ -43,6 +44,7 @@
 #pragma link C++ class celeritas::inp::MucfCycleRate+;
 #pragma link C++ class celeritas::inp::MucfPhysics+;
 #pragma link C++ class celeritas::inp::MucfScalars+;
+#pragma link C++ class celeritas::inp::MuonDecay+;
 #pragma link C++ class celeritas::inp::MuPairProductionEnergyTransferTable+;
 #pragma link C++ class celeritas::inp::Particle+;
 #pragma link C++ class celeritas::inp::TwodGrid+;

@@ -81,6 +81,7 @@ bool ignore_particle(PDGNumber pdg)
  */
 PhysicsParams::PhysicsParams(Input inp)
     : processes_(std::move(inp.processes))
+    , decay_(std::move(inp.decay))
     , relaxation_(std::move(inp.relaxation))
 {
     CELER_EXPECT(!processes_.empty());
@@ -135,6 +136,10 @@ PhysicsParams::PhysicsParams(Input inp)
             "mark a track that failed to sample an interaction");
         inp.action_registry->insert(failure_action);
         failure_action_ = std::move(failure_action);
+
+        // Emit decay channels after the failure action (which is offset
+        // from the first model action)
+        channels_ = this->build_channels(inp.action_registry);
     }
 
     // Construct data
@@ -222,6 +227,29 @@ auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
 
     CELER_ENSURE(!models.empty());
     return models;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct decay channels and add them to the action registry.
+ */
+auto PhysicsParams::build_channels(ActionRegistry* mgr) const -> VecChannel
+{
+    if (!decay_)
+    {
+        return {};
+    }
+
+    auto id_iter = Process::ActionIdIter{mgr->next_id()};
+    auto result = decay_->build_channels(id_iter);
+    CELER_ASSERT(!result.empty());
+    for (auto const& channel : result)
+    {
+        CELER_ASSERT(channel);
+        CELER_ASSERT(channel->action_id() == *id_iter++);
+        mgr->insert(channel);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -340,6 +368,27 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     make_builder(&data->model_ids)
         .insert_back(temp_model_ids.begin(), temp_model_ids.end());
 
+    // Add the decay process (which has no models) for decaying particles
+    std::vector<ActionId> decay_actions(particles.size());
+    if (decay_)
+    {
+        data->scalars.decay = ProcessId(this->num_processes());
+        for (auto const& channel : channels_)
+        {
+            for (ParticleId pid : channel->parents())
+            {
+                CELER_ASSERT(pid < particles.size());
+                CELER_VALIDATE(!decay_actions[pid.get()],
+                               << "particle '" << particles.id_to_label(pid)
+                               << "' has more than one decay channel");
+                decay_actions[pid.get()] = channel->action_id();
+
+                // Register decay as a process with no models
+                particle_models[pid.get()][data->scalars.decay];
+            }
+        }
+    }
+
     CollectionBuilder process_groups(&data->process_groups);
     CollectionBuilder process_ids(&data->process_ids);
     CollectionBuilder model_groups(&data->model_groups);
@@ -372,6 +421,13 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             temp_processes.push_back(pid_models.first);
 
             std::vector<ModelRange>& models = pid_models.second;
+            if (pid_models.first == data->scalars.decay)
+            {
+                // Decay has no models
+                CELER_ASSERT(models.empty());
+                temp_model_groups.push_back({});
+                continue;
+            }
             CELER_ASSERT(!models.empty());
 
             // Construct model data
@@ -412,6 +468,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
                                                   temp_processes.end());
         pdata.models = model_groups.insert_back(temp_model_groups.begin(),
                                                 temp_model_groups.end());
+        pdata.decay_action = decay_actions[par_id.get()];
 
         // It's ok to have particles defined in the problem that do not have
         // any processes (if they are ever created, they will just be
@@ -545,8 +602,16 @@ void PhysicsParams::build_tables(
         std::vector<IntegralXsProcess> temp_integral_xs(process_ids.size());
 
         // Loop over per-particle processes
+        ParticleProcessId decay_ppid;
         for (auto pp_idx : range(process_ids.size()))
         {
+            if (process_ids[pp_idx] == data->scalars.decay)
+            {
+                // Decay rates are calculated on the fly: no tables
+                decay_ppid = ParticleProcessId(pp_idx);
+                continue;
+            }
+
             // Get energy bounds for this process
             auto energy_grid = data->reals[model_groups[pp_idx].energy];
             applic.lower = Energy{energy_grid.front()};
@@ -572,11 +637,14 @@ void PhysicsParams::build_tables(
 
             if (proc.applies_at_rest())
             {
-                /* \todo For now assume only one process per particle applies
-                 * at rest. If a particle has multiple at-rest processes, we
-                 * will need to check which process has the shortest time to
-                 * interaction and choose that process in \c
-                 * select_discrete_interaction.
+                /* At-rest interaction processes are selected immediately
+                 * when the particle stops, with no sampled time to
+                 * interaction, so only one per particle is allowed and it
+                 * takes priority over decay at rest.
+                 *
+                 * \todo If processes with a nonzero time to interaction at
+                 * rest are added, sample each one's time and choose the
+                 * shortest in \c select_discrete_interaction.
                  */
                 CELER_VALIDATE(!process_group.at_rest,
                                << "particle ID " << particle_id.get()
@@ -672,6 +740,14 @@ void PhysicsParams::build_tables(
             temp_integral_xs[pp_idx].energy_max_xs = reals.insert_back(
                 energy_max_xs.begin(), energy_max_xs.end());
         }
+
+        if (decay_ppid && !process_group.at_rest)
+        {
+            // Decay at rest only if no other process applies at rest
+            CELER_ASSERT(decay_->applies_at_rest());
+            process_group.at_rest = decay_ppid;
+        }
+
         // Construct energy loss process data
         process_group.integral_xs = integral_xs.insert_back(
             temp_integral_xs.begin(), temp_integral_xs.end());

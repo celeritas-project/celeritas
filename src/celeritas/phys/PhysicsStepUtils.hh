@@ -93,9 +93,9 @@ inline CELER_FUNCTION ParticleProcessId find_ppid(
  * Processes with integral cross section rejection calculate an estimated
  * "maximum" over the step: see PhysicsTrackView.calc_max_xs .
  *
- * \todo For particles with decay, macro XS calculation will incorporate
- * decay probability, dividing decay constant by speed to become 1/len to
- * compete with interactions.
+ * The decay process competes with interactions using the inverse of the
+ * particle's mean decay length as its "cross section." It is zero for a
+ * stopped particle, which instead decays through the at-rest process.
  *
  * \todo For neutral particles that haven't changed material since the last
  * step, we can reuse the previously calculated cross section (but may not want
@@ -115,7 +115,15 @@ inline CELER_FUNCTION StepLimit calc_physics_step_limit(
     for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
     {
         real_type process_xs = 0;
-        if (auto const& process = physics.integral_xs_process(ppid))
+        if (physics.process(ppid) == physics.scalars().decay)
+        {
+            // Decay rate per unit length is independent of the material
+            if (!particle.is_stopped())
+            {
+                process_xs = 1 / particle.decay_length();
+            }
+        }
+        else if (auto const& process = physics.integral_xs_process(ppid))
         {
             // If the integral approach is used and this particle has an energy
             // loss process, estimate the maximum cross section over the step
@@ -134,7 +142,8 @@ inline CELER_FUNCTION StepLimit calc_physics_step_limit(
         pstep.per_process_xs(ppid) = process_xs;
     }
     pstep.macro_xs(total_macro_xs);
-    CELER_ASSERT(total_macro_xs > 0 || !particle.is_stopped());
+    CELER_ASSERT(total_macro_xs > 0 || !particle.is_stopped()
+                 || physics.at_rest_process());
 
     // Determine limits from discrete interactions
     StepLimit limit;
@@ -297,13 +306,21 @@ CELER_FUNCTION ActionId select_discrete_interaction(
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);
-    CELER_EXPECT(pstep.macro_xs() > 0);
+    CELER_EXPECT(pstep.macro_xs() > 0
+                 || (particle.is_stopped() && physics.at_rest_process()));
 
     // Sample the process from the pre-calculated cross sections
     auto ppid = find_ppid(material, particle, physics, pstep, rng);
     if (!ppid)
     {
         return physics.scalars().integral_rejection_action();
+    }
+
+    if (physics.process(ppid) == physics.scalars().decay)
+    {
+        // Decay through the particle's decay channel
+        CELER_ASSERT(physics.decay_action());
+        return physics.decay_action();
     }
 
     // Find the model that applies at the particle energy

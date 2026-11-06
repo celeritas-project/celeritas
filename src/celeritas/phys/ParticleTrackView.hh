@@ -13,6 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 
 #include "ParticleData.hh"
@@ -112,6 +113,9 @@ class ParticleTrackView
 
     // Relativistic momentum squared [MeV^2 / c^2]
     inline CELER_FUNCTION MomentumSq momentum_sq() const;
+
+    // Mean distance traveled before decaying [len]
+    inline CELER_FUNCTION real_type decay_length() const;
 
   private:
     ParamsRef const& params_;
@@ -384,6 +388,22 @@ CELER_FUNCTION auto ParticleTrackView::momentum_sq() const -> MomentumSq
 CELER_FUNCTION auto ParticleTrackView::momentum() const -> Momentum
 {
     return Momentum{std::sqrt(this->momentum_sq().value())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Mean distance traveled before decaying [len].
+ *
+ * This is \f$ \beta \gamma c \tau = \frac{p}{m} \frac{c}{\lambda} \f$, where
+ * \f$ \lambda \f$ is the decay constant. It is zero for a particle at rest.
+ */
+CELER_FUNCTION real_type ParticleTrackView::decay_length() const
+{
+    CELER_EXPECT(this->mass() > zero_quantity());
+    CELER_EXPECT(!this->is_stable());
+
+    return value_as<Momentum>(this->momentum()) / value_as<Mass>(this->mass())
+           * constants::c_light / this->decay_constant();
 }
 
 //---------------------------------------------------------------------------//

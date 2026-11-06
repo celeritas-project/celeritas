@@ -154,6 +154,8 @@ celeritas_add_test(Json.test.cc LINK_LIBRARIES nlohmann_json::nlohmann_json)
 #-----------------------------------------------------------------------------#
 # Decay
 
+celeritas_add_test(decay/DecayProcess.test.cc)
+
 # Muon
 celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
@@ -215,6 +217,7 @@ set(_import_filter
   "FourSteelSlabs*"
   "LarSphere.*"
   "LarSphereExtramat.*"
+  "MuDecaySlabs.*"
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
   "Solids.*"
