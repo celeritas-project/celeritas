@@ -90,7 +90,6 @@ jobs:
                 this.backoffUntil = 0;
                 this.delay = delay;
                 this.maxRetries = maxRetries;
-                this.numDeleted = 0;
               }
 
               async waitForBackoff(cache) {
@@ -104,7 +103,7 @@ jobs:
               handleError(error, cache, attempt) {
                 if (!error.message?.includes("wait a few minutes")) {
                   core.setFailed(`Failed to delete cache ${cache.key}: ${error}`);
-                  return false;
+                  return "fail";
                 }
 
                 // Rate limits delay subsequent deletions as well as retries.
@@ -113,9 +112,9 @@ jobs:
                 this.delay *= 2;
                 if (attempt === this.maxRetries) {
                   core.setFailed(`Max retries (${this.maxRetries}) reached for cache ${cache.key}`);
-                  return false;
+                  return "abort";
                 }
-                return true;
+                return "retry";
               }
 
               async deleteAttempt(cache, attempt) {
@@ -129,15 +128,16 @@ jobs:
                 } catch (error) {
                   return this.handleError(error, cache, attempt);
                 }
-                ++this.numDeleted;
-                return true;
+                return "success";
               }
 
               async delete(cache) {
                 for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
                   await this.waitForBackoff(cache);
-                  if (!(await this.deleteAttempt(cache, attempt))) {
-                    return;
+                  const result = await this.deleteAttempt(cache, attempt);
+                  core.debug(`${cache.key} -> ${result}`)
+                  if (result !== "retry") {
+                    return result;
                   }
                 }
               }
@@ -158,16 +158,16 @@ jobs:
               parameters,
               (response) => response.data,
             )
-            let numTotal = 0
-            let numMatched = 0
+            const counters = { total: 0, matched: 0 };
             for (const cache of caches) {
               if (keyFilter.test(cache.key) && refFilter.test(cache.ref)) {
-                await deleter.delete(cache);
-                ++numMatched;
+                const result = await deleter.delete(cache);
+                ++counters.matched;
+                counters[result] = (counters[result] ?? 0) + 1;
               }
-              ++numTotal;
+              ++counters.total;
             }
 
-            core.notice(`Cache entries: deleted ${deleter.numDeleted}, matched ${numMatched} of total ${numTotal}`)
+            core.notice(`Cache results: ${JSON.stringify(counters)}`)
 
 # vim: set nowrap tw=100:
