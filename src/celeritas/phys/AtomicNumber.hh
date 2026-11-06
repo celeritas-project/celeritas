@@ -70,6 +70,21 @@ class AtomicNumber
 
 #undef CELER_DEFINE_ATOMICNUMBER_CMP
 
+#if !CELER_DEVICE_COMPILE
+    //! Output an atomic number
+    friend std::ostream& operator<<(std::ostream& os, AtomicNumber num)
+    {
+        os << '{';
+        if (num)
+        {
+            os << num.get();
+        }
+        os << '}';
+        return os;
+    }
+
+#endif
+
   private:
     int value_{0};
 };
@@ -85,26 +100,6 @@ inline CELER_FUNCTION int AtomicNumber::get() const
     CELER_ENSURE(*this);
     return value_;
 }
-
-#if !CELER_DEVICE_COMPILE
-//---------------------------------------------------------------------------//
-// STREAMING
-//---------------------------------------------------------------------------//
-/*!
- * Output an atomic number.
- */
-inline std::ostream& operator<<(std::ostream& os, AtomicNumber num)
-{
-    os << '{';
-    if (num)
-    {
-        os << num.get();
-    }
-    os << '}';
-    return os;
-}
-
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
