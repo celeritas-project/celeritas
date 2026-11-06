@@ -76,7 +76,7 @@ auto DetectorAction::create_state(
     auto result = std::make_unique<DetectorActionState>();
     if (m == MemSpace::device)
     {
-        result->hits.emplace(size, stream);
+        result->hits = Hits(size, stream);
     }
 
     CELER_ENSURE(result);
@@ -123,11 +123,7 @@ void DetectorAction::step(CoreParams const&, CoreStateDevice&) const
 void DetectorAction::end_transport(CoreParams const&,
                                    CoreStateDevice& state) const
 {
-    auto& aux_state = get<DetectorActionState>(*state.aux(), aux_id_);
-    if (aux_state.hits)
-    {
-        this->flush_hits(*aux_state.hits);
-    }
+    this->flush_hits(get<DetectorActionState>(*state.aux(), aux_id_).hits);
 }
 
 //---------------------------------------------------------------------------//
@@ -148,23 +144,22 @@ auto DetectorAction::copy_hits_async(CoreStateDevice& state) const -> Hits&
         CELER_ASSERT_UNREACHABLE();
     }
 
-    auto& aux_state = get<DetectorActionState>(*state.aux(), aux_id_);
-    CELER_ASSERT(aux_state.hits);
+    auto& hits = get<DetectorActionState>(*state.aux(), aux_id_).hits;
+    CELER_ASSERT(hits);
 
     auto const num_slots = state.ref().detectors.detector_hits.size();
-    if (CELER_UNLIKELY(aux_state.hits->capacity() != num_slots))
+    if (CELER_UNLIKELY(hits.capacity() != num_slots))
     {
         // FIXME: we currently share a single aux state between core and optical
         // tracking loops, but they may have different number of tracks, so this
         // is an error. It basically amounts to doing a lazy resize.
         CELER_LOG(warning) << "FIXME: expected optical aux state to be size "
                            << num_slots << " but is actually size "
-                           << aux_state.hits->capacity();
-        this->flush_hits(*aux_state.hits);
-        aux_state.hits.emplace(num_slots, state.stream_id());
+                           << hits.capacity();
+        this->flush_hits(hits);
+        hits = Hits(num_slots, state.stream_id());
     }
 
-    auto& hits = *aux_state.hits;
     if (hits.has_compacted())
     {
         // The pinned output is reused by the next copy, so process it first

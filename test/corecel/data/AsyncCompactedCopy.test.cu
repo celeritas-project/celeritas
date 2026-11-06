@@ -13,8 +13,7 @@
 
 namespace celeritas
 {
-template void AsyncCompactedCopy<test::CompactTestItem>::compact_async(
-    ObserverPtr<test::CompactTestItem const, MemSpace::device>, size_type);
+template class AsyncCompactedCopy<test::CompactTestItem>;
 
 namespace test
 {
@@ -82,6 +81,76 @@ VecVecInt compacted_copy_test(VecVecInt const& batches)
         take_copied();
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Assign to a default-constructed copier, then replace its storage.
+ *
+ * Each batch has a different size and is taken before the next assignment.
+ */
+VecVecInt assign_test(VecVecInt const& batches)
+{
+    StreamId const stream_id{0};
+
+    AsyncCompactedCopy<CompactTestItem> copier;
+
+    VecVecInt result;
+    for (auto const& batch : batches)
+    {
+        auto const size = static_cast<size_type>(batch.size());
+        copier = AsyncCompactedCopy<CompactTestItem>(size, stream_id);
+        CELER_ASSERT(copier.capacity() == size);
+
+        std::vector<CompactTestItem> host_items;
+        for (int v : batch)
+        {
+            host_items.push_back(CompactTestItem{v});
+        }
+        DeviceVector<CompactTestItem> items(size);
+        items.copy_to_device(make_span(host_items));
+
+        copier.compact_async(make_observer(items), size);
+        copier.copy_async();
+
+        auto& out = result.emplace_back();
+        for (auto const& item : copier.take_copied())
+        {
+            out.push_back(item.value);
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Assign to a copier while a compaction and a copy are pending.
+ *
+ * This throws if assertions are enabled. Otherwise, the old storage must
+ * outlive the pending work, and the new storage must be usable.
+ */
+void assign_pending_test()
+{
+    StreamId const stream_id{0};
+    size_type const size = 1024;
+
+    DeviceVector<CompactTestItem> items(size);
+    std::vector<CompactTestItem> host_items(size, CompactTestItem{1});
+    items.copy_to_device(make_span(host_items));
+
+    AsyncCompactedCopy<CompactTestItem> copier(size, stream_id);
+    copier.compact_async(make_observer(items), size);
+    copier.copy_async();
+    copier.compact_async(make_observer(items), size);
+
+    copier = AsyncCompactedCopy<CompactTestItem>(size, stream_id);
+    CELER_VALIDATE(!copier.has_compacted() && !copier.has_copied(),
+                   << "assignment should replace the pipeline state");
+
+    copier.compact_async(make_observer(items), size);
+    copier.copy_async();
+    CELER_VALIDATE(copier.take_copied().size() == size,
+                   << "new storage should hold all items");
 }
 
 //---------------------------------------------------------------------------//

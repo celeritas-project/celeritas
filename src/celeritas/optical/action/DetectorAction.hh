@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <optional>
-
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AsyncCompactedCopy.hh"
 #include "corecel/data/AuxInterface.hh"
@@ -134,7 +132,7 @@ class DetectorAction final : public OpticalStepActionInterface,
 struct DetectorActionState : public AuxStateInterface
 {
     //! Compaction and copy of device hits
-    std::optional<AsyncCompactedCopy<DetectorHit>> hits;
+    AsyncCompactedCopy<DetectorHit> hits;
 };
 
 //---------------------------------------------------------------------------//

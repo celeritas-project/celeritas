@@ -6,20 +6,19 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <exception>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceEvent.hh"
-#include "corecel/sys/Stream.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "AsyncSnapshot.hh"
-#include "Copier.hh"
 #include "DeviceVector.hh"
 #include "ObserverPtr.hh"
 #include "PinnedAllocator.hh"
@@ -49,7 +48,10 @@ namespace celeritas
  * The scratch buffer and host output form a two-stage pipeline: the items of
  * step \em n+1 can be compacted while the items of step \em n are being
  * copied or processed. A single host output therefore suffices if the host
- * waits for each step to complete before starting the next one.
+ * waits for each step to complete before starting the next one. Those phases
+ * describe one set of items: each buffer has its own state, with the scratch
+ * \em free or \em compacted and the output \em empty or \em copied , and any
+ * combination of the two can occur.
  *
  * \code
     // At the end of step n
@@ -61,8 +63,9 @@ namespace celeritas
     copier.compact_async(device_items.data(), device_items.size());  // step n
    \endcode
  *
- * \c compact_async is defined in \c AsyncCompactedCopy.device.t.hh , which
- * must be included by the device source file that calls it.
+ * The device operations are defined in \c AsyncCompactedCopy.device.t.hh : one
+ * device source file must include it and explicitly instantiate this class for
+ * each item type.
  */
 template<class T>
 class AsyncCompactedCopy
@@ -87,8 +90,15 @@ class AsyncCompactedCopy
     // Wait for any pending compaction or copy before releasing buffers
     inline ~AsyncCompactedCopy();
 
-    // Prevent copying (the pinned output is the target of async copies)
-    CELER_DELETE_COPY_MOVE(AsyncCompactedCopy);
+    //!@{
+    //! Prevent copying and move construction
+    AsyncCompactedCopy(AsyncCompactedCopy const&) = delete;
+    AsyncCompactedCopy(AsyncCompactedCopy&&) = delete;
+    AsyncCompactedCopy& operator=(AsyncCompactedCopy const&) = delete;
+    //!@}
+
+    // Replace the storage, leaving the old storage to be released by the other
+    inline AsyncCompactedCopy& operator=(AsyncCompactedCopy&& other);
 
     //! Maximum number of items
     size_type capacity() const { return scratch_.size(); }
@@ -97,30 +107,50 @@ class AsyncCompactedCopy
     explicit operator bool() const { return !scratch_.empty(); }
 
     //! Whether compacted items are waiting to be copied
-    bool has_compacted() const { return compacted_pending_; }
+    bool has_compacted() const
+    {
+        return scratch_state_ == ScratchState::compacted;
+    }
 
     //! Whether copied items are waiting to be taken
-    bool has_copied() const { return copied_pending_; }
+    bool has_copied() const { return output_state_ == OutputState::copied; }
 
     // Enqueue compaction of the valid items on the stream
     void compact_async(ObserverPtr<T const, MemSpace::device> items,
                        size_type count);
 
     // Enqueue the copy of the compacted items on the memcpy stream
-    inline void copy_async();
+    void copy_async();
 
     // Wait for the copied items and release them to the caller
     inline SpanConstT take_copied();
 
   private:
+    //! State of the device scratch space (see the class documentation)
+    enum class ScratchState
+    {
+        free,  //!< Available for the next compaction
+        compacted,  //!< Holds compacted items awaiting a copy
+    };
+
+    //! State of the pinned host output (see the class documentation)
+    enum class OutputState
+    {
+        empty,  //!< Available for the next copy
+        copied,  //!< Holds copied items awaiting processing
+    };
+
     StreamId stream_;
     DeviceVector<T> scratch_;
     DeviceVector<size_type> num_selected_;
     AsyncSnapshot<size_type> host_num_selected_;
     VecT output_;
     DeviceEvent copied_{nullptr};
-    bool compacted_pending_{false};
-    bool copied_pending_{false};
+    ScratchState scratch_state_{ScratchState::free};
+    OutputState output_state_{OutputState::empty};
+
+    // Wait for any compaction or copy, logging any failure
+    void teardown_sync() noexcept;
 };
 
 //---------------------------------------------------------------------------//
@@ -143,6 +173,34 @@ AsyncCompactedCopy<T>::AsyncCompactedCopy(size_type capacity, StreamId stream)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Replace the storage, leaving the old storage to be released by the other.
+ *
+ * All items must have been taken, since any others would never reach the
+ * caller. If they haven't, in a release build the items are dropped, but the
+ * old storage is still safe from pending work: it is swapped into \c other ,
+ * whose destructor waits for any compaction or copy before releasing it. Any
+ * span previously returned by \c take_copied is invalidated.
+ */
+template<class T>
+auto AsyncCompactedCopy<T>::operator=(AsyncCompactedCopy&& other)
+    -> AsyncCompactedCopy&
+{
+    CELER_EXPECT(!this->has_compacted() && !this->has_copied());
+
+    using std::swap;
+    swap(stream_, other.stream_);
+    swap(scratch_, other.scratch_);
+    swap(num_selected_, other.num_selected_);
+    swap(host_num_selected_, other.host_num_selected_);
+    swap(output_, other.output_);
+    swap(copied_, other.copied_);
+    swap(scratch_state_, other.scratch_state_);
+    swap(output_state_, other.output_state_);
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Wait for any pending compaction or copy before releasing buffers.
  *
  * The number of compacted items and the copied items are written
@@ -153,63 +211,10 @@ AsyncCompactedCopy<T>::AsyncCompactedCopy(size_type capacity, StreamId stream)
 template<class T>
 AsyncCompactedCopy<T>::~AsyncCompactedCopy()
 {
-    try
+    if (*this)
     {
-        if (compacted_pending_)
-        {
-            host_num_selected_.sync();
-        }
-        if (copied_pending_)
-        {
-            copied_.sync();
-        }
+        this->teardown_sync();
     }
-    catch (std::exception const& e)
-    {
-        CELER_LOG_LOCAL(error) << "Failed to wait for pending compaction or "
-                                  "copy while destroying compacted copier: "
-                               << e.what();
-    }
-    catch (...)
-    {
-        CELER_LOG_LOCAL(error) << "Failed to wait for pending compaction or "
-                                  "copy while destroying compacted copier: "
-                                  "unknown exception";
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Enqueue the copy of the compacted items on the memcpy stream.
- *
- * This reads the number of compacted items on the host, waiting for the
- * compaction if it is not yet complete. The previously copied items must have
- * been taken.
- */
-template<class T>
-void AsyncCompactedCopy<T>::copy_async()
-{
-    CELER_EXPECT(this->has_compacted());
-    CELER_EXPECT(!this->has_copied());
-
-    // The count is loaded after the compaction, so the host-observed load also
-    // orders the copy after the compaction
-    size_type const count = host_num_selected_.wait();
-    compacted_pending_ = false;
-    CELER_ASSERT(count <= this->capacity());
-    output_.resize(count);
-
-    auto& stream = celeritas::device().memcpy_stream(stream_);
-    if (count > 0)
-    {
-        copy_bytes<MemSpace::host, MemSpace::device>(
-            ObserverPtr<T, MemSpace::host>{output_.data()},
-            make_observer(scratch_),
-            count * sizeof(T),
-            stream);
-    }
-    copied_.record(stream);
-    copied_pending_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -226,10 +231,26 @@ auto AsyncCompactedCopy<T>::take_copied() -> SpanConstT
     {
         return {};
     }
+    ScopedProfiling profile_this{"take-copied"};
     copied_.sync();
-    copied_pending_ = false;
+    output_state_ = OutputState::empty;
     return make_span(output_);
 }
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+template<class T>
+void AsyncCompactedCopy<T>::copy_async()
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+template<class T>
+void AsyncCompactedCopy<T>::teardown_sync() noexcept
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

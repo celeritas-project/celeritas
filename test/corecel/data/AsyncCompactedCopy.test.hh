@@ -30,11 +30,27 @@ using VecVecInt = std::vector<std::vector<int>>;
 // Compact and copy batches of equally sized items as a stepping loop would
 VecVecInt compacted_copy_test(VecVecInt const& batches);
 
+// Assign to a default-constructed copier, then replace its storage
+VecVecInt assign_test(VecVecInt const& batches);
+
+// Assign to a copier while a compaction and a copy are pending
+void assign_pending_test();
+
 // Destroy a copier while a compaction and a copy are pending
 void destroy_pending_test();
 
 #if !CELER_USE_DEVICE
 inline VecVecInt compacted_copy_test(VecVecInt const&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline VecVecInt assign_test(VecVecInt const&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline void assign_pending_test()
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

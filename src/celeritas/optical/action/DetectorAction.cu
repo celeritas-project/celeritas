@@ -15,6 +15,9 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template class AsyncCompactedCopy<optical::DetectorHit>;
+
 namespace optical
 {
 //---------------------------------------------------------------------------//

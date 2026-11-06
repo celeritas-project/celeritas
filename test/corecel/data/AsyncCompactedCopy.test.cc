@@ -25,6 +25,9 @@ TEST(AsyncCompactedCopyTest, unallocated)
     EXPECT_FALSE(copier.has_compacted());
     EXPECT_FALSE(copier.has_copied());
     EXPECT_TRUE(copier.take_copied().empty());
+
+    copier = AsyncCompactedCopy<CompactTestItem>{};
+    EXPECT_FALSE(copier);
 }
 
 TEST(AsyncCompactedCopyTest, TEST_IF_CELER_DEVICE(device))
@@ -44,6 +47,32 @@ TEST(AsyncCompactedCopyTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_TRUE(result[1].empty());
     EXPECT_VEC_EQ((std::vector<int>{4, 5, 6}), result[2]);
     EXPECT_VEC_EQ((std::vector<int>{7}), result[3]);
+}
+
+TEST(AsyncCompactedCopyTest, TEST_IF_CELER_DEVICE(device_assign))
+{
+    device().create_streams(1);
+
+    auto result = assign_test({{1, 0, 2}, {0, 3, 0, 4, 5}, {6}});
+
+    ASSERT_EQ(3, result.size());
+    EXPECT_VEC_EQ((std::vector<int>{1, 2}), result[0]);
+    EXPECT_VEC_EQ((std::vector<int>{3, 4, 5}), result[1]);
+    EXPECT_VEC_EQ((std::vector<int>{6}), result[2]);
+}
+
+TEST(AsyncCompactedCopyTest, TEST_IF_CELER_DEVICE(device_assign_pending))
+{
+    device().create_streams(1);
+
+    if constexpr (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(assign_pending_test(), DebugError);
+    }
+    else
+    {
+        EXPECT_NO_THROW(assign_pending_test());
+    }
 }
 
 TEST(AsyncCompactedCopyTest, TEST_IF_CELER_DEVICE(device_destroy_pending))

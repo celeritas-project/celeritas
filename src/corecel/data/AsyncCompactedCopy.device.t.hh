@@ -8,9 +8,14 @@
 
 #include "AsyncCompactedCopy.hh"
 
-#include "corecel/Macros.hh"
-#include "corecel/sys/ScopedProfiling.hh"
+#include <exception>
 
+#include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/Stream.hh"
+
+#include "Copier.hh"
 #include "DeviceAlgorithms.device.hh"
 
 namespace celeritas
@@ -18,7 +23,13 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Select items that evaluate to true
+/*!
+ * Select items that evaluate to true.
+ *
+ * Unlike \c Identity this returns a \c bool : items may only be explicitly
+ * convertible to it, and the device select algorithms (hipCUB and older
+ * versions of CUB) assign the result of the predicate to their flags.
+ */
 struct IsTruthy
 {
     template<class T>
@@ -60,7 +71,72 @@ void AsyncCompactedCopy<T>::compact_async(
                   detail::IsTruthy{},
                   stream_);
     host_num_selected_.load_async(num_selected, stream_);
-    compacted_pending_ = true;
+    scratch_state_ = ScratchState::compacted;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enqueue the copy of the compacted items on the memcpy stream.
+ *
+ * This reads the number of compacted items on the host, waiting for the
+ * compaction if it is not yet complete. The previously copied items must have
+ * been taken.
+ */
+template<class T>
+void AsyncCompactedCopy<T>::copy_async()
+{
+    CELER_EXPECT(this->has_compacted());
+    CELER_EXPECT(!this->has_copied());
+
+    ScopedProfiling profile_this{"copy-compacted"};
+
+    // The count is loaded after the compaction, so the host-observed load also
+    // orders the copy after the compaction
+    size_type const count = host_num_selected_.wait();
+    scratch_state_ = ScratchState::free;
+    CELER_ASSERT(count <= this->capacity());
+    output_.resize(count);
+
+    auto& stream = celeritas::device().memcpy_stream(stream_);
+    if (count > 0)
+    {
+        copy_bytes<MemSpace::host, MemSpace::device>(
+            ObserverPtr<T, MemSpace::host>{output_.data()},
+            make_observer(scratch_),
+            count * sizeof(T),
+            stream);
+    }
+    copied_.record(stream);
+    output_state_ = OutputState::copied;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for any compaction or copy, logging any failure.
+ *
+ * Waiting on an event that was never recorded returns immediately, so this
+ * does not depend on which stages are pending.
+ */
+template<class T>
+void AsyncCompactedCopy<T>::teardown_sync() noexcept
+{
+    try
+    {
+        host_num_selected_.sync();
+        copied_.sync();
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG_LOCAL(error) << "Failed to wait for pending compaction or "
+                                  "copy while destroying compacted copier: "
+                               << e.what();
+    }
+    catch (...)
+    {
+        CELER_LOG_LOCAL(error) << "Failed to wait for pending compaction or "
+                                  "copy while destroying compacted copier: "
+                                  "unknown exception";
+    }
 }
 
 //---------------------------------------------------------------------------//
