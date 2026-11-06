@@ -71,11 +71,10 @@ if(CELERITASTEST_ACCEL_WRAPPER MATCHES "^regression(-update)?$")
     ${_force}
     "--"
   )
-
-  # Regression tests require G4 threading to be 1 for reproducibility
-  set(CELERITASTEST_G4NT 1)
 endif()
 if(CELERITASTEST_ACCEL_WRAPPER)
+  # Note that for regression tests, you should always set G4 threading to 1:
+  # otherwise results will not reproduce
   message(VERBOSE "Using wrapper script for accel integration tests "
     "with CELERITASTEST_G4NT=${CELERITASTEST_G4NT}: "
     "${CELERITASTEST_ACCEL_WRAPPER}"
@@ -209,6 +208,7 @@ celeritas_add_integration_tests(
   OFFLOAD cpu gpu g4
   RMTYPE ${_optical_rm_type}
 )
+
 
 # Test with optical physics offloading distributions
 celeritas_add_integration_tests(
