@@ -52,6 +52,11 @@ void Transporter::operator()(CoreStateBase& state) const
 //---------------------------------------------------------------------------//
 /*!
  * Transport all pending optical tracks.
+ *
+ * As in the core \c Stepper , the counters at the end of each step are loaded
+ * asynchronously into the state's host snapshot, which the host waits on to
+ * decide whether to start the next step. The actions within a step do not
+ * synchronize. When this returns, the snapshot matches the state's counters.
  */
 template<MemSpace M>
 void Transporter::transport_impl(CoreState<M>& state) const
@@ -60,10 +65,13 @@ void Transporter::transport_impl(CoreState<M>& state) const
 
     CELER_LOG_LOCAL(status) << "Transporting on " << to_cstring(M);
 
+    size_type const max_step_iters = this->params()->sim()->max_step_iters();
+
     size_type num_step_iters{0};
     size_type num_steps{0};
 
-    auto counters = state.sync_get_counters();
+    auto& aux = *state.aux();
+    auto const& gen_reg = *this->params()->gen_reg();
 
     // Store a pointer to aux data for timing results
     std::vector<double>* accum_time = nullptr;
@@ -72,8 +80,19 @@ void Transporter::transport_impl(CoreState<M>& state) const
         accum_time = &input_.action_times->state(*state.aux()).accum_time;
     }
 
+    // Reset the counts that are accumulated during the loop
+    state.clear_tallies();
+    gen_reg.foreach_generator([&aux](GeneratorInterface const& gen) {
+        gen.counters(aux).clear_generated();
+    });
+    state.async_copy_counters();
+    CoreStateCounters counters = state.host_counters().wait();
+    auto is_complete = [&counters] {
+        return counters.num_pending == 0 && counters.num_alive == 0;
+    };
+
     // Loop while photons are yet to be tracked
-    while (counters.num_pending > 0 || counters.num_alive > 0)
+    while (!is_complete() && num_step_iters < max_step_iters)
     {
         ScopedProfiling profile_this{"step"};
         Stopwatch get_step_time;
@@ -94,43 +113,38 @@ void Transporter::transport_impl(CoreState<M>& state) const
             }
         }
 
-        // No longer have a reference to the counters, so need to retrieve the
-        // updated values
-        counters = state.sync_get_counters();
+        // Copy the counters at the end of the step and wait for them
+        state.async_copy_counters();
+        counters = state.host_counters().wait();
         num_steps += counters.num_active;
+        ++num_step_iters;
 
         // Record the step time
         if (input_.step_times)
         {
-            if (M == MemSpace::device)
-            {
-                device().stream(state.stream_id()).sync();
-            }
             auto& step_times = input_.step_times->state(*state.aux()).time;
             step_times.push_back(get_step_time());
         }
-
-        if (CELER_UNLIKELY(++num_step_iters
-                           == this->params()->sim()->max_step_iters()))
-        {
-            CELER_LOG_LOCAL(error)
-                << "Exceeded step count of "
-                << this->params()->sim()->max_step_iters()
-                << ": aborting optical transport loop with "
-                << counters.num_generated << " generated tracks, "
-                << counters.num_active << " active tracks, "
-                << counters.num_alive << " alive tracks, "
-                << counters.num_vacancies << " vacancies, "
-                << counters.num_pending << " queued, " << counters.num_cut
-                << " cut, and " << counters.num_errored << " errored";
-            // Add all untransported tracks to 'cut' counter
-            counters.num_cut += counters.num_active + counters.num_pending;
-
-            this->params()->gen_reg()->reset(*state.aux());
-            state.reset();
-            break;
-        }
     }
+
+    if (CELER_UNLIKELY(!is_complete()))
+    {
+        CELER_LOG_LOCAL(error)
+            << "Exceeded step count of " << max_step_iters
+            << ": aborting optical transport loop with "
+            << counters.num_generated << " generated tracks, "
+            << counters.num_active << " active tracks, " << counters.num_alive
+            << " alive tracks, " << counters.num_vacancies << " vacancies, "
+            << counters.num_pending << " queued, " << counters.num_cut
+            << " cut, and " << counters.num_errored << " errored";
+        // Add all untransported tracks to 'cut' counter
+        counters.num_cut += counters.num_alive + counters.num_pending;
+
+        gen_reg.foreach_generator(
+            [&aux](GeneratorInterface const& gen) { gen.reset(aux); });
+        state.reset();
+    }
+
     if (counters.num_cut > 0)
     {
         CELER_LOG_LOCAL(warning) << "Terminated " << counters.num_cut
@@ -147,7 +161,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
     state.accum().step_iters += num_step_iters;
     ++state.accum().flushes;
 
-    // Accumulate cut/error counters from the last synchronized counters
+    // Accumulate cut/error counters from the last retrieved counters
     state.accum().num_cut += counters.num_cut;
     state.accum().num_errored += counters.num_errored;
 }

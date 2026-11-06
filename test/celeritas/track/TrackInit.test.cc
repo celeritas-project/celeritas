@@ -140,7 +140,6 @@ class TrackInitTestBase : public SimpleTestBase
             p.direction = {0, 0, 1};
             p.time = 0;
             p.event_id = EventId{0};
-            // Needed to seed the RNG when reseeding each track
             p.primary_id = PrimaryId{i};
             result.push_back(p);
         }
@@ -294,9 +293,14 @@ TYPED_TEST(TrackInitTest, run)
     // Check the track IDs of the track initializers created from primaries
     {
         auto result = RunResult::from_state(this->state());
-        static int const expected_track_ids[]
-            = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
+
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // TODO: internal track IDs are not reproducible due to atomic add
+            static int const expected_track_ids[]
+                = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+            EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
+        }
     }
 
     // Initialize the primary tracks on device
@@ -307,7 +311,12 @@ TYPED_TEST(TrackInitTest, run)
         auto result = RunResult::from_state(this->state());
         static int const expected_track_ids[]
             = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // TODO: internal track IDs are not reproducible due to atomic add
+            EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+        }
 
         // All primary particles, so no parent
         static int const expected_parent_ids[]
@@ -334,9 +343,12 @@ TYPED_TEST(TrackInitTest, run)
         static int const expected_vacancies[] = {2, 6};
         EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
 
-        // Check the parent IDs for copying the geometry state
-        static int const expected_geo_parent_ids[] = {-1, -1, -1, 5, 8};
-        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // Check the parent IDs for copying the geometry state
+            static int const expected_geo_parent_ids[] = {-1, -1, -1, 5, 8};
+            EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+        }
 
         // Check the track IDs of the track initializers created from
         // secondaries. Because IDs are not calculated deterministically and we
@@ -348,10 +360,12 @@ TYPED_TEST(TrackInitTest, run)
                                 std::end(result.init_ids),
                                 [](int id) { return id >= 0 && id <= 18; }));
         ASSERT_EQ(5, result.init_ids.size());
-
-        // First two initializers are from primaries
-        EXPECT_EQ(0, result.init_ids[0]);
-        EXPECT_EQ(1, result.init_ids[1]);
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // First two initializers are from primaries
+            EXPECT_EQ(0, result.init_ids[0]);
+            EXPECT_EQ(1, result.init_ids[1]);
+        }
     }
 
     // Initialize secondaries on device
@@ -364,18 +378,22 @@ TYPED_TEST(TrackInitTest, run)
                                 std::end(result.track_ids),
                                 [](int id) { return id >= 0 && id <= 18; }));
 
-        // Tracks that were not killed should have the same ID
-        EXPECT_EQ(3, result.track_ids[1]);
-        EXPECT_EQ(5, result.track_ids[3]);
-        EXPECT_EQ(7, result.track_ids[5]);
-        EXPECT_EQ(9, result.track_ids[7]);
+        if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+        {
+            // Tracks that were not killed should have the same ID
+            EXPECT_EQ(3, result.track_ids[1]);
+            EXPECT_EQ(5, result.track_ids[3]);
+            EXPECT_EQ(7, result.track_ids[5]);
+            EXPECT_EQ(9, result.track_ids[7]);
 
-        // Two tracks should have the same parent ID = 10
-        int expected_parent_ids[] = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
-        std::sort(std::begin(result.parent_ids), std::end(result.parent_ids));
-        std::sort(std::begin(expected_parent_ids),
-                  std::end(expected_parent_ids));
-        EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+            // Two tracks should have the same parent ID = 10
+            int expected_parent_ids[] = {2, -1, 7, -1, 6, -1, 10, -1, 10, 11};
+            std::sort(std::begin(result.parent_ids),
+                      std::end(result.parent_ids));
+            std::sort(std::begin(expected_parent_ids),
+                      std::end(expected_parent_ids));
+            EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
+        }
 
         // Check the parent IDs for copying the geometry state
         static int const expected_geo_parent_ids[] = {-1, -1, -1};
@@ -453,10 +471,14 @@ TYPED_TEST(TrackInitTest, primaries)
         36, 37, 38, 39, 48, 49, 50, 51, 52, 53, 54, 55,
     };
     auto result = RunResult::from_state(this->state());
-    EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+    if (CELERITAS_OPENMP != CELERITAS_OPENMP_TRACK)
+    {
+        // TODO: internal track IDs are not reproducible due to atomic add
+        EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
+        EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
+    }
     EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     EXPECT_VEC_EQ(expected_vacancies, result.vacancies);
-    EXPECT_VEC_EQ(expected_init_ids, result.init_ids);
 }
 
 TYPED_TEST(TrackInitTest, extend_from_secondaries)

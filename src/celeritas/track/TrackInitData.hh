@@ -35,7 +35,7 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct TrackInitParamsData
 {
-    size_type capacity{0};  //!< Track initializer storage size
+    size_type capacity{0};  //!< Initial track initializer storage size
     size_type max_events{0};  //!< Maximum number of events that can be run
     TrackOrder track_order{TrackOrder::none};  //!< How to sort tracks on
                                                //!< gpu
@@ -91,7 +91,8 @@ struct TrackInitializer
  *   sorting by charge: element \em i is the number of neutral tracks among the
  *   first \em i + 1 initializers used to create tracks in the current step.
  * - \c initializers stores the data for primaries and secondaries waiting to
- *   be turned into new tracks and can be any size up to \c capacity.
+ *   be turned into new tracks. It is initially allocated with \c capacity
+ *   elements and grows as needed between steps.
  * - \c vacancies stores the \c TrackSlotId of the tracks that have been
  *   killed; the size will be <= the number of track states.
  * - \c track_counters stores the total number of particles that have been
@@ -164,7 +165,7 @@ struct TrackInitStateData
  * Resize and initialize track initializer data.
  *
  * Here \c size is the number of track states, and the "capacity" is the
- * maximum number of track initializers (inactive/pending tracks) that we can
+ * initial number of track initializers (inactive/pending tracks) that we can
  * hold.
  *
  * \note It's likely that for GPU runs, the capacity should be greater than
@@ -197,8 +198,9 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     resize(&data->vacancies, size);
     fill_sequence(&data->vacancies, stream);
 
-    // Reserve space for initializers
-    resize(&data->initializers, params.capacity);
+    // Reserve space for initializers, allocating on the stream so that growing
+    // the buffer can free it asynchronously
+    resize(&data->initializers, params.capacity, stream);
 
     // Initialize the counters for the step to zero
     fill(CoreStateCounters{}, &data->counters);

@@ -31,7 +31,7 @@ struct SetupOptions;
   maxNumTracks         | Number of tracks to be transported simultaneously
   maxNumEvents         | Maximum number of events in use
   maxNumSteps          | Limit on number of steps per track before killing
-  maxInitializers      | Maximum number of track initializers
+  maxInitializers      | Initial track initializer buffer capacity
   secondaryStackFactor | At least the average number of secondaries per track
   autoFlush            | Number of tracks to buffer before offloading
   maxFieldSubsteps     | Limit on substeps in field propagator

@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 
-#include "corecel/data/PinnedAllocator.hh"
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/io/Label.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepInterface.hh"
@@ -75,8 +75,8 @@ class ExampleInstanceCalo final : public StepInterface
 
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
-    //! Number of compacted device steps (pinned, allocated if device is used)
-    std::vector<size_type, PinnedAllocator<size_type>> num_selected_;
+    //! Number of compacted device steps, loaded into pinned host memory
+    AsyncSnapshot<size_type> num_selected_;
 };
 
 //---------------------------------------------------------------------------//

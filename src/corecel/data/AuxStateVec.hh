@@ -63,7 +63,11 @@ class AuxStateVec
     //! Get the number of defined states
     AuxId::size_type size() const { return states_.size(); }
 
+    //! Get the stream the states were created on
+    StreamId stream_id() const { return stream_id_; }
+
   private:
+    StreamId stream_id_;
     std::vector<UPState> states_;
 };
 

@@ -6,40 +6,23 @@
 //---------------------------------------------------------------------------//
 #include "DetectorSteps.hh"
 
-#include <cstddef>
-
-#include "corecel/DeviceRuntimeApi.hh"
-
-#if CELERITAS_USE_CUDA
-#    include <cub/device/device_select.cuh>
-#elif CELERITAS_HAVE_HIPCUB
-#    include <hipcub/device/device_select.hpp>
-#else
-#    include <thrust/copy.h>
-#    include <thrust/execution_policy.h>
-#endif
-#include <thrust/device_ptr.h>
 #include <thrust/iterator/counting_iterator.h>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Copier.hh"
-#include "corecel/data/DeviceVector.hh"
-#include "corecel/data/ObserverPtr.device.hh"
-#include "corecel/sys/Device.hh"
+#include "corecel/data/DeviceAlgorithms.device.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
-#include "corecel/sys/Thrust.device.hh"
 
 #include "StepData.hh"
 
 #include "detail/StepScratchCopyExecutor.hh"
-
-#if CELERITAS_HAVE_HIPCUB
-namespace cub = hipcub;
-#endif
 
 using namespace celeritas::literals;
 
@@ -70,21 +53,6 @@ struct IsValidAt
     }
 };
 
-#if CELER_USE_THRUST
-//---------------------------------------------------------------------------//
-/*!
- * Whether the ID is valid.
- */
-struct IsValid
-{
-    template<class T>
-    CELER_FORCEINLINE_FUNCTION bool operator()(OpaqueId<T> const& id) const
-    {
-        return static_cast<bool>(id);
-    }
-};
-#endif
-
 //---------------------------------------------------------------------------//
 /*!
  * Store the slot indices of selected tracks and their count on device.
@@ -96,52 +64,12 @@ template<class IdT>
 void select_valid_ids(StepStateDeviceRef const& state,
                       StateRef<IdT> const& stencil)
 {
-    size_type* d_num_selected = state.num_selected.data().get();
-    CELER_ASSERT(d_num_selected);
-#if CELER_USE_THRUST
-    auto start = device_pointer_cast(state.valid_id.data());
-    auto end = thrust::copy_if(thrust_execute_on(state.stream_id),
-                               thrust::make_counting_iterator(0_sz),
-                               thrust::make_counting_iterator(state.size()),
-                               device_pointer_cast(stencil.data()),
-                               start,
-                               IsValid{});
-    size_type num_selected = end - start;
-    Copier<size_type, MemSpace::device> copy{{d_num_selected, 1},
-                                             state.stream_id};
-    copy(MemSpace::host, {&num_selected, 1});
-    device().stream(state.stream_id).sync();
-#else
-    auto& stream = device().stream(state.stream_id);
-    auto d_in = thrust::make_counting_iterator(0_sz);
-    size_type* d_out = state.valid_id.data().get();
-    IsValidAt<IdT> is_valid{stencil.data().get()};
-
-    // Calling with nullptr returns the amount of working space needed
-    std::size_t temp_storage_bytes = 0;
-    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
-    auto cub_error_code = cub::DeviceSelect::If(nullptr,
-                                                temp_storage_bytes,
-                                                d_in,
-                                                d_out,
-                                                d_num_selected,
-                                                state.size(),
-                                                is_valid,
-                                                stream.get());
-    CELER_DISCARD(cub_error_code);
-    // Allocate temporary storage (stream-ordered)
-    DeviceVector<char> temp_storage(temp_storage_bytes, state.stream_id);
-    cub_error_code = cub::DeviceSelect::If(temp_storage.data(),
-                                           temp_storage_bytes,
-                                           d_in,
-                                           d_out,
-                                           d_num_selected,
-                                           state.size(),
-                                           is_valid,
-                                           stream.get());
-    CELER_DISCARD(cub_error_code);
-    CELER_DEVICE_API_CALL(PeekAtLastError());
-#endif
+    copy_if_async(thrust::make_counting_iterator(0_sz),
+                  state.valid_id.data(),
+                  state.size(),
+                  state.num_selected.data(),
+                  IsValidAt<IdT>{stencil.data().get()},
+                  state.stream_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -200,10 +128,11 @@ void reserve_field(DetectorStepOutput::PinnedVec<T>* dst, SrcRef const& src)
  * state's stream:
  * - the selection of track slots (preserving their order),
  * - the compaction of the selected data into the scratch space, and
- * - an asynchronous copy of the number of selected tracks to \c num_selected.
+ * - an asynchronous load of the number of selected tracks into
+ *   \c num_selected .
  *
- * The pinned host memory referenced by \c num_selected must remain valid
- * until the stream reaches this point, and the scratch space must not be
+ * The snapshot must not be destroyed until its load completes, which also
+ * implies that the compaction has completed. The scratch space must not be
  * overwritten until the copy enqueued by \c copy_compacted_steps_async
  * completes.
  *
@@ -215,10 +144,9 @@ void reserve_field(DetectorStepOutput::PinnedVec<T>* dst, SrcRef const& src)
  * \c detail::HitProcessor ).
  */
 void compact_steps_async(StepStateDeviceRef const& state,
-                         AsyncResultRef<size_type> num_selected)
+                         AsyncSnapshot<size_type>& num_selected)
 {
     CELER_EXPECT(state);
-    CELER_EXPECT(num_selected);
 
     ScopedProfiling profile_this{"compact-steps"};
 
@@ -243,22 +171,18 @@ void compact_steps_async(StepStateDeviceRef const& state,
     }
 
     // Copy the count to the host
-    auto* h_num_selected = static_cast<size_type*>(num_selected.ptr);
-    Copier<size_type, MemSpace::host> copy{{h_num_selected, 1},
-                                           state.stream_id};
-    copy(MemSpace::device, {d_num_selected.get(), 1});
+    num_selected.load_async(d_num_selected, state.stream_id);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Enqueue a copy of compacted device step data to the host.
  *
- * The number of selected tracks must have been copied to the host already,
- * i.e., the state's stream must have reached the end of
- * \c compact_steps_async . The output is resized immediately, and copies from
- * the state's scratch space are enqueued on the given stream without
- * synchronizing. If \c stream is not the state's stream, it must wait on an
- * event recorded after the compaction.
+ * The number of selected tracks must have been loaded to the host already,
+ * i.e., the snapshot passed to \c compact_steps_async must be ready. Since
+ * that load follows the compaction, the copies may be enqueued on any stream.
+ * The output is resized immediately, and copies from the state's scratch
+ * space are enqueued on the given stream without synchronizing.
  *
  * The output must not be read or resized, and the scratch space must not be
  * overwritten, until the stream reaches this point.
@@ -298,6 +222,7 @@ void copy_compacted_steps_async(DetectorStepOutput* output,
 
     DS_ASSIGN(event_id);
     DS_ASSIGN(parent_id);
+    DS_ASSIGN(generation);
     DS_ASSIGN(primary_id);
     DS_ASSIGN(post_step_action_id);
     DS_ASSIGN(track_step_count);

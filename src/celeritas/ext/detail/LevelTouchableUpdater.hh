@@ -7,11 +7,9 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "geocel/g4/GeantNavHistoryUpdater.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/user/DetectorSteps.hh"
 
 #include "TouchableUpdaterInterface.hh"

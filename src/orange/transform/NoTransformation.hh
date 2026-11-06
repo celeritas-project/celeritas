@@ -17,7 +17,10 @@ namespace celeritas
  * Apply an identity transformation.
  *
  * This trivial class has the Transformation interface but has no storage
- * requirements and simply passes through all its data.
+ * requirements and simply passes through all its data. The operations return
+ * \c Real3 by value to avoid exposing references to their input arguments;
+ * the fixed-size three-scalar value is inexpensive to copy, and the compiler
+ * can often eliminate the copy when the operation is inlined.
  */
 class NoTransformation
 {
@@ -48,22 +51,16 @@ class NoTransformation
     //// CALCULATION ////
 
     //! Transform from daughter to parent (identity)
-    CELER_FUNCTION Real3 const& transform_up(Real3 const& d) const
-    {
-        return d;
-    }
+    CELER_FUNCTION Real3 transform_up(Real3 const& d) const { return d; }
 
     //! Transform from parent to daughter (identity)
-    CELER_FUNCTION Real3 const& transform_down(Real3 const& d) const
-    {
-        return d;
-    }
+    CELER_FUNCTION Real3 transform_down(Real3 const& d) const { return d; }
 
     //! Rotate from daughter to parent (identity)
-    CELER_FUNCTION Real3 const& rotate_up(Real3 const& d) const { return d; }
+    CELER_FUNCTION Real3 rotate_up(Real3 const& d) const { return d; }
 
     //! Rotate from parent to daughter (identity)
-    CELER_FUNCTION Real3 const& rotate_down(Real3 const& d) const { return d; }
+    CELER_FUNCTION Real3 rotate_down(Real3 const& d) const { return d; }
 
     // Calculate the inverse during preprocessing
     inline NoTransformation calc_inverse() const { return {}; }

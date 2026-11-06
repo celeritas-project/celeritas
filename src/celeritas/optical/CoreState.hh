@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/cont/Span.hh"
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/DeviceVector.hh"
@@ -172,6 +173,20 @@ class CoreState final : public CoreStateBase
     // Whether the state is being transported with no active particles
     bool warming_up() const;
 
+    //// COUNTERS ////
+
+    // Clear the generated, cut, and errored counts for a new loop
+    void clear_tallies();
+
+    // Asynchronously copy counters to host-accessible storage
+    void async_copy_counters();
+
+    //! Access the host counters, which are copied asynchronously
+    AsyncSnapshot<CoreStateCounters> const& host_counters() const
+    {
+        return host_counters_;
+    }
+
     //// CORE DATA ////
 
     //! Get a reference to the mutable state data
@@ -201,6 +216,9 @@ class CoreState final : public CoreStateBase
 
     // Native pointer to ref or
     Ptr ptr_;
+
+    // Host copy of the counters
+    AsyncSnapshot<CoreStateCounters> host_counters_;
 };
 
 //---------------------------------------------------------------------------//

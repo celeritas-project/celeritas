@@ -26,6 +26,9 @@ void initialize_counters(
 void initialize_counters(
     CoreStateCounterRef<MemSpace::device> const&, size_type, StreamId);
 
+void clear_tallies(CoreStateCounterRef<MemSpace::host> const&, StreamId);
+void clear_tallies(CoreStateCounterRef<MemSpace::device> const&, StreamId);
+
 void add_pending(
     CoreStateCounterRef<MemSpace::host> const&, size_type, StreamId);
 void add_pending(

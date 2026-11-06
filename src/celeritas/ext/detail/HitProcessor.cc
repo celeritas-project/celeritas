@@ -98,8 +98,8 @@ G4StepStatus get_step_status(DetectorStepOutput const& out,
 /*!
  * Construct local navigator and step data.
  *
- * If a device is active, pinned host storage for device hit compaction is also
- * allocated.
+ * If a device is active, events for compacting and copying device hits are
+ * also created.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            VecParticle const& particles,
@@ -126,7 +126,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
             = std::make_shared<GeantTrackReconstruction>(particles, step_);
     }
     CELER_ASSERT(ss_.particle_id == static_cast<bool>(track_reconstruction_)
-                 && ss_.primary_id == ss_.particle_id);
+                 && ss_.primary_id == ss_.particle_id
+                 && ss_.parent_id == ss_.particle_id
+                 && ss_.generation == ss_.particle_id);
 
     GeantStepView step_view{*step_};
 
@@ -174,9 +176,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 
     if (celeritas::device())
     {
-        // Allocate pinned count and events for compacting and copying hits
-        num_selected_.resize(1);
-        compacted_ = DeviceEvent{celeritas::device()};
+        // Create the event for copying hits
         copied_ = DeviceEvent{celeritas::device()};
     }
 
@@ -198,7 +198,7 @@ HitProcessor::~HitProcessor()
     {
         if (this->has_pending_steps())
         {
-            compacted_.sync();
+            num_selected_.sync();
             copied_.sync();
         }
     }
@@ -262,14 +262,13 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
     CELER_EXPECT(states);
     CELER_EXPECT(this->scratch_state() == ScratchState::free);
-    CELER_EXPECT(compacted_ && copied_ && num_selected_.size() == 1);
+    CELER_EXPECT(copied_);
     CELER_EXPECT(steps_reserved_);
 
     auto& stream = celeritas::device().stream(states.stream_id);
     // Don't overwrite the scratch space while it is being copied
     stream.wait(copied_);
-    compact_steps_async(states, AsyncResultRef{num_selected_});
-    compacted_.record(stream);
+    compact_steps_async(states, num_selected_);
     pending_device_steps_ = states;
 }
 
@@ -293,15 +292,16 @@ void HitProcessor::copy_pending_steps()
     this->process_copied_steps();
     CELER_ASSERT(output_ == OutputState::empty);
 
-    // The host-observed completion also orders the copy after the compaction.
-    // Keep the steps pending until then so the destructor waits on failure.
-    compacted_.sync();
+    // The count is loaded after the compaction, so the host-observed load
+    // also orders the copy after the compaction. Keep the steps pending until
+    // then so the destructor waits on failure.
+    num_selected_.sync();
     auto states = std::exchange(pending_device_steps_, {});
     auto& stream = celeritas::device().memcpy_stream(states.stream_id);
     try
     {
         copy_compacted_steps_async(
-            &steps_, states, num_selected_.front(), stream);
+            &steps_, states, num_selected_.value(), stream);
     }
     catch (...)
     {
@@ -456,10 +456,15 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     {
         CELER_ASSERT(i < out.particle_id.size());
         CELER_ASSERT(i < out.primary_id.size());
-        // Get track corresponding to the particle type, and reload primary
-        // data if possible
+        CELER_ASSERT(i < out.parent_id.size());
+        CELER_ASSERT(i < out.generation.size());
+        // Get track corresponding to the particle type, and restore the
+        // Geant4 identity of the offloaded track or the Celeritas secondary
         G4Track& g4track = track_reconstruction_->view(out.particle_id[i],
-                                                       out.primary_id[i]);
+                                                       out.primary_id[i],
+                                                       out.track_id[i],
+                                                       out.parent_id[i],
+                                                       out.generation[i]);
         CELER_ASSERT(&g4track == step_->GetTrack());
         // Copy step information to the corresponding track
         GeantStepView{*step_}.update_track();

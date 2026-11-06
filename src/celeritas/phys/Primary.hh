@@ -21,6 +21,9 @@ namespace celeritas
  * The event ID is the local event slot used for counting tracks. When
  * reseeding each track, the RNG is seeded from the primary ID and the unique
  * event ID, or the local event ID if the unique one is not set.
+ *
+ * The primary ID is propagated through particle generations to tie them back
+ * to the original Geant4 (or other external) particle.
  */
 struct Primary
 {

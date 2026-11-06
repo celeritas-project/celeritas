@@ -7,6 +7,8 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include <algorithm>
+#include <map>
+#include <utility>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
@@ -61,6 +63,69 @@ class CountingStepInterface final : public StepInterface
 
   private:
     size_type num_steps_{};
+};
+
+// Record the parent and generation of every track (host only)
+class ParentRecorder final : public StepInterface
+{
+  public:
+    Filters filters() const final { return {}; }
+
+    StepSelection selection() const final
+    {
+        StepSelection result;
+        result.primary_id = true;
+        result.parent_id = true;
+        result.generation = true;
+        return result;
+    }
+
+    void process_steps(HostStepState state) final
+    {
+        auto const& data = state.steps.data;
+        for (auto tid : range(TrackSlotId{data.size()}))
+        {
+            if (TrackId track = data.track_id[tid])
+            {
+                parents_[{data.primary_id[tid], track}]
+                    = {data.parent_id[tid], data.generation[tid]};
+            }
+        }
+    }
+    void process_steps(DeviceStepState) final { CELER_ASSERT_UNREACHABLE(); }
+
+    // Check that each track is one generation after its parent, returning
+    // the number of tracks in generation 1 and in deeper generations
+    std::pair<size_type, size_type> check_generations() const
+    {
+        size_type num_children{0};
+        size_type num_descendants{0};
+        for (auto const& [key, value] : parents_)
+        {
+            auto const& [parent, generation] = value;
+            if (!parent)
+            {
+                // Primaries have no parent
+                EXPECT_EQ(0, generation);
+                continue;
+            }
+            auto iter = parents_.find({key.first, parent});
+            if (iter == parents_.end())
+            {
+                ADD_FAILURE() << "parent " << parent.value() << " of track "
+                              << key.second.value() << " was never recorded";
+                continue;
+            }
+            EXPECT_EQ(iter->second.second + 1, generation)
+                << "track " << key.second.value();
+            ++(generation == 1 ? num_children : num_descendants);
+        }
+        return {num_children, num_descendants};
+    }
+
+  private:
+    using Key = std::pair<PrimaryId, TrackId>;
+    std::map<Key, std::pair<TrackId, size_type>> parents_;
 };
 }  // namespace
 
@@ -184,6 +249,7 @@ class TestEm3CollectorTestBase : public TestEm3Base,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{0};
+            result[i].primary_id = PrimaryId{i};
             result[i].particle_id = (i % 2 == 0 ? electron : positron);
         }
         return result;
@@ -346,7 +412,7 @@ TEST_F(KnMctruthTest, two_step)
     EXPECT_VEC_EQ(expected_track, result.track);
     static int const expected_step[] = {1, 2, 1, 2, 1, 2, 1, 2};
     EXPECT_VEC_EQ(expected_step, result.step);
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
@@ -366,14 +432,9 @@ TEST_F(KnCaloTest, single_track)
 {
     auto result = this->run<MemSpace::host>(1, 64);
 
-    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         static double const expected_edep[] = {0.00043564799352598};
-        EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
-    }
-    else
-    {
-        static double const expected_edep[] = {0};
         EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
     }
 }
@@ -382,11 +443,28 @@ TEST_F(KnCaloTest, single_track)
 // TESTEM3
 //---------------------------------------------------------------------------//
 
+#define TestEm3ParentTest TEST_IF_CELERITAS_GEANT(TestEm3ParentTest)
+class TestEm3ParentTest : public TestEm3CollectorTestBase
+{
+};
+
+TEST_F(TestEm3ParentTest, generation)
+{
+    // All primaries are in a single event: track IDs are unique
+    auto recorder = std::make_shared<ParentRecorder>();
+    auto collector = StepCollector::make_and_insert(*this->core(), {recorder});
+    this->run_impl<MemSpace::host>(16, 64);
+
+    auto [num_children, num_descendants] = recorder->check_generations();
+    EXPECT_GT(num_children, 0);
+    EXPECT_GT(num_descendants, 0);
+}
+
 TEST_F(TestEm3MctruthTest, four_step)
 {
     auto result = this->run(4, 4);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static int const expected_event[]
             = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

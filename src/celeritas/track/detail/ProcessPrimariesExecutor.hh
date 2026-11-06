@@ -68,8 +68,7 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < primaries.size() || tid < state->size());
 
-    size_type num_initializers
-        = state->init.counters.data().get()->num_initializers;
+    size_type num_initializers = state->init.counters.data()->num_initializers;
 
     // Only state.size() threads participate in this grid-stride loop.
     // Additional threads may be launched to process a larger set of primaries:
@@ -109,11 +108,13 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     // Set the RNG state initializer appropriately dispatched on RNG type
     if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
     {
+        CELER_ASSERT(primary.unique_event_id || primary.event_id);
         std::uint64_t event_key = primary.unique_event_id
-                                      ? primary.unique_event_id.get()
-                                      : primary.event_id.get();
+                                      ? *primary.unique_event_id
+                                      : *primary.event_id;
+        CELER_ASSERT(primary.primary_id);
         celeritas::initialize_rng_state(
-            params->rng.seed, event_key, ti.sim.primary_id.get(), ti.rng);
+            params->rng.seed, event_key, *primary.primary_id, ti.rng);
     }
 
     // Store the initializer

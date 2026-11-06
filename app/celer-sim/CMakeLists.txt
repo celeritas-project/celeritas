@@ -28,24 +28,27 @@ celeritas_target_link_libraries(celer-sim PRIVATE ${LIBRARIES})
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT BUILD_TESTING)
+if(NOT CELERITAS_ENABLE_TESTING)
   return()
 endif()
 
 #-----------------------------------------------------------------------------#
+
+set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/simple-driver.py")
+set(_exe "$<TARGET_FILE:celer-sim>")
+if(CELERITAS_USE_ROOT)
+  set(_export_exe "$<TARGET_FILE:celer-export-geant>")
+else()
+  set(_export_exe "")
+endif()
+
 function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
-  set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/simple-driver.py")
   set(_gdml_inp "${CELER_APP_DATA_DIR}/${gdml_inp_name}")
   set(_hepmc3_inp "${CELER_APP_DATA_DIR}/${hepmc3_inp_name}")
   set(_mctruth_out "")
-  set(_geant_exporter_env "CELER_EXPORT_GEANT_EXE=")
-  if(CELERITAS_USE_ROOT)
-    set(_geant_exporter_env
-      "CELER_EXPORT_GEANT_EXE=$<TARGET_FILE:celer-export-geant>")
-  endif()
   set(_env
-    "CELERITAS_EXE=$<TARGET_FILE:celer-sim>"
-    "${_geant_exporter_env}"
+    "CELERITAS_EXE=${_exe}"
+    "CELER_EXPORT_GEANT_EXE=${_export_exe}"
     "CELER_DISABLE_PARALLEL=1"
     "CELER_CORE_GEO=${CELERITAS_CORE_GEO}"
   )
@@ -74,10 +77,11 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
     COMMAND "${CELER_PYTHON}"
     "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
   )
+  set(_req_files "${_driver}" "${_exe}" "${_export_exe}" "${_gdml_inp}" "${_hepmc3_inp}")
   set_tests_properties("${_name}" PROPERTIES
     ENVIRONMENT "${_env};${CELER_G4ENV};${CELER_OMP_ENV}"
     RESOURCE_LOCK gpu
-    REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
+    REQUIRED_FILES "${_req_files}"
     LABELS "app;nomemcheck;gpu"
     ${_needs_deps}
     ${_needs_device}
@@ -96,8 +100,8 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
   )
   set(_env
     ${CELER_PYTHONENV}
-    "CELERITAS_EXE=$<TARGET_FILE:celer-sim>"
-    "${_geant_exporter_env}"
+    "CELERITAS_EXE=${_exe}"
+    "CELER_EXPORT_GEANT_EXE=${_export_exe}"
     "CELER_LOG=debug"
     "CELER_LOG_LOCAL=debug"
     "CELER_DISABLE_DEVICE=1"
@@ -111,7 +115,7 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
   endif()
   set_tests_properties("${_name}" PROPERTIES
     ENVIRONMENT "${_env};${CELER_G4ENV};${CELER_OMP_ENV}"
-    REQUIRED_FILES "${_driver};${_gdml_inp};${_hepmc3_inp}"
+    REQUIRED_FILES "${_req_files}"
     LABELS "app;nomemcheck"
     ${CELER_PROCESSORS}
     ${_needs_deps}
