@@ -133,7 +133,7 @@ CELER_FUNCTION ImplSurfaceId UniverseIndexer::global_surface(
     CELER_EXPECT(surf < this->local_size(data_.surfaces, uni));
 
     ImplSurfaceId offset = data_.surfaces[uni];
-    return offset + surf.unchecked_get();
+    return offset + *surf;
 }
 
 //---------------------------------------------------------------------------//
@@ -147,7 +147,7 @@ CELER_FUNCTION ImplVolumeId UniverseIndexer::global_volume(
     CELER_EXPECT(volume < this->local_size(data_.volumes, uni));
 
     ImplVolumeId offset = data_.volumes[uni];
-    return offset + volume.unchecked_get();
+    return offset + *volume;
 }
 
 //---------------------------------------------------------------------------//
