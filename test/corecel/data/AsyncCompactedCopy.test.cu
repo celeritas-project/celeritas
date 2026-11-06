@@ -66,7 +66,7 @@ VecVecInt compacted_copy_test(VecVecInt const& batches)
         {
             host_items.push_back(CompactTestItem{v});
         }
-        items.copy_to_device(make_span(host_items));
+        items.copy_to_device({host_items.data(), host_items.size()});
         copier.compact_async(make_observer(items), size);
     }
 
@@ -108,7 +108,7 @@ VecVecInt assign_test(VecVecInt const& batches)
             host_items.push_back(CompactTestItem{v});
         }
         DeviceVector<CompactTestItem> items(size);
-        items.copy_to_device(make_span(host_items));
+        items.copy_to_device({host_items.data(), host_items.size()});
 
         copier.compact_async(make_observer(items), size);
         copier.copy_async();
@@ -136,7 +136,7 @@ void assign_pending_test()
 
     DeviceVector<CompactTestItem> items(size);
     std::vector<CompactTestItem> host_items(size, CompactTestItem{1});
-    items.copy_to_device(make_span(host_items));
+    items.copy_to_device({host_items.data(), host_items.size()});
 
     AsyncCompactedCopy<CompactTestItem> copier(size, stream_id);
     copier.compact_async(make_observer(items), size);
@@ -167,7 +167,7 @@ void destroy_pending_test()
 
     DeviceVector<CompactTestItem> items(size);
     std::vector<CompactTestItem> host_items(size, CompactTestItem{1});
-    items.copy_to_device(make_span(host_items));
+    items.copy_to_device({host_items.data(), host_items.size()});
 
     AsyncCompactedCopy<CompactTestItem> copier(size, stream_id);
     copier.compact_async(make_observer(items), size);
