@@ -343,12 +343,12 @@ if [ "${CMAKE_PRESET}" = "--list-presets" ] || [ "${CMAKE_PRESET}" = "-L" ]; the
     log error "cmake unavailable: cannot call --list-presets"
     exit 1
   fi
-  if "${CMAKE}" --list-presets >&2 ; then
-    log info "Try using the '${SYSTEM_NAME}' or 'dev' presets ('base'), or 'default' if not"
-  else
+  if ! "${CMAKE}" --list-presets >&2 ; then
     log error "CMake may be too old or JSON file may be broken"
+    exit 1
   fi
-  exit 2
+  log info "Try using the '${SYSTEM_NAME}' or 'dev' presets ('base'), or 'default' if not"
+  exit 0
 fi
 
 # Configure, build, and test
