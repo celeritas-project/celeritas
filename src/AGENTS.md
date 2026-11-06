@@ -48,7 +48,17 @@ launch_action(*this, params, state, execute);
 ```
 
 See `@src/celeritas/em/model/KleinNishinaModel.cc` and
-`@src/celeritas/em/model/KleinNishinaModel.cu`
+`@src/celeritas/em/model/KleinNishinaModel.cu` as an example.
+
+### Type-Safe Indices & Collections
+| Type | Purpose |
+|------|--------|
+| `OpaqueId<T>` | Type-safe index |
+| `Collection<T>` | GPU-compatible array with ownership semantics |
+| `Span<T>` | Non-owning array view |
+| `Array<T, N>` | Fixed-size stack array |
+
+See `@src/corecel/OpaqueId.hh` and `@src/corecel/data/Collection.hh`.
 
 ### Inserters for Building Params
 Use inserter classes to populate Collections with deduplication
@@ -71,3 +81,16 @@ Use inserter classes to populate Collections with deduplication
    - **Data**: Members, `operator bool()` (checks construction/assignment), `operator=`, `resize(size)` (for states, sized to track slots)
    - **View**: Lightweight accessor with `CELER_FUNCTION` methods
    - **Executor/Interactor**: Physics implementation
+
+### Literal UDLs
+- In public headers, function/block-scope `using namespace celeritas::literals;` is allowed. Never introduce namespace-scope `using namespace` there.
+
+### Assertions
+| Macro | When to use |
+|-------|------------|
+| `CELER_EXPECT` | Preconditions at function entry |
+| `CELER_ASSERT` | Internal invariants |
+| `CELER_ENSURE` | Postconditions at function exit |
+| `CELER_VALIDATE` | User input validation (always active) |
+
+`CELER_EXPECT`/`ASSERT`/`ENSURE` are compiled only with `CELERITAS_DEBUG`.

@@ -1,6 +1,6 @@
 # Celeritas AI Agent Instructions
 
-Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
+Celeritas is a particle physics library for detector simulation. The codebase uses C++17 with CUDA/HIP device support and typically integrates with Geant4.
 
 ## Contributions
 
@@ -35,8 +35,8 @@ Optional-dependency code is compiled into separate targets (e.g.
 `CELERITAS_USE_<Pkg>` macros from the generated `corecel/Config.hh`.
 
 Includes for library and test code are relative to the library and test directories.
-(Library code uses `-I{source}/src -I{build}/include`, and test code uses `-I{source}/test`).
-Object files and tests may have different paths and test names than you expect.
+(Library code uses `-I{source}/src -I{build}/include`, and test code also uses `-I{source}/test`).
+Object files and binaries may have different paths and names than their source tree locations.
 
 ## Documentation
 
@@ -47,11 +47,11 @@ Object files and tests may have different paths and test names than you expect.
 
 ## Architecture
 
-Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
+Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. Most testing is CPU-only. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
 
 ## Code Conventions
 
-### Naming
+Full rules: `@doc/development/style.rst` and `@doc/development/coding.rst`
 
 | Concept | Convention | Example |
 |---------|-----------|--------|
@@ -59,7 +59,6 @@ Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same cod
 | Functions/variables | `snake_case` | `calc_energy` |
 | Private members | trailing underscore | `data_` |
 | Type-safe IDs | `FooId` | `MaterialId` |
-| Input classes | match what they construct | `inp::Material` → `Material` |
 
 ### File Extensions
 
@@ -70,35 +69,8 @@ Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same cod
 | `.cu` | CUDA kernel launches only (HIP-compatible via macros) |
 | `.test.cc` | Unit tests, mirroring `src/` under `test/` |
 
-### Style
+### Common pitfalls
 
-Full rules: `@doc/development/style.rst` and `@doc/development/coding.rst`. Most often missed:
 - Call members via `this->`; write `template<class T>`, not `typename`.
 - Mark classes `final` where possible; use exactly one of `final`/`override`.
 - Prefer enums over `bool` parameters; no top-level `const` on by-value params.
-
-### Assertions
-
-| Macro | When to use |
-|-------|------------|
-| `CELER_EXPECT` | Preconditions at function entry |
-| `CELER_ASSERT` | Internal invariants |
-| `CELER_ENSURE` | Postconditions at function exit |
-| `CELER_VALIDATE` | User input validation (always active) |
-
-`CELER_EXPECT`/`ASSERT`/`ENSURE` are compiled only with `CELERITAS_DEBUG`.
-
-### Literal UDLs
-
-- In public headers, function/block-scope `using namespace celeritas::literals;` is allowed. Never introduce namespace-scope `using namespace` there.
-
-### Type-Safe Indices & Collections
-
-| Type | Purpose |
-|------|--------|
-| `OpaqueId<T>` | Type-safe index |
-| `Collection<T>` | GPU-compatible array with ownership semantics |
-| `Span<T>` | Non-owning array view |
-| `Array<T, N>` | Fixed-size stack array |
-
-See `@src/corecel/OpaqueId.hh` and `@src/corecel/data/Collection.hh`.
