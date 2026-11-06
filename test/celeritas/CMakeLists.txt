@@ -498,7 +498,8 @@ celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
 celeritas_add_test(optical/GroupVelocityCalculator.test.cc)
 celeritas_add_test(optical/Mie.test.cc)
-celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
+celeritas_add_test(optical/OpticalCollector.test.cc
+  GPU ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
@@ -517,7 +518,8 @@ celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc
   ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4} ${_needs_surf_norm})
-celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc
+  ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
 celeritas_add_test(optical/gen/GeneratorCounterState.test.cc)
 
