@@ -61,6 +61,11 @@ fancy_hostname() {
     sys="${LMOD_SYSTEM_NAME}"
     how=LMOD_SYSTEM_NAME
   fi
+  if [ -z "${sys}" ] && [ "${CLAUDE_CODE_REMOTE}" = "true" ]; then
+    # Claude Code cloud session: see scripts/dev/claude-cloud-setup.sh
+    sys=claude-cloud
+    how=CLAUDE_CODE_REMOTE
+  fi
   if [ -z "${sys}" ]; then
     sys="$(uname -n)"
     how=uname
