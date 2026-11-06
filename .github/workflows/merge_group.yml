@@ -16,6 +16,9 @@ concurrency:
   group: merge-${{github.event.merge_group.head_ref}}
   cancel-in-progress: true
 
+permissions:
+  actions: write # for clearing cache
+
 jobs:
   build-docs:
     uses: ./.github/workflows/build-docs.yml
