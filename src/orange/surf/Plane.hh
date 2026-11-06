@@ -13,6 +13,8 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
+#include "detail/IntersectionSolver.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -83,12 +85,23 @@ class Plane
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the plane expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
+    // Prepare intersection inputs for the shared planar solver
+    inline CELER_FUNCTION detail::PlanarIntersectionInput
+    calc_intersection_planar(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position on the surface
     inline CELER_FUNCTION Real3 const& calc_normal(Real3 const&) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Real3 const& calc_gradient(Real3 const&) const;
 
   private:
     // Normal to plane (a,b,c)
@@ -147,7 +160,16 @@ CELER_FORCEINLINE_FUNCTION real_type Plane::dot_normal(Real3 const& x) const
  */
 CELER_FUNCTION SignedSense Plane::calc_sense(Real3 const& pos) const
 {
-    return real_to_sense(this->dot_normal(pos) - this->displacement());
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the plane expression at a point.
+ */
+CELER_FUNCTION real_type Plane::calc_value(Real3 const& pos) const
+{
+    return this->dot_normal(pos) - this->displacement();
 }
 
 //---------------------------------------------------------------------------//
@@ -158,14 +180,22 @@ CELER_FUNCTION auto Plane::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
-    real_type const n_pos = this->dot_normal(pos);
-    real_type const n_dir = this->dot_normal(dir);
-    real_type const dist = (this->displacement() - n_pos) / n_dir;
+    return detail::solve_intersections(
+        this->calc_intersection_planar(pos, dir, on_surface));
+}
 
-    bool valid = celeritas::logical_all((on_surface == SurfaceState::off),
-                                        (dist > 0));
-
-    return {valid ? dist : no_intersection()};
+//---------------------------------------------------------------------------//
+/*!
+ * Prepare input values for the shared planar intersection solver.
+ */
+CELER_FUNCTION auto Plane::calc_intersection_planar(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    -> detail::PlanarIntersectionInput
+{
+    return {this->displacement(),
+            this->dot_normal(pos),
+            this->dot_normal(dir),
+            on_surface};
 }
 
 //---------------------------------------------------------------------------//
@@ -173,6 +203,15 @@ CELER_FUNCTION auto Plane::calc_intersections(
  * Calculate outward normal at a position on the surface.
  */
 CELER_FORCEINLINE_FUNCTION Real3 const& Plane::calc_normal(Real3 const&) const
+{
+    return this->calc_gradient({});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FORCEINLINE_FUNCTION Real3 const& Plane::calc_gradient(Real3 const&) const
 {
     return normal_;
 }

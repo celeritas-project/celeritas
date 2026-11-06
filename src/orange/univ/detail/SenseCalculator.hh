@@ -13,13 +13,24 @@
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "LocalVolumeView.hh"
-#include "SurfaceFunctors.hh"
 #include "Types.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the signed sense on a local surface.
+ */
+inline CELER_FUNCTION SignedSense calc_sense_impl(
+    LocalSurfaceVisitor const& visit, Real3 const& pos, LocalSurfaceId surf_id)
+{
+    auto val
+        = visit([&pos](auto&& surf) { return surf.calc_value(pos); }, surf_id);
+    return real_to_sense(val);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Calculate senses with a fixed particle position.
@@ -93,8 +104,8 @@ CELER_FUNCTION auto SenseCalculator::operator()(FaceId face_id) -> Sense
     Sense sense;
     if (face_id != face_.id())
     {
-        // Calculate sense
-        SignedSense ss = visit_(CalcSense{pos_}, vol_.get_surface(face_id));
+        // Calculate quadric value at the position
+        auto ss = calc_sense_impl(visit_, pos_, vol_.get_surface(face_id));
         sense = to_sense(ss);
         if (ss == SignedSense::on && !face_)
         {

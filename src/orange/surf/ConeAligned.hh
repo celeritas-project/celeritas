@@ -13,7 +13,7 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
-#include "detail/QuadraticSolver.hh"
+#include "detail/IntersectionSolver.hh"
 
 namespace celeritas
 {
@@ -103,12 +103,23 @@ class ConeAligned
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the cone expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
+    // Prepare intersection inputs for the shared quadratic solver
+    inline CELER_FUNCTION detail::QuadraticIntersectionInput
+    calc_intersection_quadratic(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
 
   private:
     // Location of the vanishing point
@@ -162,11 +173,21 @@ CELER_FUNCTION ConeAligned<T>::ConeAligned(Span<R, StorageSpan::extent> data)
 template<Axis T>
 CELER_FUNCTION SignedSense ConeAligned<T>::calc_sense(Real3 const& pos) const
 {
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the cone expression at a point.
+ */
+template<Axis T>
+CELER_FUNCTION real_type ConeAligned<T>::calc_value(Real3 const& pos) const
+{
     real_type const x = pos[to_int(T)] - origin_[to_int(T)];
     real_type const y = pos[to_int(U)] - origin_[to_int(U)];
     real_type const z = pos[to_int(V)] - origin_[to_int(V)];
 
-    return real_to_sense((-tsq_ * ipow<2>(x)) + ipow<2>(y) + ipow<2>(z));
+    return (-tsq_ * ipow<2>(x)) + ipow<2>(y) + ipow<2>(z);
 }
 
 //---------------------------------------------------------------------------//
@@ -182,6 +203,19 @@ CELER_FUNCTION auto ConeAligned<T>::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
+    return detail::solve_intersections(
+        this->calc_intersection_quadratic(pos, dir, on_surface));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Prepare input values for the shared quadratic intersection solver.
+ */
+template<Axis T>
+CELER_FUNCTION auto ConeAligned<T>::calc_intersection_quadratic(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    -> detail::QuadraticIntersectionInput
+{
     // Expand translated positions into 'xyz' coordinate system
     real_type const x = pos[to_int(T)] - origin_[to_int(T)];
     real_type const y = pos[to_int(U)] - origin_[to_int(U)];
@@ -196,7 +230,7 @@ CELER_FUNCTION auto ConeAligned<T>::calc_intersections(
     real_type half_b = (-tsq_ * x * u) + (y * v) + (z * w);
     real_type c = (-tsq_ * ipow<2>(x)) + ipow<2>(y) + ipow<2>(z);
 
-    return detail::QuadraticSolver::solve_general(a, half_b, c, on_surface);
+    return {a, half_b, c, on_surface};
 }
 
 //---------------------------------------------------------------------------//
@@ -206,14 +240,30 @@ CELER_FUNCTION auto ConeAligned<T>::calc_intersections(
 template<Axis T>
 CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
 {
+    return make_unit_vector(this->calc_gradient(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+template<Axis T>
+CELER_FUNCTION Real3 ConeAligned<T>::calc_gradient(Real3 const& pos) const
+{
+    real_type const x = pos[to_int(T)] - origin_[to_int(T)];
+    real_type const y = pos[to_int(U)] - origin_[to_int(U)];
+    real_type const z = pos[to_int(V)] - origin_[to_int(V)];
+
     Real3 norm;
     for (auto i = to_int(Axis::x); i < to_int(Axis::size_); ++i)
     {
         norm[i] = pos[i] - origin_[i];
     }
-    norm[to_int(T)] *= -tsq_;
+    norm[to_int(T)] = -tsq_ * x;
+    norm[to_int(U)] = y;
+    norm[to_int(V)] = z;
 
-    return make_unit_vector(norm);
+    return norm;
 }
 
 //---------------------------------------------------------------------------//

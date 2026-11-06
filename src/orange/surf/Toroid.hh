@@ -6,16 +6,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
-
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/FerrariSolver.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
+
+#include "detail/IntersectionSolver.hh"
 
 namespace celeritas
 {
@@ -67,7 +66,7 @@ class Toroid
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
     {
-        return SurfaceType::tor;
+        return SurfaceType::tzc;
     }
 
     //! Safety distance is calculable w/xy of normal and ellipse safety
@@ -114,12 +113,23 @@ class Toroid
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the toroid expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
+    // Prepare intersection inputs for the shared quartic solver
+    inline CELER_FUNCTION detail::QuarticIntersectionInput
+    calc_intersection_quartic(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
 
   private:
     //// DATA ////
@@ -176,12 +186,19 @@ CELER_FUNCTION Toroid::Toroid(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const
 {
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the toroid expression at a point.
+ */
+CELER_FUNCTION real_type Toroid::calc_value(Real3 const& pos) const
+{
     auto [x0, y0, z0] = pos - origin_;
 
-    real_type val = (sq(sq(x0) + sq(y0) + sq(z0 * a_ / b_) + (sq(r_) - sq(a_)))
-                     - (4 * sq(r_)) * (sq(x0) + sq(y0)));
-
-    return real_to_sense(val);
+    return (sq(sq(x0) + sq(y0) + sq(z0 * a_ / b_) + (sq(r_) - sq(a_)))
+            - (4 * sq(r_)) * (sq(x0) + sq(y0)));
 }
 
 //---------------------------------------------------------------------------//
@@ -193,21 +210,20 @@ CELER_FUNCTION auto Toroid::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
-    Real5 abcde = calc_intersection_polynomial(pos, dir, on_surface);
-    FerrariSolver solve{};  // Default tolerance
-    Intersections roots;
+    return detail::solve_intersections(
+        this->calc_intersection_quartic(pos, dir, on_surface));
+}
 
-    if (on_surface == SurfaceState::on)
-    {
-        auto [a, b, c, d, e] = abcde;
-        roots = solve(Real4{a, b, c, d});
-    }
-    else
-    {
-        roots = solve(abcde);
-    }
-
-    return roots;
+//---------------------------------------------------------------------------//
+/*!
+ * Prepare input values for the shared quartic intersection solver.
+ */
+CELER_FUNCTION auto Toroid::calc_intersection_quartic(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    -> detail::QuarticIntersectionInput
+{
+    return {this->calc_intersection_polynomial(pos, dir, on_surface),
+            on_surface};
 }
 
 //---------------------------------------------------------------------------//
@@ -251,12 +267,22 @@ CELER_FUNCTION auto Toroid::calc_intersection_polynomial(
  */
 CELER_FUNCTION auto Toroid::calc_normal(Real3 const& pos) const -> Real3
 {
+    return make_unit_vector(this->calc_gradient(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FUNCTION auto Toroid::calc_gradient(Real3 const& pos) const -> Real3
+{
     auto [x0, y0, z0] = pos - origin_;
 
-    real_type d = hypot(x0, y0);
-    real_type f = 2 * (d - r_) / (d * sq(a_));
-    Real3 n{x0 * f, y0 * f, (2 * z0) / (sq(b_))};
-    return make_unit_vector(n);
+    real_type const rho_sq = sq(x0) + sq(y0);
+    real_type const scale_z = sq(a_) / sq(b_);
+    real_type const q = rho_sq + scale_z * sq(z0) + (sq(r_) - sq(a_));
+    real_type const common = 4 * (q - 2 * sq(r_));
+    return {common * x0, common * y0, 4 * scale_z * q * z0};
 }
 
 //---------------------------------------------------------------------------//
