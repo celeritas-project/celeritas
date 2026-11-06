@@ -41,6 +41,15 @@ bool is_ref_eq(AssertionHelper& helper,
     return static_cast<bool>(compare);
 }
 
+//! Check against a reference histogram with default real_type tolerance
+bool is_ref_eq(AssertionHelper& helper,
+               SampledHistogram const& expected,
+               SampledHistogram const& actual)
+{
+    return is_ref_eq(
+        helper, expected, actual, static_cast<double>(SoftEqual<>{}.rel()));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

@@ -282,11 +282,11 @@ std::ostream& operator<<(std::ostream& os, GenericGeoModelInp const& ref)
 }
 
 bool is_ref_eq(AssertionHelper& helper,
-               GenericGeoModelInp const& val1,
-               GenericGeoModelInp const& val2)
+               GenericGeoModelInp const& expected,
+               GenericGeoModelInp const& actual)
 {
-    RefComparer<GenericGeoModelInp> compare{helper, val1, val2};
-    auto compare_attr = [&helper, &compare](char const* name,
+    RefComparer<GenericGeoModelInp> compare{helper, expected, actual};
+    auto compare_impl = [&helper, &compare](char const* name,
                                             auto const& expected,
                                             auto const& actual) {
         bool const result = expected == actual;
@@ -298,8 +298,9 @@ bool is_ref_eq(AssertionHelper& helper,
         compare.record_result(result);
     };
 
-#define IRE_COMPARE_ATTR(ATTR) compare_attr(#ATTR, val1.ATTR, val2.ATTR);
+#define IRE_COMPARE_ATTR(attr) compare_impl(#attr, expected.attr, actual.attr);
     IRE_COMPARE_ATTR(surface.volumes);
+    IRE_COMPARE_ATTR(surface.labels);
     IRE_COMPARE_ATTR(region.labels);
     IRE_COMPARE_ATTR(region.volumes);
     IRE_COMPARE_ATTR(detector.labels);

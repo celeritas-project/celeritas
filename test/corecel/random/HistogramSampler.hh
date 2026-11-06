@@ -41,13 +41,11 @@ struct SampledHistogram
                           SampledHistogram const& expected,
                           SampledHistogram const& actual,
                           double tol);
-    // Check against a reference histogram
+
+    // Check against a reference histogram with default real_type tolerance
     friend bool is_ref_eq(AssertionHelper& helper,
                           SampledHistogram const& expected,
-                          SampledHistogram const& actual)
-    {
-        return is_ref_eq(helper, expected, actual, 1e-8);
-    }
+                          SampledHistogram const& actual);
 };
 
 //---------------------------------------------------------------------------//

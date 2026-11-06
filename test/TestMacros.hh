@@ -56,10 +56,10 @@ using ::celeritas::testdetail::print_expected;
         ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, rel_error)
 
 //! Helper for printing expected values in reference structs
-#define CELER_REPR_ATTR(REF, ATTR) \
+#define CELER_REPR_ATTR(ref, attr) \
     ::celeritas::testdetail::StreamableAttr \
     { \
-        #ATTR, REF.ATTR \
+        #attr, ref.attr \
     }
 
 //! Invoke an attribute comparison with an optional tolerance
