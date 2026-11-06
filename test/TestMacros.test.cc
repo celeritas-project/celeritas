@@ -7,6 +7,7 @@
 #include "TestMacros.hh"
 
 #include <limits>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -80,6 +81,18 @@ static char const* const ref[] = {"one", "three", "five"};
 static std::string const ref[] = {"a", "", "special\nchars\t"};
 )",
               out_result);
+}
+
+TEST(PrintExpected, example_macro)
+{
+    std::string out_result = [] {
+        ScopedStreamRedirect redirect_out(&std::cout);
+        int value = 1234;
+        PRINT_EXPECTED(value);
+        return redirect_out.str();
+    }();
+    EXPECT_TRUE(std::regex_match(
+        out_result, std::regex{R"(// At .+:\d+\nauto value = 1234;)"}));
 }
 
 TEST(PrintExpected, reference_result)

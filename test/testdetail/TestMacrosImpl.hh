@@ -688,7 +688,7 @@ std::enable_if_t<IsContainer_v<Container>, void> print_expected(
     std::cout << ";\n";
 }
 
-//! Print expected values for a reference result with header/footer
+//! Print expected values for a reference result with header/footer (deprecated)
 template<class Result>
 std::enable_if_t<IsRefResult_v<Result>, void> print_expected(
     Result const& result)
@@ -696,6 +696,16 @@ std::enable_if_t<IsRefResult_v<Result>, void> print_expected(
     std::cout << expected_result_header << Result::class_str
               << " ref = " << result << ";\n"
               << expected_result_footer;
+}
+
+//! Print expected values for a reference result with header/footer
+template<class T>
+CELER_FORCEINLINE void print_expected(
+    T const& result, char const* var, char const* file, int line)
+{
+    std::cout << "// At " << file << ':' << line << '\n'
+              << "auto " << var << " = " << repr(result) << ";\n"
+              << std::flush;
 }
 
 //---------------------------------------------------------------------------//

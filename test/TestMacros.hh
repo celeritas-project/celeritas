@@ -10,6 +10,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/SourceFile.hh"
+
 #include "testdetail/TestMacrosImpl.hh"  // IWYU pragma: export
 
 using ::celeritas::testdetail::print_expected;
@@ -18,12 +20,17 @@ using ::celeritas::testdetail::print_expected;
 // MACROS
 //---------------------------------------------------------------------------//
 
+//! Print the given object for unit/regression tests
+#define PRINT_EXPECTED(data) \
+    ::celeritas::testdetail::print_expected( \
+        data, #data, CELER_SOURCE_FILE, __LINE__)
+
 //! Custom comparison for Celeritas test result types, using ADL
-#define EXPECT_REF_EQ(EXPECTED, ACTUAL) \
-    EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsRefEq, EXPECTED, ACTUAL)
-#define EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL) \
+#define EXPECT_REF_EQ(expected, actual) \
+    EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsRefEq, expected, actual)
+#define EXPECT_REF_NEAR(expected, actual, tol) \
     EXPECT_PRED_FORMAT3( \
-        ::celeritas::testdetail::IsRefEq, EXPECTED, ACTUAL, TOL)
+        ::celeritas::testdetail::IsRefEq, expected, actual, tol)
 
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \
@@ -41,9 +48,9 @@ using ::celeritas::testdetail::print_expected;
     EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsSoftEquiv, expected, actual)
 
 //! Soft equivalence macro with relative error or comparator
-#define EXPECT_SOFT_NEAR(expected, actual, rel_error) \
+#define EXPECT_SOFT_NEAR(expected, actual, tol) \
     EXPECT_PRED_FORMAT3( \
-        ::celeritas::testdetail::IsSoftEquiv, expected, actual, rel_error)
+        ::celeritas::testdetail::IsSoftEquiv, expected, actual, tol)
 
 //! Container soft equivalence macro
 #define EXPECT_VEC_SOFT_EQ(expected, actual) \
@@ -51,9 +58,9 @@ using ::celeritas::testdetail::print_expected;
         ::celeritas::testdetail::IsVecSoftEquiv, expected, actual)
 
 //! Container soft equivalence macro with relative error or comparator
-#define EXPECT_VEC_NEAR(expected, actual, rel_error) \
+#define EXPECT_VEC_NEAR(expected, actual, tol) \
     EXPECT_PRED_FORMAT3( \
-        ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, rel_error)
+        ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, tol)
 
 //! Helper for printing expected values in reference structs
 #define CELER_REPR_ATTR(ref, attr) \
