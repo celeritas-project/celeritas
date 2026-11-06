@@ -66,6 +66,20 @@ struct CollectResults
 
 //---------------------------------------------------------------------------//
 /*!
+ * Record the step count of each track when it finishes a surface crossing.
+ */
+struct CollectNumSteps
+{
+    std::vector<size_type> num_steps;
+
+    void operator()(CoreTrackView const& track)
+    {
+        num_steps.push_back(track.sim().num_steps());
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Counter results for a series of runs at different angles.
  */
 struct SurfaceTestResults
@@ -296,6 +310,41 @@ class SurfacePhysicsIntegrationBackPaintedTest
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Transmit through a gap layer, backscatter, and transmit back.
+ *
+ * Crossing the surface takes three steps, the last two of which happen only
+ * on the surface (the track does not move).
+ */
+class SurfacePhysicsIntegrationLayeredStepsTest
+    : public SurfacePhysicsIntegrationTestBase
+{
+  public:
+    void setup_surface_models(inp::OpticalSurfacePhysics& input) const final
+    {
+        PhysSurfaceId phys_surface{0};
+
+        // center-top surface
+        input.materials.push_back({OptMatId{1}});
+
+        // Material-Gap surface: transmit
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.trivial.emplace(phys_surface,
+                                          TrivialInteractionMode::transmit);
+
+        // Gap-Back surface: back-scatter
+        phys_surface++;
+        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
+        input.reflectivity.fresnel.emplace(phys_surface,
+                                           inp::FresnelReflection{});
+        input.interaction.trivial.emplace(phys_surface,
+                                          TrivialInteractionMode::backscatter);
+    }
+};
+
+//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 // Only back-scattering
@@ -468,6 +517,18 @@ TEST_F(SurfacePhysicsIntegrationBackPaintedTest, backpainted)
     expected.num_absorbed = {0, 0, 0};
 
     this->reference_run(angles, expected);
+}
+
+//---------------------------------------------------------------------------//
+// Step iterations during a surface crossing count toward the track's steps
+TEST_F(SurfacePhysicsIntegrationLayeredStepsTest, num_steps)
+{
+    CollectNumSteps result;
+    this->create_collector(result);
+    this->initialize_run();
+    this->run_step(RealTurn{0});
+
+    EXPECT_EQ(std::vector<size_type>(100, 3), result.num_steps);
 }
 
 //---------------------------------------------------------------------------//
