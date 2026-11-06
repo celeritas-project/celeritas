@@ -72,7 +72,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
             os << opts;
             return std::move(os).str();
         }();
-        EXPECT_EQ(16, std::count(result_str.begin(), result_str.end(), ','))
+        EXPECT_EQ(18, std::count(result_str.begin(), result_str.end(), ','))
             << "JSON items changed: actual is " << repr(result_str);
     }
 
@@ -1011,6 +1011,138 @@ TEST_F(TilecalPlugTest, default)
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
         EXPECT_EQ(GeoMatId{}, u.background);
     }
+}
+
+//---------------------------------------------------------------------------//
+using TiltedWiresTest = ProtoConstructorTest;
+
+// Disable automatic alignment
+TEST_F(TiltedWiresTest, unaligned)
+{
+    opts_.align_daughter_threshold = 0;
+
+    auto global_proto = this->load("tilted-wires");
+    ProtoMap protos{*global_proto};
+
+    static std::string const expected_proto_names[]
+        = {"world", "plane_u", "plane_v", "plane_z"};
+    EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
+
+    // All daughters are only translated because we have no alignment
+    auto const& daughters = global_proto->input().daughters;
+    ASSERT_EQ(3, daughters.size());
+    EXPECT_EQ("{{-6,0,0}}", transform_string(daughters[0].transform));
+    EXPECT_EQ("{{-2,0,0}}", transform_string(daughters[1].transform));
+    EXPECT_EQ("{{2,0,0}}", transform_string(daughters[2].transform));
+
+    // The wires in plane_u (uniformly tilted) contain general quadrics because
+    // they aren't aligned
+    auto u = this->build_unit(protos, UnivId{1});
+    auto surfaces = surface_strings(u);
+    ASSERT_EQ(12, surfaces.size());
+    EXPECT_EQ("GQuadric: {1,0.75,0.25} {0,-0.86603,0} {0,9,-5.1962} 26.997",
+              surfaces[2]);
+}
+
+// Same as "unaligned", but achieved by increasing align_daughter_threshold
+TEST_F(TiltedWiresTest, unaligned_threshold)
+{
+    opts_.align_daughter_threshold = 5;
+    opts_.align_daughter_fraction = 0.9;
+
+    auto global_proto = this->load("tilted-wires");
+
+    auto const& daughters = global_proto->input().daughters;
+    ASSERT_EQ(3, daughters.size());
+    EXPECT_EQ("{{-6,0,0}}", transform_string(daughters[0].transform));
+}
+
+// Allow automatic alignment
+TEST_F(TiltedWiresTest, aligned)
+{
+    opts_.align_daughter_threshold = 2;
+    opts_.align_daughter_fraction = 0.9;
+
+    auto global_proto = this->load("tilted-wires");
+    ProtoMap protos{*global_proto};
+
+    // The plane_u is now rotated due to automatic alignment. The plane_v is
+    // not because it doesn't meet align_daughter_fraction. The plane_z is
+    // already axis-aligned
+    auto const& daughters = global_proto->input().daughters;
+    ASSERT_EQ(3, daughters.size());
+    EXPECT_EQ("{{{1,0,0},{0,0.866025,0.5},{0,-0.5,0.866025}}, {-6,0,0}}",
+              transform_string(daughters[0].transform));
+    EXPECT_EQ("{{-2,0,0}}", transform_string(daughters[1].transform));
+    EXPECT_EQ("{{2,0,0}}", transform_string(daughters[2].transform));
+
+    // Wires in plane_u are axis-aligned cylinders (no general quadrics)
+    auto u = this->build_unit(protos, UnivId{1});
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=-13",
+        "Plane: z=7",
+        "Cyl z: r=0.05 at x=0, y=-5.1962",
+        "Plane: z=-11",
+        "Plane: z=9",
+        "Cyl z: r=0.05 at x=0, y=-1.7321",
+        "Plane: z=-9",
+        "Plane: z=11",
+        "Cyl z: r=0.05 at x=0, y=1.7321",
+        "Plane: z=-7",
+        "Plane: z=13",
+        "Cyl z: r=0.05 at x=0, y=5.1962",
+    };
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+}
+
+// Lower the align_daughter_threshold so that plane_v is aligned
+TEST_F(TiltedWiresTest, lowered_fraction)
+{
+    opts_.align_daughter_threshold = 2;
+    opts_.align_daughter_fraction = 0.75;
+
+    auto global_proto = this->load("tilted-wires");
+    ProtoMap protos{*global_proto};
+
+    // The plane_v is now rotated
+    auto const& daughters = global_proto->input().daughters;
+    ASSERT_EQ(3, daughters.size());
+    EXPECT_EQ("{{{1,0,0},{0,0.866025,-0.5},{0,0.5,0.866025}}, {-2,0,0}}",
+              transform_string(daughters[1].transform));
+
+    // Three wires are axis-aligned; the fourth is still a general quadric
+    auto u = this->build_unit(protos, UnivId{2});
+    auto surfaces = surface_strings(u);
+    ASSERT_EQ(12, surfaces.size());
+    EXPECT_EQ("Cyl z: r=0.05 at x=0, y=-5.1962", surfaces[2]);
+    EXPECT_EQ("GQuadric: {1,0.25,0.75} {0,-0.86603,0} {0,-5.1962,9} 26.997",
+              surfaces[11]);
+}
+
+// An explicit alignment takes precedence over automatic alignment
+TEST_F(TiltedWiresTest, manual_override)
+{
+    opts_.align_daughter_threshold = 2;
+    opts_.align_daughter_fraction = 0.9;
+    SquareMatrixReal3 const rot{{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}};
+    opts_.universe_alignment["plane_u"] = rot;
+
+    auto global_proto = this->load("tilted-wires");
+
+    auto const& daughters = global_proto->input().daughters;
+    ASSERT_EQ(3, daughters.size());
+    EXPECT_EQ("{{{1,0,0},{0,1,0},{0,0,1}}, {-6,0,0}}",
+              transform_string(daughters[0].transform));
+}
+
+// Bad values of align_daughter_fraction throw errors
+TEST_F(TiltedWiresTest, fraction_errors)
+{
+    opts_.align_daughter_fraction = 0;
+    EXPECT_THROW(this->load("tilted-wires"), RuntimeError);
+
+    opts_.align_daughter_fraction = 1.5;
+    EXPECT_THROW(this->load("tilted-wires"), RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

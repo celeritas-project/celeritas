@@ -188,6 +188,35 @@ TEST_F(MatrixUtilsTest, is_orthonormal)
 
 //---------------------------------------------------------------------------//
 
+TEST_F(MatrixUtilsTest, is_signed_permutation)
+{
+    using Mat3 = SquareMatrixReal3;
+    real_type const tol = SoftEqual<>{}.rel();
+
+    // Identity, quarter turn, and reflection
+    EXPECT_TRUE(is_signed_permutation(make_identity(), tol));
+    EXPECT_TRUE(is_signed_permutation(make_rotation(Axis::z, Turn{0.25}), tol));
+    EXPECT_TRUE(is_signed_permutation(make_reflection(Axis::x), tol));
+
+    // Rotation by an arbitrary angle
+    EXPECT_FALSE(is_signed_permutation(make_rotation(Axis::z, Turn{0.1}), tol));
+
+    // Within tolerance
+    real_type eps = tol / 10;
+    Mat3 bumped{
+        Real3{0, 1 - eps, eps}, Real3{-1, eps, 0}, Real3{eps, 0, 1 + eps}};
+    EXPECT_TRUE(is_signed_permutation(bumped, tol));
+
+    // Outside of tolerance
+    EXPECT_FALSE(is_signed_permutation(bumped, tol / 20));
+
+    // Unit entries but repeated column
+    Mat3 repeated{Real3{1, 0, 0}, Real3{1, 0, 0}, Real3{0, 0, 1}};
+    EXPECT_FALSE(is_signed_permutation(repeated, tol));
+}
+
+//---------------------------------------------------------------------------//
+
 TEST_F(MatrixUtilsTest, make_rotation)
 {
     {

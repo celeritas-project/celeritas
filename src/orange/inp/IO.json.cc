@@ -61,6 +61,8 @@ void to_json(nlohmann::json& j, OrangeGeoFromGeant const& v)
         CELER_JSON_PAIR(v, inline_singletons),
         CELER_JSON_PAIR(v, inline_unions),
         CELER_JSON_PAIR(v, universe_alignment),
+        CELER_JSON_PAIR(v, align_daughter_threshold),
+        CELER_JSON_PAIR(v, align_daughter_fraction),
         CELER_JSON_PAIR(v, implicit_parent_boundary),
         CELER_JSON_PAIR(v, logic),
         CELER_JSON_PAIR(v, verbose_volumes),
@@ -95,6 +97,8 @@ void from_json(nlohmann::json const& j, OrangeGeoFromGeant& v)
     OPT_LOAD_OPTION(inline_singletons);
     OPT_LOAD_OPTION(inline_unions);
     OPT_LOAD_OPTION(universe_alignment);
+    OPT_LOAD_OPTION(align_daughter_threshold);
+    OPT_LOAD_OPTION(align_daughter_fraction);
     OPT_LOAD_OPTION(implicit_parent_boundary);
     OPT_LOAD_OPTION(logic);
     OPT_LOAD_OPTION(verbose_volumes);
