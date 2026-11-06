@@ -73,6 +73,8 @@ class AsyncCompactedCopy
     static_assert(std::is_trivially_copyable_v<T>,
                   "Copied items must be trivially copyable");
 
+    static constexpr bool ndebug = !CELERITAS_DEBUG;
+
   public:
     //!@{
     //! \name Type aliases
@@ -98,7 +100,8 @@ class AsyncCompactedCopy
     //!@}
 
     // Replace the storage, leaving the old storage to be released by the other
-    inline AsyncCompactedCopy& operator=(AsyncCompactedCopy&& other);
+    inline AsyncCompactedCopy& operator=(AsyncCompactedCopy&& other) noexcept(
+        ndebug);
 
     //! Maximum number of items
     size_type capacity() const { return scratch_.size(); }
@@ -182,8 +185,8 @@ AsyncCompactedCopy<T>::AsyncCompactedCopy(size_type capacity, StreamId stream)
  * span previously returned by \c take_copied is invalidated.
  */
 template<class T>
-auto AsyncCompactedCopy<T>::operator=(AsyncCompactedCopy&& other)
-    -> AsyncCompactedCopy&
+auto AsyncCompactedCopy<T>::operator=(AsyncCompactedCopy&& other) noexcept(
+    ndebug) -> AsyncCompactedCopy&
 {
     CELER_EXPECT(!this->has_compacted() && !this->has_copied());
 
