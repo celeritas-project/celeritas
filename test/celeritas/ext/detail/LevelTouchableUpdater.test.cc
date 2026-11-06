@@ -53,8 +53,8 @@ struct TestResult
     {
         using namespace ::celeritas::test;
         RefComparer<TestResult> compare{helper, expected, actual};
-        CELER_INVOKE_ATTR(compare.is_soft_eq, TestResult, coords);
-        CELER_INVOKE_ATTR(compare.is_eq, TestResult, replicas);
+        CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, TestResult, coords);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, TestResult, replicas);
         return static_cast<bool>(compare);
     }
 };

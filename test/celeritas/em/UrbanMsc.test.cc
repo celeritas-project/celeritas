@@ -210,11 +210,14 @@ struct StepLimitResult
     {
         ::celeritas::test::RefComparer<StepLimitResult> compare{
             helper, expected, actual};
-        CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, mean_step, tol);
-        CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, range_init, tol);
-        CELER_INVOKE_ATTR(
+        CELER_INVOKE_TYPE_ATTR_TOL(
+            compare.is_soft_eq, StepLimitResult, mean_step, tol);
+        CELER_INVOKE_TYPE_ATTR_TOL(
+            compare.is_soft_eq, StepLimitResult, range_init, tol);
+        CELER_INVOKE_TYPE_ATTR_TOL(
             compare.is_soft_eq, StepLimitResult, range_factor, tol);
-        CELER_INVOKE_ATTR(compare.is_soft_eq, StepLimitResult, limit_min, tol);
+        CELER_INVOKE_TYPE_ATTR_TOL(
+            compare.is_soft_eq, StepLimitResult, limit_min, tol);
         return static_cast<bool>(compare);
     }
     friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,

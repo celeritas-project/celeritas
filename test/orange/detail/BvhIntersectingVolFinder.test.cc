@@ -128,8 +128,8 @@ struct IntersectResult
                                     "intersect_surface",
                                     val1.intersect_surface,
                                     val2.intersect_surface));
-        CELER_INVOKE_ATTR(compare.is_eq, IntersectResult, hit_count);
-        CELER_INVOKE_ATTR(compare.is_eq, IntersectResult, miss_count);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, IntersectResult, hit_count);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, IntersectResult, miss_count);
         return static_cast<bool>(compare);
     }
 };

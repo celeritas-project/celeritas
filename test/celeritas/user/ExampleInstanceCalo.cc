@@ -46,8 +46,10 @@ bool is_ref_eq(AssertionHelper& helper,
                ExampleInstanceCalo::Result const& actual)
 {
     RefComparer<ExampleInstanceCalo::Result> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_eq, ExampleInstanceCalo::Result, instance);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, ExampleInstanceCalo::Result, edep);
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_eq, ExampleInstanceCalo::Result, instance);
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_soft_eq, ExampleInstanceCalo::Result, edep);
     return static_cast<bool>(compare);
 }
 

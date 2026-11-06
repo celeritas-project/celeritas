@@ -190,9 +190,9 @@ bool is_ref_eq(AssertionHelper& helper,
 {
     using Result = StepperTestBase::SetupCheckResult;
     RefComparer<Result> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_eq, Result, processes);
-    CELER_INVOKE_ATTR(compare.is_eq, Result, actions);
-    CELER_INVOKE_ATTR(compare.is_eq, Result, actions_desc);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, processes);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, actions);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, actions_desc);
     return static_cast<bool>(compare);
 }
 
@@ -210,8 +210,8 @@ bool is_ref_eq(AssertionHelper& helper,
 {
     using Result = StepperTestBase::RunResult;
     RefComparer<Result> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_eq, Result, active);
-    CELER_INVOKE_ATTR(compare.is_eq, Result, queued);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, active);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, queued);
     return static_cast<bool>(compare);
 }
 

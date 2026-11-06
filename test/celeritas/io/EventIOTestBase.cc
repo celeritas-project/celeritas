@@ -44,12 +44,12 @@ bool is_ref_eq(AssertionHelper& helper,
 {
     using Result = EventIOTestBase::ReadAllResult;
     RefComparer<Result> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_eq, Result, pdg);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, energy, tol.energy);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, pos, tol.pos);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, dir, tol.dir);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, time, tol.time);
-    CELER_INVOKE_ATTR(compare.is_eq, Result, event);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, pdg);
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq, Result, energy, tol.energy);
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq, Result, pos, tol.pos);
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq, Result, dir, tol.dir);
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq, Result, time, tol.time);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, event);
     return static_cast<bool>(compare);
 }
 

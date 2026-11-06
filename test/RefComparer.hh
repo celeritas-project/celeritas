@@ -33,9 +33,9 @@ namespace test
     AssertionHelper helper{"expected", "actual"};
     RefComparer<MyResult> compare{helper, expected, actual};
     compare.is_eq("track_id", &MyResult::track_id);
-    CELER_INVOKE_ATTR(compare.is_eq, MyResult, track_id);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, MyResult, position);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, MyResult, energy, 1e-5);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, MyResult, track_id);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, MyResult, position);
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq, MyResult, energy, 1e-5);
  * \endcode
  */
 template<class T>

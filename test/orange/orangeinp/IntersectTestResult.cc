@@ -65,7 +65,7 @@ bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
 
     RefComparer<IntersectTestResult> compare{helper, val1, val2};
     compare.record_result(is_eq(helper, "node", val1.node, val2.node));
-    CELER_INVOKE_ATTR(compare.is_eq, IntersectTestResult, surfaces);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, IntersectTestResult, surfaces);
 
     bool const interior_result
         = is_ref_eq(helper, val1.interior, val2.interior);

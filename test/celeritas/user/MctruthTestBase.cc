@@ -60,12 +60,12 @@ bool is_ref_eq(AssertionHelper& helper,
 {
     using Result = MctruthTestBase::RunResult;
     RefComparer<Result> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_eq, Result, event);
-    CELER_INVOKE_ATTR(compare.is_eq, Result, track);
-    CELER_INVOKE_ATTR(compare.is_eq, Result, step);
-    CELER_INVOKE_ATTR(compare.is_eq, Result, volume);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, pos, tol.pos);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, dir, tol.dir);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, event);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, track);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, step);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, volume);
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq, Result, pos, tol.pos);
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq, Result, dir, tol.dir);
     return static_cast<bool>(compare);
 }
 

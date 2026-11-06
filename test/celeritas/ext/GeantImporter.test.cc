@@ -94,9 +94,9 @@ class GeantImporterTest : public GeantTestBase
                               ImportSummary const& actual)
         {
             RefComparer<ImportSummary> compare{helper, expected, actual};
-            CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, particles);
-            CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, processes);
-            CELER_INVOKE_ATTR(compare.is_eq, ImportSummary, models);
+            CELER_INVOKE_TYPE_ATTR(compare.is_eq, ImportSummary, particles);
+            CELER_INVOKE_TYPE_ATTR(compare.is_eq, ImportSummary, processes);
+            CELER_INVOKE_TYPE_ATTR(compare.is_eq, ImportSummary, models);
             return static_cast<bool>(compare);
         }
     };
@@ -122,9 +122,9 @@ class GeantImporterTest : public GeantTestBase
                               ImportXsSummary const& actual)
         {
             RefComparer<ImportXsSummary> compare{helper, expected, actual};
-            CELER_INVOKE_ATTR(compare.is_eq, ImportXsSummary, size);
-            CELER_INVOKE_ATTR(compare.is_soft_eq, ImportXsSummary, energy);
-            CELER_INVOKE_ATTR(compare.is_soft_eq, ImportXsSummary, xs);
+            CELER_INVOKE_TYPE_ATTR(compare.is_eq, ImportXsSummary, size);
+            CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, ImportXsSummary, energy);
+            CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, ImportXsSummary, xs);
             return static_cast<bool>(compare);
         }
     };

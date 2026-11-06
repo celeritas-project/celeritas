@@ -49,7 +49,7 @@ bool is_ref_eq(
     AssertionHelper& helper, RunResult const& val1, RunResult const& val2)
 {
     RefComparer<RunResult> compare{helper, val1, val2};
-    CELER_INVOKE_ATTR(compare.is_eq, RunResult, num_hits);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, num_hits);
     return static_cast<bool>(compare);
 }
 
@@ -85,10 +85,10 @@ bool is_ref_eq(AssertionHelper& helper,
                DepHitResult const& val2)
 {
     RefComparer<DepHitResult> compare{helper, val1, val2};
-    CELER_INVOKE_ATTR(compare.is_eq, DepHitResult, track_id);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, DepHitResult, num_photons);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, DepHitResult, energy);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, DepHitResult, pos);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DepHitResult, track_id);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, DepHitResult, num_photons);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, DepHitResult, energy);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, DepHitResult, pos);
     return static_cast<bool>(compare);
 }
 

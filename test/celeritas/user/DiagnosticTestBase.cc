@@ -56,9 +56,9 @@ bool is_ref_eq(AssertionHelper& helper,
 {
     using Result = DiagnosticTestBase::RunResult;
     RefComparer<Result> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_eq, Result, nonzero_action_keys);
-    CELER_INVOKE_ATTR(compare.is_eq, Result, nonzero_action_counts);
-    CELER_INVOKE_ATTR(compare.is_eq, Result, steps);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, nonzero_action_keys);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, nonzero_action_counts);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, steps);
     return static_cast<bool>(compare);
 }
 

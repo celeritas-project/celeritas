@@ -33,7 +33,7 @@ bool is_ref_eq(AssertionHelper& helper,
                double tol)
 {
     RefComparer<SampledHistogram> compare{helper, val1, val2};
-    bool result = CELER_INVOKE_ATTR(
+    bool result = CELER_INVOKE_TYPE_ATTR_TOL(
         compare.is_soft_eq, SampledHistogram, distribution, tol);
     compare.record_result(result);
     compare.record_result(

@@ -74,11 +74,11 @@ struct RunResult
     {
         using namespace ::celeritas::test;
         RefComparer<RunResult> compare{helper, expected, actual};
-        CELER_INVOKE_ATTR(compare.is_eq, RunResult, track_ids);
-        CELER_INVOKE_ATTR(compare.is_eq, RunResult, parent_ids);
-        CELER_INVOKE_ATTR(compare.is_eq, RunResult, init_ids);
-        CELER_INVOKE_ATTR(compare.is_eq, RunResult, geo_parent_ids);
-        CELER_INVOKE_ATTR(compare.is_eq, RunResult, vacancies);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, track_ids);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, parent_ids);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, init_ids);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, geo_parent_ids);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, vacancies);
         return static_cast<bool>(compare);
     }
 };

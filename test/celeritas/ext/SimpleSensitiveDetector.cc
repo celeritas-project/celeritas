@@ -61,24 +61,34 @@ bool is_ref_eq(AssertionHelper& helper,
     RefComparer<SimpleHitsResult> compare{helper, expected, actual};
     constexpr auto tol
         = static_cast<double>(SoftEqual<celeritas::real_type>{}.rel());
-    CELER_INVOKE_ATTR(
+    CELER_INVOKE_TYPE_ATTR_TOL(
         compare.is_soft_eq, SimpleHitsResult, energy_deposition, tol);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, step_length, tol);
-    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, particle);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, weight, tol);
-    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, track_id);
-    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, parent_id);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_energy, tol);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_time, tol);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_pos, tol);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, pre_dir, tol);
-    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, pre_physvol);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_time, tol);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_energy, tol);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_pos, tol);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SimpleHitsResult, post_dir, tol);
-    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, post_physvol);
-    CELER_INVOKE_ATTR(compare.is_eq, SimpleHitsResult, post_status);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, step_length, tol);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, SimpleHitsResult, particle);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, weight, tol);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, SimpleHitsResult, track_id);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, SimpleHitsResult, parent_id);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, pre_energy, tol);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, pre_time, tol);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, pre_pos, tol);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, pre_dir, tol);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, SimpleHitsResult, pre_physvol);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, post_time, tol);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, post_energy, tol);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, post_pos, tol);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, SimpleHitsResult, post_dir, tol);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, SimpleHitsResult, post_physvol);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, SimpleHitsResult, post_status);
     return static_cast<bool>(compare);
 }
 

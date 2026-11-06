@@ -72,7 +72,7 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
         {
             using namespace ::celeritas::test;
             RefComparer<HeuristicInitResult> compare{helper, val1, val2};
-            CELER_INVOKE_ATTR(
+            CELER_INVOKE_TYPE_ATTR(
                 compare.is_soft_eq, HeuristicInitResult, vol_fractions);
             compare.record_result(is_soft_eq(
                 helper, val1.failed, val2.failed, SoftComparator_t<double>()));

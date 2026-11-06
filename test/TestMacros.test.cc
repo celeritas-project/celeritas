@@ -137,16 +137,16 @@ TEST(RefComparer, invoke_attribute)
     AssertionHelper helper{"expected", "actual"};
     RefComparer<ComparerTestResult> compare_default{
         helper, expected, actual_default};
-    EXPECT_TRUE(
-        CELER_INVOKE_ATTR(compare_default.is_eq, ComparerTestResult, ids));
-    EXPECT_TRUE(CELER_INVOKE_ATTR(
+    EXPECT_TRUE(CELER_INVOKE_TYPE_ATTR(
+        compare_default.is_eq, ComparerTestResult, ids));
+    EXPECT_TRUE(CELER_INVOKE_TYPE_ATTR(
         compare_default.is_soft_eq, ComparerTestResult, distances));
     EXPECT_TRUE(static_cast<bool>(compare_default));
 
     AssertionHelper tolerant_helper{"expected", "actual"};
     RefComparer<ComparerTestResult> compare_tolerant{
         tolerant_helper, expected, actual_tolerant};
-    EXPECT_TRUE(CELER_INVOKE_ATTR(
+    EXPECT_TRUE(CELER_INVOKE_TYPE_ATTR_TOL(
         compare_tolerant.is_soft_eq, ComparerTestResult, distances, 0.02));
     EXPECT_TRUE(static_cast<bool>(compare_tolerant));
 
@@ -155,8 +155,8 @@ TEST(RefComparer, invoke_attribute)
     RefComparer<ComparerTestResult> compare_failed{
         failed_helper, expected, actual_failed};
     EXPECT_FALSE(
-        CELER_INVOKE_ATTR(compare_failed.is_eq, ComparerTestResult, ids));
-    EXPECT_FALSE(CELER_INVOKE_ATTR(
+        CELER_INVOKE_TYPE_ATTR(compare_failed.is_eq, ComparerTestResult, ids));
+    EXPECT_FALSE(CELER_INVOKE_TYPE_ATTR(
         compare_failed.is_soft_eq, ComparerTestResult, distances));
     EXPECT_FALSE(static_cast<bool>(compare_failed));
 

@@ -43,8 +43,8 @@ bool compare_model_input_group(
     AssertionHelper& helper, T const& expected, T const& actual)
 {
     RefComparer<T> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_eq, T, labels);
-    CELER_INVOKE_ATTR(compare.is_eq, T, volumes);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, T, labels);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, T, volumes);
     return static_cast<bool>(compare);
 }
 
@@ -126,10 +126,10 @@ bool is_ref_eq(AssertionHelper& helper,
                GenericGeoTrackingResult::Tol const& tol)
 {
     RefComparer<GenericGeoTrackingResult> compare{helper, val1, val2};
-    CELER_INVOKE_ATTR(compare.is_eq, GenericGeoTrackingResult, volumes);
-    CELER_INVOKE_ATTR(
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, GenericGeoTrackingResult, volumes);
+    CELER_INVOKE_TYPE_ATTR(
         compare.is_eq, GenericGeoTrackingResult, volume_instances);
-    CELER_INVOKE_ATTR(
+    CELER_INVOKE_TYPE_ATTR_TOL(
         compare.is_soft_eq, GenericGeoTrackingResult, distances, tol.distance);
     if (val1.disabled_surface_normal() || val2.disabled_surface_normal())
     {
@@ -140,19 +140,19 @@ bool is_ref_eq(AssertionHelper& helper,
     }
     else
     {
-        CELER_INVOKE_ATTR(compare.is_soft_eq,
-                          GenericGeoTrackingResult,
-                          dot_normal,
-                          tol.normal);
+        CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq,
+                                   GenericGeoTrackingResult,
+                                   dot_normal,
+                                   tol.normal);
     }
-    CELER_INVOKE_ATTR(compare.is_soft_eq,
-                      GenericGeoTrackingResult,
-                      halfway_safeties,
-                      EqualOr{SoftEqual(tol.safety, tol.safety)});
-    CELER_INVOKE_ATTR(compare.is_soft_eq,
-                      GenericGeoTrackingResult,
-                      bumps,
-                      SoftEqual(tol.safety, tol.safety));
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq,
+                               GenericGeoTrackingResult,
+                               halfway_safeties,
+                               EqualOr{SoftEqual(tol.safety, tol.safety)});
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq,
+                               GenericGeoTrackingResult,
+                               bumps,
+                               SoftEqual(tol.safety, tol.safety));
     return static_cast<bool>(compare);
 }
 
@@ -204,7 +204,7 @@ bool is_ref_eq(AssertionHelper& helper,
                GenericGeoVolumeStackResult const& val2)
 {
     RefComparer<GenericGeoVolumeStackResult> compare{helper, val1, val2};
-    CELER_INVOKE_ATTR(
+    CELER_INVOKE_TYPE_ATTR(
         compare.is_eq, GenericGeoVolumeStackResult, volume_instances);
     return static_cast<bool>(compare);
 }

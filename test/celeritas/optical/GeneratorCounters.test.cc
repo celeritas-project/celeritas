@@ -93,12 +93,14 @@ struct GenCounterResult
                           std::nullptr_t = {})
     {
         RefComparer<GenCounterResult> compare{helper, expected, actual};
-        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, buffer_size);
-        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, pending);
-        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, generated);
-        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_buffer_size);
-        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_pending);
-        CELER_INVOKE_ATTR(compare.is_eq, GenCounterResult, accum_generated);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, GenCounterResult, buffer_size);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, GenCounterResult, pending);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, GenCounterResult, generated);
+        CELER_INVOKE_TYPE_ATTR(
+            compare.is_eq, GenCounterResult, accum_buffer_size);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, GenCounterResult, accum_pending);
+        CELER_INVOKE_TYPE_ATTR(
+            compare.is_eq, GenCounterResult, accum_generated);
         return static_cast<bool>(compare);
     }
 };
@@ -162,15 +164,15 @@ struct CounterResult
                           std::nullptr_t = {})
     {
         RefComparer<CounterResult> compare{helper, expected, actual};
-        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, pending);
-        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, generated);
-        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, initializers);
-        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, vacancies);
-        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, active);
-        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, secondaries);
-        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, alive);
-        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, cut);
-        CELER_INVOKE_ATTR(compare.is_eq, CounterResult, errored);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, CounterResult, pending);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, CounterResult, generated);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, CounterResult, initializers);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, CounterResult, vacancies);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, CounterResult, active);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, CounterResult, secondaries);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, CounterResult, alive);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, CounterResult, cut);
+        CELER_INVOKE_TYPE_ATTR(compare.is_eq, CounterResult, errored);
 
         std::vector<std::string> expected_labels;
         std::vector<std::string> actual_labels;

@@ -69,8 +69,8 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
                               RunResult const& actual)
         {
             RefComparer<RunResult> compare{helper, expected, actual};
-            CELER_INVOKE_ATTR(compare.is_eq, RunResult, labels);
-            CELER_INVOKE_ATTR(compare.is_eq, RunResult, slots);
+            CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, labels);
+            CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, slots);
             return static_cast<bool>(compare);
         }
     };

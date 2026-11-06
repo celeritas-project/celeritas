@@ -115,11 +115,11 @@ bool is_ref_eq(AssertionHelper& helper,
                SampleResult const& val2)
 {
     RefComparer<SampleResult> compare{helper, val1, val2};
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, inc_exit_cost);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, inc_exit_e);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, inc_edep);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, sec_cost);
-    CELER_INVOKE_ATTR(compare.is_soft_eq, SampleResult, sec_e);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, SampleResult, inc_exit_cost);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, SampleResult, inc_exit_e);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, SampleResult, inc_edep);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, SampleResult, sec_cost);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, SampleResult, sec_e);
     return static_cast<bool>(compare);
 }
 

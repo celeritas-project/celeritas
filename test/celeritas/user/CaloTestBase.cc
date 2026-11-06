@@ -62,7 +62,7 @@ bool is_ref_eq(AssertionHelper& helper,
 {
     using Result = CaloTestBase::RunResult;
     RefComparer<Result> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_soft_eq, Result, edep, tol.edep);
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq, Result, edep, tol.edep);
     return static_cast<bool>(compare);
 }
 

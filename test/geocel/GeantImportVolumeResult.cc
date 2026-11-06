@@ -84,8 +84,9 @@ bool is_ref_eq(AssertionHelper& helper,
                GeantImportVolumeResult const& actual)
 {
     RefComparer<GeantImportVolumeResult> compare{helper, expected, actual};
-    CELER_INVOKE_ATTR(compare.is_eq, GeantImportVolumeResult, volumes);
-    CELER_INVOKE_ATTR(compare.is_eq, GeantImportVolumeResult, missing_labels);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, GeantImportVolumeResult, volumes);
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_eq, GeantImportVolumeResult, missing_labels);
     return static_cast<bool>(compare);
 }
 
