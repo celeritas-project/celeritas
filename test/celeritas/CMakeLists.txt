@@ -429,6 +429,9 @@ function(add_g4_optical_test basename suite test backend)
   elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
     # No support for surface normals
     set(_disabled TRUE)
+  elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+    # FIXME: GeantSetup teardown destroys g4 geo
+    set(_disabled TRUE)
   endif()
 
   set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
