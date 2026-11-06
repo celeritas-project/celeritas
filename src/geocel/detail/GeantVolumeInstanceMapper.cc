@@ -280,8 +280,7 @@ void GeantVolumeInstanceMapper::update_replica(G4PV& pv,
 VolumeLevelId get_num_volume_levels(G4NavigationHistory const& navpath)
 {
     auto nav_depth = navpath.GetDepth();
-    CELER_ASSERT(nav_depth >= 0);
-    if (CELER_UNLIKELY(nav_depth == 0 && navpath.GetTopVolume() == nullptr))
+    if (CELER_UNLIKELY(nav_depth <= 0 && navpath.GetTopVolume() == nullptr))
     {
         // G4 history represents an "outside" volume as depth-1 with nullptr
         return VolumeLevelId{0};
