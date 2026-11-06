@@ -1159,7 +1159,7 @@ class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
 };
 
 /*!
- * Check that the test runs.
+ * Test that we can safely flush and restore primaries multiple times per event.
  */
 TEST_F(WaterSphere, run_small_flush)
 {
@@ -1215,7 +1215,7 @@ TEST_F(WaterSphere, run_small_flush)
 }
 
 /*!
- * Check that a primary batch can exceed the initial initializer capacity.
+ * Test that primary batches can exceed the initial initializer capacity.
  */
 TEST_F(WaterSphere, run_small_initializers)
 {

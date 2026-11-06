@@ -142,6 +142,7 @@ function(add_integration_tests basename suite test)
 endfunction()
 
 #-----------------------------------------------------------------------------#
+# Tests common to all Integration implementations
 
 foreach(_basename IN ITEMS FastSimulationIntegration TrackingManagerIntegration UserActionIntegration)
   # Add every combination of test for LArSphere.run
@@ -165,12 +166,18 @@ foreach(_basename IN ITEMS FastSimulationIntegration TrackingManagerIntegration 
 
 endforeach()
 
+#-------------------------------------#
+# FastSimulationIntegration
+
 # Test that Fast Simulation setup fails if particles/regions are not correct
 add_integration_tests(
   FastSimulationIntegration LarSphereSetupFailure run
   OFFLOAD cpu
   RMTYPE serial
 )
+
+#-------------------------------------#
+# TrackingManagerIntegration
 
 # Test state dependent output
 add_integration_tests(
@@ -192,40 +199,23 @@ add_integration_tests(
   RMTYPE serial mt
 )
 
-# Test automatic state-dependent hooks without manual run action calls
-add_integration_tests(
-  TrackingManagerIntegration TMIAutoHooks run
-  OFFLOAD cpu
-  RMTYPE serial mt
-)
+# Test automatic/legacy state-dependent hooks
+foreach(_test_suite IN ITEMS TMIAutoHooks LegacyTMIHooks)
+  add_integration_tests(
+    TrackingManagerIntegration ${_test_suite} run
+    OFFLOAD cpu
+    RMTYPE serial mt
+  )
+endforeach()
 
-# Test that legacy manual run action calls are harmless and warn
-add_integration_tests(
-  TrackingManagerIntegration LegacyTMIHooks run
-  OFFLOAD cpu
-  RMTYPE serial mt
-)
-
-# Test optical
-add_integration_tests(
-  TrackingManagerIntegration LarSphereOptical run
-  OFFLOAD cpu gpu g4
-  ${_optical_args}
-)
-
-# Test with optical physics offloading distributions
-add_integration_tests(
-  UserActionIntegration LarSphereOpticalTrackOffload run
-  OFFLOAD cpu gpu g4
-  ${_optical_args}
-)
-
-# Test optical surface physics
-add_integration_tests(
-  TrackingManagerIntegration OpticalSurfaces run
-  OFFLOAD cpu gpu g4
-  ${_optical_args}
-)
+# Test optical bulk and surface physics
+foreach(_test_suite IN ITEMS LarSphereOptical OpticalSurfaces)
+  add_integration_tests(
+    TrackingManagerIntegration ${_test_suite} run
+    OFFLOAD cpu gpu g4
+    ${_optical_args}
+  )
+endforeach()
 
 # Test cleanup after runtime error
 add_integration_tests(
@@ -234,25 +224,23 @@ add_integration_tests(
   RMTYPE serial
 )
 
-# Test that we can safely flush and restore primaries multiple times per event
-add_integration_tests(
-  TrackingManagerIntegration WaterSphere run_small_flush
-  OFFLOAD cpu gpu
-  RMTYPE serial mt
-)
+foreach(_test_case IN ITEMS run_small_flush run_small_initializers)
+  add_integration_tests(
+    TrackingManagerIntegration WaterSphere ${_test_case}
+    OFFLOAD cpu gpu
+    RMTYPE serial mt
+  )
+endif()
 
-# Test that primary batches can exceed the initial initializer capacity
-add_integration_tests(
-  TrackingManagerIntegration WaterSphere run_small_initializers
-  OFFLOAD cpu gpu
-  RMTYPE serial mt
-)
+#-------------------------------------#
+# UserActionIntegration
 
-# Test with optical physics offloading distributions
-add_integration_tests(
-  UserActionIntegration LarSphereOpticalOffload run
-  OFFLOAD cpu gpu g4
-  ${_optical_args}
-)
+foreach(_test_suite IN ITEMS LarSphereOpticalOffload LarSphereOpticalTrackOffload)
+  add_integration_tests(
+    UserActionIntegration ${_test_suite} run
+    OFFLOAD cpu gpu g4
+    ${_optical_args}
+  )
+endif()
 
 #-----------------------------------------------------------------------------#
