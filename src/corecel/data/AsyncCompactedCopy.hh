@@ -234,7 +234,8 @@ auto AsyncCompactedCopy<T>::take_copied() -> SpanConstT
     ScopedProfiling profile_this{"take-copied"};
     copied_.sync();
     output_state_ = OutputState::empty;
-    return make_span(output_);
+    // make_span is callable from device code, but the vector's accessors aren't
+    return {output_.data(), output_.size()};
 }
 
 //---------------------------------------------------------------------------//
