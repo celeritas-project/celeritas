@@ -78,10 +78,19 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(
 /*!
  * Build state data for a stream.
  */
-auto PrimaryGeneratorAction::create_state(MemSpace, StreamId, size_type) const
-    -> UPState
+auto PrimaryGeneratorAction::create_state(
+    MemSpace m, StreamId stream, size_type) const -> UPState
 {
-    return std::make_unique<GeneratorStateBase>();
+    if (m == MemSpace::host)
+    {
+        return std::make_unique<GeneratorCounterState<MemSpace::host>>(stream);
+    }
+    else if (m == MemSpace::device)
+    {
+        return std::make_unique<GeneratorCounterState<MemSpace::device>>(
+            stream);
+    }
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -130,8 +139,10 @@ void PrimaryGeneratorAction::insert_impl(optical::CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
 
-    auto& aux_state = this->counters(*state.aux());
-    aux_state.counters.num_pending = data_.num_photons;
+    auto& aux_state = this->counter_state<M>(*state.aux());
+    auto counters = aux_state.counters;
+    counters.num_pending = data_.num_photons;
+    aux_state.assign(counters);
     aux_state.accum.num_pending += data_.num_photons;
     if (data_.num_photons > 0)
     {
@@ -149,12 +160,13 @@ void PrimaryGeneratorAction::step_impl(CoreParams const& params,
 {
     CELER_EXPECT(state.aux());
 
-    auto const& counters = this->counters(*state.aux()).counters;
-
-    if (counters.num_pending > 0)
+    // The host counters are only updated when the transport loop completes,
+    // so they are an upper bound on the photons left to generate
+    if (this->counters(*state.aux()).counters.num_pending > 0)
     {
         // Generate the optical photons from the distribution data. To avoid
-        // synchronization, we defer the check for vacancies.
+        // synchronization, the number of photons and vacancies are checked
+        // on device.
         this->generate(params, state);
     }
 
@@ -171,13 +183,15 @@ void PrimaryGeneratorAction::generate(CoreParams const& params,
 {
     CELER_EXPECT(state.aux());
 
-    auto const& aux_state = this->counters(*state.aux());
+    auto& aux_state = this->counter_state<MemSpace::host>(*state.aux());
 
     // Generate optical photons in vacant track slots
-    detail::PrimaryGeneratorExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), data_, params_.host_ref()};
-    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
-    launch_action(num_gen, execute);
+    detail::PrimaryGeneratorExecutor execute{params.ptr<MemSpace::native>(),
+                                             state.ptr(),
+                                             data_,
+                                             params_.host_ref(),
+                                             aux_state.device_counters()};
+    launch_action(state.size(), execute);
 }
 
 //---------------------------------------------------------------------------//
