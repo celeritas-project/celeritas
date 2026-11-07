@@ -357,7 +357,7 @@ CMAKE_PRESET=$1
 shift
 if [ "${CMAKE_PRESET}" = "--list-presets" ] || [ "${CMAKE_PRESET}" = "-L" ]; then
   if [ -z "${CMAKE}" ]; then
-    log error "cmake unavailable: cannot call --list-presets"
+    log error "cmake not found: cannot call --list-presets"
     exit 1
   fi
   if ! "${CMAKE}" --list-presets; then

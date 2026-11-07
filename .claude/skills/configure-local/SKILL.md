@@ -1,6 +1,6 @@
 ---
 name: configure-local
-description: Configure Celeritas using system-specific CMakeUserPresets.json and local development environment. Use when asked to configure, build, or compile the first time. Overrides CMake Tools configuration.
+description: Configure Celeritas using system-specific CMakeUserPresets.json and local development environment. Use when asked to configure or when no build directory is found. Overrides CMake Tools configuration.
 ---
 
 Configure Celeritas with the repository's documented development workflow and the user's existing local configuration. `$ARGUMENTS` may name a CMake configure preset; this skill only configures and does not accept build targets. With no arguments, use the local development preset described below.

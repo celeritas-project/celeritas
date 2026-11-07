@@ -40,9 +40,9 @@ Object files and binaries may have different paths and names than their source t
 
 ## Documentation
 
-- Add Doxygen documentation to **definitions**, not declarations, when adding code. Prefer doxygen-style markup `\c`, `<code>` to Markdown in such blocks.
+- Add Doxygen documentation to *definitions*, never on *declarations*. Prefer Doxygen-style markup `\c`, `<code>` to Markdown in such blocks.
 - Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
-- Always add `\sa {testpath}.test.cc` underneath `\file {path}.hh` to locate tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
+- Always add `\sa {testpath}.test.cc` underneath `\file {path}.hh` to locate tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule.
 - Use **only** ASCII characters in CMake/C++/CUDA/shell files.
 
 ## Architecture
@@ -53,14 +53,12 @@ Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same cod
 
 Full rules: `@doc/development/style.rst` and `@doc/development/coding.rst`
 
-Clang-tidy is enforced by CI on changed files; do not run it locally unless asked.
-
 | Concept | Convention | Example |
 |---------|-----------|--------|
 | Classes/structs | `CapWords` | `PhysicsTrackView` |
 | Functions/variables | `snake_case` | `calc_energy` |
 | Private members | trailing underscore | `data_` |
-| Type-safe IDs | `FooId` | `MaterialId` |
+| Type-safe indices (`OpaqueId`) | `FooId` | `MaterialId` |
 
 ### File Extensions
 
@@ -73,6 +71,11 @@ Clang-tidy is enforced by CI on changed files; do not run it locally unless aske
 
 ### Common pitfalls
 
-- Call members via `this->`; write `template<class T>`, not `typename`.
+- Avoid writing long functions (over ~50 lines): break into focused helper
+  functions/classes with descriptive names.
+- Avoid repeating long blocks of common code across files: refactor to a common
+  detail pattern (see `@src/AGENTS.md`).
+- Always call member functions via `this->`.
+- Write `template<class T>`, not `<typename T>`.
 - Mark classes `final` where possible; use exactly one of `final`/`override`.
-- Prefer enums over `bool` parameters; no top-level `const` on by-value params.
+- Prefer enums over `bool` parameters; avoid top-level `const` on by-value params.

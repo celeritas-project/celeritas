@@ -72,7 +72,9 @@ Use inserter classes to populate Collections with deduplication
   `@src/celeritas/mat/MaterialData.hh`)
 - `ItemMap<K, V>`: Offset-based mapping (not hash map)
 
-### Creating New Classes
+See `\page collections` documentation in `@src/corecel/data/Collection.hh` .
+
+### Class groups
 1. Separate data from behavior: `FooData`, `FooParams`, `FooView`
 2. Define any nontrivial member function out-of-line, decorating the function *declaration* with `inline`
 3. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
@@ -81,6 +83,15 @@ Use inserter classes to populate Collections with deduplication
    - **Data**: Members, `operator bool()` (checks construction/assignment), `operator=`, `resize(size)` (for states, sized to track slots)
    - **View**: Lightweight accessor with `CELER_FUNCTION` methods
    - **Executor/Interactor**: Physics implementation
+
+## Style
+
+### Helper functions and classes
+- If used only inside a translation unit, declare in an anonymous namespace to
+  hide symbol visibility
+- If used in a header or reused across files in the same library, put in a
+  detail file
+- If used across libraries, helper becomes a main library class (and needs tests)
 
 ### Literal UDLs
 - In public headers, function/block-scope `using namespace celeritas::literals;` is allowed. Never introduce namespace-scope `using namespace` there.
@@ -94,8 +105,3 @@ Use inserter classes to populate Collections with deduplication
 | `CELER_VALIDATE` | User input validation (always active) |
 
 `CELER_EXPECT`/`ASSERT`/`ENSURE` are compiled only with `CELERITAS_DEBUG`.
-
-## Literal UDLs
-
-- In public headers, function/block-scope `using namespace celeritas::literals;`
-  is allowed. Never introduce namespace-scope `using namespace` there.

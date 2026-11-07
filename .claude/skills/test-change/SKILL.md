@@ -18,10 +18,9 @@ If that fails, STOP immediately and ask the user for further instructions.
 Always build through `cmake --build`: it uses the `ninja` recorded in
 `CMakeCache.txt`, which is often not on `PATH` (e.g. a Spack view).
 
-If an expected test is unavailable, inspect `<build-dir>/CMakeCache.txt` for
-`CELERITAS_BUILD_TESTS` and `CELERITAS_ENABLE_TESTING`. CTest metadata is under
-`<build-dir>/Testing`, not `test/Testing`. Report disabled tests rather than
-reconfiguring unless the user asks.
+If unit testing is correctly enabled, `<build-dir>/test/CTestTestfile.cmake` should exist.
+If it does not, reconfigure with `CELERITAS_BUILD_TESTS` and `CELERITAS_ENABLE_TESTING` enabled.
+Report individually disabled tests rather than reconfiguring: required build dependencies for that test may not exist.
 
 ## 2. Map changed files to tests
 
