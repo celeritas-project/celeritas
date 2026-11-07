@@ -177,6 +177,7 @@ class VecgeomTrackView
     VgNavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
+    Real3& normal_;
 
     //!@}
 
@@ -214,6 +215,7 @@ CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
     , vgnext_{states.next_state[tid]}
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
+    , normal_(states.normal[tid])
 {
 }
 
@@ -234,6 +236,7 @@ CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
     failed_ = false;
+    normal_ = {0, 0, 0};
 
     // Initialize direction
     dir_ = init.dir;
@@ -403,8 +406,7 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 {
-    // FIXME: temporarily return a bogus but valid surface normal
-    return this->dir();
+    return normal_;
 }
 
 //---------------------------------------------------------------------------//
@@ -485,8 +487,29 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
 
     // Move next step
     axpy(next_step_, dir_, &pos_);
-    next_step_ = 0;
     vgstate_.SetBoundaryState(true);
+
+    if (CELERITAS_VECGEOM_VERSION >= 0x020200
+        && next_step_ > this->extra_push())
+    {
+        // Don't recalculate normal if bumping on a reentrant surface
+        VgReal3 normal;
+        bool success = Navigator::ComputeNextNormal(
+            to_vgvector(pos_), vgstate_, vgnext_, normal);
+
+        if (CELER_UNLIKELY(!success))
+        {
+#if !CELER_DEVICE_COMPILE
+            auto msg = CELER_LOG_LOCAL(error);
+            msg << "Failed to get surface normal at " << repr(pos_) << ' '
+                << lengthunits::native_label;
+#endif
+            failed_ = true;
+        }
+        normal_ = to_array(normal);
+    }
+
+    next_step_ = 0;
 
     CELER_ENSURE(this->is_on_boundary());
 }

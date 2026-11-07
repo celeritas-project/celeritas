@@ -61,6 +61,13 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
   else()
     set(_needs_deps DISABLED true)
   endif()
+  if(test_ext STREQUAL "lar"
+     AND CELERITAS_CORE_GEO STREQUAL "VecGeom"
+     AND VecGeom_VERSION VERSION_LESS 2.2)
+    # VecGeom < 2.2 does not provide surface normals: required for optical
+    set(_needs_deps DISABLED true)
+  endif()
+
   if(CELER_DISABLE_DEVICE)
     set(_needs_device DISABLED true)
   else()

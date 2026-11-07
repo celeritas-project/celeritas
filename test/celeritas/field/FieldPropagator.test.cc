@@ -1229,9 +1229,10 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
     // tube rather than *inside*
     if (using_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
-        // TODO: VecGeom 2.x starts to diverge here
+        // TODO: VecGeom 2.x diverges from other geometry: it puts the track in
+        // the inner volume rather than outer
         EXPECT_EQ("vacuum_tube", this->volume_name(geo));
-        GTEST_SKIP() << "FIXME: VecGeom 2.x construction failure.";
+        GTEST_SKIP() << "FIXME: VecGeom 2.x setup changed";
     }
     EXPECT_EQ("si_tracker", this->volume_name(geo));
     {
