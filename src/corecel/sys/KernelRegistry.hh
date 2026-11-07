@@ -87,6 +87,9 @@ class KernelRegistry
     // Access kernel data for a single kernel
     KernelMetadata const& kernel(KernelId id) const;
 
+    // Write kernel statistics to a stream
+    friend std::ostream& operator<<(std::ostream& os, KernelMetadata const& md);
+
   private:
     using UPKM = std::unique_ptr<KernelMetadata>;
 
@@ -99,9 +102,6 @@ class KernelRegistry
 //---------------------------------------------------------------------------//
 // Globally shared registry of kernels for end-of-program diagnostics
 KernelRegistry& kernel_registry();
-
-// Write kernel statistics to a stream
-std::ostream& operator<<(std::ostream& os, KernelMetadata const& md);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
