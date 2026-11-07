@@ -267,6 +267,16 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
   exit 0
 fi
 
+NO_BUILD=false
+if [ "$1" = "--no-build" ]; then
+  shift
+  if [ $# -eq 0 ]; then
+    _usage
+    exit 1
+  fi
+  NO_BUILD=true
+fi
+
 #-----------------------------------------------------------------------------#
 
 # Determine the source directory from the build script
@@ -319,6 +329,7 @@ if [ "${CMAKE}" != "${OLD_CMAKE}" ]; then
   log warning "Local environment script uses a different CMake than your \$PATH"
   log debug "Original: ${OLD_CMAKE}"
   log debug "Updated : ${CMAKE}"
+  printf "CMAKE=%s\n" "${CMAKE}"
   needs_env=true
 fi
 if [ "${OLD_XDG_CACHE_HOME}" != "${XDG_CACHE_HOME}" ]; then
@@ -342,13 +353,6 @@ setup_presets "${SYSTEM_NAME}"
 setup_ccache
 
 # Check arguments and give presets if missing
-if [ $1 = "--no-build" ]; then
-  NO_BUILD=true
-  shift
-else
-  NO_BUILD=false
-fi
-
 CMAKE_PRESET=$1
 shift
 if [ "${CMAKE_PRESET}" = "--list-presets" ] || [ "${CMAKE_PRESET}" = "-L" ]; then
@@ -356,7 +360,7 @@ if [ "${CMAKE_PRESET}" = "--list-presets" ] || [ "${CMAKE_PRESET}" = "-L" ]; the
     log error "cmake unavailable: cannot call --list-presets"
     exit 1
   fi
-  if ! "${CMAKE}" --list-presets >&2 ; then
+  if ! "${CMAKE}" --list-presets; then
     log error "CMake may be too old or JSON file may be broken"
     exit 1
   fi
@@ -366,12 +370,15 @@ fi
 
 try_build() {
   log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"
-  ${CMAKE} --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
+  if ! "${CMAKE}" --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"; then
+    log error "configuration failed: check configuration errors above"
+    return 1
+  fi
   if $NO_BUILD; then
     return 0
   fi
   log info "Building with --preset=${CMAKE_PRESET}"
-  if ! ${CMAKE} --build --preset="${CMAKE_PRESET}"; then
+  if ! "${CMAKE}" --build --preset="${CMAKE_PRESET}"; then
     log error "build failed: check configuration and build errors above"
     return 1
   fi
@@ -380,7 +387,7 @@ try_build() {
     log warning "Celeritas built but some tests failed"
     log info "Ask the Celeritas team whether the failures indicate an actual error"
     log info "Provide the system configuration:"
-    ${CMAKE} --build --preset=${CMAKE_PRESET} --target print-config
+    "${CMAKE}" --build --preset="${CMAKE_PRESET}" --target print-config
     RETCODE=1
   else
     log info "Celeritas was successfully built and tested for development!"
@@ -393,13 +400,12 @@ try_build() {
 }
 
 # Configure, build, and test
-try_build "$@"
-RETCODE=$?
+RETCODE=0
+try_build "$@" || RETCODE=$?
 
 if ${needs_env}; then
   log warning "Environment (cmake and/or pre-commit) differs from user"
   log info "Recommend sourcing ${ENV_SCRIPT} in ${rc_file}"
-  printf "CMAKE=%s\n" "${CMAKE}"
 fi
 
 exit $RETCODE

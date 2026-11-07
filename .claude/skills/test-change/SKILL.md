@@ -18,8 +18,10 @@ If that fails, STOP immediately and ask the user for further instructions.
 Always build through `cmake --build`: it uses the `ninja` recorded in
 `CMakeCache.txt`, which is often not on `PATH` (e.g. a Spack view).
 
-If, after configuring, `test/Testing` does not exist, it may mean CTest+GoogleTest are not enabled.
-Reconfigure with `CELERITAS_BUILD_TESTS` and `CELERITAS_ENABLE_TESTING` set to `ON`.
+If an expected test is unavailable, inspect `<build-dir>/CMakeCache.txt` for
+`CELERITAS_BUILD_TESTS` and `CELERITAS_ENABLE_TESTING`. CTest metadata is under
+`<build-dir>/Testing`, not `test/Testing`. Report disabled tests rather than
+reconfiguring unless the user asks.
 
 ## 2. Map changed files to tests
 

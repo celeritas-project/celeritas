@@ -53,6 +53,8 @@ Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same cod
 
 Full rules: `@doc/development/style.rst` and `@doc/development/coding.rst`
 
+Clang-tidy is enforced by CI on changed files; do not run it locally unless asked.
+
 | Concept | Convention | Example |
 |---------|-----------|--------|
 | Classes/structs | `CapWords` | `PhysicsTrackView` |

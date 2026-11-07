@@ -94,3 +94,8 @@ Use inserter classes to populate Collections with deduplication
 | `CELER_VALIDATE` | User input validation (always active) |
 
 `CELER_EXPECT`/`ASSERT`/`ENSURE` are compiled only with `CELERITAS_DEBUG`.
+
+## Literal UDLs
+
+- In public headers, function/block-scope `using namespace celeritas::literals;`
+  is allowed. Never introduce namespace-scope `using namespace` there.
