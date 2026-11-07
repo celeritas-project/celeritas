@@ -127,6 +127,13 @@ void Transporter::transport_impl(CoreState<M>& state) const
         }
     }
 
+    // Complete deferred work such as processing detector hits
+    for (auto const& action : actions_->end_transport())
+    {
+        ScopedProfiling profile_this{action->label()};
+        action->end_transport(*this->params(), state);
+    }
+
     if (CELER_UNLIKELY(!is_complete()))
     {
         CELER_LOG_LOCAL(error)

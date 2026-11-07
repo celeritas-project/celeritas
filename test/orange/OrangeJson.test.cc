@@ -1019,7 +1019,7 @@ TEST_F(InputBuilderTest, DISABLED_universe_union_boundary)
     {
         SCOPED_TRACE("mz");
         auto result = this->track({0, 0, 15}, {0, 0, -1});
-        result.print_expected();
+        print_expected(result);
     }
 }
 

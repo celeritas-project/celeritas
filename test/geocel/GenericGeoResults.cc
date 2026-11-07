@@ -19,7 +19,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/inp/Model.hh"
 
-#include "GenericGeoTestInterface.hh"
+#include "RefComparer.hh"
 #include "TestMacros.hh"
 
 using namespace celeritas::literals;
@@ -36,6 +36,16 @@ void erase_after(std::vector<T>& vec, std::size_t idx)
 {
     auto iter = vec.begin() + std::min(idx, vec.size());
     vec.erase(iter, vec.end());
+}
+
+template<class T>
+bool compare_model_input_group(
+    AssertionHelper& helper, T const& expected, T const& actual)
+{
+    RefComparer<T> compare{helper, expected, actual};
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, T, labels);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, T, volumes);
+    return static_cast<bool>(compare);
 }
 
 }  // namespace
@@ -100,70 +110,27 @@ void GenericGeoTrackingResult::fail_at(std::size_t index)
     volumes.push_back("[FAILURE]");
 }
 
-void GenericGeoTrackingResult::print_expected() const
+std::ostream& operator<<(std::ostream& os, GenericGeoTrackingResult const& ref)
 {
-    using std::cout;
-    auto const& ref = *this;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "GenericGeoTrackingResult ref;\n"
-         << CELER_REF_ATTR(volume_instances) << CELER_REF_ATTR(distances);
-    if (this->dot_normal.empty())
-    {
-        // See clear_boring_normals
-        cout << "ref.dot_normal = {}; // All normals are along track dir\n";
-    }
-    else if (this->disabled_surface_normal())
-    {
-        cout << "// Surface normal checking is disabled\n";
-    }
-    else
-    {
-        cout << CELER_REF_ATTR(dot_normal);
-    }
-    cout << CELER_REF_ATTR(halfway_safeties);
-    if (!bumps.empty())
-    {
-        cout << CELER_REF_ATTR(bumps);
-    }
-
-    cout << "auto tol = test_->tracking_tol();\n"
-            "EXPECT_REF_NEAR(ref, result, tol);\n"
-            "/*** END CODE ***/\n";
+    return os << '{' << CELER_REPR_ATTR(ref, volumes) << ", "
+              << CELER_REPR_ATTR(ref, volume_instances) << ", "
+              << CELER_REPR_ATTR(ref, distances) << ", "
+              << CELER_REPR_ATTR(ref, dot_normal) << ", "
+              << CELER_REPR_ATTR(ref, halfway_safeties) << ", "
+              << CELER_REPR_ATTR(ref, bumps) << '}';
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   char const*,
-                                   GenericGeoTrackingResult const& val1,
-                                   GenericGeoTrackingResult const& val2,
-                                   GenericGeoTrackingTolerance const& tol)
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoTrackingResult const& val1,
+               GenericGeoTrackingResult const& val2,
+               GenericGeoTrackingResult::Tol const& tol)
 {
-    using ::celeritas::testdetail::IsVecEq;
-    using ::celeritas::testdetail::IsVecSoftEquiv;
-
-    AssertionHelper helper{expr1, expr2};
-
-#define IRE_VEC_EQ(ATTR) \
-    if (auto result = IsVecEq(expr1, #ATTR, val1.ATTR, val2.ATTR); \
-        !static_cast<bool>(result)) \
-    { \
-        helper.fail() << result.message(); \
-    } \
-    else \
-        (void)sizeof(char)
-#define IRE_VEC_SOFT_EQ(ATTR, TOL) \
-    if (auto result \
-        = IsVecSoftEquiv(expr1, #ATTR, #TOL, val1.ATTR, val2.ATTR, TOL); \
-        !static_cast<bool>(result)) \
-    { \
-        helper.fail() << result.message(); \
-    } \
-    else \
-        (void)sizeof(char)
-
-    IRE_VEC_EQ(volumes);
-    IRE_VEC_EQ(volume_instances);
-    IRE_VEC_SOFT_EQ(distances, tol.distance);
+    RefComparer<GenericGeoTrackingResult> compare{helper, val1, val2};
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, GenericGeoTrackingResult, volumes);
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_eq, GenericGeoTrackingResult, volume_instances);
+    CELER_INVOKE_TYPE_ATTR_TOL(
+        compare.is_soft_eq, GenericGeoTrackingResult, distances, tol.distance);
     if (val1.disabled_surface_normal() || val2.disabled_surface_normal())
     {
         static int warn_count{0};
@@ -173,15 +140,27 @@ void GenericGeoTrackingResult::print_expected() const
     }
     else
     {
-        IRE_VEC_SOFT_EQ(dot_normal, tol.normal);
+        CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq,
+                                   GenericGeoTrackingResult,
+                                   dot_normal,
+                                   tol.normal);
     }
-    IRE_VEC_SOFT_EQ(halfway_safeties,
-                    EqualOr{SoftEqual(tol.safety, tol.safety)});
-    IRE_VEC_SOFT_EQ(bumps, SoftEqual(tol.safety, tol.safety));
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq,
+                               GenericGeoTrackingResult,
+                               halfway_safeties,
+                               EqualOr{SoftEqual(tol.safety, tol.safety)});
+    CELER_INVOKE_TYPE_ATTR_TOL(compare.is_soft_eq,
+                               GenericGeoTrackingResult,
+                               bumps,
+                               SoftEqual(tol.safety, tol.safety));
+    return static_cast<bool>(compare);
+}
 
-#undef IRE_VEC_EQ
-#undef IRE_VEC_SOFT_EQ
-    return helper;
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoTrackingResult const& expected,
+               GenericGeoTrackingResult const& actual)
+{
+    return is_ref_eq(helper, expected, actual, {});
 }
 
 //---------------------------------------------------------------------------//
@@ -209,15 +188,10 @@ GenericGeoVolumeStackResult GenericGeoVolumeStackResult::from_span(
     return result;
 }
 
-void GenericGeoVolumeStackResult::print_expected() const
+std::ostream& operator<<(std::ostream& os,
+                         GenericGeoVolumeStackResult const& ref)
 {
-    using std::cout;
-    auto const& ref = *this;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "GenericGeoVolumeStackResult ref;\n"
-            << CELER_REF_ATTR(volume_instances)
-            "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    return os << '{' << CELER_REPR_ATTR(ref, volume_instances) << '}';
 }
 
 void GenericGeoVolumeStackResult::fail()
@@ -225,24 +199,14 @@ void GenericGeoVolumeStackResult::fail()
     this->volume_instances.push_back("[FAILURE]");
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   GenericGeoVolumeStackResult const& val1,
-                                   GenericGeoVolumeStackResult const& val2)
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoVolumeStackResult const& val1,
+               GenericGeoVolumeStackResult const& val2)
 {
-    AssertionHelper result{expr1, expr2};
-
-#define IRE_COMPARE(ATTR) \
-    if (val1.ATTR != val2.ATTR) \
-    { \
-        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR); \
-    } \
-    else \
-        CELER_DISCARD(int)
-    IRE_COMPARE(volume_instances);
-#undef IRE_COMPARE
-    return result;
+    RefComparer<GenericGeoVolumeStackResult> compare{helper, val1, val2};
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_eq, GenericGeoVolumeStackResult, volume_instances);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
@@ -307,56 +271,42 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
     return result;
 }
 
-void GenericGeoModelInp::print_expected() const
+std::ostream& operator<<(std::ostream& os, GenericGeoModelInp const& ref)
 {
-    using std::cout;
-    auto const& ref = *this;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "GenericGeoModelInp ref;\n";
-
-    if (!surface.labels.empty())
-    {
-        cout << CELER_REF_ATTR(surface.labels)
-             << CELER_REF_ATTR(surface.volumes);
-    }
-    if (!region.labels.empty())
-    {
-        cout << CELER_REF_ATTR(region.labels) << CELER_REF_ATTR(region.volumes);
-    }
-    if (!detector.labels.empty())
-    {
-        cout << CELER_REF_ATTR(detector.labels)
-             << CELER_REF_ATTR(detector.volumes);
-    }
-    cout << "EXPECT_REF_EQ(ref, result);\n"
-            "/*** END CODE ***/\n";
+    return os << "{{" << CELER_REPR_ATTR(ref, surface.labels) << ", "
+              << CELER_REPR_ATTR(ref, surface.volumes) << "}, {"
+              << CELER_REPR_ATTR(ref, region.labels) << ", "
+              << CELER_REPR_ATTR(ref, region.volumes) << "}, {"
+              << CELER_REPR_ATTR(ref, detector.labels) << ", "
+              << CELER_REPR_ATTR(ref, detector.volumes) << "}}";
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   GenericGeoModelInp const& val1,
-                                   GenericGeoModelInp const& val2)
+bool is_ref_eq(AssertionHelper& helper,
+               GenericGeoModelInp const& expected,
+               GenericGeoModelInp const& actual)
 {
-    AssertionHelper result{expr1, expr2};
+    RefComparer<GenericGeoModelInp> compare{helper, expected, actual};
+    auto compare_impl = [&helper, &compare](char const* name,
+                                            auto const& expected,
+                                            auto const& actual) {
+        bool const result = expected == actual;
+        if (!result)
+        {
+            helper.fail() << "Expected " << name << ": " << repr(expected)
+                          << " but got " << repr(actual);
+        }
+        compare.record_result(result);
+    };
 
-#define IRE_COMPARE(ATTR) \
-    if (val1.ATTR != val2.ATTR) \
-    { \
-        result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR); \
-    } \
-    else \
-        CELER_DISCARD(int)
-
-    IRE_COMPARE(surface.labels);
-    IRE_COMPARE(surface.volumes);
-    IRE_COMPARE(region.labels);
-    IRE_COMPARE(region.volumes);
-    IRE_COMPARE(detector.labels);
-    IRE_COMPARE(detector.volumes);
-
-#undef IRE_COMPARE
-    return result;
+#define IRE_COMPARE_ATTR(attr) compare_impl(#attr, expected.attr, actual.attr);
+    IRE_COMPARE_ATTR(surface.volumes);
+    IRE_COMPARE_ATTR(surface.labels);
+    IRE_COMPARE_ATTR(region.labels);
+    IRE_COMPARE_ATTR(region.volumes);
+    IRE_COMPARE_ATTR(detector.labels);
+    IRE_COMPARE_ATTR(detector.volumes);
+#undef IRE_COMPARE_ATTR
+    return static_cast<bool>(compare);
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -69,7 +69,6 @@ jobs:
           name: ultralite-${{matrix.platform}}
           preset: ${{env.CELER_CMAKE_PRESET}}
           ccache-max-size: 128Mi
-          ccache-debug: ${{matrix.platform == 'ubuntu' && '1' || '0'}}
 
       - name: Test
         id: test

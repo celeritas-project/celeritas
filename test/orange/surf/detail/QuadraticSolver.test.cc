@@ -171,7 +171,7 @@ TEST(SolveGeneral, one_root)
     auto x = QuadraticSolver::solve_general(a, b_2, c, SurfaceState::off);
 
     EXPECT_SOFT_EQ(no_intersection(), x[1]);
-    EXPECT_SOFT_NEAR(1.0e3, x[0], 1e-7);
+    EXPECT_SOFT_NEAR(1.0e3, x[0], 1e-7_r);
 }
 
 //---------------------------------------------------------------------------//
