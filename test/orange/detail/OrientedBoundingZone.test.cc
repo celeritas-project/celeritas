@@ -76,17 +76,17 @@ TEST_F(OrientedBoundingZoneTest, basic)
 
     // Test safety distance functions
     EXPECT_SOFT_NEAR(
-        0.43, obz.calc_safety_inside({10.12, 20.09, 30.57}), 1.e-5);
+        0.43, obz.calc_safety_inside({10.12, 20.09, 30.57}), 1.e-5_r);
 
-    EXPECT_SOFT_NEAR(0.1, obz.calc_safety_outside({10.1, 20.1, 32.2}), 1.e-5);
+    EXPECT_SOFT_NEAR(0.1, obz.calc_safety_outside({10.1, 20.1, 32.2}), 1.e-5_r);
 
     EXPECT_SOFT_NEAR(std::hypot(1, 0.2),
                      obz.calc_safety_outside({10.1, 17.1, 32.3}),
-                     1.e-5);
+                     1.e-5_r);
 
     EXPECT_SOFT_NEAR(std::hypot(0.2, 1, 0.2),
                      obz.calc_safety_outside({12.3, 17.1, 32.3}),
-                     1.e-5);
+                     1.e-5_r);
 
     // Check that we get zeros for points between the inner and outer boxes
     EXPECT_SOFT_EQ(0., obz.calc_safety_inside({11.5, 20, 30}));

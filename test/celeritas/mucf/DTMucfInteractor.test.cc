@@ -68,7 +68,7 @@ class DTMucfInteractorTest : public MucfInteractorHostTestBase
             {
                 total_kinetic_energy += sec.energy.value();
             }
-            EXPECT_SOFT_NEAR(17.6, total_kinetic_energy, 0.5);
+            EXPECT_SOFT_NEAR(17.6, total_kinetic_energy, 0.5_r);
 
             if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
             {

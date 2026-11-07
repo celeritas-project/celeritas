@@ -10,17 +10,27 @@
 
 #include "corecel/Config.hh"
 
-#include "testdetail/TestMacrosImpl.hh"
+#include "corecel/SourceFile.hh"
+
+#include "testdetail/TestMacrosImpl.hh"  // IWYU pragma: export
+
+using ::celeritas::testdetail::print_expected;
 
 //---------------------------------------------------------------------------//
 // MACROS
 //---------------------------------------------------------------------------//
 
+//! Print the given object for unit/regression tests
+#define PRINT_EXPECTED(data) \
+    ::celeritas::testdetail::print_expected( \
+        data, #data, CELER_SOURCE_FILE, __LINE__)
+
 //! Custom comparison for Celeritas test result types, using ADL
-#define EXPECT_REF_EQ(EXPECTED, ACTUAL) \
-    EXPECT_PRED_FORMAT2(IsRefEq, EXPECTED, ACTUAL)
-#define EXPECT_REF_NEAR(EXPECTED, ACTUAL, TOL) \
-    EXPECT_PRED_FORMAT3(IsRefEq, EXPECTED, ACTUAL, TOL)
+#define EXPECT_REF_EQ(expected, actual) \
+    EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsRefEq, expected, actual)
+#define EXPECT_REF_NEAR(expected, actual, tol) \
+    EXPECT_PRED_FORMAT3( \
+        ::celeritas::testdetail::IsRefEq, expected, actual, tol)
 
 //! Container equality macro
 #define EXPECT_VEC_EQ(expected, actual) \
@@ -38,9 +48,9 @@
     EXPECT_PRED_FORMAT2(::celeritas::testdetail::IsSoftEquiv, expected, actual)
 
 //! Soft equivalence macro with relative error or comparator
-#define EXPECT_SOFT_NEAR(expected, actual, rel_error) \
+#define EXPECT_SOFT_NEAR(expected, actual, tol) \
     EXPECT_PRED_FORMAT3( \
-        ::celeritas::testdetail::IsSoftEquiv, expected, actual, rel_error)
+        ::celeritas::testdetail::IsSoftEquiv, expected, actual, tol)
 
 //! Container soft equivalence macro
 #define EXPECT_VEC_SOFT_EQ(expected, actual) \
@@ -48,16 +58,21 @@
         ::celeritas::testdetail::IsVecSoftEquiv, expected, actual)
 
 //! Container soft equivalence macro with relative error or comparator
-#define EXPECT_VEC_NEAR(expected, actual, rel_error) \
+#define EXPECT_VEC_NEAR(expected, actual, tol) \
     EXPECT_PRED_FORMAT3( \
-        ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, rel_error)
-
-//! Print the given container as an array for regression testing
-#define PRINT_EXPECTED(data) \
-    ::celeritas::testdetail::print_expected(data, #data)
+        ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, tol)
 
 //! Helper for printing expected values in reference structs
-#define CELER_REF_ATTR(ATTR) "ref." #ATTR " = " << repr(ref.ATTR) << ";\n"
+#define CELER_REPR_ATTR(ref, attr) \
+    ::celeritas::testdetail::StreamableAttr \
+    { \
+        #attr, ref.attr \
+    }
+
+//! Invoke an attribute comparison with an optional tolerance
+#define CELER_INVOKE_TYPE_ATTR(func, type, attr) func(#attr, &type::attr)
+#define CELER_INVOKE_TYPE_ATTR_TOL(func, type, attr, tol) \
+    func(#attr, &type::attr, tol)
 
 //! JSON string equality (soft equal for floats)
 #define EXPECT_JSON_EQ(expected, actual) \
@@ -97,20 +112,3 @@
 #else
 #    define TEST_IF_CELERITAS_USE_ROOT(name) DISABLED_##name
 #endif
-
-// Expose the generic container IsRefEq to the possible test namespaces so that
-// "unqualified lookup" as well as "argument-dependent" work
-namespace celeritas
-{
-namespace test
-{
-using ::celeritas::testdetail::IsRefEq;
-}
-namespace detail
-{
-namespace test
-{
-using ::celeritas::testdetail::IsRefEq;
-}
-}  // namespace detail
-}  // namespace celeritas

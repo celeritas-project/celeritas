@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <memory>
 #include <vector>
 
@@ -21,6 +23,8 @@ class StepperInterface;
 
 namespace test
 {
+class AssertionHelper;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct helper action and set up stepper/primary inputs.
@@ -44,16 +48,22 @@ class StepperTestBase : virtual public GlobalTestBase
   public:
     struct SetupCheckResult
     {
+        static constexpr char class_str[] = "SetupCheckResult";
+
         std::vector<std::string> processes;
         std::vector<std::string> actions;
         std::vector<std::string> actions_desc;
 
-        // Print code for the expected attributes
-        void print_expected() const;
+        friend std::ostream& operator<<(std::ostream&, SetupCheckResult const&);
+        friend bool is_ref_eq(AssertionHelper&,
+                              SetupCheckResult const&,
+                              SetupCheckResult const&);
     };
 
     struct RunResult
     {
+        static constexpr char class_str[] = "RunResult";
+
         using StepCount = std::pair<size_type, size_type>;
 
         std::vector<size_type> active;
@@ -68,8 +78,9 @@ class StepperTestBase : virtual public GlobalTestBase
         // Step index and value of the high water mark of the initializer queue
         StepCount calc_queue_hwm() const;
 
-        // Print code for the expected attributes
-        void print_expected() const;
+        friend std::ostream& operator<<(std::ostream&, RunResult const&);
+        friend bool is_ref_eq(
+            AssertionHelper&, RunResult const&, RunResult const&);
 
         //! True if run was performed and data is consistent
         explicit operator bool() const

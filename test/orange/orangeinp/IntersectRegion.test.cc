@@ -178,18 +178,15 @@ TEST_F(BoxTest, errors)
 TEST_F(BoxTest, standard)
 {
     auto result = this->test(Box({1, 2, 3}));
-    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: x=-1",
-        "Plane: x=1",
-        "Plane: y=-2",
-        "Plane: y=2",
-        "Plane: z=-3",
-        "Plane: z=3",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    auto ref = result;
+    ref.node = "all(+0, -1, +2, -3, +4, -5)";
+    ref.surfaces = {"Plane: x=-1",
+                    "Plane: x=1",
+                    "Plane: y=-2",
+                    "Plane: y=2",
+                    "Plane: z=-3",
+                    "Plane: z=3"};
+    EXPECT_REF_EQ(ref, result);
 
     EXPECT_EQ(SignedSense::inside,
               this->calc_sense(result.node_id, Real3{0, 0, 0}));
@@ -227,108 +224,81 @@ TEST_F(ConeTest, upward)
 {
     auto result = this->test(Cone({1.5, 0}, 0.5));  // Lower r=1.5, height 1
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces
         = {"Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1.5 at {0,0,0.5}"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.53033008588991, -0.5}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.53033008588991, 0.53033008588991, 0}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1.5, -1.5, -0.5}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.5, 1.5, 0.5}), result.exterior.upper());
+    ref.interior = {{-0.53033008588991, -0.53033008588991, -0.5},
+                    {0.53033008588991, 0.53033008588991, 0}};
+    ref.exterior = {{-1.5, -1.5, -0.5}, {1.5, 1.5, 0.5}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ConeTest, downward)
 {
     auto result = this->test(Cone({0, 1.2}, 1.3 / 2));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[] = {
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces = {
         "Plane: z=-0.65", "Plane: z=0.65", "Cone z: t=0.92308 at {0,0,-0.65}"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-0.42426406871193, -0.42426406871193, 0}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.42426406871193, 0.42426406871193, 0.65}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1.2, -1.2, -0.65}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.2, 1.2, 0.65}), result.exterior.upper());
+    ref.interior = {{-0.42426406871193, -0.42426406871193, 0},
+                    {0.42426406871193, 0.42426406871193, 0.65}};
+    ref.exterior = {{-1.2, -1.2, -0.65}, {1.2, 1.2, 0.65}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ConeTest, cylinder)
 {
     auto result = this->test(Cone({1.2, 1.2}, 1.3 / 2));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-0.65", "Plane: z=0.65", "Cyl z: r=1.2"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-0.84852813742386, -0.84852813742386, -0.65}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.84852813742386, 0.84852813742386, 0.65}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1.2, -1.2, -0.65}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.2, 1.2, 0.65}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces = {"Plane: z=-0.65", "Plane: z=0.65", "Cyl z: r=1.2"};
+    ref.interior = {{-0.84852813742386, -0.84852813742386, -0.65},
+                    {0.84852813742386, 0.84852813742386, 0.65}};
+    ref.exterior = {{-1.2, -1.2, -0.65}, {1.2, 1.2, 0.65}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ConeTest, truncated)
 {
     auto result = this->test(Cone({0.5, 1.5}, 0.5));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1 at {0,0,-1}"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.53033008588991, -0.25}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.53033008588991, 0.53033008588991, 0.5}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1.5, -1.5, -0.5}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.5, 1.5, 0.5}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces = {"Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1 at {0,0,-1}"};
+    ref.interior = {{-0.53033008588991, -0.53033008588991, -0.25},
+                    {0.53033008588991, 0.53033008588991, 0.5}};
+    ref.exterior = {{-1.5, -1.5, -0.5}, {1.5, 1.5, 0.5}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ConeTest, almost_cyl)
 {
     auto result = this->test(Cone({0.55, 0.45}, 10.0));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces
         = {"Plane: z=-10", "Plane: z=10", "Cone z: t=5e-3 at {0,0,100}"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-0.31819805153395, -0.31819805153395, -10}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.31819805153395, 0.31819805153395, 10}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-0.55, -0.55, -10}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.55, 0.55, 10}), result.exterior.upper());
+    ref.interior = {{-0.31819805153395, -0.31819805153395, -10},
+                    {0.31819805153395, 0.31819805153395, 10}};
+    ref.exterior = {{-0.55, -0.55, -10}, {0.55, 0.55, 10}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ConeTest, translated)
 {
     auto result = this->test(Cone({1.0, 0.5}, 2.0), Translation{{1, 2, 3}});
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=1", "Plane: z=5", "Cone z: t=0.125 at {1,2,9}"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{0.64644660940673, 1.6464466094067, 1}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.3535533905933, 2.3535533905933, 5}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{0, 1, 1}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 3, 5}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces = {"Plane: z=1", "Plane: z=5", "Cone z: t=0.125 at {1,2,9}"};
+    ref.interior = {{0.64644660940673, 1.6464466094067, 1},
+                    {1.3535533905933, 2.3535533905933, 5}};
+    ref.exterior = {{0, 1, 1}, {2, 3, 5}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ConeTest, transformed)
@@ -338,18 +308,13 @@ TEST_F(ConeTest, transformed)
         Transformation{make_rotation(Axis::z, Turn{0.125}),  // 45deg
                        Real3{0, 0, 2.0}});
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=0", "Plane: z=4", "Cone z: t=0.125 at {0,0,8}"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-0.5, -0.5, 0}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.5, 0.5, 4}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1.4142135623731, -1.4142135623731, 0}),
-                       result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.4142135623731, 1.4142135623731, 4}),
-                       result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces = {"Plane: z=0", "Plane: z=4", "Cone z: t=0.125 at {0,0,8}"};
+    ref.interior = {{-0.5, -0.5, 0}, {0.5, 0.5, 4}};
+    ref.exterior = {{-1.4142135623731, -1.4142135623731, 0},
+                    {1.4142135623731, 1.4142135623731, 4}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -390,16 +355,13 @@ TEST_F(CutCylinderTest, standard)
 
     auto result = this->test(CutCylinder(0.75, 0.9, {0, k, -k}, {-k, 0, k}));
 
-    static char const expected_node[] = "all(-0, +1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: n={0,0.70711,-0.70711}, d=0.63640",
-           "Plane: n={0.70711,0,-0.70711}, d=-0.63640",
-           "Cyl z: r=0.75"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-0.75, -0.75, -0.9}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.75, 0.75, 0.9}), result.exterior.upper());
+    auto ref = result;
+    ref.node = "all(-0, +1, -2)";
+    ref.surfaces = {"Plane: n={0,0.70711,-0.70711}, d=0.63640",
+                    "Plane: n={0.70711,0,-0.70711}, d=-0.63640",
+                    "Cyl z: r=0.75"};
+    ref.exterior = {{-0.75, -0.75, -0.9}, {0.75, 0.75, 0.9}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -417,36 +379,27 @@ TEST_F(CylinderTest, standard)
 {
     auto result = this->test(Cylinder(0.75, 0.9));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-0.9", "Plane: z=0.9", "Cyl z: r=0.75"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.53033008588991, -0.9}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.53033008588991, 0.53033008588991, 0.9}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-0.75, -0.75, -0.9}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.75, 0.75, 0.9}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces = {"Plane: z=-0.9", "Plane: z=0.9", "Cyl z: r=0.75"};
+    ref.interior = {{-0.53033008588991, -0.53033008588991, -0.9},
+                    {0.53033008588991, 0.53033008588991, 0.9}};
+    ref.exterior = {{-0.75, -0.75, -0.9}, {0.75, 0.75, 0.9}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(CylinderTest, translated)
 {
     auto result = this->test(Cylinder(0.75, 0.9), Translation{{1, 2, 3}});
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces
         = {"Plane: z=2.1", "Plane: z=3.9", "Cyl z: r=0.75 at x=1, y=2"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{0.46966991411009, 1.4696699141101, 2.1}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.5303300858899, 2.5303300858899, 3.9}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{0.25, 1.25, 2.1}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.75, 2.75, 3.9}), result.exterior.upper());
+    ref.interior = {{0.46966991411009, 1.4696699141101, 2.1},
+                    {1.5303300858899, 2.5303300858899, 3.9}};
+    ref.exterior = {{0.25, 1.25, 2.1}, {1.75, 2.75, 3.9}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(CylinderTest, transformed)
@@ -455,18 +408,14 @@ TEST_F(CylinderTest, transformed)
         Cylinder(0.75, 0.9),
         Transformation{make_rotation(Axis::x, Turn{0.25}), Real3{0, 0, 1.0}});
 
-    static char const expected_node[] = "all(-0, +1, -2)";
-    static char const* const expected_surfaces[]
+    IntersectTestResult ref;
+    ref.node = "all(-0, +1, -2)";
+    ref.surfaces
         = {"Plane: y=0.9", "Plane: y=-0.9", "Cyl y: r=0.75 at x=0, z=1"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.9, 0.46966991411009}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.53033008588991, 0.9, 1.5303300858899}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-0.75, -0.9, 0.25}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.75, 0.9, 1.75}), result.exterior.upper());
+    ref.interior = {{-0.53033008588991, -0.9, 0.46966991411009},
+                    {0.53033008588991, 0.9, 1.5303300858899}};
+    ref.exterior = {{-0.75, -0.9, 0.25}, {0.75, 0.9, 1.75}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -493,32 +442,24 @@ TEST_F(EllipsoidTest, standard)
 {
     auto result = this->test(Ellipsoid({3, 2, 1}));
 
-    static char const expected_node[] = "-0";
-    static char const* const expected_surfaces[]
-        = {"SQuadric: {0.33333,0.75,3} {0,0,0} -3"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{-1.7320508075688776, -1.1547005383792517, -0.57735026918962584}),
-        result.interior.lower());
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{1.7320508075688776, 1.1547005383792517, 0.57735026918962584}),
-        result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-3, -2, -1}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{3, 2, 1}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "-0";
+    ref.surfaces = {"SQuadric: {0.33333,0.75,3} {0,0,0} -3"};
+    ref.interior
+        = {{-1.7320508075688776, -1.1547005383792517, -0.57735026918962584},
+           {1.7320508075688776, 1.1547005383792517, 0.57735026918962584}};
+    ref.exterior = {{-3, -2, -1}, {3, 2, 1}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(EllipsoidTest, tiny)
 {
     auto result = this->test(Ellipsoid({0.008, 0.004, 0.005}));
 
-    static char const expected_node[] = "-0";
-    static char const* const expected_surfaces[]
-        = {"SQuadric: {0.5,2,1.28} {0,0,0} -3.2e-5"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    auto ref = result;
+    ref.node = "-0";
+    ref.surfaces = {"SQuadric: {0.5,2,1.28} {0,0,0} -3.2e-5"};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -546,21 +487,15 @@ TEST_F(EllipticalCylinderTest, standard)
 {
     auto result = this->test(EllipticalCylinder({3, 2}, 0.5));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-0.5",
-        "Plane: z=0.5",
-        "SQuadric: {0.66667,1.5,0} {0,0,0} -6",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-2.1213203435596424, -1.414213562373095, -0.5}),
-                       result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2.1213203435596424, 1.414213562373095, 0.5}),
-                       result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-3, -2, -0.5}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{3, 2, 0.5}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces = {"Plane: z=-0.5",
+                    "Plane: z=0.5",
+                    "SQuadric: {0.66667,1.5,0} {0,0,0} -6"};
+    ref.interior = {{-2.1213203435596424, -1.414213562373095, -0.5},
+                    {2.1213203435596424, 1.414213562373095, 0.5}};
+    ref.exterior = {{-3, -2, -0.5}, {3, 2, 0.5}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -605,30 +540,24 @@ TEST_F(EllipticalConeTest, standard)
 {
     auto result = this->test(EllipticalCone({1, 3}, {2, 6}, 3));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
+    auto ref = result;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces
         = {"Plane: z=-3", "Plane: z=3", "SQuadric: {36,4,-1} {0,0,-18} -81"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -6, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 6, 3}), result.exterior.upper());
+    ref.exterior = {{-2, -6, -3}, {2, 6, 3}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(EllipticalConeTest, vertex)
 {
     auto result = this->test(EllipticalCone({0, 0}, {2, 4}, 4));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
+    auto ref = result;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces
         = {"Plane: z=-4", "Plane: z=4", "SQuadric: {16,4,-1} {0,0,-8} -16"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -4, -4}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 4, 4}), result.exterior.upper());
+    ref.exterior = {{-2, -4, -4}, {2, 4, 4}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -647,21 +576,16 @@ TEST_F(ExtrudedPolygonTest, simple_cube)
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=0",
-        "Plane: z=1",
-        "Plane: x=1",
-        "Plane: y=1",
-        "Plane: x=0",
-        "Plane: y=0",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
+    auto ref = result;
+    ref.node = "all(+0, -1, -2, -3, +4, +5)";
+    ref.surfaces = {"Plane: z=0",
+                    "Plane: z=1",
+                    "Plane: x=1",
+                    "Plane: y=1",
+                    "Plane: x=0",
+                    "Plane: y=0"};
+    ref.exterior = {{0, 0, 0}, {1, 1, 1}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ExtrudedPolygonTest, collinear)
@@ -684,21 +608,16 @@ TEST_F(ExtrudedPolygonTest, collinear)
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=0",
-        "Plane: z=1",
-        "Plane: x=1",
-        "Plane: y=1",
-        "Plane: x=0",
-        "Plane: y=0",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
+    auto ref = result;
+    ref.node = "all(+0, -1, -2, -3, +4, +5)";
+    ref.surfaces = {"Plane: z=0",
+                    "Plane: z=1",
+                    "Plane: x=1",
+                    "Plane: y=1",
+                    "Plane: x=0",
+                    "Plane: y=0"};
+    ref.exterior = {{0, 0, 0}, {1, 1, 1}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
@@ -711,22 +630,17 @@ TEST_F(ExtrudedPolygonTest, flat_top_pyramid)
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
     // Planes have x- and y-slopes equal to +/- sqrt(2)/2, as expected
-    static char const* const expected_surfaces[] = {
-        "Plane: z=0",
-        "Plane: z=0.5",
-        "Plane: n={0.70711,-0,0.70711}, d=0.70711",
-        "Plane: n={0,0.70711,0.70711}, d=0.70711",
-        "Plane: x=0",
-        "Plane: y=0",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 0.5}), result.exterior.upper());
+    auto ref = result;
+    ref.node = "all(+0, -1, -2, -3, +4, +5)";
+    ref.surfaces = {"Plane: z=0",
+                    "Plane: z=0.5",
+                    "Plane: n={0.70711,-0,0.70711}, d=0.70711",
+                    "Plane: n={0,0.70711,0.70711}, d=0.70711",
+                    "Plane: x=0",
+                    "Plane: y=0"};
+    ref.exterior = {{0, 0, 0}, {1, 1, 0.5}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ExtrudedPolygonTest, skewed)
@@ -745,8 +659,9 @@ TEST_F(ExtrudedPolygonTest, skewed)
 
     auto result = this->test(ExtrudedPolygon(polygon, bot, top));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5, +6, +7)";
-    static char const* const expected_surfaces[] = {
+    auto ref = result;
+    ref.node = "all(+0, -1, +2, -3, +4, -5, +6, +7)";
+    ref.surfaces = {
         "Plane: z=10",
         "Plane: z=15",
         "Plane: n={-0.85138,0.42569,0.30650}, d=0.34055",
@@ -756,12 +671,8 @@ TEST_F(ExtrudedPolygonTest, skewed)
         "Plane: n={0.31520,0.31520,-0.89516}, d=-6.9658",
         "Plane: n={0,0.53000,-0.84800}, d=-6.8900",
     };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    EXPECT_VEC_SOFT_EQ((Real3{2.6, 3, 10}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{11, 13, 15}), result.exterior.upper());
+    ref.exterior = {{2.6, 3, 10}, {11, 13, 15}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -906,22 +817,17 @@ TEST_F(GenPrismTest, box_like)
 
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-3",
-        "Plane: z=3",
-        "Plane: y=-2",
-        "Plane: x=1",
-        "Plane: y=2",
-        "Plane: x=-1",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, -4, +5)";
+    ref.surfaces = {"Plane: z=-3",
+                    "Plane: z=3",
+                    "Plane: y=-2",
+                    "Plane: x=1",
+                    "Plane: y=2",
+                    "Plane: x=-1"};
+    ref.interior = {{-1, -2, -3}, {1, 2, 3}};
+    ref.exterior = {{-1, -2, -3}, {1, 2, 3}};
+    EXPECT_REF_EQ(ref, result);
     this->check_corners(result.node_id, pri, 0.1);
 }
 
@@ -932,21 +838,17 @@ TEST_F(GenPrismTest, ppiped)
                         {{0, 0}, {2, 0}, {2, 2}, {0, 2}});
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-4",
-        "Plane: z=4",
-        "Plane: n={0,0.97014,-0.24254}, d=-0.97014",
-        "Plane: n={0.97014,0,-0.24254}, d=0.97014",
-        "Plane: n={0,0.97014,-0.24254}, d=0.97014",
-        "Plane: n={0.97014,0,-0.24254}, d=-0.97014",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -4}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 4}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, -4, +5)";
+    ref.surfaces = {"Plane: z=-4",
+                    "Plane: z=4",
+                    "Plane: n={0,0.97014,-0.24254}, d=-0.97014",
+                    "Plane: n={0.97014,0,-0.24254}, d=0.97014",
+                    "Plane: n={0,0.97014,-0.24254}, d=0.97014",
+                    "Plane: n={0.97014,0,-0.24254}, d=-0.97014"};
+    ref.interior = {};
+    ref.exterior = {{-2, -2, -4}, {2, 2, 4}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.1);
 }
@@ -958,21 +860,17 @@ TEST_F(GenPrismTest, trap_corners)
                         {{-21, -30}, {-21, 30}, {19, 30}, {19, -30}});
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-40",
-        "Plane: z=40",
-        "Plane: n={0.99969,0,0.024992}, d=19.994",
-        "Plane: y=30",
-        "Plane: n={0.99969,0,0.024992}, d=-19.994",
-        "Plane: y=-30",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-21, -30, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{21, 30, 40}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, -3, +4, +5)";
+    ref.surfaces = {"Plane: z=-40",
+                    "Plane: z=40",
+                    "Plane: n={0.99969,0,0.024992}, d=19.994",
+                    "Plane: y=30",
+                    "Plane: n={0.99969,0,0.024992}, d=-19.994",
+                    "Plane: y=-30"};
+    ref.interior = {};
+    ref.exterior = {{-21, -30, -40}, {21, 30, 40}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 1.0);
 }
@@ -985,21 +883,17 @@ TEST_F(GenPrismTest, trapezoid_trans)
                         {{-51, -60}, {-51, 0}, {-11, 0}, {-11, -60}});
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-40",
-        "Plane: z=40",
-        "Plane: n={0.99969,0,0.024992}, d=-9.9969",
-        "Plane: y=0",
-        "Plane: n={0.99969,0,0.024992}, d=-49.984",
-        "Plane: y=-60",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-51, -60, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{-9, 0, 40}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, -3, +4, +5)";
+    ref.surfaces = {"Plane: z=-40",
+                    "Plane: z=40",
+                    "Plane: n={0.99969,0,0.024992}, d=-9.9969",
+                    "Plane: y=0",
+                    "Plane: n={0.99969,0,0.024992}, d=-49.984",
+                    "Plane: y=-60"};
+    ref.interior = {};
+    ref.exterior = {{-51, -60, -40}, {-9, 0, 40}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(GenPrismTest, trapezoid_ccw)
@@ -1009,21 +903,17 @@ TEST_F(GenPrismTest, trapezoid_ccw)
                         {{-21, -30}, {19, -30}, {19, 30}, {-21, 30}});
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-40",
-        "Plane: z=40",
-        "Plane: y=-30",
-        "Plane: n={0.99969,0,0.024992}, d=19.994",
-        "Plane: y=30",
-        "Plane: n={0.99969,0,0.024992}, d=-19.994",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-21, -30, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{21, 30, 40}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, -4, +5)";
+    ref.surfaces = {"Plane: z=-40",
+                    "Plane: z=40",
+                    "Plane: y=-30",
+                    "Plane: n={0.99969,0,0.024992}, d=19.994",
+                    "Plane: y=30",
+                    "Plane: n={0.99969,0,0.024992}, d=-19.994"};
+    ref.interior = {};
+    ref.exterior = {{-21, -30, -40}, {21, 30, 40}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 1.0);
 }
@@ -1039,8 +929,9 @@ TEST_F(GenPrismTest, full)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, -2, -3, -4, +5)";
-    static char const* const expected_surfaces[] = {
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, -3, -4, +5)";
+    ref.surfaces = {
         "Plane: z=-4",
         "Plane: z=4",
         R"(GQuadric: {0,0,0} {0,0.035007,-0.035007} {0.98020,0.14003,0.14003} -1.6803)",
@@ -1048,12 +939,9 @@ TEST_F(GenPrismTest, full)
         R"(GQuadric: {0,0,0} {0,0.035007,0.035007} {-0.98020,0.14003,0.14003} -1.6803)",
         "Plane: y=-2",
     };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -4}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 4}), result.exterior.upper());
+    ref.interior = {};
+    ref.exterior = {{-2, -2, -4}, {2, 2, 4}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.01);
 }
@@ -1064,20 +952,16 @@ TEST_F(GenPrismTest, triang_prism)
         3, {{-1, -1}, {-1, 1}, {2, 0}}, {{-1, -1}, {-1, 1}, {2, 0}});
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, -2, +3, -4)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-3",
-        "Plane: z=3",
-        "Plane: n={0.31623,0.94868,0}, d=0.63246",
-        "Plane: x=-1",
-        "Plane: n={0.31623,-0.94868,0}, d=0.63246",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, +3, -4)";
+    ref.surfaces = {"Plane: z=-3",
+                    "Plane: z=3",
+                    "Plane: n={0.31623,0.94868,0}, d=0.63246",
+                    "Plane: x=-1",
+                    "Plane: n={0.31623,-0.94868,0}, d=0.63246"};
+    ref.interior = {};
+    ref.exterior = {{-1, -1, -3}, {2, 1, 3}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.1);
 }
@@ -1091,19 +975,15 @@ TEST_F(GenPrismTest, tetrahedron)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, -2, +3)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-3",
-        "Plane: n={0.31449,-0.94346,0.10483}, d=0.31449",
-        "Plane: n={0.31449,0.94346,0.10483}, d=0.31449",
-        "Plane: n={0.98639,0,-0.16440}, d=-0.49320",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, +3)";
+    ref.surfaces = {"Plane: z=-3",
+                    "Plane: n={0.31449,-0.94346,0.10483}, d=0.31449",
+                    "Plane: n={0.31449,0.94346,0.10483}, d=0.31449",
+                    "Plane: n={0.98639,0,-0.16440}, d=-0.49320"};
+    ref.interior = {};
+    ref.exterior = {{-1, -1, -3}, {2, 1, 3}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.01);
 }
@@ -1117,19 +997,15 @@ TEST_F(GenPrismTest, odd_tetrahedron)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(-0, -1, -2, +3)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=3",
-        "Plane: n={0.31623,-0.94868,0}, d=0.63246",
-        "Plane: n={0.31623,0.94868,0}, d=0.63246",
-        "Plane: n={0.89443,0,0.44721}, d=0.44721",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(-0, -1, -2, +3)";
+    ref.surfaces = {"Plane: z=3",
+                    "Plane: n={0.31623,-0.94868,0}, d=0.63246",
+                    "Plane: n={0.31623,0.94868,0}, d=0.63246",
+                    "Plane: n={0.89443,0,0.44721}, d=0.44721"};
+    ref.interior = {};
+    ref.exterior = {{-1, -1, -3}, {2, 1, 3}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.01);
 }
@@ -1144,20 +1020,16 @@ TEST_F(GenPrismTest, envelope)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, +1, -2, -3, +4)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-2",
-        "Plane: n={0,0.89443,-0.44721}, d=-0.89443",
-        "Plane: n={0.99228,-0,0.12404}, d=0.74421",
-        "Plane: n={0,0.89443,0.44721}, d=0.89443",
-        "Plane: n={0.99228,0,-0.12404}, d=-0.74421",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -2}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 2}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, +1, -2, -3, +4)";
+    ref.surfaces = {"Plane: z=-2",
+                    "Plane: n={0,0.89443,-0.44721}, d=-0.89443",
+                    "Plane: n={0.99228,-0,0.12404}, d=0.74421",
+                    "Plane: n={0,0.89443,0.44721}, d=0.89443",
+                    "Plane: n={0.99228,0,-0.12404}, d=-0.74421"};
+    ref.interior = {};
+    ref.exterior = {{-1, -2, -2}, {1, 2, 2}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.01);
 }
@@ -1172,21 +1044,17 @@ TEST_F(GenPrismTest, trd)
     EXPECT_VEC_SOFT_EQ(expected_upper, to_vec(pri.upper()));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-3",
-        "Plane: z=3",
-        "Plane: n={0.98639,0,-0.16440}, d=1.4796",
-        "Plane: n={0,0.98639,-0.16440}, d=1.4796",
-        "Plane: n={0.98639,0,0.16440}, d=-1.4796",
-        "Plane: n={0,0.98639,0.16440}, d=-1.4796",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, -3, +4, +5)";
+    ref.surfaces = {"Plane: z=-3",
+                    "Plane: z=3",
+                    "Plane: n={0.98639,0,-0.16440}, d=1.4796",
+                    "Plane: n={0,0.98639,-0.16440}, d=1.4796",
+                    "Plane: n={0.98639,0,0.16440}, d=-1.4796",
+                    "Plane: n={0,0.98639,0.16440}, d=-1.4796"};
+    ref.interior = {};
+    ref.exterior = {{-2, -2, -3}, {2, 2, 3}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.1);
 }
@@ -1254,23 +1122,18 @@ TEST_F(GenPrismTest, trap_g4)
                                    {2, 1, 1, 15 * degree},
                                    {3, 1.5, 1.5, 15 * degree});
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-4",
-        "Plane: z=4",
-        "Plane: n={-0.95664,0.25633,0.13832}, d=-1.1958",
-        "Plane: n={0,0.99032,-0.13883}, d=2.4758",
-        "Plane: n={-0.96575,0.25877,0.018918}, d=1.2072",
-        "Plane: n={0,0.99403,0.10915}, d=-2.4851",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1.9592095207293, -2.9392310120488, -4}),
-                       result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2.6484856338574, 3.0607689879512, 4}),
-                       result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, -4, +5)";
+    ref.surfaces = {"Plane: z=-4",
+                    "Plane: z=4",
+                    "Plane: n={-0.95664,0.25633,0.13832}, d=-1.1958",
+                    "Plane: n={0,0.99032,-0.13883}, d=2.4758",
+                    "Plane: n={-0.96575,0.25877,0.018918}, d=1.2072",
+                    "Plane: n={0,0.99403,0.10915}, d=-2.4851"};
+    ref.interior = {};
+    ref.exterior = {{-1.9592095207293, -2.9392310120488, -4},
+                    {2.6484856338574, 3.0607689879512, 4}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.1);
 }
@@ -1326,8 +1189,9 @@ TEST_F(GenPrismTest, trap_full2)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, -3, +4, +5)";
+    ref.surfaces = {
         "Plane: z=-40",
         "Plane: z=40",
         R"(GQuadric: {0,0,0} {0,0.0015228,0} {0.69612,-0.0087015,-0.71787} -7.8313)",
@@ -1335,12 +1199,9 @@ TEST_F(GenPrismTest, trap_full2)
         "GQuadric: {0,0,0} {0,0.0038033,0} {0.71591,0.080539,-0.69354} 8.0540",
         "Plane: y=-20",
     };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-52, -20, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{54, 20, 40}), result.exterior.upper());
+    ref.interior = {};
+    ref.exterior = {{-52, -20, -40}, {54, 20, 40}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 1.0);
 }
@@ -1359,21 +1220,17 @@ TEST_F(GenPrismTest, trap_quarter_twist)
     EXPECT_VEC_EQ(expected_upper, pri.upper());
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-1",
-        "Plane: z=1",
-        "GQuadric: {0,0,0} {0,1,0} {-1,0,0} 2",
-        "Plane: y=1",
-        "GQuadric: {0,0,0} {0,1,0} {-1,0,0} -2",
-        "Plane: y=-1",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-3, -1, -1}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{3, 1, 1}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, -4, +5)";
+    ref.surfaces = {"Plane: z=-1",
+                    "Plane: z=1",
+                    "GQuadric: {0,0,0} {0,1,0} {-1,0,0} 2",
+                    "Plane: y=1",
+                    "GQuadric: {0,0,0} {0,1,0} {-1,0,0} -2",
+                    "Plane: y=-1"};
+    ref.interior = {};
+    ref.exterior = {{-3, -1, -1}, {3, 1, 1}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 1.0);
 }
@@ -1394,8 +1251,9 @@ TEST_F(GenPrismTest, trap_uneven_twist)
 
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, +4, +5)";
+    ref.surfaces = {
         "Plane: z=-1",
         "Plane: z=1",
         R"(GQuadric: {0,0,0.11471} {0,0.22942,0.22942} {-0.68825,0.22942,-0.68825} 1.0324)",
@@ -1403,12 +1261,9 @@ TEST_F(GenPrismTest, trap_uneven_twist)
         R"(GQuadric: {0,0,0.11471} {0,-0.22942,-0.22942} {0.68825,-0.22942,-0.68825} 1.0324)",
         "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
     };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -1, -1}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 1, 1}), result.exterior.upper());
+    ref.interior = {};
+    ref.exterior = {{-2, -1, -1}, {2, 1, 1}};
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.1);
 }
@@ -1429,8 +1284,9 @@ TEST_F(GenPrismTest, trap_even_twist)
 
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, +4, +5)";
-    static char const* const expected_surfaces[] = {
+    auto ref = result;
+    ref.node = "all(+0, -1, +2, -3, +4, +5)";
+    ref.surfaces = {
         "Plane: z=-1",
         "Plane: z=1",
         R"(GQuadric: {0,0,0.11471} {0,0.22942,0.22942} {-0.68825,0.22942,-0.68825} 1.0324)",
@@ -1438,8 +1294,7 @@ TEST_F(GenPrismTest, trap_even_twist)
         R"(GQuadric: {0,0,0.11471} {0,-0.22942,-0.22942} {0.68825,-0.22942,-0.68825} 1.0324)",
         "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
     };
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_REF_EQ(ref, result);
 
     this->check_corners(result.node_id, pri, 0.1);
 }
@@ -1470,11 +1325,10 @@ TEST_F(GenPrismTest, adjacent_twisted)
                                   {{-1, -1}, {0, -1}, {0, 1}, {-1, 1}},
                                   {{-1, -1}, {0.5, -1}, {-0.5, 1}, {-1, 1}}));
 
-        static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{0.5, 1, 1}), result.exterior.upper());
+        auto ref = result;
+        ref.node = "all(+0, -1, +2, -3, -4, +5)";
+        ref.exterior = {{-1, -1, -1}, {0.5, 1, 1}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // Right
@@ -1484,11 +1338,10 @@ TEST_F(GenPrismTest, adjacent_twisted)
                                   {{0, -1}, {1, -1}, {1, 1}, {0, 1}},
                                   {{0.5, -1}, {1, -1}, {1, 1}, {-0.5, 1}}));
 
-        static char const expected_node[] = "all(+0, -1, +2, +3, -4, -6)";
-
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-0.5, -1, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
+        auto ref = result;
+        ref.node = "all(+0, -1, +2, +3, -4, -6)";
+        ref.exterior = {{-0.5, -1, -1}, {1, 1, 1}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // Scaled (broadened) right side with the same hyperboloid but
@@ -1497,11 +1350,10 @@ TEST_F(GenPrismTest, adjacent_twisted)
                                  GenPrism(1,
                                           {{0, -2}, {2, -2}, {2, 2}, {0, 2}},
                                           {{1, -2}, {2, -2}, {2, 2}, {-1, 2}}));
-        static char const expected_node[] = "all(+0, -1, +3, +7, -8, -9)";
-
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{2, 2, 1}), result.exterior.upper());
+        auto ref = result;
+        ref.node = "all(+0, -1, +3, +7, -8, -9)";
+        ref.exterior = {{-1, -2, -1}, {2, 2, 1}};
+        EXPECT_REF_EQ(ref, result);
     }
 
     static char const* const expected_surfaces[] = {
@@ -1856,56 +1708,55 @@ TEST_F(InfAziWedgeTest, quarter_turn)
     {
         SCOPED_TRACE("first quadrant");
         auto result = this->test(InfAziWedge(Turn{0}, Turn{0.25}));
-        static char const expected_node[] = "all(+0, +1)";
-        static char const* const expected_surfaces[]
-            = {"Plane: x=0", "Plane: y=0"};
-
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-        EXPECT_VEC_SOFT_EQ((Real3{0, 0, -inf}), result.interior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), result.interior.upper());
-        EXPECT_VEC_SOFT_EQ((Real3{0, 0, -inf}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), result.exterior.upper());
+        IntersectTestResult ref;
+        ref.node = "all(+0, +1)";
+        ref.surfaces = {"Plane: x=0", "Plane: y=0"};
+        ref.interior = {{0, 0, -inf}, {inf, inf, inf}};
+        ref.exterior = {{0, 0, -inf}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         SCOPED_TRACE("second quadrant");
         auto result = this->test(InfAziWedge(Turn{.25}, Turn{0.5}));
-        EXPECT_EQ("all(+1, -0)", result.node);
+        auto ref = result;
+        ref.node = "all(+1, -0)";
+        EXPECT_REF_EQ(ref, result);
     }
     {
         SCOPED_TRACE("fourth quadrant");
         InfAziWedge wedge(Turn{0.75}, Turn{1.0});
         EXPECT_SOFT_EQ(0.75, wedge.start().value());
         auto result = this->test(wedge);
-        EXPECT_EQ("all(+0, -1)", result.node);
+        auto ref = result;
+        ref.node = "all(+0, -1)";
+        EXPECT_REF_EQ(ref, result);
     }
     {
         SCOPED_TRACE("north quadrant");
         auto result = this->test(InfAziWedge(Turn{0.125}, Turn{0.375}));
-        EXPECT_EQ("all(+2, -3)", result.node);
+        auto ref = result;
+        ref.node = "all(+2, -3)";
+        EXPECT_REF_EQ(ref, result);
     }
     {
         SCOPED_TRACE("east quadrant");
         auto result = this->test(InfAziWedge(Turn{0.875}, Turn{1.125}));
-        EXPECT_EQ("all(+2, +3)", result.node);
-        static char const expected_node[] = "all(+2, +3)";
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_FALSE(result.interior) << result.interior;
-        EXPECT_EQ(BBox::from_infinite(), result.exterior);
+        auto ref = result;
+        ref.node = "all(+2, +3)";
+        ref.interior = {};
+        ref.exterior = BBox::from_infinite();
+        EXPECT_REF_EQ(ref, result);
     }
     {
         SCOPED_TRACE("west quadrant");
         auto result = this->test(InfAziWedge(Turn{0.375}, Turn{0.625}));
-        static char const expected_node[] = "all(-3, -2)";
-        static char const* const expected_surfaces[] = {
-            "Plane: x=0",
-            "Plane: y=0",
-            "Plane: n={0.70711,0.70711,0}, d=0",
-            "Plane: n={0.70711,-0.70711,0}, d=0",
-        };
-
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+        auto ref = result;
+        ref.node = "all(-3, -2)";
+        ref.surfaces = {"Plane: x=0",
+                        "Plane: y=0",
+                        "Plane: n={0.70711,0.70711,0}, d=0",
+                        "Plane: n={0.70711,-0.70711,0}, d=0"};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 
@@ -1915,26 +1766,26 @@ TEST_F(InfAziWedgeTest, half_turn)
     {
         SCOPED_TRACE("north half");
         auto result = this->test(InfAziWedge(Turn{0}, Turn{0.5}));
-        EXPECT_EQ("+0", result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-inf, 0, -inf}), result.interior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), result.interior.upper());
-        EXPECT_VEC_SOFT_EQ((Real3{-inf, 0, -inf}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), result.exterior.upper());
+        auto ref = result;
+        ref.node = "+0";
+        ref.interior = {{-inf, 0, -inf}, {inf, inf, inf}};
+        ref.exterior = {{-inf, 0, -inf}, {inf, inf, inf}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         SCOPED_TRACE("south half");
         auto result = this->test(InfAziWedge(Turn{0.5}, Turn{1.0}));
-        EXPECT_EQ("-0", result.node);
+        auto ref = result;
+        ref.node = "-0";
+        EXPECT_REF_EQ(ref, result);
     }
     {
         SCOPED_TRACE("northeast half");
         auto result = this->test(InfAziWedge(Turn{0.125}, Turn{0.625}));
-        static char const expected_node[] = "-1";
-        static char const* const expected_surfaces[]
-            = {"Plane: y=0", "Plane: n={0.70711,-0.70711,0}, d=0"};
-
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+        auto ref = result;
+        ref.node = "-1";
+        ref.surfaces = {"Plane: y=0", "Plane: n={0.70711,-0.70711,0}, d=0"};
+        EXPECT_REF_EQ(ref, result);
     }
 }
 //---------------------------------------------------------------------------//
@@ -2074,11 +1925,10 @@ TEST_F(InvoluteTest, single)
             "invo",
             Involute({1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, cw, 1.0));
 
-        static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
-
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+        auto ref = result;
+        ref.node = "all(+0, -1, +2, -3, +4, -5)";
+        ref.exterior = {{-4, -4, -1}, {4, 4, 1}};
+        EXPECT_REF_EQ(ref, result);
     }
 
     static char const* const expected_surfaces[] = {
@@ -2118,11 +1968,10 @@ TEST_F(InvoluteTest, two_ccw)
             "top",
             Involute({1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, ccw, 1.0));
 
-        static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+        auto ref = result;
+        ref.node = "all(+0, -1, +2, -3, -4, +5)";
+        ref.exterior = {{-4, -4, -1}, {4, 4, 1}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // bottom
@@ -2133,11 +1982,10 @@ TEST_F(InvoluteTest, two_ccw)
                      ccw,
                      1.0));
 
-        static char const expected_node[] = "all(+0, -1, +2, -3, -5, +6)";
-        EXPECT_EQ(expected_node, result.node);
-
-        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+        auto ref = result;
+        ref.node = "all(+0, -1, +2, -3, -5, +6)";
+        ref.exterior = {{-4, -4, -1}, {4, 4, 1}};
+        EXPECT_REF_EQ(ref, result);
     }
 
     static char const* const expected_surfaces[] = {
@@ -2181,11 +2029,10 @@ TEST_F(InvoluteTest, two_cw)
             "top",
             Involute({1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, cw, 1.0));
 
-        static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
-
-        EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+        auto ref = result;
+        ref.node = "all(+0, -1, +2, -3, +4, -5)";
+        ref.exterior = {{-4, -4, -1}, {4, 4, 1}};
+        EXPECT_REF_EQ(ref, result);
     }
     {
         // bottom
@@ -2196,11 +2043,10 @@ TEST_F(InvoluteTest, two_cw)
                      cw,
                      1.0));
 
-        static char const expected_node[] = "all(+0, -1, +2, -3, +5, -6)";
-        EXPECT_EQ(expected_node, result.node);
-
-        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+        auto ref = result;
+        ref.node = "all(+0, -1, +2, -3, +5, -6)";
+        ref.exterior = {{-4, -4, -1}, {4, 4, 1}};
+        EXPECT_REF_EQ(ref, result);
     }
 
     static char const* const expected_surfaces[] = {
@@ -2268,15 +2114,12 @@ TEST_F(ParaboloidTest, standard)
 {
     auto result = this->test(Paraboloid(1, 2, 3));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
+    auto ref = result;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces
         = {"Plane: z=-3", "Plane: z=3", "SQuadric: {1,1,0} {0,0,-0.5} -2.5"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
+    ref.exterior = {{-2, -2, -3}, {2, 2, 3}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ParaboloidTest, vertex)
@@ -2284,15 +2127,12 @@ TEST_F(ParaboloidTest, vertex)
     // Vertex on upper boundary
     auto result = this->test(Paraboloid(5, 0, 5));
 
-    static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
+    auto ref = result;
+    ref.node = "all(+0, -1, -2)";
+    ref.surfaces
         = {"Plane: z=-5", "Plane: z=5", "SQuadric: {1,1,0} {0,0,2.5} -12.5"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-
-    EXPECT_VEC_SOFT_EQ((Real3{-5, -5, -5}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{5, 5, 5}), result.exterior.upper());
+    ref.exterior = {{-5, -5, -5}, {5, 5, 5}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -2324,22 +2164,17 @@ TEST_F(ParallelepipedTest, box)
     auto result
         = this->test(Parallelepiped(sides, Turn(0.0), Turn(0.0), Turn(0.0)));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-3",
-        "Plane: z=3",
-        "Plane: y=-2",
-        "Plane: y=2",
-        "Plane: x=-1",
-        "Plane: x=1",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, +4, -5)";
+    ref.surfaces = {"Plane: z=-3",
+                    "Plane: z=3",
+                    "Plane: y=-2",
+                    "Plane: y=2",
+                    "Plane: x=-1",
+                    "Plane: x=1"};
+    ref.interior = {{-1, -2, -3}, {1, 2, 3}};
+    ref.exterior = {{-1, -2, -3}, {1, 2, 3}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ParallelepipedTest, alpha)
@@ -2348,23 +2183,18 @@ TEST_F(ParallelepipedTest, alpha)
     auto result
         = this->test(Parallelepiped(sides, Turn(0.1), Turn(0.0), Turn(0.0)));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-3",
-        "Plane: z=3",
-        "Plane: y=-1.6180",
-        "Plane: y=1.6180",
-        "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
-        "Plane: n={0.80902,-0.58779,0}, d=0.80902",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-2.1755705045849, -1.6180339887499, -3}),
-                       result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2.1755705045849, 1.6180339887499, 3}),
-                       result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, +4, -5)";
+    ref.surfaces = {"Plane: z=-3",
+                    "Plane: z=3",
+                    "Plane: y=-1.6180",
+                    "Plane: y=1.6180",
+                    "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
+                    "Plane: n={0.80902,-0.58779,0}, d=0.80902"};
+    ref.interior = {};
+    ref.exterior = {{-2.1755705045849, -1.6180339887499, -3},
+                    {2.1755705045849, 1.6180339887499, 3}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ParallelepipedTest, theta)
@@ -2373,23 +2203,18 @@ TEST_F(ParallelepipedTest, theta)
     auto result
         = this->test(Parallelepiped(sides, Turn(0), Turn(0.1), Turn(0)));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-3",
-        "Plane: z=3",
-        "Plane: y=-2",
-        "Plane: y=2",
-        "Plane: n={0.80902,0,-0.58779}, d=-0.80902",
-        "Plane: n={0.80902,0,-0.58779}, d=0.80902",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-2.7633557568774, -2, -2.4270509831248}),
-                       result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2.7633557568774, 2, 2.4270509831248}),
-                       result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, +4, -5)";
+    ref.surfaces = {"Plane: z=-3",
+                    "Plane: z=3",
+                    "Plane: y=-2",
+                    "Plane: y=2",
+                    "Plane: n={0.80902,0,-0.58779}, d=-0.80902",
+                    "Plane: n={0.80902,0,-0.58779}, d=0.80902"};
+    ref.interior = {};
+    ref.exterior = {{-2.7633557568774, -2, -2.4270509831248},
+                    {2.7633557568774, 2, 2.4270509831248}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(ParallelepipedTest, full)
@@ -2398,25 +2223,18 @@ TEST_F(ParallelepipedTest, full)
     auto result
         = this->test(Parallelepiped(sides, Turn(0.1), Turn(0.05), Turn(0.15)));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-3",
-        "Plane: z=3",
-        "Plane: n={0,0.96714,-0.25423}, d=-1.5649",
-        "Plane: n={0,0.96714,-0.25423}, d=1.5649",
-        "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
-        "Plane: n={0.80902,-0.58779,0}, d=0.80902",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{-2.720477400589, -2.3680339887499, -2.8531695488855}),
-        result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{2.720477400589, 2.3680339887499, 2.8531695488855}),
-        result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, +2, -3, +4, -5)";
+    ref.surfaces = {"Plane: z=-3",
+                    "Plane: z=3",
+                    "Plane: n={0,0.96714,-0.25423}, d=-1.5649",
+                    "Plane: n={0,0.96714,-0.25423}, d=1.5649",
+                    "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
+                    "Plane: n={0.80902,-0.58779,0}, d=0.80902"};
+    ref.interior = {};
+    ref.exterior = {{-2.720477400589, -2.3680339887499, -2.8531695488855},
+                    {2.720477400589, 2.3680339887499, 2.8531695488855}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -2434,112 +2252,84 @@ TEST_F(PrismTest, errors)
 TEST_F(PrismTest, triangle)
 {
     auto result = this->test(Prism(3, 1.0, 1.2, 0.0));
-    static char const expected_node[] = "all(+0, -1, -2, +3, -4)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-1.2",
-        "Plane: z=1.2",
-        "Plane: n={0.5,0.86603,0}, d=1",
-        "Plane: x=-1",
-        "Plane: n={0.5,-0.86603,0}, d=1",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1.2}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1.2}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -1.2}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 1.2}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, +3, -4)";
+    ref.surfaces = {"Plane: z=-1.2",
+                    "Plane: z=1.2",
+                    "Plane: n={0.5,0.86603,0}, d=1",
+                    "Plane: x=-1",
+                    "Plane: n={0.5,-0.86603,0}, d=1"};
+    ref.interior = {{-1, -1, -1.2}, {1, 1, 1.2}};
+    ref.exterior = {{-1, -2, -1.2}, {2, 2, 1.2}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(PrismTest, rtriangle)
 {
     auto result = this->test(Prism(3, 1.0, 1.2, 0.5));
-    static char const expected_node[] = "all(+0, -1, -2, +3, +4)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-1.2",
-        "Plane: z=1.2",
-        "Plane: x=1",
-        "Plane: n={0.5,-0.86603,0}, d=-1",
-        "Plane: n={0.5,0.86603,0}, d=-1",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1.2}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1.2}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -1.2}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 1.2}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, +3, +4)";
+    ref.surfaces = {"Plane: z=-1.2",
+                    "Plane: z=1.2",
+                    "Plane: x=1",
+                    "Plane: n={0.5,-0.86603,0}, d=-1",
+                    "Plane: n={0.5,0.86603,0}, d=-1"};
+    ref.interior = {{-1, -1, -1.2}, {1, 1, 1.2}};
+    ref.exterior = {{-2, -2, -1.2}, {1, 2, 1.2}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(PrismTest, square)
 {
     auto result = this->test(Prism(4, 1.0, 2.0, 0.0));
-    static char const expected_node[] = "all(+0, -1, -2, +3, +4, -5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-2",
-        "Plane: z=2",
-        "Plane: n={0.70711,0.70711,0}, d=1",
-        "Plane: n={0.70711,-0.70711,0}, d=-1",
-        "Plane: n={0.70711,0.70711,0}, d=-1",
-        "Plane: n={0.70711,-0.70711,0}, d=1",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -2}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 2}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1.4142135623731, -1.4142135623731, -2}),
-                       result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.4142135623731, 1.4142135623731, 2}),
-                       result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, +3, +4, -5)";
+    ref.surfaces = {"Plane: z=-2",
+                    "Plane: z=2",
+                    "Plane: n={0.70711,0.70711,0}, d=1",
+                    "Plane: n={0.70711,-0.70711,0}, d=-1",
+                    "Plane: n={0.70711,0.70711,0}, d=-1",
+                    "Plane: n={0.70711,-0.70711,0}, d=1"};
+    ref.interior = {{-1, -1, -2}, {1, 1, 2}};
+    ref.exterior = {{-1.4142135623731, -1.4142135623731, -2},
+                    {1.4142135623731, 1.4142135623731, 2}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(PrismTest, hex)
 {
     auto result = this->test(Prism(6, 1.0, 2.0, 0.0));
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5, +6, -7)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-2",
-        "Plane: z=2",
-        "Plane: n={0.86603,0.5,0}, d=1",
-        "Plane: y=1",
-        "Plane: n={0.86603,-0.5,0}, d=-1",
-        "Plane: n={0.86603,0.5,0}, d=-1",
-        "Plane: y=-1",
-        "Plane: n={0.86603,-0.5,0}, d=1",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -2}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 2}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1.1547005383793, -1, -2}),
-                       result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1.1547005383793, 1, 2}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, -3, +4, +5, +6, -7)";
+    ref.surfaces = {"Plane: z=-2",
+                    "Plane: z=2",
+                    "Plane: n={0.86603,0.5,0}, d=1",
+                    "Plane: y=1",
+                    "Plane: n={0.86603,-0.5,0}, d=-1",
+                    "Plane: n={0.86603,0.5,0}, d=-1",
+                    "Plane: y=-1",
+                    "Plane: n={0.86603,-0.5,0}, d=1"};
+    ref.interior = {{-1, -1, -2}, {1, 1, 2}};
+    ref.exterior = {{-1.1547005383793, -1, -2}, {1.1547005383793, 1, 2}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(PrismTest, rhex)
 {
     auto result = this->test(Prism(6, 1.0, 2.0, 0.5));
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5, +6, -7)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-2",
-        "Plane: z=2",
-        "Plane: x=1",
-        "Plane: n={0.5,0.86603,0}, d=1",
-        "Plane: n={0.5,-0.86603,0}, d=-1",
-        "Plane: x=-1",
-        "Plane: n={0.5,0.86603,0}, d=-1",
-        "Plane: n={0.5,-0.86603,0}, d=1",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -2}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 2}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1.1547005383793, -2}),
-                       result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1.1547005383793, 2}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "all(+0, -1, -2, -3, +4, +5, +6, -7)";
+    ref.surfaces = {"Plane: z=-2",
+                    "Plane: z=2",
+                    "Plane: x=1",
+                    "Plane: n={0.5,0.86603,0}, d=1",
+                    "Plane: n={0.5,-0.86603,0}, d=-1",
+                    "Plane: x=-1",
+                    "Plane: n={0.5,0.86603,0}, d=-1",
+                    "Plane: n={0.5,-0.86603,0}, d=1"};
+    ref.interior = {{-1, -1, -2}, {1, 1, 2}};
+    ref.exterior = {{-1, -1.1547005383793, -2}, {1, 1.1547005383793, 2}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -2556,19 +2346,13 @@ TEST_F(SphereTest, standard)
 {
     auto result = this->test(Sphere(2.0));
 
-    static char const expected_node[] = "-0";
-    static char const* const expected_surfaces[] = {"Sphere: r=2"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{-1.7320508075689, -1.7320508075689, -1.7320508075689}),
-        result.interior.lower());
-    EXPECT_VEC_SOFT_EQ(
-        (Real3{1.7320508075689, 1.7320508075689, 1.7320508075689}),
-        result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -2}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 2}), result.exterior.upper());
+    IntersectTestResult ref;
+    ref.node = "-0";
+    ref.surfaces = {"Sphere: r=2"};
+    ref.interior = {{-1.7320508075689, -1.7320508075689, -1.7320508075689},
+                    {1.7320508075689, 1.7320508075689, 1.7320508075689}};
+    ref.exterior = {{-2, -2, -2}, {2, 2, 2}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -2670,14 +2454,11 @@ TEST_F(TorusTest, standard)
 {
     auto result = this->test(Torus(2, 1));
 
-    static char const expected_node[] = "-0";
-    static char const* expected_surfaces[]
-        = {"Toroid: r=2, a=1, b=1, at o={0,0,0}"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-3, -3, -1}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{3, 3, 1}), result.exterior.upper());
+    auto ref = result;
+    ref.node = "-0";
+    ref.surfaces = {"Toroid: r=2, a=1, b=1, at o={0,0,0}"};
+    ref.exterior = {{-3, -3, -1}, {3, 3, 1}};
+    EXPECT_REF_EQ(ref, result);
 }
 
 //---------------------------------------------------------------------------//
