@@ -52,6 +52,7 @@ runs:
           echo "CCACHE_DEBUG=${{ fromJSON(inputs.ccache-debug) > 0 && '1' || '' }}"
           echo "CCACHE_DEBUGLEVEL=${{ inputs.ccache-debug }}"
           echo "CCACHE_DEBUGDIR=$(tr '\\' '/' <<< '${{ inputs.ccache-debug-dir }}')"
+          echo "CCACHE_NOINODECACHE=true" # Always a fresh checkout so ctime is always new
         } >> "$GITHUB_ENV"
 
     - name: Restore ccache

@@ -29,11 +29,12 @@ struct SimParamsData
 {
     size_type max_steps{};
     size_type max_step_iters{};
+    size_type surface_substeps{};
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_steps > 0 && max_step_iters > 0;
+        return max_steps > 0 && max_step_iters > 0 && surface_substeps > 0;
     }
 
     //! Assign from another set of data
@@ -43,6 +44,7 @@ struct SimParamsData
         CELER_EXPECT(other);
         max_steps = other.max_steps;
         max_step_iters = other.max_step_iters;
+        surface_substeps = other.surface_substeps;
         return *this;
     }
 };

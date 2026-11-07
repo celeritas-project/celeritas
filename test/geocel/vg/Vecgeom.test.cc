@@ -354,6 +354,12 @@ TEST_F(MultiLevelTest, trace)
     TestImpl(this).test_trace();
 }
 
+// Test using VolumePathAccumulator with foreach_volume_path
+TEST_F(MultiLevelTest, unique_instance)
+{
+    this->impl().test_unique_instance();
+}
+
 TEST_F(MultiLevelTest, volume_level)
 {
     this->impl().test_volume_level();
