@@ -33,7 +33,7 @@ permissions:
 jobs:
   report-tests:
     if: ${{ github.event_name == 'workflow_run' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Download Artifacts
         id: download
@@ -65,7 +65,7 @@ jobs:
           report_paths: "${{steps.download.outputs.download-path}}/**/*.xml"
 
   report-regression:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       COMMENT_BODY_FILE: regression-comment.md
       REGRESSION_PATCH_DIR: regression-patch

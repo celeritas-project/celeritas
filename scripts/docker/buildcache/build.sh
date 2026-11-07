@@ -98,5 +98,5 @@ build() {
 }
 
 # Build target images inside Dockerfile
-build spack-base-ubuntu24 "$@"
+build spack-base-ubuntu26 "$@"
 build buildcache "$@"

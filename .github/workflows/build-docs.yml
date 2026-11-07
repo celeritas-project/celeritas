@@ -26,6 +26,11 @@ env:
 jobs:
   docs:
     name: ${{matrix.target}}
+    # NOTE: Doxygen 1.15.0 on ubuntu-26.04 fails to match out-of-line
+    # definitions with trailing return types to overloaded members ("no
+    # matching class member found"), which aborts the build with
+    # WARN_AS_ERROR. Stay on the 24.04 runner (Doxygen 1.9.8) until the docs
+    # build can use a fixed Doxygen.
     runs-on: ubuntu-24.04
     strategy:
       matrix:

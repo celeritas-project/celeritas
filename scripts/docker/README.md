@@ -66,8 +66,8 @@ Pull requests install their Spack dependencies only from the
 `ghcr.io/celeritas-project/spack-buildcache` binary cache, so new dependency
 combinations in the CI matrix must be pushed there first by
 `scripts/ci/update-spack-buildcache.sh`. The `buildcache` image
-reproduces the toolchain of the GitHub `ubuntu-24.04` runners (the externals
-in `scripts/spack/ext-ubuntu24.yaml`) so that script can run on any x86_64
+reproduces the toolchain of the GitHub `ubuntu-26.04` runners (the externals
+in `scripts/spack/ext-ubuntu26.yaml`) so that script can run on any x86_64
 Linux host. Build it with:
 ```console
 $ scripts/docker/buildcache/build.sh
@@ -75,7 +75,7 @@ $ scripts/docker/buildcache/build.sh
 The script reads the Spack and spack-packages commits pinned in
 `.github/actions/setup-spack/action.yml` and passes them as build arguments.
 It tags two images with the abbreviated commits:
-`celeritas/spack-ubuntu24:<spack>-<packages>`, the runner toolchain with Spack
+`celeritas/spack-base-ubuntu26:<spack>-<packages>`, the runner toolchain with Spack
 checked out and bootstrapped, and `celeritas-buildcache:<spack>-<packages>`
 (also tagged `latest`), which runs the update script. Extra arguments are
 passed to each build command.

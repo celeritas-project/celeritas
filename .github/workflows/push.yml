@@ -29,7 +29,7 @@ jobs:
     # wants to do regular testing.
     name: Check CELER_CI variable
     if: ${{ vars.CELER_CI || github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Success
         run: |
@@ -68,7 +68,7 @@ jobs:
   deploy-pages:
     if: ${{ github.ref == 'refs/heads/develop' }}
     needs: [build-pages]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       deployments: write

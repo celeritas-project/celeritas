@@ -65,10 +65,10 @@ jobs:
           matrix.geometry,
           matrix.geant
         )}}
-      CC: "clang-18"
-      CXX: "clang++-18"
+      CC: "clang-22"
+      CXX: "clang++-22"
       CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6') && 17 || 20}}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7

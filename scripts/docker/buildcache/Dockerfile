@@ -2,7 +2,7 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# Reproduce the GitHub ubuntu-24.04 runner toolchain used by the setup-spack
+# Reproduce the GitHub ubuntu-26.04 runner toolchain used by the setup-spack
 # action, to build and push the Spack buildcache with
 # scripts/ci/update-spack-buildcache.sh. Build both stages with the
 # pinned Spack revisions using:
@@ -13,26 +13,27 @@
 #-----------------------------------------------------------------------------#
 # Runner toolchain with pinned and bootstrapped Spack
 #-----------------------------------------------------------------------------#
-FROM ubuntu:24.04 AS spack-base-ubuntu24
+FROM ubuntu:26.04 AS spack-base-ubuntu26
 
 ARG SPACK_REF
 ARG SPACK_PACKAGES_REF
 
-LABEL description="Ubuntu 24.04 GitHub runner toolchain with pinned Spack" \
+LABEL description="Ubuntu 26.04 GitHub runner toolchain with pinned Spack" \
       org.spack.spack-ref="${SPACK_REF}" \
       org.spack.spack-packages-ref="${SPACK_PACKAGES_REF}"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8
 
-# System externals must match the versions in scripts/spack/ext-ubuntu24.yaml.
+# System externals must match the versions in scripts/spack/ext-ubuntu26.yaml.
 # Like the GitHub runner, provide build-essential: some autotools packages
-# probe for the unversioned c++ and /lib/cpp even when they only need C. The
-# runner also has GCC 14, whose libstdc++ headers clang-18 selects.
+# probe for the unversioned c++ and /lib/cpp even when they only need C. Its
+# GCC 15 is also the newest GCC on the runner, whose libstdc++ headers
+# clang-22 selects.
 RUN apt-get -qq update \
  && apt-get -qq install -y --no-install-recommends \
-    autoconf bash build-essential clang-18 flex git libfl-dev m4 make perl \
-    bzip2 ca-certificates curl file gzip libstdc++-14-dev patch python3 \
+    autoconf bash build-essential clang-22 flex git libfl-dev m4 make perl \
+    bzip2 ca-certificates curl file gzip patch python3 \
     tar unzip xz-utils zstd \
  && rm -rf /var/lib/apt/lists/*
 
@@ -89,7 +90,7 @@ RUN if [ -z "${SPACK_REF}" ] || [ -z "${SPACK_PACKAGES_REF}" ]; then \
 #-----------------------------------------------------------------------------#
 # Buildcache update
 #-----------------------------------------------------------------------------#
-FROM spack-base-ubuntu24 AS buildcache
+FROM spack-base-ubuntu26 AS buildcache
 
 LABEL description="Celeritas Spack buildcache builder for GitHub CI"
 

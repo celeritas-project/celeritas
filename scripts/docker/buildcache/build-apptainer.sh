@@ -62,7 +62,7 @@ push() {
   apptainer push "${SIF}" "oras://${REPO_HOST}/${PROJECT}/${target}:${TAG}"
 }
 
-convert spack-base-ubuntu24
+convert spack-base-ubuntu26
 convert buildcache
-push spack-base-ubuntu24
+push spack-base-ubuntu26
 push buildcache
