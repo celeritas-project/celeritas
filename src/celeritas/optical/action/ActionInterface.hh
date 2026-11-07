@@ -28,6 +28,9 @@ using OpticalBeginRunActionInterface
 //! Action interface for core stepping loop
 using OpticalStepActionInterface = StepActionInterface<CoreParams, CoreState>;
 
+using OpticalEndTransportActionInterface
+    = EndTransportActionInterface<CoreParams, CoreState>;
+
 //---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas
