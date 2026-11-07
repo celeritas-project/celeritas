@@ -122,10 +122,10 @@ TEST_F(UniverseIndexerTest, multi)
     EXPECT_EQ(5, indexer.num_volumes());
     EXPECT_EQ(4, indexer.num_universes());
 
-    for (auto u : range(surfaces_per_uni.size()))
+    for (auto u : range(id_cast<UnivId>(surfaces_per_uni.size())))
     {
-        EXPECT_EQ(surfaces_per_uni[u], indexer.num_surfaces(UnivId{u}));
-        EXPECT_EQ(cells_per_uni[u], indexer.num_volumes(UnivId{u}));
+        EXPECT_EQ(surfaces_per_uni[*u], indexer.num_surfaces(u));
+        EXPECT_EQ(cells_per_uni[*u], indexer.num_volumes(u));
     }
 
     unsigned int global_surface = 0;
