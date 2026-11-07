@@ -144,7 +144,7 @@ class Quantity
     //! Access the underlying data for more efficient loading from memory
     CELER_CONSTEXPR_FUNCTION value_type const* data() const { return &value_; }
 
-    //// INLINE COMPARATOR FRIENDS ////
+    //// INLINE FRIENDS ////
 
 #define CELER_DEFINE_QUANTITY_CMP(TOKEN) \
     template<class T2> \
@@ -246,6 +246,17 @@ class Quantity
     {
         return Quantity{ldg(&q->value_)};
     }
+
+#if !CELER_DEVICE_COMPILE
+    //! Output a quantity with its label
+    friend std::ostream& operator<<(std::ostream& os, Quantity const& q)
+    {
+        static_assert(sizeof(UnitT::label()) > 0,
+                      "Unit does not have a 'label' definition");
+        os << q.value() << " [" << UnitT::label() << ']';
+        return os;
+    }
+#endif
 
   private:
     value_type value_{};
@@ -378,22 +389,6 @@ inline char const* accessor_unit_label()
 {
     return detail::AccessorResultType<T>::unit_type::label();
 }
-
-#if !CELER_DEVICE_COMPILE
-//---------------------------------------------------------------------------//
-/*!
- * Output a quantity with its label.
- */
-template<class UnitT, class ValueT>
-std::ostream& operator<<(std::ostream& os, Quantity<UnitT, ValueT> const& q)
-{
-    static_assert(sizeof(UnitT::label()) > 0,
-                  "Unit does not have a 'label' definition");
-    os << q.value() << " [" << UnitT::label() << ']';
-    return os;
-}
-
-#endif
 
 //---------------------------------------------------------------------------//
 //! True if T is a Quantity
