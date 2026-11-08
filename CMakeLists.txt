@@ -109,13 +109,13 @@ else()
 endif()
 cmake_dependent_option(CELERITAS_TEST_RESOURCE_LOCK
   "Only run one GPU-enabled test at a time" "${_default_lock}"
-  "CELERITAS_BUILD_TESTS" OFF
+  "CELERITAS_ENABLE_TESTING" OFF
 )
 cmake_dependent_option(CELERITAS_TEST_VERBOSE
   "Increase logging level for tests" "${CELERITAS_DEBUG}"
-  "CELERITAS_BUILD_TESTS" OFF
+  "CELERITAS_ENABLE_TESTING" OFF
 )
-if(CELERITAS_BUILD_TESTS)
+if(CELERITAS_ENABLE_TESTING)
   # NOTE: CMake "normalizes" this path by stripping trailing directory
   # separators, so this *must* be a directory.
   set(CELERITAS_TEST_XML "" CACHE PATH
