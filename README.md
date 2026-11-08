@@ -148,7 +148,17 @@ require calling `BeginOfRunAction` and `EndOfRunAction` from the user run
 action: see `example/geant4/simple-offload.cc` and
 `example/geant4/fastsim-offload.cc`.
 
+Users of the [Claude Code][claude-code] AI assistant can install the
+[Celeritas plugin][claude-plugin], which guides integration, CMake linking, and
+troubleshooting:
+```
+/plugin marketplace add celeritas-project/celeritas
+/plugin install celeritas@celeritas
+```
+
 [integration]: https://celeritas-project.github.io/celeritas/user/usage/integration.html
+[claude-code]: https://code.claude.com
+[claude-plugin]: https://celeritas-project.github.io/celeritas/user/usage/claude-plugin.html
 
 # Running a standalone Celeritas app
 
@@ -314,6 +324,7 @@ a good quick-start guide for humans.
 |---------------|-------------------------------------------------------|
 | **app**       | Source code for installed executable applications     |
 | **cmake**     | Implementation code for CMake build configuration     |
+| **contrib**   | User tooling such as the Claude Code plugin           |
 | **doc**       | Code documentation and manual                         |
 | **example**   | Example applications and input files                  |
 | **external**  | Automatically fetched external CMake dependencies     |
