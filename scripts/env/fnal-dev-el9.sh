@@ -64,8 +64,8 @@ fi
 # BEGIN_DOC_FNALSPACK
 # Latest release of FNAL-Spack and DUNESW spack environment
 export SPACK_ROOT="/cvmfs/dune.opensciencegrid.org/spack/v1.2.2"
-CELER_SPACK_ENV="dunesw-10_23_00d01-justin-01_06_05-prototype"
-CELER_SPACK_PACKAGES="gcc cmake larsim googletest cuda"
+CELER_SPACK_ENV="dunesw-10_26_00d05-justin-01_06_05-prototype"
+CELER_SPACK_PACKAGES="gcc@12 cmake larsim googletest cuda"
 # END_DOC_FNALSPACK
 
 # Remove cuda home and compiler in case they exist in parent environment
