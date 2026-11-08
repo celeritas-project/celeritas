@@ -38,8 +38,6 @@ python3 scripts/dev/celeritas-gen.py -n celeritas::optical::test test/celeritas/
   `celeritas_add_device_test(<dir>/Foo)` with a `.test.cu`) to
   `test/<pkg>/CMakeLists.txt` in the matching section, copying any
   `${_needs_double}`-style conditions its neighbors use.
-- If the test does not mirror the source path, add `\sa <path>.test.cc`
-  under `\file` in the header.
 
 ## 3. Fill in
 

@@ -155,7 +155,7 @@ class TMITestBase : virtual public IntegrationTestBase
         if (!check_runtime_errors_)
         {
             // Let the base class manage and fail on the caught error
-            return TMITestBase::caught_g4_runtime_error(e);
+            return IntegrationTestBase::caught_g4_runtime_error(e);
         }
         CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
 
