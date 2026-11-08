@@ -51,7 +51,7 @@ def _make_top(
 
 _C_SEP = "".join(["//", "-" * 75, "//"])  # //-----...---//
 CXX_TOP = _make_top(
-    "//", "//{modeline:-^75s}//", [_C_SEP, "//! \\file {dirname}{basename}", _C_SEP]
+    "//", "//{modeline:-^75s}//", [_C_SEP, r"//! \file {dirname}{basename}", _C_SEP]
 )
 
 HEADER_FILE = """\
@@ -60,9 +60,11 @@ HEADER_FILE = """\
 {namespace_begin}
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
+ * <+Brief class description+>.
  *
- * Optional detailed class description, and possibly example usage:
+ * <+Optional detailed class description+>
+ *
+ * \\par Example
  * \\code
     {name} ...;
    \\endcode
@@ -76,7 +78,7 @@ class {name}
     //!@}}
 
   public:
-    // Construct with defaults
+    // Default constructor
     inline {name}();
 }};
 
@@ -84,7 +86,7 @@ class {name}
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Default constructor.
  */
 {name}::{name}()
 {{

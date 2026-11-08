@@ -7,7 +7,7 @@
 set -e
 
 _usage() {
-  echo "Usage: $0 PRESET_NAME [CMAKE_ARGS...]"
+  echo "Usage: $0 [--no-build] PRESET_NAME [CMAKE_ARGS...]"
   echo "       $0 [-h | --help]"
   echo "       $0 [-L | --list-presets]"
 }
@@ -26,6 +26,10 @@ developers.
 6. Configure
 7. Build, if the presets file is configured to do so
 8. Run tests, if the presets file is configured to do so
+
+Informational messages are printed to stderr.
+Important variables (CMAKE, ENV_SCRIPT) and CMake preset lists
+are sent to stdout.
 '
 }
 
@@ -182,8 +186,9 @@ find_command() {
 setup_ccache() {
   CCACHE_PROGRAM="$(find_command ccache)"
   if [ -n "${CCACHE_PROGRAM}" ]; then
-    log info "Using ccache: ${CCACHE_PROGRAM}"
+    log debug "Using ccache: ${CCACHE_PROGRAM}"
     check_ccache_usage
+    # NOTE: CCACHE_PROGRAM is used by CMake via CMakePresets.json
     export CCACHE_PROGRAM
   fi
 }
@@ -262,6 +267,16 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
   exit 0
 fi
 
+NO_BUILD=false
+if [ "$1" = "--no-build" ]; then
+  shift
+  if [ $# -eq 0 ]; then
+    _usage
+    exit 1
+  fi
+  NO_BUILD=true
+fi
+
 #-----------------------------------------------------------------------------#
 
 # Determine the source directory from the build script
@@ -286,6 +301,7 @@ OLD_XDG_CACHE_HOME="${XDG_CACHE_HOME}"
 # Load environment paths using the system name
 ENV_SCRIPT="$(get_system_env "${SYSTEM_NAME}")"
 if [ -n "${ENV_SCRIPT}" ]; then
+  printf "ENV_SCRIPT=%s\n" "${ENV_SCRIPT}"
   source_script "${ENV_SCRIPT}"
 fi
 if [ -n "${APPTAINER_NAME}" ]; then
@@ -313,6 +329,7 @@ if [ "${CMAKE}" != "${OLD_CMAKE}" ]; then
   log warning "Local environment script uses a different CMake than your \$PATH"
   log debug "Original: ${OLD_CMAKE}"
   log debug "Updated : ${CMAKE}"
+  printf "CMAKE=%s\n" "${CMAKE}"
   needs_env=true
 fi
 if [ "${OLD_XDG_CACHE_HOME}" != "${XDG_CACHE_HOME}" ]; then
@@ -340,38 +357,55 @@ CMAKE_PRESET=$1
 shift
 if [ "${CMAKE_PRESET}" = "--list-presets" ] || [ "${CMAKE_PRESET}" = "-L" ]; then
   if [ -z "${CMAKE}" ]; then
-    log error "cmake unavailable: cannot call --list-presets"
+    log error "cmake not found: cannot call --list-presets"
     exit 1
   fi
-  if "${CMAKE}" --list-presets >&2 ; then
-    log info "Try using the '${SYSTEM_NAME}' or 'dev' presets ('base'), or 'default' if not"
-  else
+  if ! "${CMAKE}" --list-presets; then
     log error "CMake may be too old or JSON file may be broken"
+    exit 1
   fi
-  exit 2
+  log info "Try using the '${SYSTEM_NAME}' or 'dev' presets ('base'), or 'default' if not"
+  exit 0
 fi
 
-# Configure, build, and test
-log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"
-cmake --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"
-log info "Building with --preset=${CMAKE_PRESET}"
-if cmake --build --preset="${CMAKE_PRESET}"; then
+try_build() {
+  log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"
+  if ! "${CMAKE}" --preset="${CMAKE_PRESET}" --log-level=VERBOSE "$@"; then
+    log error "configuration failed: check configuration errors above"
+    return 1
+  fi
+  if $NO_BUILD; then
+    return 0
+  fi
+  log info "Building with --preset=${CMAKE_PRESET}"
+  if ! "${CMAKE}" --build --preset="${CMAKE_PRESET}"; then
+    log error "build failed: check configuration and build errors above"
+    return 1
+  fi
   log info "Testing with --preset=${CMAKE_PRESET} --timeout 15"
-  if ctest --preset="${CMAKE_PRESET}" --timeout 15; then
-    log info "Celeritas was successfully built and tested for development!"
-  else
+  if ! ctest --preset="${CMAKE_PRESET}" --timeout 15; then
     log warning "Celeritas built but some tests failed"
     log info "Ask the Celeritas team whether the failures indicate an actual error"
     log info "Provide the system configuration:"
-    cmake --build --preset=${CMAKE_PRESET} --target print-config
+    "${CMAKE}" --build --preset="${CMAKE_PRESET}" --target print-config
+    RETCODE=1
+  else
+    log info "Celeritas was successfully built and tested for development!"
+    RETCODE=0
   fi
 
+  # Install precommit hooks even if tests fail
   install_precommit_if_git
-else
-  log error "build failed: check configuration and build errors above"
-fi
+  return $RETCODE
+}
+
+# Configure, build, and test
+RETCODE=0
+try_build "$@" || RETCODE=$?
 
 if ${needs_env}; then
-  log warning "Environment changed: please manually add the following to ${rc_file}:"
-  printf '. %s\n' "${ENV_SCRIPT}" >&2
+  log warning "Environment (cmake and/or pre-commit) differs from user"
+  log info "Recommend sourcing ${ENV_SCRIPT} in ${rc_file}"
 fi
+
+exit $RETCODE
