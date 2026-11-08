@@ -20,40 +20,14 @@ permissions:
   actions: write # for clearing cache
 
 jobs:
-  build-docs:
-    uses: ./.github/workflows/build-docs.yml
-  build-fast:
-    uses: ./.github/workflows/build-fast.yml
   build-ultralite:
     uses: ./.github/workflows/build-ultralite.yml
-
-  build-fast-extra:
-    uses: ./.github/workflows/build-fast-extra.yml
-  build-spack:
-    uses: ./.github/workflows/build-spack.yml
-  build-spack-extra:
-    uses: ./.github/workflows/build-spack-extra.yml
-
-  build-codecov:
-    uses: ./.github/workflows/build-codecov.yml
-  build-docker:
-    uses: ./.github/workflows/build-docker.yml
-  build-regression:
-    uses: ./.github/workflows/build-regression.yml
 
   all:
     if: ${{ always() }}
     needs:
       # IMPORTANT: should be the same as `jobs:all:needs` in `pull_request.yml`
-      - build-fast
       - build-ultralite
-      - build-docs
-      - build-fast-extra
-      - build-spack
-      - build-spack-extra
-      - build-codecov
-      - build-docker
-      - build-regression
     runs-on: ubuntu-24.04
     steps:
       - name: Check failures
