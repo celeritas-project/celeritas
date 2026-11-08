@@ -127,8 +127,8 @@ class OpticalCollector
     // Get and reset cumulative statistics on optical tracks from a state
     CounterAccumStats exchange_counters(AuxStateVec& aux) const;
 
-    // Get queued buffer sizes
-    OpticalBufferSize buffer_counts(AuxStateVec const& aux) const;
+    // Synchronize and get queued buffer sizes
+    OpticalBufferSize buffer_counts(AuxStateVec& aux) const;
 
     // Get the accumulated action times
     MapStrDbl get_action_times(AuxStateVec const&) const;
