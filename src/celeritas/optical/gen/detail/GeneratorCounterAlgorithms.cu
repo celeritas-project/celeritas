@@ -73,6 +73,18 @@ void set_buffer_size(
 }
 
 //---------------------------------------------------------------------------//
+void add_buffer_size(DeviceGenPtr counters,
+                     ObserverPtr<size_type const, MemSpace::device> count,
+                     StreamId stream_id)
+{
+    CELER_EXPECT(counters);
+    CELER_EXPECT(count);
+    launch_single_kernel("add-generator-buffer-size",
+                         stream_id,
+                         AddBufferSizeExecutor{counters, count});
+}
+
+//---------------------------------------------------------------------------//
 void update_pending(DeviceGenPtr counters,
                     ObserverPtr<size_type const, MemSpace::device> total,
                     StreamId stream_id)

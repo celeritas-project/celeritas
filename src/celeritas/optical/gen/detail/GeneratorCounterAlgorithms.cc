@@ -63,6 +63,16 @@ void set_buffer_size(HostGenPtr counters,
 }
 
 //---------------------------------------------------------------------------//
+void add_buffer_size(HostGenPtr counters,
+                     ObserverPtr<size_type const, MemSpace::host> count,
+                     StreamId)
+{
+    CELER_EXPECT(counters);
+    CELER_EXPECT(count);
+    launch_single_kernel(AddBufferSizeExecutor{counters, count});
+}
+
+//---------------------------------------------------------------------------//
 void update_pending(HostGenPtr counters,
                     ObserverPtr<size_type const, MemSpace::host> total,
                     StreamId)
@@ -107,6 +117,12 @@ void accumulate_buffer(DeviceGenPtr, StreamId)
 }
 
 void set_buffer_size(
+    DeviceGenPtr, ObserverPtr<size_type const, MemSpace::device>, StreamId)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+void add_buffer_size(
     DeviceGenPtr, ObserverPtr<size_type const, MemSpace::device>, StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
