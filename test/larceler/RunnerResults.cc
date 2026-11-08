@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "RunnerResults.hh"
 
+#include <iostream>
 #include <larcoreobj/SimpleTypesAndConstants/geo_vectors.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
@@ -15,7 +16,7 @@
 
 #include "AssertionHelper.hh"
 #include "RefComparer.hh"
-#include "testdetail/TestMacrosImpl.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {
