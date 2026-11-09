@@ -230,7 +230,7 @@ foreach(_test_case IN ITEMS run_small_flush run_small_initializers)
     OFFLOAD cpu gpu
     RMTYPE serial mt
   )
-endif()
+endforeach()
 
 #-------------------------------------#
 # UserActionIntegration
@@ -241,6 +241,6 @@ foreach(_test_suite IN ITEMS LarSphereOpticalOffload LarSphereOpticalTrackOffloa
     OFFLOAD cpu gpu g4
     ${_optical_args}
   )
-endif()
+endforeach()
 
 #-----------------------------------------------------------------------------#
