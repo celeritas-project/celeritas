@@ -116,8 +116,7 @@ debug@AuxStateVec.cc: Allocating 3 aux state classes for host on stream {0} with
 status@CoreState.cc: Celeritas core state initialization complete
 debug@FastSimulationIntegration.cc: Verifying fast simulation particles and processes
 error@FastSimulationIntegration.cc: Particle "e+"@0x0000 (PDG = -11): does not have G4FastSimulationManagerProcess attached
-debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / fast simulation process(es) are not attached correctly (maybe add G4FastSimulationPhysics to your physics list?) / FastSimulationIntegration.cc: 'celer.init.verify' failed
-critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.init.verify)
+critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.init.verify): Geant4 error / Celeritas runtime error / fast simulation process(es) are not attached correctly (maybe add G4FastSimulationPhysics to your physics list?) / FastSimulationIntegration.cc: 'celer.init.verify' failed
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',

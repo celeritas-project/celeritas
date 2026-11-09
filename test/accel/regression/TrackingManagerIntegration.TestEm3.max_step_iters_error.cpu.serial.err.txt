@@ -153,8 +153,7 @@ status@LocalTransporter.cc: Executing the first Celeritas stepping loop
 debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 warning@GeantTrackReconstruction.cc: Geant4 track data was not cleared during the event
-debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / number of step iterations exceeded the allowed maximum (1) / LocalTransporter.cc: 'celer.track.push' failed
-critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.track.push)
+critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.track.push): Geant4 error / Celeritas runtime error / number of step iterations exceeded the allowed maximum (1) / LocalTransporter.cc: 'celer.track.push' failed
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Local Celeritas state already finalized on thread 0
