@@ -444,7 +444,7 @@ function(add_g4_optical_test basename suite test backend)
   # but celeritas_add_test spelling is "DISABLE"
   if(_needs_surf_norm STREQUAL "DISABLE")
     # No support for surface normals: most will fail
-    set(_disabled "DISABLE")
+    set(_disabled "DISABLED")
   elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
     # FIXME: GeantSetup teardown destroys g4 geo
     set(_disabled "DISABLED")
