@@ -31,16 +31,8 @@ namespace optical
 {
 namespace test
 {
-/*!
- * Reference results:
- * - Double precision
- * - Orange geometry (requires valid surface normals and relocation on
- *   boundary)
- */
-constexpr bool reference_configuration
-    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-       && (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW));
+
+using ::celeritas::test::GeantTestBase;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -109,10 +101,20 @@ class CollectResultsAction final : public OpticalStepActionInterface,
  * collect action is used to capture photons immediately after a surface
  * interaction and log them in an appropriate functor.
  */
-class SurfacePhysicsIntegrationTestBase
-    : public ::celeritas::test::GeantTestBase
+class SurfacePhysicsIntegrationTestBase : public GeantTestBase
 {
   public:
+    /*!
+     * Reference results:
+     * - Double precision
+     * - Supplies valid surface normals and supports relocation on boundary
+     *   (never VecGeom 1, not currently 2.2)
+     * - xorwow with track slots
+     */
+    static constexpr bool reference_configuration
+        = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+          && GeantTestBase::is_reference_rng;
+
     std::string_view gdml_basename() const override { return "optical-box"; }
 
     GeantPhysicsOptions build_geant_options() const override;

@@ -7,12 +7,14 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/data/ObserverPtr.hh"
+#include "corecel/math/Atomics.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/Interaction.hh"
-#include "celeritas/optical/ParticleTrackView.hh"
-#include "celeritas/optical/SimTrackView.hh"
 #include "celeritas/optical/interactor/WavelengthShiftInteractor.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 namespace celeritas
 {
@@ -25,7 +27,8 @@ struct WavelengthShiftExecutor
 
     NativeCRef<WavelengthShiftData> data;
     NativeRef<WlsGeneratorStateData> aux_data;
-    size_type buffer_size{};
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
+    ObserverPtr<CoreStateCounters, MemSpace::native> core_counters;
 };
 
 //---------------------------------------------------------------------------//
@@ -38,14 +41,25 @@ CELER_FUNCTION Interaction WavelengthShiftExecutor::operator()(
     auto particle = track.particle();
     auto sim = track.sim();
     auto mat_id = track.material_record().material_id();
+    CELER_EXPECT(gen_counters);
+    CELER_EXPECT(core_counters);
+
+    // Distributions are stored in the track slots past the compacted buffer
     auto dist_id = id_cast<ItemId<WlsDistributionData>>(
-        buffer_size + track.track_slot_id().get());
+        gen_counters->current.buffer_size + track.track_slot_id().get());
     auto rng = track.rng();
 
     WavelengthShiftInteractor interact{
         data, aux_data, particle, sim, track.geometry().pos(), mat_id, dist_id};
+    Interaction result = interact(rng);
 
-    return interact(rng);
+    // Count the new photons as pending so the transport loop continues until
+    // they are generated
+    if (auto const& dist = aux_data.distributions[dist_id])
+    {
+        atomic_add(&core_counters->num_pending, dist.num_photons);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

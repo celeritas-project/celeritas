@@ -16,6 +16,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
+#include "GeneratorCounterState.hh"
 #include "../Types.hh"
 
 #if !CELER_DEVICE_COMPILE
@@ -162,11 +163,20 @@ struct GetNumPhotons
  * Store optical generation states in aux data.
  */
 template<MemSpace M>
-struct GeneratorState : public GeneratorStateBase
+struct GeneratorState : public GeneratorCounterState<M>
 {
     StateDataStore<GeneratorStateData, M> store;
 
-    //! Access valid range of distributions
+    //! Whether distributions were added since the photon counts were summed
+    bool needs_scan{false};
+
+    //! Construct with stream and buffer capacity
+    GeneratorState(StreamId stream, size_type capacity)
+        : GeneratorCounterState<M>{stream}, store{stream, capacity}
+    {
+    }
+
+    //! Access the distributions counted by the host copy of the counters
     auto distributions()
     {
         return this->store.ref().distributions[ItemRange<GeneratorDistributionData>(
@@ -182,12 +192,13 @@ struct GeneratorState : public GeneratorStateBase
  * Resize optical buffers.
  */
 template<MemSpace M>
-void resize(
-    GeneratorStateData<Ownership::value, M>* state, StreamId, size_type size)
+void resize(GeneratorStateData<Ownership::value, M>* state,
+            StreamId stream,
+            size_type size)
 {
     CELER_EXPECT(size > 0);
-    resize(&state->distributions, size);
-    resize(&state->offsets, size);
+    resize(&state->distributions, size, stream);
+    resize(&state->offsets, size, stream);
     CELER_ENSURE(*state);
 }
 

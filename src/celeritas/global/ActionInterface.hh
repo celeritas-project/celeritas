@@ -22,6 +22,9 @@ class CoreState;
 //! Interface called at beginning of the core stepping loop
 using CoreBeginRunActionInterface
     = BeginRunActionInterface<CoreParams, CoreState>;
+//! Interface called once the core stepping loop has finished
+using CoreEndTransportActionInterface
+    = EndTransportActionInterface<CoreParams, CoreState>;
 
 //! Action interface for core stepping loop
 using CoreStepActionInterface = StepActionInterface<CoreParams, CoreState>;

@@ -38,7 +38,7 @@ struct WlsGeneratorExecutor
     NativeCRef<WavelengthShiftData> wls;
     NativeCRef<WavelengthShiftData> wls2;
     NativeRef<WlsGeneratorStateData> data;
-    size_type buffer_size{};
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 
     //// FUNCTIONS ////
 
@@ -56,19 +56,21 @@ CELER_FUNCTION void WlsGeneratorExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(state);
     CELER_EXPECT(data);
+    CELER_EXPECT(gen_counters);
 
     using DistId = ItemId<WlsDistributionData>;
 
-    auto* counters = state->init.counters.data().get();
+    auto counters = state->init.counters.data();
+    auto const& current = gen_counters->current;
 
-    // Original code set the number of threads to the minimum between of number
-    // of vacancies and the number of pending in the auxiliary state. To avoid
-    // accessing the state counters to compute this min, we skip the extra
-    // threads if state.counters.num_vacancies < aux_state.counters.num_pending
-    if (!(tid < counters->num_vacancies))
+    // The kernel is launched over all track slots to avoid copying the
+    // counters to the host: skip threads beyond the number of vacancies or
+    // the number of photons left to generate
+    if (!(tid < min(counters->num_vacancies, current.num_pending)))
     {
         return;
     }
+    size_type const buffer_size = current.buffer_size;
     // Get the cumulative sum of the number of photons in the
     // distributions. The values are used to determine which threads will
     // generate from the corresponding distribution

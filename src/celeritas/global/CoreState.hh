@@ -132,6 +132,15 @@ class CoreState final : public CoreStateInterface
     //! Reset the state data
     void reset();
 
+    //! Current capacity of the track initializer buffer
+    size_type initializer_capacity() const
+    {
+        return this->ref().init.initializers.size();
+    }
+
+    // Grow the track initializer buffer to hold at least this many
+    void reserve_initializers(size_type min_capacity);
+
     //// COUNTERS ////
 
     //! Synchronize and copy track initialization counters from device to host
@@ -148,8 +157,11 @@ class CoreState final : public CoreStateInterface
     // Asynchronously copy counters to host-accessible storage
     void async_copy_counters();
 
-    // Access the most recently copied host counters
-    CoreStateCounters const& host_counters() const;
+    //! Access the host counters, which are copied asynchronously
+    AsyncSnapshot<CoreStateCounters> const& host_counters() const
+    {
+        return host_counters_;
+    }
 
     //// AUXILIARY DATA ////
 

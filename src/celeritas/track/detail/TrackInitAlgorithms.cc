@@ -27,11 +27,12 @@ void remove_if_alive(
     TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
     StreamId)
 {
-    auto* start = init.vacancies.data().get();
-    auto* counters = init.counters.data().get();
+    auto* start = &(*init.vacancies.data());
     auto* stop
         = std::remove_if(start, start + init.vacancies.size(), LogicalNot{});
-    counters->num_vacancies = stop - start;
+    auto num_vacancies = make_observer(init.counters.data(),
+                                       &CoreStateCounters::num_vacancies);
+    *num_vacancies = stop - start;
     return;
 }
 
@@ -89,8 +90,8 @@ void scan_neutral_initializers(
     CELER_EXPECT(!init.indices.empty());
 
     IsNeutralNewTrack is_neutral{params.ptr<MemSpace::native>(),
-                                 init.initializers.data().get(),
-                                 init.counters.data().get()};
+                                 init.initializers.data(),
+                                 init.counters.data()};
     auto* data = init.indices.data().get();
     size_type acc = 0;
     for (size_type i = 0; i < init.indices.size(); ++i)

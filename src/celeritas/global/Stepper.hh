@@ -162,7 +162,7 @@ class StepperInterface
     //! Fixed capacity of each stepper-owned primary buffer
     virtual size_type primary_capacity() const noexcept = 0;
 
-    //! Fixed capacity of the track initializer queue
+    //! Current capacity of the track initializer queue
     virtual size_type initializer_capacity() const noexcept = 0;
 
     //! Fixed capacity of the per-step secondary stack
@@ -193,6 +193,9 @@ class StepperInterface
     // Kill all tracks in flight to debug "stuck" tracks
     virtual void kill_active() = 0;
 
+    // Complete buffered work once all tracks have been transported
+    virtual void end_transport() = 0;
+
     // Reseed the RNGs at the start of an event for reproducibility
     virtual void reseed(UniqueEventId event_id) = 0;
 
@@ -222,9 +225,9 @@ class StepperInterface
  *
  * Device steps have separate start and result phases. Calling \c async
  * enqueues the action sequence, a counter snapshot, and a completion event on
- * the state stream. Diagnostic action or step timing can still synchronize the
- * stream. Other synchronization within the action sequence is being removed
- * separately.
+ * the state stream. Diagnostic action or step timing and a few other actions
+ * (see \c async ) can still synchronize the stream. Work that actions defer
+ * across steps is completed by \c end_transport after the last step.
  *
  * The two primary buffers are reserved to \c primary_capacity at construction,
  * so accumulating and staging primaries within capacity does not reallocate.
@@ -259,22 +262,22 @@ class StepperInterface
  * \par Asynchronous state
  *
  * The \c has_outstanding_result_ flag tracks whether an asynchronous step has
- * a result that has not yet been retrieved with \c get, whereas \c step_done_
- * tracks completion of device work. Their states after successful calls are:
+ * a result that has not yet been retrieved with \c get, whereas the core
+ * state's counter snapshot tracks completion of device work. The counter copy
+ * is the last work that \c async enqueues, so its completion implies the
+ * completion of the whole step. Their states after successful calls are:
  *
- * | Lifecycle point | \c has_outstanding_result_ | CPU \c step_done_ | GPU \c
- step_done_ |
- * | --------------- | -------------------------- | ----------------- |
- ----------------- |
- * | Construction or after \c get | false | Null | Allocated and ready |
- * | After \c async | true | Null and ready | Recorded; pending or ready |
- * | After \c ready returns false | true | Not possible | Recorded and pending |
- * | After \c ready is true or \c wait | true | Null/ready | Recorded/ready |
+ * | Lifecycle point          | Outstanding | CPU counters | GPU counters     |
+ * | ------------------------ | ----------- | ------------ | ---------------- |
+ * | Construction or \c get   | false       | Ready        | Ready            |
+ * | After \c async           | true        | Ready        | Pending or ready |
+ * | \c ready is false        | true        | Not possible | Pending          |
+ * | \c ready is true/\c wait | true        | Ready        | Ready            |
  *
- * A host step executes synchronously, so its null event is always ready. A
- * device event is allocated once and re-recorded after each counter snapshot.
- * Calling \c get first waits for completion and then clears \c
- * has_outstanding_result_; it does not reset or replace the event. Primary
+ * A host step executes synchronously, so its counters are copied
+ * immediately. A device snapshot creates its event at construction and
+ * re-records it after each copy. Calling \c get first waits for completion and
+ * then clears \c has_outstanding_result_. Primary
  * buffering has an independent state, tracked by \c primary_phase_ and \c
  * primary_copy_done_. The staged storage remains internal while a copy source
  * is submitted, but the public \c staged_primaries accessor returns only an
@@ -364,7 +367,7 @@ class Stepper final : public StepperInterface
         return primary_capacity_;
     }
 
-    // Fixed capacity of the track initializer queue
+    // Current capacity of the track initializer queue
     size_type initializer_capacity() const noexcept final;
 
     //! Fixed capacity of the per-step secondary stack
@@ -399,6 +402,9 @@ class Stepper final : public StepperInterface
 
     // Kill all tracks in flight to debug "stuck" tracks
     void kill_active() final;
+
+    // Complete buffered work once all tracks have been transported
+    void end_transport() final;
 
     // Reseed the RNGs at the start of an event for reproducibility
     void reseed(UniqueEventId event_id) final;
@@ -451,8 +457,6 @@ class Stepper final : public StepperInterface
     DeviceEvent primary_copy_done_{nullptr};
     // Logical state of staged_primaries_
     PrimaryPhase primary_phase_{PrimaryPhase::empty};
-    // Completion of device work and the result-counter snapshot
-    DeviceEvent step_done_{nullptr};
     // Whether an asynchronous step result can be retrieved
     bool has_outstanding_result_{false};
 

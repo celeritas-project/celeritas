@@ -161,6 +161,7 @@ TEST_F(SimTest, generation)
     SimTrackInitializer init;
     init.track_id = TrackId{0};
     init.event_id = EventId{0};
+    init.primary_id = PrimaryId{0};
     sim = init;
     EXPECT_EQ(0, sim.generation());
 
@@ -175,6 +176,7 @@ TEST_F(SimTest, generation)
     init = {};
     init.track_id = TrackId{4};
     init.event_id = EventId{0};
+    init.primary_id = PrimaryId{1};
     sim = init;
     EXPECT_EQ(0, sim.generation());
 }

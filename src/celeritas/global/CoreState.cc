@@ -6,7 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "CoreState.hh"
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -56,7 +59,7 @@ CoreState<M>::CoreState(
 
     if constexpr (M == MemSpace::device)
     {
-        device_ref_vec_ = DeviceVector<Ref>(1);
+        device_ref_vec_ = DeviceVector<Ref>(1, stream_id);
         device_ref_vec_.copy_to_device({&this->ref(), 1});
         ptr_ = make_observer(device_ref_vec_);
     }
@@ -148,17 +151,10 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
 template<MemSpace M>
 CoreStateCounters CoreState<M>::sync_get_counters() const
 {
-    auto* counters
-        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
+    ScopedProfiling profile_this{"sync-get-counters"};
+    auto counters = this->ref().init.counters.data();
     CELER_ASSERT(counters);
-    if constexpr (M == MemSpace::device)
-    {
-        auto result
-            = ItemCopier<CoreStateCounters>{this->stream_id()}(counters);
-        device().stream(this->stream_id()).sync();
-        return result;
-    }
-    return *counters;
+    return load_sync(counters, this->stream_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -171,11 +167,10 @@ CoreStateCounters CoreState<M>::sync_get_counters() const
 template<MemSpace M>
 void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 {
-    auto* counters
-        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
-    CELER_ASSERT(counters);
-    Copier<CoreStateCounters, M> copy{{counters, 1}, this->stream_id()};
-    copy(MemSpace::host, {&host_counters, 1});
+    ScopedProfiling profile_this{"sync-put-counters"};
+    Copier<CoreStateCounters, M> copy{this->ref().init.counters.data(),
+                                      this->stream_id()};
+    copy(make_observer(&host_counters));
     if constexpr (M == MemSpace::device)
     {
         device().stream(this->stream_id()).sync();
@@ -196,27 +191,15 @@ void CoreState<M>::initialize_counters(size_type num_pending)
  * Copy the current counters to host-accessible storage without synchronizing.
  *
  * For a device state, the copy is enqueued on the state's stream and completes
- * asynchronously. The caller must ensure the copy has completed before
- * accessing \c host_counters.
+ * asynchronously: the \c host_counters snapshot tracks its completion.
+ * Completion of the copy also implies completion of all work enqueued on the
+ * stream before this call.
  */
 template<MemSpace M>
 void CoreState<M>::async_copy_counters()
 {
     host_counters_.load_async(this->ref().init.counters.data(),
                               this->stream_id());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access the most recently copied host counters.
- *
- * For a device state, the caller must ensure the preceding counter copy has
- * completed.
- */
-template<MemSpace M>
-CoreStateCounters const& CoreState<M>::host_counters() const
-{
-    return host_counters_.value();
 }
 
 //---------------------------------------------------------------------------//
@@ -241,6 +224,46 @@ void CoreState<M>::reset()
 
     // Mark all the track slots as empty
     fill_sequence(&this->ref().init.vacancies, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Grow the track initializer buffer to hold at least this many.
+ *
+ * If the buffer is too small, it is reallocated with at least twice its
+ * current capacity and the queued initializers are copied into it. This must
+ * be called between steps, after the host counters have been updated, since
+ * the number of queued initializers is taken from them.
+ */
+template<MemSpace M>
+void CoreState<M>::reserve_initializers(size_type min_capacity)
+{
+    size_type const capacity = this->initializer_capacity();
+    if (min_capacity <= capacity)
+    {
+        return;
+    }
+
+    size_type const new_capacity = std::max(min_capacity, 2 * capacity);
+    CELER_LOG_LOCAL(info) << "Growing track initializer buffer from "
+                          << capacity << " to " << new_capacity;
+
+    ScopedProfiling profile_this{"reserve-initializers"};
+    reserve(&states_.value().init.initializers,
+            host_counters_.value().num_initializers,
+            new_capacity,
+            this->stream_id());
+
+    // Update the host reference
+    states_.ref().init = states_.value().init;
+
+    if constexpr (M == MemSpace::device)
+    {
+        // Update the copy of the state reference in device memory
+        device_ref_vec_.copy_to_device({&this->ref(), 1});
+    }
+
+    CELER_ENSURE(this->initializer_capacity() == new_capacity);
 }
 
 //---------------------------------------------------------------------------//

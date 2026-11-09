@@ -144,11 +144,6 @@ template size_type remove_if_invalid(
     size_type,
     size_type,
     StreamId);
-template size_type remove_if_invalid(
-    ItemsRef<WlsDistributionData, MemSpace::device> const&,
-    size_type,
-    size_type,
-    StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

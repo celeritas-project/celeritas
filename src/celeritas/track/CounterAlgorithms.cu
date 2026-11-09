@@ -22,23 +22,29 @@ void initialize_counters(
     CSCDeviceRef const& counters, size_type num_pending, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    detail::InitializeCountersExecutor execute_thread{counters.data(),
-                                                      num_pending};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "reset-counters");
-    launch_kernel(1, stream_id, execute_thread);
+    launch_single_kernel(
+        "reset-counters",
+        stream_id,
+        detail::InitializeCountersExecutor{counters.data(), num_pending});
 }
 
 //---------------------------------------------------------------------------//
+void clear_tallies(CSCDeviceRef const& counters, StreamId stream_id)
+{
+    CELER_EXPECT(counters.size() == 1);
+    launch_single_kernel("clear-tallies",
+                         stream_id,
+                         detail::ClearTalliesExecutor{counters.data()});
+}
+
 void add_pending(
     CSCDeviceRef const& counters, size_type count, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    detail::AddPendingExecutor<size_type> execute_thread{counters.data(),
-                                                         count};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "add-pending");
-    launch_kernel(1, stream_id, execute_thread);
+    launch_single_kernel(
+        "add-pending",
+        stream_id,
+        detail::AddPendingExecutor<size_type>{counters.data(), count});
 }
 
 //---------------------------------------------------------------------------//
@@ -47,11 +53,10 @@ void add_pending(CSCDeviceRef const& counters,
                  StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    detail::AddPendingExecutor<size_type*> execute_thread{
-        counters.data(), static_cast<size_type*>(count)};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "add-pending");
-    launch_kernel(1, stream_id, execute_thread);
+    launch_single_kernel("add-pending",
+                         stream_id,
+                         detail::AddPendingExecutor<size_type*>{
+                             counters.data(), static_cast<size_type*>(count)});
 }
 
 //---------------------------------------------------------------------------//
@@ -59,10 +64,10 @@ void add_primaries(
     CSCDeviceRef const& counters, size_type count, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    detail::AddPrimariesCountExecutor execute_thread{counters.data(), count};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "add-primary");
-    launch_kernel(1, stream_id, execute_thread);
+    launch_single_kernel(
+        "add-primary",
+        stream_id,
+        detail::AddPrimariesCountExecutor{counters.data(), count});
 }
 
 //---------------------------------------------------------------------------//
@@ -70,10 +75,10 @@ void update_active(
     CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    detail::UpdateActiveExecutor execute_thread{counters.data(), state_size};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "update-active");
-    launch_kernel(1, stream_id, execute_thread);
+    launch_single_kernel(
+        "update-active",
+        stream_id,
+        detail::UpdateActiveExecutor{counters.data(), state_size});
 }
 
 //---------------------------------------------------------------------------//
@@ -81,10 +86,10 @@ void update_alive(
     CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    detail::UpdateAliveExecutor execute_thread{counters.data(), state_size};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "update-alive");
-    launch_kernel(1, stream_id, execute_thread);
+    launch_single_kernel(
+        "update-alive",
+        stream_id,
+        detail::UpdateAliveExecutor{counters.data(), state_size});
 }
 
 //---------------------------------------------------------------------------//
@@ -95,11 +100,10 @@ void update_secondaries(
     StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    detail::UpdateSecondariesCountExecutor execute_thread{
-        counters.data(), num_secondaries, state_size};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "update-secondaries");
-    launch_kernel(1, stream_id, execute_thread);
+    launch_single_kernel("update-secondaries",
+                         stream_id,
+                         detail::UpdateSecondariesCountExecutor{
+                             counters.data(), num_secondaries, state_size});
 }
 
 //---------------------------------------------------------------------------//

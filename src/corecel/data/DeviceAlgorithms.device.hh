@@ -8,6 +8,8 @@
 
 #include "corecel/DeviceRuntimeApi.hh"
 
+#include "corecel/sys/ThreadId.hh"
+
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_reduce.cuh>
 #    include <cub/device/device_scan.cuh>
@@ -86,8 +88,7 @@ void select_if_async(ObserverPtr<T, MemSpace::device> data,
 
     // Store the number of selected items on device (synchronizes)
     size_type host_num_selected = stop - start;
-    Copier<size_type, MemSpace::device> copy{{num_selected.get(), 1},
-                                             stream_id};
+    Copier<size_type, MemSpace::device> copy{num_selected, stream_id};
     copy(MemSpace::host, {&host_num_selected, 1});
     device().stream(stream_id).sync();
 #else
@@ -148,8 +149,7 @@ void copy_if_async(InputIt input,
 
     // Store the number of selected items on device (synchronizes)
     size_type host_num_selected = stop - start;
-    Copier<size_type, MemSpace::device> copy{{num_selected.get(), 1},
-                                             stream_id};
+    Copier<size_type, MemSpace::device> copy{num_selected, 1, stream_id};
     copy(MemSpace::host, {&host_num_selected, 1});
     device().stream(stream_id).sync();
 #else
@@ -226,7 +226,7 @@ void reduce_sum_async(InputIt input,
     T host_result = thrust::reduce(
         thrust_execute_on(stream_id), input, input + num_items, T{0});
     CELER_DEVICE_API_CALL(PeekAtLastError());
-    Copier<T, MemSpace::device> copy{{result.get(), 1}, stream_id};
+    Copier<T, MemSpace::device> copy{result, stream_id};
     copy(MemSpace::host, {&host_result, 1});
     device().stream(stream_id).sync();
 #endif
@@ -239,8 +239,8 @@ void reduce_sum_async(InputIt input,
  * The input may be any random-access iterator, including the output itself
  * for an in-place scan. This does not synchronize the stream.
  */
-template<class InputIt, class T>
-void exclusive_sum_async(InputIt input,
+template<class T>
+void exclusive_sum_async(ObserverPtr<T const, MemSpace::device> input,
                          ObserverPtr<T, MemSpace::device> output,
                          size_type num_items,
                          StreamId stream_id)
@@ -249,8 +249,8 @@ void exclusive_sum_async(InputIt input,
 
 #if CELER_USE_THRUST
     thrust::exclusive_scan(thrust_execute_on(stream_id),
-                           input,
-                           input + num_items,
+                           device_pointer_cast(input),
+                           device_pointer_cast(input) + num_items,
                            device_pointer_cast(output),
                            T{0});
     CELER_DEVICE_API_CALL(PeekAtLastError());
@@ -262,7 +262,7 @@ void exclusive_sum_async(InputIt input,
     std::size_t temp_storage_bytes = 0;
     auto cub_error_code = cub::DeviceScan::ExclusiveSum(nullptr,
                                                         temp_storage_bytes,
-                                                        input,
+                                                        input.get(),
                                                         output.get(),
                                                         num_items,
                                                         stream.get());
@@ -271,7 +271,7 @@ void exclusive_sum_async(InputIt input,
     DeviceAllocation temp_storage(temp_storage_bytes, stream_id);
     cub_error_code = cub::DeviceScan::ExclusiveSum(temp_storage.data(),
                                                    temp_storage_bytes,
-                                                   input,
+                                                   input.get(),
                                                    output.get(),
                                                    num_items,
                                                    stream.get());

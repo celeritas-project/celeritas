@@ -9,10 +9,13 @@
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionInterface.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
+
+#include "GeneratorCounterState.hh"
+
+#include "detail/GeneratorCounterAlgorithms.hh"
 
 namespace celeritas
 {
@@ -70,6 +73,10 @@ class GeneratorBase : virtual public optical::OpticalStepActionInterface,
     GeneratorStateBase const& counters(AuxStateVec const&) const final;
     //!@}
 
+    // Get the generator counter state for a memory space
+    template<MemSpace M>
+    inline GeneratorCounterState<M>& counter_state(AuxStateVec&) const;
+
     // Update the generator and state counters
     template<MemSpace M>
     inline void update_counters(optical::CoreState<M>&) const;
@@ -84,34 +91,32 @@ class GeneratorBase : virtual public optical::OpticalStepActionInterface,
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Get the generator counter state for a memory space.
+ */
+template<MemSpace M>
+GeneratorCounterState<M>& GeneratorBase::counter_state(AuxStateVec& aux) const
+{
+    return dynamic_cast<GeneratorCounterState<M>&>(this->counters(aux));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Update the generator and state counters.
+ *
+ * This enqueues a single-thread kernel that moves the photons generated in
+ * this step from the pending to the generated counts, so it does not
+ * synchronize.
  */
 template<MemSpace M>
 void GeneratorBase::update_counters(optical::CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
 
-    auto counters = state.sync_get_counters();
-    auto& gen_counters = this->counters(*state.aux());
-
-    // Calculate the number of new tracks generated at this step
-    size_type num_gen
-        = min(counters.num_vacancies, gen_counters.counters.num_pending);
-
-    // Update the optical core state counters
-    counters.num_pending -= num_gen;
-    counters.num_generated += num_gen;
-    counters.num_vacancies -= num_gen;
-
-    // Update the generator counters and statistics
-    gen_counters.counters.num_pending -= num_gen;
-    gen_counters.counters.num_generated += num_gen;
-    gen_counters.accum.num_generated += num_gen;
-
-    // Update the number of active tracks. This must be done even if no new
-    // tracks were generated
-    counters.num_active = state.size() - counters.num_vacancies;
-    state.sync_put_counters(counters);
+    auto& gen_state = this->counter_state<M>(*state.aux());
+    detail::update_counters(state.ref().init.counters,
+                            gen_state.device_counters(),
+                            state.size(),
+                            state.stream_id());
 }
 
 //---------------------------------------------------------------------------//

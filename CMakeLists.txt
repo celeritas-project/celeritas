@@ -91,6 +91,16 @@ cmake_dependent_option(CELERITAS_DEVICE_DEBUG
   "_celeritas_use_device;CELERITAS_DEBUG" OFF
 )
 
+# Build CTest tree by default when building GoogleTest tests
+# or, if Celeritas is the main project, when CTest BUILD_TESTING option
+# is given (for backward compatibility)
+if(CELERITAS_BUILD_TESTS OR (BUILD_TESTING AND PROJECT_IS_TOP_LEVEL))
+  set(_default_test ON)
+else()
+  set(_default_test OFF)
+endif()
+option(CELERITAS_ENABLE_TESTING "Enable CTest testing" "${_default_test}")
+
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
@@ -99,13 +109,13 @@ else()
 endif()
 cmake_dependent_option(CELERITAS_TEST_RESOURCE_LOCK
   "Only run one GPU-enabled test at a time" "${_default_lock}"
-  "CELERITAS_BUILD_TESTS" OFF
+  "CELERITAS_ENABLE_TESTING" OFF
 )
 cmake_dependent_option(CELERITAS_TEST_VERBOSE
   "Increase logging level for tests" "${CELERITAS_DEBUG}"
-  "CELERITAS_BUILD_TESTS" OFF
+  "CELERITAS_ENABLE_TESTING" OFF
 )
-if(CELERITAS_BUILD_TESTS)
+if(CELERITAS_ENABLE_TESTING)
   # NOTE: CMake "normalizes" this path by stripping trailing directory
   # separators, so this *must* be a directory.
   set(CELERITAS_TEST_XML "" CACHE PATH
@@ -120,7 +130,8 @@ else()
   set(_needs_g4vg OFF)
 endif()
 
-if(BUILD_TESTING OR CELERITAS_BUILD_DOCS OR CELERITAS_BUILD_TESTS)
+if((CELERITAS_ENABLE_TESTING AND CELERITAS_BUILD_APPS)
+   OR CELERITAS_BUILD_DOCS)
   set(_needs_python ON)
 else()
   set(_needs_python OFF)
@@ -297,8 +308,6 @@ celeritas_set_default(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY FALSE)
 
 ### Build flags ###
 
-# Default to building CTest tree if using Celeritas tests
-celeritas_set_default(BUILD_TESTING ${CELERITAS_BUILD_TESTS})
 # Default to debug or released based on value of CELERITAS_DEBUG
 if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   if(CELERITAS_DEBUG)
@@ -413,9 +422,9 @@ if(CELERITAS_USE_CLI11)
   celeritas_find_or_builtin_package(CLI11 2.4)
 endif()
 
-if(BUILD_TESTING)
+if(CELERITAS_ENABLE_TESTING)
   # Build the test tree for unit and/or app tests
-  include(CTest)
+  enable_testing()
 endif()
 
 if(CELERITAS_USE_LArSoft)
@@ -811,12 +820,15 @@ if(CELERITAS_BUILD_APPS)
   add_subdirectory(app)
 else()
   # Replacement for running celer-config
-  add_custom_target("get-config"
+  add_custom_target("print-config"
     COMMAND ${CMAKE_COMMAND} -E echo
-      "'get-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
+      "'print-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
     VERBATIM
   )
 endif()
+set_target_properties("print-config" PROPERTIES
+  FOLDER "bin"
+)
 
 #----------------------------------------------------------------------------#
 # DOCUMENTATION

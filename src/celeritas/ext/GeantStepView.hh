@@ -9,9 +9,8 @@
 #include <G4Step.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/math/Quantity.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/UnitTypes.hh"
 
 #include "GeantStepPointView.hh"
 
@@ -21,17 +20,32 @@ namespace celeritas
 /*!
  * Access and modify step data from Geant4 with Celeritas units.
  *
- * This provides a uniform interface to G4Step data using Celeritas types and
- * units. Geant4 data are all in double precision.
+ * This provides a uniform, lossless interface to \c G4Step data using
+ * Celeritas type and unit helper classes.
+ *
+ * \sa GeantStepPointView
+ * \sa GeantTrackView
+ * \sa GeantParticleView
+ *
+ * \par Units and types
+ *
+ * Since Geant4 uses exclusively double precision with the CLHEP, the
+ * quantities in this class differ from the regular Celeritas quantities
+ * (unless using \c CELERITAS_REAL_TYPE=double with \c CELERITAS_UNITS=CLHEP).
+ * To convert the result to Celeritas native quantities and floating point
+ * types consistently and easily, use \c native_value_from .
+ *
+ * \sa corecel/math/Quantity.hh
+ * \sa corecel/math/ArrayQuantity.hh
  */
 class GeantStepView
 {
   public:
     //!@{
     //! \name Type aliases
+    using real_type = double;
     using Energy = units::ClhepEnergy;
     using Length = lengthunits::ClhepLength;
-    using real_type = double;
     //!@}
 
   public:

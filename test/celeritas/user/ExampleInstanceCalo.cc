@@ -21,27 +21,36 @@
 #include "geocel/VolumeIdBuilder.hh"
 #include "geocel/VolumeParams.hh"
 
+#include "AssertionHelper.hh"
+#include "RefComparer.hh"
+#include "TestMacros.hh"
+
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Print key/value pairs.
+ * Print the result as a valid aggregate initializer.
  */
-void ExampleInstanceCalo::Result::print_expected() const
+std::ostream& operator<<(std::ostream& os,
+                         ExampleInstanceCalo::Result const& ref)
 {
-    using std::cout;
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static char const* const expected_instance[] = "
-         << repr(this->instance)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_instance, result.instance);\n"
-            "static real_type const expected_edep[] = "
-         << repr(this->edep)
-         << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);\n"
-            "/*** END CODE ***/\n";
+    return os << '{' << CELER_REPR_ATTR(ref, instance) << ", "
+              << CELER_REPR_ATTR(ref, edep) << '}';
+}
+
+//---------------------------------------------------------------------------//
+bool is_ref_eq(AssertionHelper& helper,
+               ExampleInstanceCalo::Result const& expected,
+               ExampleInstanceCalo::Result const& actual)
+{
+    RefComparer<ExampleInstanceCalo::Result> compare{helper, expected, actual};
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_eq, ExampleInstanceCalo::Result, instance);
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_soft_eq, ExampleInstanceCalo::Result, edep);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
@@ -120,9 +129,8 @@ void ExampleInstanceCalo::process_steps(DeviceStepState state)
     // Compact on device, then wait for the count before copying the data
     auto& stream = device().stream(state.stream_id);
     compact_steps_async(state.steps, num_selected_);
-    stream.sync();
     copy_compacted_steps_async(
-        &steps_, state.steps, num_selected_.value(), stream);
+        &steps_, state.steps, num_selected_.wait(), stream);
     stream.sync();
     if (steps_)
     {

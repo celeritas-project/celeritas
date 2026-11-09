@@ -6,13 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <functional>
+#include <iosfwd>
 
+#include "corecel/io/Repr.hh"
 #include "celeritas/io/EventIOInterface.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "AssertionHelper.hh"
 #include "Test.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -36,19 +41,42 @@ class EventIOTestBase : public Test
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     //!@}
 
-  protected:
+    //! Reference data from read IO
     struct ReadAllResult
     {
+        static constexpr char class_str[] = "ReadAllResult";
+
+        struct Tolerance
+        {
+            real_type energy{Test::fine_eps};
+            real_type pos{Test::fine_eps};
+            real_type dir{Test::fine_eps};
+            real_type time{Test::fine_eps};
+        };
+
         std::vector<int> pdg;
-        std::vector<double> energy;
-        std::vector<double> pos;
-        std::vector<double> dir;
-        std::vector<double> time;
+        std::vector<real_type> energy;
+        std::vector<Real3> pos;
+        std::vector<Real3> dir;
+        std::vector<real_type> time;
         std::vector<int> event;
 
-        void print_expected() const;
+        friend std::ostream& operator<<(std::ostream& os,
+                                        ReadAllResult const& ref);
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              ReadAllResult const& expected,
+                              ReadAllResult const& actual,
+                              Tolerance const& tol);
+
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              ReadAllResult const& expected,
+                              ReadAllResult const& actual)
+        {
+            return is_ref_eq(helper, expected, actual, Tolerance{});
+        }
     };
 
+  protected:
     // Create particles
     void SetUp() override;
 

@@ -6,17 +6,20 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/user/SlotDiagnostic.hh"
 
+#include <cstddef>
 #include <fstream>
 #include <nlohmann/json.hpp>
 
 #include "corecel/io/Repr.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/TestEm3Base.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "AssertionHelper.hh"
 #include "SimpleLoopTestBase.hh"
 #include "celeritas_test.hh"
+#include "testdetail/TestMacrosImpl.hh"
 
 namespace celeritas
 {
@@ -50,9 +53,26 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
   protected:
     struct RunResult
     {
+        static constexpr char class_str[] = "RunResult";
+
         std::vector<std::string> labels;
         std::vector<std::string> slots;
-        void print_expected() const;
+
+        friend std::ostream& operator<<(std::ostream& os, RunResult const& ref)
+        {
+            return os << '{' << CELER_REPR_ATTR(ref, labels) << ", "
+                      << CELER_REPR_ATTR(ref, slots) << '}';
+        }
+
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              RunResult const& expected,
+                              RunResult const& actual)
+        {
+            RefComparer<RunResult> compare{helper, expected, actual};
+            CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, labels);
+            CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, slots);
+            return static_cast<bool>(compare);
+        }
     };
 
     void SetUp() override
@@ -114,20 +134,6 @@ auto SlotDiagnosticTest::parse_output() const -> RunResult
     return out;
 }
 
-void SlotDiagnosticTest::RunResult::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static char const* const expected_labels[] = "
-         << repr(this->labels)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_labels, result.labels);\n"
-            "static char const* const expected_slots[] = "
-         << repr(this->slots)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_slots, result.slots);\n"
-            "/*** END CODE ***/\n";
-}
-
 //---------------------------------------------------------------------------//
 class TestEm3SlotTest : virtual public TestEm3Base,
                         virtual public SlotDiagnosticTest
@@ -166,6 +172,7 @@ class TestEm3SlotTest : virtual public TestEm3Base,
         std::vector<Primary> result(count, p);
         for (auto i : range(count))
         {
+            result[i].primary_id = id_cast<PrimaryId>(i);
             result[i].particle_id = particles[i % particles.size()];
         }
         return result;
@@ -178,14 +185,9 @@ TEST_F(TestEm3SlotTest, host)
 {
     auto result = this->run<MemSpace::host>(32, 64);
 
-    if (CELERITAS_CORE_RNG != CELERITAS_CORE_RNG_XORWOW)
-    {
-        GTEST_SKIP() << "Reference results only apply to reference RNG";
-    }
-
-    static char const* const expected_labels[] = {"gamma", "e-", "e+"};
-    EXPECT_VEC_EQ(expected_labels, result.labels);
-    std::vector<std::string> expected_slots = {
+    RunResult expected;
+    expected.labels = {"gamma", "e-", "e+"};
+    expected.slots = {
         "0                            -+-", "0                            -+-",
         "0000                         -+-", "0000000                      -+-",
         "00000000                  -+--+-", "0000000000                -+--+-",
@@ -205,35 +207,47 @@ TEST_F(TestEm3SlotTest, host)
         "00000000000000000+0-----------+-", "00000000000-00--0+0-----------+-",
         "000000-0000-00--0+0-----------+-", "00000000000-000-0+0-------------",
         "00-000-0-00-000-0+0-------------", " 0-0  -0-00-000-0+0-------------",
-        "0 -0   0 00-000-0+0- -----------", "  -0     00-00 -0+0-  ----------",
-        "  -0     00-0  -0+0-   - -------", "0 -0     0 -0  -0+0-   -   -----",
+        "0 -0   0 00-000-0+0-------------", "0 -0     00-00 -0+0-- ----------",
+        "  -0     00-0  -0+0-   ---------", "0 -0     0 -0  -0+0-   -   -----",
         "00-0     0 -0  -0+ -   -  ------", "00-      0 -0  -0+ -   ---+-----",
-        "00-      0 -0  -0+ -   ---+-----", "00-0     0 -0  -0+ -   ---+-----",
-        "00-      0 -0  -0+ -  ----+-----", "000      0 -0  -0+ - -----+-----",
-        "0        0 -0  -0+  ------+-----", "0        0 -0  -0+    ----+-----",
-        "000      0 -0  -0+    ----+-----", " 0       0 -0  -0+  ------+-----",
+        "00-      0 -0  -0+ -   - -+-----", "00-0     0 -0  -0+ -   ---+-----",
+        "00-      0 -0  -0+ -  ----+-----", "000      0 -0  -0+ -   ---+-----",
+        "0        0 -0  -0+    ----+-----", "0        0 -0  -0+     ---+-----",
+        "00       0 -0  -0+     ---+-----", "00       0 -0  -0+    ----+-----",
     };
 
     // Some results change slightly as a function of architecture/build flags,
     // and they can change dramatically based on Geant4 cross sections etc.
-    auto max_check_count = (this->is_ci_build() ? 37 : 6);
-    ASSERT_LE(max_check_count, expected_slots.size());
+    // - Not reference RNG: only primaries are guaranteed
+    // - Not CI build (standard G4 version): first few should probably have
+    //   same behavior
+    // - Not ORANGE: vecgeom has different result at iteration ~38
+    // - Otherwise: ORANGE with reference config options -> test all iters
+
+    constexpr bool is_orange
+        = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
+    auto max_check_count = (!Test::is_reference_rng   ? 1
+                            : !Test::strict_testing() ? 6
+                            : !is_orange              ? 37
+                                                      : expected.slots.size());
+    ASSERT_LE(max_check_count, expected.slots.size());
     ASSERT_LE(max_check_count, result.slots.size());
 
-    for (auto* s : {&expected_slots, &result.slots})
+    for (auto* s : {&expected.slots, &result.slots})
     {
         s->erase(s->begin() + max_check_count, s->end());
     }
 
-    EXPECT_VEC_EQ(expected_slots, result.slots) << repr(result.slots);
+    EXPECT_REF_EQ(expected, result) << CELER_REPR_ATTR(result, slots);
 }
 
 TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
 {
     auto result = this->run<MemSpace::device>(64, 16);
 
-    static char const* const expected_labels[] = {"gamma", "e-", "e+"};
-    EXPECT_VEC_EQ(expected_labels, result.labels);
+    auto expected = result;
+    expected.labels = {"gamma", "e-", "e+"};
+    EXPECT_REF_EQ(expected, result);
     std::vector<std::string> expected_slots = {
         "00                                                        -+-+-+",
         "00                                                        -+-+-+",
@@ -255,7 +269,7 @@ TEST_F(TestEm3SlotTest, TEST_IF_CELER_DEVICE(device))
 
     // Some results change slightly as a function of architecture/build flags,
     // and they can change dramatically based on Geant4 cross sections etc.
-    auto max_check_count = (this->is_ci_build() ? 16 : 10);
+    auto max_check_count = (Test::strict_testing() ? 16 : 10);
     ASSERT_LE(max_check_count, expected_slots.size());
     ASSERT_LE(max_check_count, result.slots.size());
 

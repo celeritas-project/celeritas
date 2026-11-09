@@ -30,8 +30,9 @@ namespace detail
  * \todo Instead of manually calling there, should it be part of the pre-init
  * action?
  *
- * \todo For the main EM loop, these are reset once per *step*. For the optical
- * loop, they are reset once per *transport*.
+ * The optical loop instead clears its tallies once per transport loop with
+ * \c ClearTalliesExecutor , since its pending tracks are accumulated before
+ * the loop starts.
  */
 struct InitializeCountersExecutor
 {
@@ -50,6 +51,31 @@ struct InitializeCountersExecutor
         counters->num_cut = 0;
         counters->num_errored = 0;
         counters->num_pending = num_pending;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear the num_generated, num_cut, and num_errored counters.
+ *
+ * This is used at the start of each optical transport loop, where the number
+ * of pending tracks has already been accumulated.
+ */
+struct ClearTalliesExecutor
+{
+    //// DATA ////
+
+    ObserverPtr<CoreStateCounters, MemSpace::native> counters;
+
+    //// FUNCTIONS ////
+
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        CELER_EXPECT(tid == ThreadId{0});
+
+        counters->num_generated = 0;
+        counters->num_cut = 0;
+        counters->num_errored = 0;
     }
 };
 

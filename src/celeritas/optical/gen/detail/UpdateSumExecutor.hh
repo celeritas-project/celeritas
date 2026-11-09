@@ -8,6 +8,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
 #include "../GeneratorData.hh"
@@ -30,7 +32,7 @@ struct UpdateSumExecutor
 
     RefPtr<CoreStateData, MemSpace::native> state;
     NativeRef<GeneratorStateData> const offload;
-    size_type num_gen{};
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 
     //// FUNCTIONS ////
 
@@ -52,14 +54,20 @@ CELER_FUNCTION void UpdateSumExecutor::operator()(TrackSlotId tid) const
 {
     CELER_EXPECT(state);
     CELER_EXPECT(offload);
-    CELER_EXPECT(num_gen > 0);
+    CELER_EXPECT(gen_counters);
     CELER_EXPECT(tid < offload.offsets.size());
 
-    // We deferred the check for the number of vacancies, but capped the
-    // updates at num_vacancies in the GeneratorExecutor functor if it was
-    // less than num_gen, so make the same adjustment here.
-    auto* counters = state->init.counters.data().get();
-    size_type num_generated = min(num_gen, counters->num_vacancies);
+    auto const& current = gen_counters->current;
+    if (!(tid.get() < current.buffer_size))
+    {
+        // Launched over an upper bound of the buffer size
+        return;
+    }
+
+    // The number of photons generated in this step was capped at the number
+    // of vacancies in the GeneratorExecutor functor
+    auto counters = state->init.counters.data();
+    size_type num_generated = min(current.num_pending, counters->num_vacancies);
 
     auto& offset = offload.offsets[ItemId<size_type>(tid.get())];
     if (offset < num_generated)

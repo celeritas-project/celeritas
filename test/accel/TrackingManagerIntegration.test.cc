@@ -93,7 +93,6 @@ class CounterTrackingAction final : public G4UserTrackingAction
     std::size_t num_electrons_{};
     std::size_t num_positrons_{};
 };
-
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -156,7 +155,7 @@ class TMITestBase : virtual public IntegrationTestBase
         if (!check_runtime_errors_)
         {
             // Let the base class manage and fail on the caught error
-            return TMITestBase::caught_g4_runtime_error(e);
+            return IntegrationTestBase::caught_g4_runtime_error(e);
         }
         CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
 
@@ -764,7 +763,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
-            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+            EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
         }
     }
     if (G4Threading::IsMasterThread())
@@ -878,7 +877,7 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
-            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+            EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
         }
     }
     if (G4Threading::IsMasterThread())
@@ -1035,7 +1034,7 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
-            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+            EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
         }
     }
 
@@ -1207,6 +1206,45 @@ TEST_F(WaterSphere, run_small_flush)
 
     rm.BeamOn(4);
     {
+        auto num_hits = this->exchange_hit_count();
+        EXPECT_GT(num_hits, 0);
+        auto num_celeritas_hits = this->exchange_celeritas_hit_count();
+        EXPECT_GT(num_celeritas_hits, 0);
+        EXPECT_LT(num_celeritas_hits, num_hits);
+    }
+}
+
+/*!
+ * Check that a primary batch can exceed the initial initializer capacity.
+ */
+TEST_F(WaterSphere, run_small_initializers)
+{
+    auto& rm = this->run_manager();
+
+    TMI::Instance().SetOptions([this] {
+        auto opts = this->make_setup_options();
+        opts.initializer_capacity = 2;
+        return opts;
+    }());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    ASSERT_FALSE(this->HasFatalFailure());
+
+    CELER_LOG(status) << "Beam on";
+    {
+        ScopedLogStorer scoped_log_{&self_logger(), LogLevel::info};
+        rm.BeamOn(1);
+
+        auto has_msg = [](std::string const& msg) {
+            return msg.find("Growing track initializer buffer from 2 ")
+                   != std::string::npos;
+        };
+        auto const& messages = scoped_log_.messages();
+        EXPECT_TRUE(std::any_of(messages.begin(), messages.end(), has_msg))
+            << "Expected message not found in logs:\n"
+            << scoped_log_;
         auto num_hits = this->exchange_hit_count();
         EXPECT_GT(num_hits, 0);
         auto num_celeritas_hits = this->exchange_celeritas_hit_count();

@@ -12,6 +12,7 @@
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/gen/CherenkovGenerator.hh"
 #include "celeritas/optical/gen/ScintillationGenerator.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/Utils.hh"
 
@@ -39,7 +40,7 @@ struct GeneratorExecutor
     NativeCRef<CherenkovData> const cherenkov;
     NativeCRef<ScintillationData> const scintillation;
     NativeRef<GeneratorStateData> const offload;
-    size_type buffer_size{};
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 
     //// FUNCTIONS ////
 
@@ -58,19 +59,21 @@ CELER_FUNCTION void GeneratorExecutor::operator()(ThreadId tid) const
     using namespace celeritas::literals;
     CELER_EXPECT(state);
     CELER_EXPECT(offload);
+    CELER_EXPECT(gen_counters);
 
     using DistId = ItemId<GeneratorDistributionData>;
 
-    auto* counters = state->init.counters.data().get();
+    auto counters = state->init.counters.data();
+    auto const& current = gen_counters->current;
 
-    // Original code set the number of threads to the minimum between of number
-    // of vacancies and the number of pending in the auxiliary state. To avoid
-    // accessing the state counters to compute this min, we skip the extra
-    // threads if state.counters.num_vacancies < aux_state.counters.num_pending
-    if (!(tid < counters->num_vacancies))
+    // The kernel is launched over all track slots to avoid copying the
+    // counters to the host: skip threads beyond the number of vacancies or
+    // the number of photons left to generate
+    if (!(tid < min(counters->num_vacancies, current.num_pending)))
     {
         return;
     }
+    size_type const buffer_size = current.buffer_size;
     // Find the index of the first distribution that has a nonzero number
     // of primaries left to generate
     auto all_offsets = offload.offsets[ItemRange<size_type>(

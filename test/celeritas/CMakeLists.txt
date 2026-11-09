@@ -9,8 +9,7 @@ if(CELERITAS_REAL_TYPE STREQUAL "double")
 else()
   # Test relies on "gold" data; don't bother updating
   set(_needs_double DISABLE)
-  # Test has legitimate errors and we should fix if we support
-  # single-precision in the long term
+  # Test has legitimate errors and we should fix to reduce edge cases
   set(_fixme_single DISABLE)
 endif()
 
@@ -41,6 +40,10 @@ if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
 
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+  set(_needs_surf_norm DISABLE)
+endif()
+
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
@@ -64,6 +67,9 @@ else()
   # Unit tests haven't yet been updated to include the correct units
   set(_fixme_cgs DISABLE)
 endif()
+
+# Associate helper targets with test targets for IDEs
+set(CMAKE_FOLDER test/celeritas)
 
 #-----------------------------------------------------------------------------#
 # LIBRARY
@@ -287,7 +293,7 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 #-----------------------------------------------------------------------------#
 # Geo
 
-celeritas_add_test(geo/Geometry.test.cc  GPU ${_needs_double} ${_fixme_cgs}
+celeritas_add_test(geo/Geometry.test.cc  GPU ${_fixme_cgs} ${_fixme_single}
   FILTER "SimpleCms*" "TestEm3*" "ThreeSpheres*")
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
@@ -373,7 +379,6 @@ celeritas_add_test(global/StepperGeant.test.cc
   GPU NT 4
   FILTER ${_stepper_filter}
 )
-celeritas_add_test(global/PrimaryCapacity.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Grid
@@ -403,17 +408,15 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 #-----------------------------------------------------------------------------#
 # Optical
 
-function(celeritas_standalone_add_tests basename suite test backend)
+function(add_standalone_test_ basename suite test backend)
   string(REPLACE "/" "_" _output_name "${basename}")
   set(_target "${CELERITASTEST_DIR}_${_output_name}")
 
-  if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "Geant4")
-    list(APPEND _test_props DISABLED TRUE)
-  endif()
-
   if(NOT TARGET "${_target}")
     add_executable(${_target} "${basename}.test.cc")
-    set_property(TARGET ${_target} PROPERTY OUTPUT_NAME "${_output_name}")
+    set_target_properties("${_target}" PROPERTIES
+      OUTPUT_NAME "${_output_name}"
+    )
 
     celeritas_target_link_libraries(${_target}
       ${CELERITASTEST_LINK_LIBRARIES}
@@ -422,13 +425,26 @@ function(celeritas_standalone_add_tests basename suite test backend)
     )
   endif()
 
+  set(_env ${CELER_G4ENV})
+  set(_disabled FALSE)
+
+  if(NOT CELERITAS_USE_Geant4)
+    # Optical tests require G4 to run
+    set(_disabled TRUE)
+  elseif(_needs_surf_norm STREQUAL "DISABLE")
+    # No support for surface normals
+    set(_disabled TRUE)
+  elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+    # FIXME: GeantSetup teardown destroys g4 geo
+    set(_disabled TRUE)
+  endif()
+
   set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
   add_test(
     NAME "${_test_name}"
     COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
   )
 
-  set(_env ${CELER_G4ENV})
   set(_labels "unit")
 
   if(backend STREQUAL "cpu")
@@ -442,10 +458,14 @@ function(celeritas_standalone_add_tests basename suite test backend)
     list(APPEND _test_props RESOURCE_LOCK gpu)
     list(APPEND _labels gpu)
     if(CELER_DISABLE_DEVICE)
-      list(APPEND _test_props DISABLED TRUE)
+      set(_disabled TRUE)
     endif()
   else()
     message(SEND_ERROR "Invalid backend type ${backend}")
+  endif()
+
+  if(_disabled)
+    list(APPEND _test_props DISABLED TRUE)
   endif()
 
   set_tests_properties("${_test_name}" PROPERTIES
@@ -457,24 +477,30 @@ endfunction()
 
 function(celeritas_add_standalone_tests basename suite test)
   foreach(_backend IN ITEMS cpu gpu)
-    celeritas_standalone_add_tests(${basename} ${suite} ${test}
-      ${_backend})
+    add_standalone_test_(${basename} ${suite} ${test} ${_backend})
   endforeach()
 endfunction()
 
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
+celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest cut_multiple_flushes)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
 celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)
 celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest primary)
+celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest abort_early)
 celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
 celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
+celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest offload)
+celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest direct)
+celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary)
+celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary_grow_wls)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
 celeritas_add_test(optical/GroupVelocityCalculator.test.cc)
 celeritas_add_test(optical/Mie.test.cc)
-celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
+celeritas_add_test(optical/OpticalCollector.test.cc
+  GPU ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
 celeritas_add_test(optical/Rayleigh.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
@@ -489,11 +515,14 @@ celeritas_add_test(optical/ReflectionFormSampler.test.cc)
 celeritas_add_test(optical/Fresnel.test.cc)
 celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
 celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
-celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4})
+celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc
+  ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
-  ${_needs_geant4})
-celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})
+  ${_needs_geant4} ${_needs_surf_norm})
+celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc
+  ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/SurfaceImporter.test.cc ${_needs_geant4})
+celeritas_add_test(optical/gen/GeneratorCounterState.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -560,11 +589,11 @@ endif()
 
 celeritas_add_test(user/DetectorSteps.test.cc GPU)
 celeritas_add_test(user/Diagnostic.test.cc
-  GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo} ${_needs_double}
+  GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo}
   FILTER ${_diagnostic_filter}
 )
 celeritas_add_test(user/SlotDiagnostic.test.cc
-  GPU NT 1 ${_needs_geant4} ${_needs_double}
+  GPU NT 1 ${_needs_geant4}
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(user/StepCollector.test.cc

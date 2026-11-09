@@ -13,6 +13,9 @@ endif()
 
 include(CeleritasG4Tests)
 
+# Associate helper targets with test targets for IDEs
+set(CMAKE_FOLDER test/accel)
+
 #-----------------------------------------------------------------------------#
 # Library
 celeritas_get_g4libs(_g4_libs
@@ -39,9 +42,14 @@ celeritas_setup_tests(SERIAL
 #-----------------------------------------------------------------------------#
 # Variables
 
-set(_optical_rm_type "serial")
+set(_optical_args "RMTYPE" "serial")
 if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
-  list(APPEND _optical_rm_type "mt")
+  list(APPEND _optical_args "mt")
+endif()
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+  # VecGeom < 2.2 does not provide surface normals: required for optical
+  # (hack the run manager
+  list(APPEND _optical_args "DISABLE")
 endif()
 
 
@@ -106,8 +114,8 @@ function(celeritas_add_integration_tests basename suite test)
   if(NOT TARGET "${_target}")
     add_executable("${_target}" "${basename}.test.cc")
     add_dependencies(test_accel_integration "${_target}")
-    set_property(TARGET ${_target}
-      PROPERTY OUTPUT_NAME "${basename}"
+    set_target_properties("${_target}" PROPERTIES
+      OUTPUT_NAME "${basename}"
     )
     celeritas_target_link_libraries(${_target}
       ${CELERITASTEST_LINK_LIBRARIES}
@@ -146,7 +154,7 @@ foreach(_basename IN ITEMS FastSimulationIntegration TrackingManagerIntegration 
   celeritas_add_integration_tests(
     ${_basename} OpNoviceOptical run
     OFFLOAD cpu gpu g4
-    RMTYPE ${_optical_rm_type}
+    ${_optical_args}
   )
 
   # Do TestEm3 only with celeritas cpu/gpu and serial run manager
@@ -203,7 +211,7 @@ celeritas_add_integration_tests(
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphereOptical run
   OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
+  ${_optical_args}
 )
 
 
@@ -211,14 +219,14 @@ celeritas_add_integration_tests(
 celeritas_add_integration_tests(
   UserActionIntegration LarSphereOpticalTrackOffload run
   OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
+  ${_optical_args}
 )
 
 # Test optical surface physics
 celeritas_add_integration_tests(
   TrackingManagerIntegration OpticalSurfaces run
   OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
+  ${_optical_args}
 )
 
 # Test cleanup after runtime error
@@ -235,11 +243,18 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
+# Test that primary batches can exceed the initial initializer capacity
+celeritas_add_integration_tests(
+  TrackingManagerIntegration WaterSphere run_small_initializers
+  OFFLOAD cpu gpu
+  RMTYPE serial mt
+)
+
 # Test with optical physics offloading distributions
 celeritas_add_integration_tests(
   UserActionIntegration LarSphereOpticalOffload run
   OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
+  ${_optical_args}
 )
 
 #-----------------------------------------------------------------------------#
