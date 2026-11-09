@@ -424,17 +424,16 @@ function(add_g4_optical_test basename suite test backend)
     )
   endif()
 
-  set(_disabled FALSE)
-
+  set(_disabled "")
   if(NOT CELERITAS_USE_Geant4)
     # Optical tests require G4 to run
-    set(_disabled TRUE)
+    set(_disabled "DISABLED")
   elseif(_needs_surf_norm STREQUAL "DISABLE")
-    # No support for surface normals
-    set(_disabled TRUE)
+    # No support for surface normals: expect failure
+    set(_disabled "WILL_FAIL")
   elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
     # FIXME: GeantSetup teardown destroys g4 geo
-    set(_disabled TRUE)
+    set(_disabled "DISABLED")
   endif()
 
   set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
@@ -443,14 +442,10 @@ function(add_g4_optical_test basename suite test backend)
     COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
   )
 
-  set(_test_props)
-  if(_disabled)
-    set(_test_props DISABLED TRUE)
-  endif()
-
   if(CELERITAS_USE_Geant4)
     celeritas_g4_set_tests_properties(
-      "${_test_name}" unit "${backend}" serial ${_test_props})
+      "${_test_name}" unit "${backend}" "serial" "${_disabled}"
+    )
   else()
     set_tests_properties("${_test_name}" PROPERTIES
       LABELS unit
