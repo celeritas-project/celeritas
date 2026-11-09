@@ -103,12 +103,11 @@ void RayleighModel::step(CoreParams const& params, CoreStateHost& state) const
 {
 #if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
     // Advance the RNG
-    launch_action(
-        state,
-        make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                    state.ptr,
-                                    this->action_id(),
-                                    InteractionApplier{RngAdvanceExecutor{}}));
+    launch_action(state,
+                  make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                              state.ptr(),
+                                              this->action_id(),
+                                              RngAdvanceExecutor{}));
 #endif
 
     launch_action(

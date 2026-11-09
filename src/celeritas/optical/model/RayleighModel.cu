@@ -13,6 +13,7 @@
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "RayleighExecutor.hh"
+#include "RngAdvanceExecutor.hh"
 
 namespace celeritas
 {
@@ -25,21 +26,16 @@ namespace optical
 void RayleighModel::step(CoreParams const& params, CoreStateDevice& state) const
 {
 #if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
-    RngAdvanceExecutor rng_advance_executor{};
-    static KernelLauncher<decltype(rng_advance_executor)> const rng_advance(
-        "rng-ranlux-advance");
-    launch_kernel(state, rng_advance);
-
-    /*
-    // Advance the random number generator
-    auto execute_rng_advance = make_action_thread_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr,
-        this->action_id(),
-        InteractionApplier{RngAdvanceExecutor{}});
+    // Advance the random number generator (executor returns void, so it is
+    // not wrapped in an InteractionApplier)
+    auto execute_rng_advance
+        = make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                      state.ptr(),
+                                      this->action_id(),
+                                      RngAdvanceExecutor{});
     static ActionLauncher<decltype(execute_rng_advance)> const
-    launch_rng_kernel( *this); launch_rng_kernel(state, execute_rng_advance);
-    */
+        launch_rng_advance(*this, "rng-advance");
+    launch_rng_advance(state, execute_rng_advance);
 #endif
 
     // Execute Rayleigh scattering
