@@ -216,8 +216,10 @@ auto LArSphereOffloadTest::run(
     auto const* aux
         = dynamic_cast<AuxParamsInterface const*>(gen_reg.at(gen_id).get());
     CELER_ASSERT(aux);
+    auto& aux_state = step.sp_state()->aux();
+    gen_reg.at(gen_id)->counters(aux_state).sync_counters();
     auto const& state
-        = get<optical::GeneratorState<M>>(step.state().aux(), aux->aux_id());
+        = get<optical::GeneratorState<M>>(aux_state, aux->aux_id());
     auto buffer = copy_to_host(state.store.ref().distributions);
 
     for (auto const& dist :
