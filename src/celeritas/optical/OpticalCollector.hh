@@ -128,7 +128,7 @@ class OpticalCollector
     CounterAccumStats exchange_counters(AuxStateVec& aux) const;
 
     // Synchronize and get queued buffer sizes
-    OpticalBufferSize buffer_counts(AuxStateVec& aux) const;
+    OpticalBufferSize sync_buffer_counts(AuxStateVec& aux) const;
 
     // Get the accumulated action times
     MapStrDbl get_action_times(AuxStateVec const&) const;

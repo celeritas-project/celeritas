@@ -151,7 +151,7 @@ CounterAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
  * This synchronizes the generator counters with the device, so it should not
  * be called while stepping.
  */
-auto OpticalCollector::buffer_counts(AuxStateVec& aux) const
+auto OpticalCollector::sync_buffer_counts(AuxStateVec& aux) const
     -> OpticalBufferSize
 {
     OpticalBufferSize result;
