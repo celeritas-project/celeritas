@@ -424,11 +424,25 @@ function(add_g4_optical_test basename suite test backend)
     )
   endif()
 
-  set(_disabled "")
+  set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
+  add_test(
+    NAME "${_test_name}"
+    COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
+  )
+
   if(NOT CELERITAS_USE_Geant4)
-    # Optical tests require G4 to run
-    set(_disabled "DISABLED")
-  elseif(_needs_surf_norm STREQUAL "DISABLE")
+    # No Geant4: mark disabled and return early
+    set_tests_properties("${_test_name}" PROPERTIES
+      LABELS unit
+      DISABLED TRUE
+    )
+    return()
+  endif()
+
+  set(_disabled "")
+  # FIXME for 1.0: ctest property is "DISABLED",
+  # but celeritas_add_test spelling is "DISABLE"
+  if(_needs_surf_norm STREQUAL "DISABLE")
     # No support for surface normals: expect failure
     set(_disabled "WILL_FAIL")
   elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
@@ -436,22 +450,9 @@ function(add_g4_optical_test basename suite test backend)
     set(_disabled "DISABLED")
   endif()
 
-  set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
-  add_test(
-    NAME "${_test_name}"
-    COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
+  celeritas_g4_set_tests_properties(
+    "${_test_name}" unit "${backend}" "serial" "${_disabled}"
   )
-
-  if(CELERITAS_USE_Geant4)
-    celeritas_g4_set_tests_properties(
-      "${_test_name}" unit "${backend}" "serial" "${_disabled}"
-    )
-  else()
-    set_tests_properties("${_test_name}" PROPERTIES
-      LABELS unit
-      ${_test_props}
-    )
-  endif()
 endfunction()
 
 function(add_g4_optical_tests basename suite test)
