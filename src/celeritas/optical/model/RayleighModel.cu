@@ -25,18 +25,19 @@ namespace optical
  */
 void RayleighModel::step(CoreParams const& params, CoreStateDevice& state) const
 {
-#if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
-    // Advance the random number generator (executor returns void, so it is
-    // not wrapped in an InteractionApplier)
-    auto execute_rng_advance
-        = make_action_thread_executor(params.ptr<MemSpace::native>(),
-                                      state.ptr(),
-                                      this->action_id(),
-                                      RngAdvanceExecutor{});
-    static ActionLauncher<decltype(execute_rng_advance)> const
-        launch_rng_advance(*this, "rng-advance");
-    launch_rng_advance(state, execute_rng_advance);
-#endif
+    if constexpr (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
+    {
+        // Advance the random number generator (executor returns void, so it is
+        // not wrapped in an InteractionApplier)
+        auto execute_rng_advance
+            = make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                          state.ptr(),
+                                          this->action_id(),
+                                          RngAdvanceExecutor{});
+        static ActionLauncher<decltype(execute_rng_advance)> const
+            launch_rng_advance(*this, "rng-advance");
+        launch_rng_advance(state, execute_rng_advance);
+    }
 
     // Execute Rayleigh scattering
     auto execute_rayleigh

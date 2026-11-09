@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "corecel/Assert.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArraySoftUnit.hh"

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/RayleighExecutor.hh
+//! \file celeritas/optical/model/RngAdvanceExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,20 +16,15 @@ namespace optical
 //---------------------------------------------------------------------------//
 struct RngAdvanceExecutor
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView const&);
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Sample optical Rayleigh interaction from the current track.
- */
-CELER_FUNCTION void RngAdvanceExecutor::operator()(CoreTrackView const& track)
-{
-#if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
-    track.rng().advance();
+    //! Advance the random number generator if using Ranlux++
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track)
+    {
+#if CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP
+        track.rng().advance();
 #endif
-    (void)track;  // Suppress warning
-}
+        CELER_DISCARD(track);
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
