@@ -84,6 +84,14 @@ if ! command -v spack >/dev/null 2>&1 ; then
   fi
 fi
 
+if [ -n "${CELER_SPACK_ENV_LOADED}" ]; then
+  if [ "${CELER_SPACK_ENV}" != "${CELER_SPACK_ENV_LOADED}" ]; then
+    celerlog warning "Loaded environment '${CELER_SPACK_ENV_LOADED}' does not match expected '${CELER_SPACK_ENV}'"
+  fi
+  celerlog info "Skipping environment setup: CELER_SPACK_ENV_LOADED=${CELER_SPACK_ENV_LOADED}"
+  return 0
+fi
+
 # Set up the environment variables necessary to load Celeritas build requirements.
 # We do this rather than loading the entire environment because:
 # 1. The environment contains a broken build of googletest (preventing testing)
@@ -129,11 +137,6 @@ if [ -z "${CELER_SPACK_ENV_LOADED}" ]; then
     mv "${_spack_src_file}" "${_spack_src_file}.old"
     return ${_errcode}
   fi
-elif [ "${CELER_SPACK_ENV}" != "${CELER_SPACK_ENV_LOADED}" ]; then
-  celerlog warning "Loaded environment '${CELER_SPACK_ENV_LOADED}' does not match expected '${CELER_SPACK_ENV}'"
-  celerlog warning "Skipping spack build environment: '${_spack_src_file}'"
-else
-  celerlog info "Spack build environment ${CELER_SPACK_ENV_LOADED} already loaded"
 fi
 
 if [ ! command -v lar >/dev/null 2>&1 ]; then
