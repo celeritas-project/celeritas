@@ -17,6 +17,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/StateDataStore.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
@@ -94,6 +95,71 @@ ComponentLabels make_reserved_label_vecs(OrangeInput const& input)
     result.surface.reserve(sizes.surface);
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Replace volume name labels with matching canonical volume instances.
+ *
+ * Each labeled volume must match a uniquely named canonical volume that is
+ * placed at most once (or is the world). Labels that don't match, such as
+ * "[EXTERIOR]", are left alone and have no corresponding canonical volume.
+ */
+void map_volume_instances(OrangeInput& input, VolumeParams const& volumes)
+{
+    std::vector<Label> unmatched;
+    for (auto& u : input.universes)
+    {
+        auto* unit = std::get_if<UnitInput>(&u);
+        if (!unit)
+        {
+            continue;
+        }
+        for (auto& v : unit->volumes)
+        {
+            auto const* label = std::get_if<Label>(&v.label);
+            if (!label)
+            {
+                continue;
+            }
+            VolumeId vol_id
+                = label->ext.empty()
+                      ? volumes.volume_labels().find_unique(label->name)
+                      : volumes.volume_labels().find_exact(*label);
+            if (!vol_id)
+            {
+                if (!(starts_with(label->name, "[")
+                      && ends_with(label->name, "]")))
+                {
+                    unmatched.push_back(*label);
+                }
+                continue;
+            }
+
+            VolumeInstanceId vi_id;
+            if (vol_id == volumes.world())
+            {
+                vi_id = volumes.world_instance();
+            }
+            else
+            {
+                auto parents = volumes.get(vol_id).parents();
+                CELER_VALIDATE(parents.size() == 1,
+                               << "cannot map ORANGE volume '" << *label
+                               << "' to a canonical volume instance: it has "
+                               << parents.size() << " placements");
+                vi_id = parents.front();
+            }
+            v.label = vi_id;
+        }
+    }
+
+    if (!unmatched.empty())
+    {
+        CELER_LOG(warning) << "ORANGE volumes do not correspond to any "
+                              "canonical volume: "
+                           << join(unmatched.begin(), unmatched.end(), ", ");
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -206,6 +272,22 @@ std::shared_ptr<OrangeParams> OrangeParams::from_geant(
 std::shared_ptr<OrangeParams> OrangeParams::from_json(
     std::string const& filename)
 {
+    return OrangeParams::from_json(filename, nullptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build from a JSON input, matching volume names to canonical volumes.
+ *
+ * Without canonical volumes, each implementation volume is assigned the
+ * canonical volume ID with the same index. With them, labeled volumes are
+ * matched by name to their unique canonical volume instance, so that
+ * volume-based data (e.g., materials) is consistent with the volumes used to
+ * build the rest of the problem.
+ */
+std::shared_ptr<OrangeParams> OrangeParams::from_json(
+    std::string const& filename, SPConstVolumes volumes)
+{
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedProfiling profile_this{"orange-load-json"};
 
@@ -217,7 +299,14 @@ std::shared_ptr<OrangeParams> OrangeParams::from_json(
     // Use the `from_json` defined in OrangeInputIO.json to read the JSON input
     nlohmann::json::parse(infile).get_to(result);
 
-    return std::make_shared<OrangeParams>(std::move(result));
+    if (!volumes || volumes->empty())
+    {
+        return std::make_shared<OrangeParams>(std::move(result));
+    }
+
+    map_volume_instances(result, *volumes);
+    return std::make_shared<OrangeParams>(std::move(result),
+                                          std::move(volumes));
 }
 
 //---------------------------------------------------------------------------//
