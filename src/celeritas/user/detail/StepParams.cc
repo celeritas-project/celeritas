@@ -29,11 +29,12 @@ StepParams::StepParams(AuxId aux_id,
 {
     CELER_EXPECT(aux_id_);
 
-    enum class HasDetectors
+    enum class FilterKind
     {
         unknown = -1,
         none,
-        all
+        detectors,
+        hand_back
     };
 
     auto const& volumes = volume_params.volume_labels();
@@ -43,7 +44,7 @@ StepParams::StepParams(AuxId aux_id,
     bool nonzero_energy_deposition{true};
 
     // Loop over callbacks to take union of step selections
-    HasDetectors has_det = HasDetectors::unknown;
+    FilterKind filter_kind = FilterKind::unknown;
 
     for (SPStepInterface const& sp_interface : callbacks)
     {
@@ -70,20 +71,26 @@ StepParams::StepParams(AuxId aux_id,
         nonzero_energy_deposition = nonzero_energy_deposition
                                     && filters.nonzero_energy_deposition;
 
-        auto this_has_detectors = filters.detectors.empty()
-                                      ? HasDetectors::none
-                                      : HasDetectors::all;
-        if (has_det == HasDetectors::unknown)
+        CELER_VALIDATE(filters.detectors.empty() || !filters.hand_back,
+                       << "step callback cannot filter on both detectors and "
+                          "hand-back");
+        auto this_filter_kind = !filters.detectors.empty()
+                                    ? FilterKind::detectors
+                                : filters.hand_back ? FilterKind::hand_back
+                                                    : FilterKind::none;
+        if (filter_kind == FilterKind::unknown)
         {
-            has_det = this_has_detectors;
+            filter_kind = this_filter_kind;
         }
         CELER_VALIDATE(
-            this_has_detectors == has_det,
-            << "inconsistent step callbacks: mixing those with detectors and "
-               "those without is currently unsupported");
+            this_filter_kind == filter_kind,
+            << "inconsistent step callbacks: mixing filtered (detector or "
+               "hand-back) and unfiltered callbacks in a single collector is "
+               "currently unsupported");
     }
     CELER_ASSERT(selection);
-    CELER_ASSERT((has_det == HasDetectors::none) == detector_map.empty());
+    CELER_ASSERT((filter_kind == FilterKind::detectors)
+                 == !detector_map.empty());
 
     auto vol_to_det = [&detector_map](VolumeId vol_id) {
         if (auto iter = detector_map.find(vol_id); iter != detector_map.end())
@@ -106,6 +113,12 @@ StepParams::StepParams(AuxId aux_id,
             host_data.nonzero_energy_deposition = nonzero_energy_deposition;
             CELER_ASSERT(!host_data.detector.empty());
         }
+        if (filter_kind == FilterKind::hand_back)
+        {
+            host_data.hand_back = true;
+            // Always record why the track was handed back
+            host_data.selection.hand_back_reason = true;
+        }
 
         if (selection.points[StepPoint::pre].volume_instance_ids
             || selection.points[StepPoint::post].volume_instance_ids)
@@ -122,7 +135,8 @@ StepParams::StepParams(AuxId aux_id,
         return host_data;
     }()};
 
-    CELER_ASSERT((has_det == HasDetectors::all) == this->has_detectors());
+    CELER_ASSERT((filter_kind == FilterKind::detectors)
+                 == this->has_detectors());
 }
 
 //---------------------------------------------------------------------------//
