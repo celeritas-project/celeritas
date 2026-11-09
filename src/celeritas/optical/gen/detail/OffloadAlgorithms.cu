@@ -71,14 +71,13 @@ void append_distributions(
     auto buffer_size = optical::detail::buffer_size_ptr(counters);
     auto data = buffer.data();
 
-    // Temporary storage for the compacted distributions, the number of
-    // selected distributions, and the number of photons
+    // Temporary storage for the compacted distributions, and a single
+    // allocation for the number of selected distributions and of photons
     DeviceVector<GeneratorDistributionData> selected_vec(num_slots, stream_id);
-    DeviceVector<size_type> num_selected_vec(1, stream_id);
-    DeviceVector<size_type> num_photons_vec(1, stream_id);
+    DeviceVector<size_type> counts_vec(2, stream_id);
     auto selected = make_observer(selected_vec);
-    auto num_selected = make_observer(num_selected_vec);
-    auto num_photons = make_observer(num_photons_vec);
+    ObserverPtr<size_type, MemSpace::device> num_selected{counts_vec.data()};
+    ObserverPtr<size_type, MemSpace::device> num_photons{counts_vec.data() + 1};
 
     // Compact the distributions created in this step
     auto counting = thrust::make_counting_iterator<size_type>(0);
