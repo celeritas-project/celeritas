@@ -16,6 +16,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Openmp.hh"
+#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -71,6 +72,17 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
                        // Keep the geant4 geometry and set it as global
                        ggp = geant_setup.geo_params();
                        CELER_ASSERT(ggp);
+
+                       // Export the geometry while Geant4 is still alive:
+                       // the GDML parser needs the UI manager, which is
+                       // destroyed along with the run manager
+                       auto& export_geo
+                           = si.problem.diagnostics.export_files.geometry;
+                       if (!export_geo.empty())
+                       {
+                           save_gdml(ggp->world(), export_geo);
+                           export_geo.clear();
+                       }
 
                        // Adjust Geant4 data selection based on physics options
                        GeantImportDataSelection::Flags selection
