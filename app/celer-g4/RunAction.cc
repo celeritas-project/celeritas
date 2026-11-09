@@ -100,7 +100,12 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         // Allocate data in shared thread-local transporter
         CELER_TRY_HANDLE(transport_->Initialize(*options_, *params_),
                          ExceptionConverter{"celer.init.local"});
-        CELER_ASSERT(*transport_);
+        if (!*transport_)
+        {
+            // The exception was saved and the run aborted, but Geant4 still
+            // processes an event: other actions skip the transporter
+            return;
+        }
     }
 
     if (transport_)
@@ -143,7 +148,7 @@ void RunAction::EndOfRunAction(G4Run const*)
     {
         CELER_LOG_LOCAL(status) << "Finalizing Celeritas";
 
-        if (transport_)
+        if (transport_ && *transport_)
         {
             // Deallocate Celeritas state data (ensures that objects are
             // deleted on the thread in which they're created, necessary by
