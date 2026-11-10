@@ -10,9 +10,11 @@
 CUDA_ROOT=/usr/local/cuda
 ROCM_ROOT=/opt/rocm
 
-if [ -f "${CUDA_ROOT}/version.json" ]; then
-  version=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["cuda"]["version"])' \
-    "${CUDA_ROOT}/version.json")
+if [ -x "${CUDA_ROOT}/bin/nvcc" ]; then
+  # The nvidia/cuda images set CUDA_VERSION (with the patch version);
+  # otherwise use the release reported by nvcc
+  version=${CUDA_VERSION:-$("${CUDA_ROOT}/bin/nvcc" --version \
+    | sed -n 's/.*release \([0-9.]*\),.*/\1/p')}
   cat <<EOS
 packages:
   cuda:
