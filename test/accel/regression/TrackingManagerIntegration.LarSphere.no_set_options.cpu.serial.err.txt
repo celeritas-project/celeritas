@@ -58,8 +58,7 @@ debug@TrackingManager.cc: Building physics table for gamma
 debug@TrackingManager.cc: Building physics table for e-
 debug@TrackingManager.cc: Building physics table for e+
 debug@IntegrationSingleton.cc: Initializing shared params
-debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / SetOptions or UI entries were not completely set before BeginRun / IntegrationSingleton.cc: 'celer.init.global' failed
-critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.init.global)
+critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.init.global): Geant4 error / Celeritas runtime error / SetOptions or UI entries were not completely set before BeginRun / IntegrationSingleton.cc: 'celer.init.global' failed
 Run is not in progress. AbortRun() ignored.
 debug@IntegrationSingleton.cc: Skipping local initialization due to failure
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
@@ -77,8 +76,7 @@ debug@IntegrationTestBase.cc: Environment variables after setup: {
 }
 debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
 debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
-debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / Celeritas was not initialized properly (maybe BeginOfRunAction was not called?) / TrackingManager.cc: 'celer.track.validate' failed
-critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.track.validate)
+critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.track.validate): Geant4 error / Celeritas runtime error / Celeritas was not initialized properly (maybe BeginOfRunAction was not called?) / TrackingManager.cc: 'celer.track.validate' failed
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'

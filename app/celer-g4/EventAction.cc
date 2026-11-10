@@ -43,8 +43,11 @@ void EventAction::BeginOfEventAction(G4Event const* event)
 {
     get_event_time_ = {};
 
-    if (params_->mode() != SharedParams::Mode::enabled)
+    if (params_->mode() != SharedParams::Mode::enabled || !*transport_)
+    {
+        // Celeritas is disabled or failed to initialize on this thread
         return;
+    }
 
     // Set event ID in local transporter and reseed Celerits RNG
     ExceptionConverter call_g4exception{"celer.event.begin"};
@@ -60,7 +63,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
 {
     CELER_EXPECT(event);
 
-    if (params_->mode() == SharedParams::Mode::enabled)
+    if (params_->mode() == SharedParams::Mode::enabled && *transport_)
     {
         // Transport any tracks left in the buffer
         ExceptionConverter call_g4exception{"celer.event.flush", params_.get()};
