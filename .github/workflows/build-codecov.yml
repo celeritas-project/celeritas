@@ -76,7 +76,7 @@ jobs:
       CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
     runs-on: ubuntu-24.04
     container:
-      image: docker.io/celeritas/ci-rocky-cuda12:2024-12-29
+      image: docker.io/celeritas/ci-ubuntu-cuda13:2026-11-10
     steps:
       - name: Set up environment
         run: |
@@ -87,15 +87,12 @@ jobs:
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
         uses: actions/checkout@v7
-      - name: Trust checked-out repo
-        run: |
-          git config --global --add safe.directory ${PWD}
 
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
-          presets-file: ci-rocky-cuda.json
+          presets-file: ci-ubuntu-cuda.json
       - name: Build Celeritas
         id: build
         working-directory: build
@@ -106,16 +103,9 @@ jobs:
         id: test
         uses: ./.github/actions/run-ctest
         with:
-          name: rocky-cuda-${{env.CELER_CMAKE_PRESET}}
-      - name: Install coverage dependencies
-        id: cov-install
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        shell: bash
-        run: |
-          dnf -y install lcov
-          pip install gcovr
+          name: ubuntu-cuda-${{env.CELER_CMAKE_PRESET}}
       - name: Generate and upload coverage report
-        if: ${{ !cancelled() && steps.cov-install.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         uses: ./.github/actions/process-coverage
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
