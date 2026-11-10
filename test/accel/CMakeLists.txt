@@ -42,9 +42,14 @@ celeritas_setup_tests(SERIAL
 #-----------------------------------------------------------------------------#
 # Variables
 
-set(_optical_rm_type "serial")
+set(_optical_args "RMTYPE" "serial")
 if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
-  list(APPEND _optical_rm_type "mt")
+  list(APPEND _optical_args "mt")
+endif()
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+  # VecGeom < 2.2 does not provide surface normals: required for optical
+  # (hack the run manager
+  list(APPEND _optical_args "DISABLE")
 endif()
 
 
@@ -149,7 +154,7 @@ foreach(_basename IN ITEMS FastSimulationIntegration TrackingManagerIntegration 
   celeritas_add_integration_tests(
     ${_basename} OpNoviceOptical run
     OFFLOAD cpu gpu g4
-    RMTYPE ${_optical_rm_type}
+    ${_optical_args}
   )
 
   # Do TestEm3 only with celeritas cpu/gpu and serial run manager
@@ -206,7 +211,7 @@ celeritas_add_integration_tests(
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphereOptical run
   OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
+  ${_optical_args}
 )
 
 
@@ -214,14 +219,14 @@ celeritas_add_integration_tests(
 celeritas_add_integration_tests(
   UserActionIntegration LarSphereOpticalTrackOffload run
   OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
+  ${_optical_args}
 )
 
 # Test optical surface physics
 celeritas_add_integration_tests(
   TrackingManagerIntegration OpticalSurfaces run
   OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
+  ${_optical_args}
 )
 
 # Test cleanup after runtime error
@@ -249,7 +254,7 @@ celeritas_add_integration_tests(
 celeritas_add_integration_tests(
   UserActionIntegration LarSphereOpticalOffload run
   OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
+  ${_optical_args}
 )
 
 #-----------------------------------------------------------------------------#

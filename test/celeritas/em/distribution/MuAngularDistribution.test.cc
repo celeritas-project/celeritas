@@ -39,7 +39,6 @@ TEST(MuAngularDistributionTest, costheta_dist)
         }
     }
 
-    // PRINT_EXPECTED(actual);
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         SampledHistogram const expected[] = {

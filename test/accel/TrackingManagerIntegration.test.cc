@@ -155,7 +155,7 @@ class TMITestBase : virtual public IntegrationTestBase
         if (!check_runtime_errors_)
         {
             // Let the base class manage and fail on the caught error
-            return TMITestBase::caught_g4_runtime_error(e);
+            return IntegrationTestBase::caught_g4_runtime_error(e);
         }
         CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
 
@@ -760,7 +760,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(detector_x_positions_.size(), 0);
             EXPECT_GT(step_lengths_.size(), 0);
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
@@ -874,7 +874,7 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(accum_stats.flushes, 0);
 
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
@@ -1031,7 +1031,7 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
             }
 
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_GT(counts.num_generated, 0);  //!< Photons generated

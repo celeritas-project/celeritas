@@ -91,30 +91,36 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
 {
     auto& gen_state
         = get<optical::GeneratorState<M>>(core_state.aux(), data_.gen_id);
-    auto& buffer = gen_state.store.ref().distributions;
-    auto& buffer_size = gen_state.counters.buffer_size;
 
-    CELER_VALIDATE(buffer_size + core_state.size() <= buffer.size(),
-                   << "insufficient capacity (" << buffer.size()
-                   << ") for buffered optical photon distribution data (total "
-                      "capacity requirement of "
-                   << buffer_size + core_state.size() << ")");
+    // Grow the buffer if needed to hold the distributions from this step. The
+    // buffer size is only known on device, so use an upper bound.
+    size_type bound = gen_state.buffer_bound();
+    detail::reserve_distributions(&gen_state.store,
+                                  bound,
+                                  bound + core_state.size(),
+                                  core_state.stream_id(),
+                                  this->label());
+    auto& buffer = gen_state.store.ref().distributions;
+    CELER_ASSERT(bound + core_state.size() <= buffer.size());
 
     // Generate the optical distribution data
     this->offload(core_params, core_state);
 
-    // Compact the buffer, returning the total number of valid distributions
-    size_type start = buffer_size;
-    buffer_size = detail::remove_if_invalid(
-        buffer, start, start + core_state.size(), core_state.stream_id());
-
-    // Count the number of optical photons that would be generated from the
-    // distributions created in this step and update the number of pending
-    // tracks counter accordingly.
+    // Append the valid distributions to the buffer and add the number of
+    // optical photons that would be generated from them to the number of
+    // pending tracks
     auto& optical_state
         = get<optical::CoreState<M>>(core_state.aux(), data_.optical_id);
-    detail::add_pending_photon_count(
-        optical_state, buffer, start, buffer_size, core_state.stream_id());
+    detail::append_distributions(optical_state,
+                                 buffer,
+                                 gen_state.device_counters(),
+                                 core_state.size(),
+                                 core_state.stream_id());
+
+    // Up to one distribution per track slot was added
+    gen_state.grow_bound(core_state.size());
+    gen_state.needs_scan = true;
+    gen_state.copy_async();
 }
 
 //---------------------------------------------------------------------------//
@@ -164,7 +170,7 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                  (G == GeneratorType::scintillation)
                      ? this->get_post_step_data(core_state)
                      : NativeRef<PostTraitsT::template Data>{},
-                 gen_state.counters.buffer_size}};
+                 gen_state.device_counters()}};
     launch_action(*this, core_params, core_state, execute);
 }
 

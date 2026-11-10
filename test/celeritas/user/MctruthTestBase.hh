@@ -6,13 +6,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <memory>
 #include <vector>
 
-#include "corecel/io/Repr.hh"
 #include "celeritas/phys/Primary.hh"
 
+#include "AssertionHelper.hh"
 #include "SimpleLoopTestBase.hh"
+#include "Test.hh"
 
 namespace celeritas
 {
@@ -31,14 +34,34 @@ class MctruthTestBase : virtual public SimpleLoopTestBase
 
     struct RunResult
     {
+        using Real3 = Array<double, 3>;
+
         std::vector<int> event;
         std::vector<int> track;
         std::vector<int> step;
         std::vector<int> volume;
-        std::vector<double> pos;
-        std::vector<double> dir;
+        std::vector<Real3> pos;
+        std::vector<Real3> dir;
 
-        void print_expected() const;
+        static constexpr char class_str[] = "MctruthTestBase::RunResult";
+
+        struct Tolerance
+        {
+            double pos{Test::fine_eps};
+            double dir{Test::fine_eps};
+        };
+
+        friend std::ostream& operator<<(std::ostream&, RunResult const&);
+        friend bool is_ref_eq(AssertionHelper&,
+                              RunResult const&,
+                              RunResult const&,
+                              Tolerance const&);
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              RunResult const& expected,
+                              RunResult const& actual)
+        {
+            return is_ref_eq(helper, expected, actual, Tolerance{});
+        }
     };
 
   public:

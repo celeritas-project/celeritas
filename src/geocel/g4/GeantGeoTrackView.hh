@@ -239,6 +239,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     std::copy(init.dir.begin(), init.dir.end(), dir_.begin());
     next_step_ = -1;
     safety_radius_ = -1;  // Assume *not* on a boundary
+    normal_ = {0, 0, 0};
 
     g4pos_ = native_to_geant<ClhepLength>(pos_);
     g4dir_ = to_g4vector(dir_);
@@ -272,6 +273,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
         // Copy values from the parent state
         GeantGeoTrackView other(ParamsRef{}, state_, init.parent);
         pos_ = other.pos_;
+        normal_ = other.normal_;
         safety_radius_ = other.safety_radius_;
         g4pos_ = other.g4pos_;
         g4dir_ = other.g4dir_;
@@ -313,9 +315,9 @@ VolumeId GeantGeoTrackView::volume_id() const
 VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    G4VPhysicalVolume* pv = touch_handle_()->GetVolume(0);
-    CELER_ASSERT(pv);
-    return params_.vi_mapper->geant_to_id(*pv);
+    auto* touch = touch_handle_();
+    return params_.vi_mapper->geant_to_id(*touch->GetHistory(),
+                                          this->volume_level());
 }
 
 //---------------------------------------------------------------------------//
@@ -351,21 +353,19 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
  * Apply the function with the volume instance ID and level.
  *
  * This can be used to construct a unique volume instance ID or fill a vector
- * with volume levels. It is performed in local-to-global order.
+ * with volume levels. It is performed in global-to-local order.
  */
 template<class F>
 void GeantGeoTrackView::foreach_volume_path(F&& visit) const
 {
+    CELER_EXPECT(!this->is_outside());
+
     auto* touch = touch_handle_();
     auto const num_vol_levels
         = id_cast<VolumeLevelId>(touch->GetHistoryDepth());
     for (auto lev : range(num_vol_levels + 1))
     {
-        VolumeInstanceId vi_id;
-        G4VPhysicalVolume* pv = touch->GetVolume(num_vol_levels - lev);
-        CELER_ASSERT(pv);
-        vi_id = params_.vi_mapper->geant_to_id(*pv);
-        visit(lev, vi_id);
+        visit(lev, params_.vi_mapper->geant_to_id(*touch->GetHistory(), lev));
     }
 }
 

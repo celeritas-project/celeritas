@@ -8,7 +8,7 @@
 
 #include <atomic>
 #include <cstdint>
-#include <iosfwd>  // IWYU pragma: keep
+#include <iosfwd>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -42,6 +42,9 @@ struct KernelMetadata
     std::string name;
     KernelAttributes attributes;
     KernelProfiling profiling;
+
+    // Write kernel statistics to a stream
+    friend std::ostream& operator<<(std::ostream& os, KernelMetadata const& md);
 };
 
 //! Ordered identifiers for registered kernels
@@ -99,9 +102,6 @@ class KernelRegistry
 //---------------------------------------------------------------------------//
 // Globally shared registry of kernels for end-of-program diagnostics
 KernelRegistry& kernel_registry();
-
-// Write kernel statistics to a stream
-std::ostream& operator<<(std::ostream& os, KernelMetadata const& md);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

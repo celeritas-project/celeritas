@@ -8,7 +8,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/Utils.hh"
 
@@ -35,6 +37,7 @@ struct PrimaryGeneratorExecutor
     RefPtr<CoreStateData, MemSpace::native> state;
     PrimaryDistributionData data;
     NativeCRef<DistributionParamsData> distributions;
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 
     //// FUNCTIONS ////
 
@@ -54,14 +57,15 @@ CELER_FUNCTION void PrimaryGeneratorExecutor::operator()(ThreadId tid) const
     CELER_EXPECT(state);
     CELER_EXPECT(data);
     CELER_EXPECT(distributions);
+    CELER_EXPECT(gen_counters);
 
     auto* counters = state->init.counters.data().get();
 
-    // Original code set the number of threads to the minimum between of number
-    // of vacancies and the number of pending in the auxiliary state. To avoid
-    // accessing the state counters to compute this min, we skip the extra
-    // threads if counters.num_vacancies < aux_state.counters.num_pending
-    if (!(tid < counters->num_vacancies))
+    // The kernel is launched over all track slots to avoid copying the
+    // counters to the host: skip threads beyond the number of vacancies or
+    // the number of photons left to generate
+    if (!(tid
+          < min(counters->num_vacancies, gen_counters->current.num_pending)))
     {
         return;
     }
