@@ -48,6 +48,10 @@ template<class E>
 using DiagnosticDPIntegrator = DiagnosticIntegrator<DormandPrinceIntegrator<E>>;
 
 constexpr bool using_vg = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+// NOTE: dynamic geometry currently always uses ORANGE
+constexpr bool using_orange_geo
+    = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+       || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC);
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -1346,7 +1350,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
             FAIL() << e.what();
         }
 
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if (using_orange_geo)
         {
             // ORANGE should successfully reenter. However, under certain
             // system configurations, VecGeom will end up in the world volume,
@@ -1501,7 +1505,7 @@ TEST_F(CmseTest, coarse)
     ref.messages.resize(ref.num_boundary.size());
 
     char const* geometry = "unknown";
-    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    if (using_orange_geo)
     {
         geometry = "ORANGE";
         ref.fail_at(1);

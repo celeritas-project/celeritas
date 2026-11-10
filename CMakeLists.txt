@@ -219,9 +219,19 @@ else()
   endif()
   set(_allow_g4 FALSE)
 endif()
+if(CELERITAS_USE_HIP OR CELERITAS_USE_CUDA)
+  # Virtual dispatch is host-only
+  set(_allow_dynamic FALSE)
+  if(CELERITAS_CORE_GEO STREQUAL "dynamic")
+    message(SEND_ERROR "Dynamic core geometry is incompatible with HIP and CUDA")
+  endif()
+else()
+  set(_allow_dynamic TRUE)
+endif()
 celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
 celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
 celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
+celeritas_setup_option(CELERITAS_CORE_GEO dynamic _allow_dynamic)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -239,6 +249,12 @@ celeritas_setup_option(CELERITAS_OPENMP disabled _disable_openmp)
 celeritas_setup_option(CELERITAS_OPENMP event CELERITAS_USE_OpenMP)
 celeritas_setup_option(CELERITAS_OPENMP track CELERITAS_USE_OpenMP)
 celeritas_define_options(CELERITAS_OPENMP "Celeritas OpenMP parallelism")
+
+if(CELERITAS_CORE_GEO STREQUAL "dynamic" AND CELERITAS_OPENMP STREQUAL "track")
+  # Each state shares a single geometry implementation across track slots
+  message(SEND_ERROR "Dynamic core geometry is incompatible with "
+    "CELERITAS_OPENMP=track: use \"event\" or \"disabled\"")
+endif()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_UNITS

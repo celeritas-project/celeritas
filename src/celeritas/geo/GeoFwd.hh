@@ -18,6 +18,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<class RT>
+class GeoTrackInterface;
+
+//---------------------------------------------------------------------------//
 
 //!@{
 //! \name Core geometry type aliases
@@ -44,6 +48,16 @@ template<Ownership W, MemSpace M>
 using CoreGeoParamsData = GeantGeoParamsData<W, M>;
 template<Ownership W, MemSpace M>
 using CoreGeoStateData = GeantGeoStateData<W, M>;
+
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
+// TODO: dynamic geometry currently uses ORANGE params and data
+using CoreGeoParams = OrangeParams;
+// Navigation is through a virtual interface owned by the core state
+using CoreGeoTrackView = GeoTrackInterface<real_type>;
+template<Ownership W, MemSpace M>
+using CoreGeoParamsData = OrangeParamsData<W, M>;
+template<Ownership W, MemSpace M>
+using CoreGeoStateData = OrangeStateData<W, M>;
 #endif
 //!@}
 

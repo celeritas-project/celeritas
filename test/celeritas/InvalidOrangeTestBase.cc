@@ -99,7 +99,8 @@ auto InvalidOrangeTestBase::build_geometry() -> SPConstCoreGeo
 
     // Construct geometry
     auto result = std::make_shared<OrangeParams>(std::move(orangeinp));
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
+    || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
     return result;
 #else
     CELER_DISCARD(result);

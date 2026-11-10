@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "KernelContextException.hh"
 
+#include <type_traits>
+
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/QuantityIO.json.hh"
@@ -34,7 +36,8 @@ void insert_if_valid(
 template<class Traits, class GTV>
 ImplSurfaceId impl_surface_id(GTV const& geo)
 {
-    if constexpr (Traits::has_impl_surface)
+    if constexpr (Traits::has_impl_surface
+                  && std::is_same_v<GTV, typename Traits::TrackView>)
     {
         return geo.impl_surface_id();
     }
@@ -138,7 +141,7 @@ void KernelContextException::initialize(CoreTrackView const& core)
             energy_ = par.energy();
         }
         {
-            auto const&& geo = core.geometry();
+            auto const& geo = core.geometry();
             pos_ = geo.pos();
             dir_ = geo.dir();
             if (!geo.is_outside())

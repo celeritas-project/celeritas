@@ -35,6 +35,15 @@ void resize(CoreStateData<Ownership::value, M>* state,
     // Geant4 state is stream-local
     resize(&state->geometry, params.geometry, stream_id, size);
 #endif
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
+    if constexpr (M == MemSpace::host)
+    {
+        // Create a single reusable geometry implementation for this state
+        HostRef<GeoStateData> geo_ref;
+        geo_ref = state->geometry;
+        state->geo_track = make_dynamic_geo_track(params.geometry, geo_ref);
+    }
+#endif
     resize(&state->materials, params.materials, size);
     resize(&state->particles, params.particles, size);
     resize(&state->physics, params.physics, size);

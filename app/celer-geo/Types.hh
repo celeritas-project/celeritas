@@ -72,6 +72,7 @@ inline constexpr Geometry default_geometry()
 {
     // clang-format off
     return CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE  ? Geometry::orange
+         : CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC ? Geometry::orange
          : CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? Geometry::vecgeom
          : CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4  ? Geometry::geant4
                                                             : Geometry::size_;

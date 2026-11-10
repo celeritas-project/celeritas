@@ -44,7 +44,7 @@ if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
   set(_needs_surf_norm DISABLE)
 endif()
 
-if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE" OR CELERITAS_CORE_GEO STREQUAL "dynamic")
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_needs_orange DISABLE)

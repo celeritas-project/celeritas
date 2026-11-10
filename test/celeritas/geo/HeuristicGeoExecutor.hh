@@ -24,6 +24,7 @@
 #include "celeritas/geo/CoreGeoTrackView.hh"
 
 #include "HeuristicGeoData.hh"
+#include "StandaloneGeoTrackView.hh"
 
 namespace celeritas
 {
@@ -58,7 +59,7 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
     auto const& state = *state_ptr;
 
     RngEngine rng(params.rng, state.rng, tid);
-    GeoTrackView geo(params.geometry, state.geometry, tid);
+    StandaloneGeoTrackView geo(params.geometry, state.geometry, tid);
     if (state.status[tid] == LifeStatus::unborn)
     {
         // Initialize isotropically and uniformly in the box
@@ -67,7 +68,7 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
 
         // Note that pos/dir sampling can't be done as arguments to the same
         // function since the ordering would be unspecified
-        GeoTrackView::Initializer_t init;
+        StandaloneGeoTrackView::Initializer_t init;
         init.pos = sample_pos(rng);
         init.dir = sample_dir(rng);
         geo = init;

@@ -89,9 +89,9 @@ PhysicsTrackView MscTestBase::make_phys_view(
 /*!
  * Access geometry state data.
  */
-GeoTrackView MscTestBase::make_geo_view(real_type r) const
+StandaloneGeoTrackView MscTestBase::make_geo_view(real_type r) const
 {
-    GeoTrackView geo_view(
+    StandaloneGeoTrackView geo_view(
         this->geometry()->host_ref(), geo_state_.ref(), TrackSlotId{0});
     geo_view = {{r, r, r}, Real3{0, 0, 1}};
     return geo_view;

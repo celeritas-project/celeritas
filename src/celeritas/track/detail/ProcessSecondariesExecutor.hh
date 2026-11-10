@@ -95,7 +95,7 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
 
             // Particles should not be making secondaries while crossing a
             // surface
-            auto geo = track.geometry();
+            auto&& geo = track.geometry();
             CELER_ASSERT(!geo.is_on_boundary());
 
             // Create a track initializer from the secondary

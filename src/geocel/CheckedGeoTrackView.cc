@@ -162,6 +162,21 @@ CheckedGeoTrackView& CheckedGeoTrackView::operator=(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Rebind the underlying track view to another track slot.
+ *
+ * This invalidates the cached next-step result, which belonged to the
+ * previous track.
+ */
+void CheckedGeoTrackView::set_track_slot(TrackSlotId tid)
+{
+    CELER_EXPECT(t_);
+    CGTV_LOG(debug) << "Changing track slot to " << tid.unchecked_get();
+    t_->set_track_slot(tid);
+    next_step_.reset();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Derive the geometry status from the inner track's state.
  */
 GeoStatus CheckedGeoTrackView::geo_status() const

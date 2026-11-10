@@ -13,6 +13,7 @@
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
 #include "celeritas/geo/GeoData.hh"
+#include "celeritas/geo/StandaloneGeoTrackView.hh"
 #include "celeritas/grid/RangeCalculator.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleData.hh"
@@ -69,7 +70,7 @@ class MscTestBase : public RootTestBase
         HostCRef<PhysicsParamsData> const& host_ref) const;
 
     // Access geometry track data
-    GeoTrackView make_geo_view(real_type r) const;
+    StandaloneGeoTrackView make_geo_view(real_type r) const;
 
   private:
     template<template<Ownership, MemSpace> class S>

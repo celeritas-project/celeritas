@@ -10,7 +10,8 @@
 #include "corecel/Config.hh"
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 #    include "geocel/vg/VecgeomParams.hh"  // IWYU pragma: export
-#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
+    || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
 #    include "orange/OrangeParams.hh"  // IWYU pragma: export
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
 #    include "geocel/GeantGeoParams.hh"  // IWYU pragma: export

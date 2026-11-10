@@ -55,7 +55,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
                && sim.status() == TrackStatus::alive;
     }());
 
-    auto geo = track.geometry();
+    auto&& geo = track.geometry();
     CELER_EXPECT(geo.is_on_boundary());
 
     // Surface selector must be created before crossing boundary to store

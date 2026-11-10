@@ -16,7 +16,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 //! Construct a test name that is disabled unless ORANGE is the core geometry
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
+    || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
 #    define TEST_IF_CELERITAS_ORANGE(name) name
 #else
 #    define TEST_IF_CELERITAS_ORANGE(name) DISABLED_##name

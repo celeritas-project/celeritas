@@ -111,7 +111,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
             return sim.step_length();
         }
 
-        auto geo = track.geometry();
+        auto&& geo = track.geometry();
 
         real_type safety = 0;
         if (!geo.is_on_boundary())
@@ -210,7 +210,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
 CELER_FUNCTION void UrbanMsc::apply_step(CoreTrackView const& track)
 {
     auto par = track.particle();
-    auto geo = track.geometry();
+    auto&& geo = track.geometry();
     auto phys = track.physics();
     auto sim = track.sim();
 
