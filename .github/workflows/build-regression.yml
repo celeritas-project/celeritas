@@ -42,6 +42,7 @@ jobs:
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: "ci-ubuntu-github.json"
+          version-string: "-dev"
           # NOTE: this wraps calls to accel integration tests with the 'run-output-regression' script,
           # and forces the files to update (and an artifact to be generated) if calling directly from GHA
           args: >-
