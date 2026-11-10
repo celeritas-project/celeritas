@@ -7,6 +7,9 @@
 
 #include "orange/surf/Tri.hh"
 
+#include <cmath>
+
+#include "corecel/Constants.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "TestMacros.hh"
@@ -22,28 +25,32 @@ class TriTest : public ::celeritas::test::Test
     using real_type = float;
     using Intersections = Tri<real_type>::Intersections;
     using Real3 = Tri<real_type>::Real3;
+
+    // Triangle vertex values
+    Real3 a{0.0, 0.0, 0.0};
+    Real3 b{1.0, 0, 0};
+    Real3 c{0.5, 1.0, 1.0};
 };
 
 TEST_F(TriTest, construction)
 {
-    Real3 a = {0.0, 0.0, 0.0};
-    Real3 b = {1.0, 0, 0};
-    Real3 c = {0.5, 1.0, 1.0};
     Tri<real_type> tri({a, b, c});
 
-    Real3 a_gold = {0, 0, 0};
-    Real3 b_gold = {1, 0, 0};
-    Real3 c_gold = {0.5, 1, 1};
-    EXPECT_VEC_SOFT_EQ(a_gold, tri.verts()[0]);
-    EXPECT_VEC_SOFT_EQ(b_gold, tri.verts()[1]);
-    EXPECT_VEC_SOFT_EQ(c_gold, tri.verts()[2]);
+    EXPECT_VEC_SOFT_EQ(a, tri.verts()[0]);
+    EXPECT_VEC_SOFT_EQ(b, tri.verts()[1]);
+    EXPECT_VEC_SOFT_EQ(c, tri.verts()[2]);
+
+    // Test that triangle is ordered CCW after construction
+    Tri<real_type> tri_out_of_order({a, c, b});
+    EXPECT_VEC_SOFT_EQ(a, tri.verts()[0]);
+    EXPECT_VEC_SOFT_EQ(b, tri.verts()[1]);
+    EXPECT_VEC_SOFT_EQ(c, tri.verts()[2]);
 }
 
 TEST_F(TriTest, calc_intersections)
 {
-    Real3 a = {0.0, 0.0, 0.0};
-    Real3 b = {1.0, 0, 0};
-    Real3 c = {0.5, 1.0, 1.0};
+    real_type cos45{std::cos(constants::pi / 4.0f)};
+
     Tri<real_type> tri({a, b, c});
 
     Real3 pos = {0.4f, 0.4f, 0};
@@ -59,7 +66,7 @@ TEST_F(TriTest, calc_intersections)
 
     // Ray is parallel to the tri
     pos = {0.4f, 0.4f, 0.2f};
-    dir = {0.0f, -0.7071067811865475f, -0.7071067811865475f};
+    dir = {0.0f, -cos45, -cos45};
     t = tri.calc_intersections(pos, dir, SurfaceState::off);
     EXPECT_SOFT_EQ(real_type(no_intersection()), t[0]);
 

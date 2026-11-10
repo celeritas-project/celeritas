@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <limits>
-
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/ArrayOperators.hh"
@@ -25,7 +23,8 @@ namespace celeritas
  *
  * The triangle cannot be degenerate with zero area:
  *   1. No two vertices can be equal,
- *   2. The three vertices are not colinear: a + b != c
+ *   2. The three vertices are not colinear: a + b != c, where a, b, and c are
+ * the triangle side lengths.
  *
  * The ray-triangle intersection utilizes the Moller-Trumbore algorithm.
  * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
@@ -93,8 +92,7 @@ CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
 /*!
  * Calculate the intersection point.
  *
- * This is an implementation of the Moller-Trumbore intersection algorithm
- * https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+ * This is an implementation of the Moller-Trumbore intersection algorithm.
  */
 template<typename T>
 CELER_FUNCTION auto Tri<T>::calc_intersections(
