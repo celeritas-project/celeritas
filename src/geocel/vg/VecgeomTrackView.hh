@@ -199,6 +199,7 @@ class VecgeomTrackView
 
     // Temporary data
     real_type next_step_{0};
+    bool is_push_{false};
     bool failed_{false};
 
     //// HELPER FUNCTIONS ////
@@ -436,11 +437,8 @@ CELER_FUNCTION Real3 VecgeomTrackView::normal() const
  */
 CELER_FUNCTION real_type VecgeomTrackView::push_distance() const
 {
-    real_type pos_max = 0;
-    for (auto p : pos_)
-    {
-        pos_max = max(pos_max, std::fabs(p));
-    }
+    real_type const pos_max
+        = max(std::fabs(pos_[0]), max(std::fabs(pos_[1]), std::fabs(pos_[2])));
     return min(this->max_extra_push(),
                max(this->extra_push(), this->rel_extra_push() * pos_max));
 }
@@ -458,8 +456,19 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     next_step_ = Navigator::ComputeStepAndNextVolume(
         to_vgvector(pos_), to_vgvector(dir_), max_step, vgstate_, vgnext_);
 
-    real_type const push = this->push_distance();
-    next_step_ = max(next_step_, push);
+    // Lengthen a (near) zero-length step so that the track moves: the
+    // position-dependent push is only needed below its maximum value
+    real_type push{0};
+    is_push_ = false;
+    if (next_step_ < this->max_extra_push())
+    {
+        push = this->push_distance();
+        if (next_step_ < push)
+        {
+            next_step_ = push;
+            is_push_ = true;
+        }
+    }
 
     if (!this->is_next_boundary())
     {
@@ -468,6 +477,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
         // step
         CELER_ASSERT(soft_equal(next_step_, max(max_step, push)));
         next_step_ = max_step;
+        is_push_ = false;
     }
 
     Propagation result;
@@ -522,14 +532,11 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->is_next_boundary());
 
-    // Whether the step is only the push off a zero-length boundary step
-    bool const is_push = next_step_ <= this->push_distance();
-
     // Move next step
     axpy(next_step_, dir_, &pos_);
     vgstate_.SetBoundaryState(true);
 
-    if (CELERITAS_VECGEOM_VERSION >= 0x020200 && !is_push)
+    if (CELERITAS_VECGEOM_VERSION >= 0x020200 && !is_push_)
     {
         // Don't recalculate normal if bumping on a reentrant surface
         VgReal3 normal;
