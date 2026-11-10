@@ -1,64 +1,67 @@
 # Docker images
 
-These docker images use [spack](https://github.com/spack/spack) to build a
-CUDA-enabled development environment for Celeritas. There are two sets of
-images:
-- `dev` (`dev` subdirectory) which leaves spack fully installed; and
-- `ci` (`ci` subdirectory) which only copies the necessary software stack (thus
-  requiring lower bandwidth on the CI servers).
+## GPU images
 
-Additionally there are two image configurations:
-- `rocky-cuda12`: Rocky 9 with CUDA 12.
-- `ubuntu-rocm7`: Ubuntu 24 with ROCm 7.1.
+The `gpu` subdirectory builds CUDA and ROCm images for the `build-docker` and
+`build-codecov` workflows. They install Celeritas dependencies with
+[Spack](https://github.com/spack/spack), using the Spack and spack-packages
+commits pinned in `.github/actions/setup-spack/action.yml` and the shared
+configuration in `scripts/spack` (`reqs-celer.yaml`, `prefs-hep-nogui.yaml`,
+`ext-ubuntu24.yaml`). The multi-stage `gpu/Dockerfile` has two targets:
+- `dev`, which keeps Spack and the environment in `/opt/spack-environment`; and
+- `ci`, which only copies the installed software (`/opt/software`,
+  `/opt/view`) onto the base image, so CI downloads less.
 
-## Building
+There are two image configurations:
+- `ubuntu-cuda13`: Ubuntu 24.04 with CUDA 13.4 (`sm_80`), including VecGeom 2
+  with CUDA.
+- `ubuntu-rocm7`: Ubuntu 24.04 with ROCm 7.2 (`gfx90a`), without VecGeom.
 
-The included `build.sh` script drives the two subsequent docker builds. Its
-argument should be an image configuration name, or `cuda` or `minimal` as
-shortcuts for those.
+The Spack environments are `gpu/<config>.yaml`. The CUDA or ROCm toolkit of
+the base image is added as an external by `gpu/write-gpu-externals.sh`, so its
+version is set only by the base image tag in `build.sh`. Keep the GPU
+architectures in the environments consistent with
+`scripts/cmake-presets/ci-ubuntu-{cuda,rocm}.json`.
+
+### Building
+
+Run `build.sh` with a configuration name, or `cuda` or `rocm` as
+shortcuts. It builds the `dev` and `ci` targets, tags them
+`celeritas/{dev,ci}-<config>:<date>`, and pushes the CI image. Then update the
+image tags in `.github/workflows/build-docker.yml` and `build-codecov.yml`.
+Like the buildcache image, the build uses the container engine in
+`_container.sh` and needs an `x86_64_v3` (AVX2) Linux host: CPU emulation is
+far too slow to build these dependencies.
 
 If the final docker push fails, you may have to log in with your `docker.io`
 credentials first:
 ```console
-$ docker login -u sethrj
+$ docker login -u <username>
 ```
 
-## Running
+After changing the Spack pins in the setup-spack action, rebuild the images so
+that the GPU and CPU CI use the same package recipes.
 
-The CI image is (in color) run with:
-```console
-$ docker run --rm -ti -e "TERM=xterm-256color" celeritas/ci-cuda11
-```
-Note that the `--rm` option automatically deletes the state of the container
-after you exit the docker client. This means all of your work will be
-destroyed.
+### Running
 
-The `launch-local-test` script will clone an active GitHub pull request, build,
-and set up an image to use locally:
-```console
-$ ./ci/launch-local-test.sh 123
-```
-
-To mount the image with your local source directory:
+To run the CI image with your local Celeritas source directory mounted:
 ```console
 $ docker run --rm -ti -e "TERM=xterm-256color" \
-    -v ${SOURCE}:/home/celeritas/src \
-    celeritas/ci-focal-cuda11:${DATE}
+    -v ${SOURCE}:/src -w /src \
+    celeritas/ci-ubuntu-cuda13:${DATE}
 ```
 where `${SOURCE}` is your local Celeritas source directory and `${DATE}` is the
-date time stamp of the desired image. If you just built locally, you can
-replace that last argument with the tag `ci-focal-cuda11`:
+date stamp of the desired image (or use the local tag `ci-ubuntu-cuda13` if you
+just built it). The `--rm` option deletes the container state, including any
+build, when you exit. Inside the container, configure with the CI presets:
 ```console
-$ docker run --rm -ti -e "TERM=xterm-256color" -v /rnsdhpc/code/celeritas-docker:/home/celeritas/src ci-ubuntu-rocm7
+# cp scripts/cmake-presets/ci-ubuntu-cuda.json CMakeUserPresets.json
+# cmake --preset=release-vecgeom && cmake --build build
+# cd build && CELER_DISABLE_DEVICE=1 ctest
 ```
-
-After mounting, use the build scripts to configure and go:
-```console
-celeritas@abcd1234:~$ cd src
-celeritas@abcd1234:~/src$ ./scripts/docker/ci/run-ci.sh valgrind
-```
-
-Note that running as the `root` user requires the `MPIEXEC_PREFLAGS=--allow-run-as-root` to be defined for CMake: this is done by cmake-presets/ci-rocky-cuda.
+(`CELER_DISABLE_DEVICE` is only needed on machines without a GPU.)
+Running as `root` requires `MPIEXEC_PREFLAGS=--allow-run-as-root` for
+CMake: the CI presets define it.
 
 ## Spack buildcache
 

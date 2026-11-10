@@ -1,76 +1,75 @@
-#!/bin/sh -ex
-# Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#!/bin/sh -e
+#-------------------------------- -*- sh -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build the GPU development and CI images with the Spack revisions pinned by
+# .github/actions/setup-spack, then push the dated CI image.
+# Additional arguments are passed to each build command, e.g. --no-cache.
+# See scripts/docker/_container.sh for the container engine selection.
+#-----------------------------------------------------------------------------#
 
 if [ -z "$1" ]; then
-  echo "usage: $0 config"
+  echo "usage: $0 {cuda|rocm|ubuntu-cuda13|ubuntu-rocm7} [build args...]" >&2
   exit 2
 fi
-
-# Note: when changing spack version, UPDATE PATCHES in dev/Dockerfile
-SPACK_VERSION=develop-2024-12-22
 CONFIG=$1
-DOCKER=docker
-BUILDARGS=
-if ! hash ${DOCKER} 2>/dev/null; then
-  # see https://blog.christophersmart.com/2021/01/26/user-ids-and-rootless-containers-with-podman/
-  DOCKER=podman
-  BUILDARGS="--format docker"
-  if ! hash ${DOCKER} 2>/dev/null; then
-    echo "Docker (or podman) is not available"
-    exit 1
-  fi
-  # Make podman build containers inside /tmp rather than /var/lib
-  export TMPDIR=$(mktemp -d)
-fi
+shift
 
-case $CONFIG in
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+CELER_SOURCE_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
+
+. "${SCRIPT_DIR}/_container.sh"
+
+case ${CONFIG} in
   cuda )
-    # When updating: change here, dev/{name}.yaml, dev/launch-local-test.sh
-    CONFIG=rocky-cuda12
+    CONFIG=ubuntu-cuda13
     ;;
   rocm )
     CONFIG=ubuntu-rocm7
     ;;
 esac
 
-case $CONFIG in
-  rocky-cuda12)
-    # ***IMPORTANT***: update the following after modification
-    # - cuda external version in dev/rocky-cuda12
-    # - CI versions listed in README.md
-    DOCKERFILE_DISTRO=rocky
-    BASE_TAG=nvidia/cuda:12.6.3-devel-rockylinux9
+# Use the newest toolkit versions known to the pinned spack-packages.
+# When updating a base image, also update the versions listed in README.md
+# and the image tags in .github/workflows/build-{docker,codecov}.yml
+case ${CONFIG} in
+  ubuntu-cuda13)
+    BASE_IMAGE=nvidia/cuda:13.4.1-devel-ubuntu24.04
     ;;
   ubuntu-rocm7)
-    # ***IMPORTANT***: update hip external version in dev/ubuntu-rocm7!
-    DOCKERFILE_DISTRO=ubuntu
-    BASE_TAG=rocm/dev-ubuntu-24.04:7.1
+    # The "complete" image provides the rocrand/rocthrust/hipcub libraries
+    BASE_IMAGE=rocm/dev-ubuntu-24.04:7.2.3-complete
     ;;
   *)
-    echo "Invalid configure type: $1"
+    log error "invalid configuration: ${CONFIG}"
     exit 1
     ;;
 esac
 
-${DOCKER} pull ${BASE_TAG}
-${DOCKER} tag ${BASE_TAG} base-${CONFIG}
+# Build a stage of the Dockerfile
+build() {
+  target=$1
+  shift
+  ${BUILD} \
+    --build-arg BASE_IMAGE="${BASE_IMAGE}" \
+    --build-arg CONFIG="${CONFIG}" \
+    --build-arg SPACK_REPO="${SPACK_REPO}" \
+    --build-arg SPACK_REF="${SPACK_REF}" \
+    --build-arg SPACK_PACKAGES_REPO="${SPACK_PACKAGES_REPO}" \
+    --build-arg SPACK_PACKAGES_REF="${SPACK_PACKAGES_REF}" \
+    --build-context spack-config="${CELER_SOURCE_DIR}/scripts/spack" \
+    --platform linux/amd64 \
+    --target "${target}" \
+    -t "${target}-${CONFIG}" \
+    "$@" \
+    "${SCRIPT_DIR}/gpu"
+}
 
-${DOCKER} build -t dev-${CONFIG} \
-  --build-arg CONFIG=${CONFIG} \
-  --build-arg SPACK_VERSION=${SPACK_VERSION} \
-  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
-  ${BUILDARGS} \
-  dev
-
-${DOCKER} build -t ci-${CONFIG} \
-  --build-arg CONFIG=${CONFIG} \
-  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
-  ${BUILDARGS} \
-  ci
+build dev "$@"
+build ci "$@"
 
 DATE=$(date '+%Y-%m-%d')
-${DOCKER} tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
-${DOCKER} tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
-${DOCKER} push celeritas/ci-${CONFIG}:${DATE}
+${CONTAINER_EXE} tag "dev-${CONFIG}" "celeritas/dev-${CONFIG}:${DATE}"
+${CONTAINER_EXE} tag "ci-${CONFIG}" "celeritas/ci-${CONFIG}:${DATE}"
+${CONTAINER_EXE} push "celeritas/ci-${CONFIG}:${DATE}"
