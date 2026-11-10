@@ -21,6 +21,7 @@
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/BumpUlp.hh"
 #include "geocel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
 
@@ -108,6 +109,10 @@ class VecgeomTrackView
     {
         return real_type{1e-8} * lengthunits::centimeter;
     }
+
+    //! Number of ULPs to additionally bump each position component on a push,
+    //! so that the track moves off a surface it is nearly tangent to
+    static CELER_CONSTEXPR_FUNCTION unsigned int push_ulp() { return 10; }
 
     //// ACCESSORS ////
 
@@ -534,6 +539,12 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
 
     // Move next step
     axpy(next_step_, dir_, &pos_);
+    if (is_push_)
+    {
+        // The push along the direction can be lost to roundoff in a component
+        // where the direction is nearly tangent to the surface
+        bump_ulp(this->push_ulp(), dir_, &pos_);
+    }
     vgstate_.SetBoundaryState(true);
 
     if (CELERITAS_VECGEOM_VERSION >= 0x020200 && !is_push_)
