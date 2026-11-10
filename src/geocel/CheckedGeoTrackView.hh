@@ -190,6 +190,8 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     // Cross from one side of the current surface to the other
     void cross_boundary() final;
 
+    friend std::ostream& operator<<(std::ostream&, CheckedGeoTrackView const&);
+
   private:
     UPTrack t_;
     Logger log_;
@@ -231,12 +233,6 @@ class CheckedGeoError : public RuntimeError
   public:
     CheckedGeoError(RuntimeErrorDetails&& r) : RuntimeError(std::move(r)) {}
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-
-std::ostream& operator<<(std::ostream&, CheckedGeoTrackView const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

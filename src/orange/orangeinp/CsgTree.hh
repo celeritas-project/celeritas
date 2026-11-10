@@ -115,13 +115,10 @@ class CsgTree
 
     // Get a node (only this class can modify the node once added)
     Node& at(NodeId node_id);
-};
 
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-// Print the tree's contents
-std::ostream& operator<<(std::ostream& os, CsgTree const&);
+    // Print the tree's contents
+    friend std::ostream& operator<<(std::ostream& os, CsgTree const&);
+};
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
