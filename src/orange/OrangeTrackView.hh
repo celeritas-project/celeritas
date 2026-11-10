@@ -41,6 +41,12 @@ namespace celeritas
  * track is currently in. On the boundary this is determined by the sense
  * of the track rather than its direction.
  *
+ * Initialization may start exactly on a surface: the track is placed in the
+ * volume on the side of the surface that its direction points toward, and its
+ * status is \c GeoStatus::boundary_out as though it had just crossed into
+ * that volume. Starting on a surface while moving exactly tangent to it is an
+ * error, since neither side is preferred.
+ *
  * \todo \c move_internal with a position \em should depend on the safety
  * distance, but that check is not yet implemented.
  */
