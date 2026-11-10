@@ -139,23 +139,11 @@ TEST(StringSimplifierTest, version)
         EXPECT_IDENTITY(simplify, "1.0-fc96e4492");
         return std::move(clog_redirect).str();
     }();
-    EXPECT_EQ(
-        R"(Failed to convert "1.25678e+10000" to double: stod: out of range
-Failed to convert "96e4492" to double: stod: out of range)",
-        msg);
+    EXPECT_EQ("", msg);
 
     // Note: 96e4492 looks like an out of range floating point value :P
-    std::string const& setup_str
-        = R"(Activating Celeritas version 0.7+fc96e4492 on CPU)";
-    msg = [&simplify] {
-        ScopedStreamRedirect clog_redirect(&std::clog);
-        EXPECT_IDENTITY(
-            simplify, R"(Activating Celeritas version 0.7+fc96e4492 on CPU)");
-        return std::move(clog_redirect).str();
-    }();
-    EXPECT_EQ("Failed to convert \"96e4492\" to double: stod: out of range",
-              msg)
-        << repr(msg);
+    EXPECT_IDENTITY(simplify,
+                    R"(Activating Celeritas version 0.7+fc96e4492 on CPU)");
 }
 
 //---------------------------------------------------------------------------//

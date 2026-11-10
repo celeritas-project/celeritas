@@ -12,8 +12,6 @@
 #include <regex>
 #include <sstream>
 
-#include "corecel/io/Repr.hh"
-
 namespace celeritas
 {
 namespace test
@@ -29,12 +27,10 @@ std::string rounded_stod_impl(
     {
         d = std::stod(s);
     }
-    catch (std::logic_error const& e)
+    catch (std::logic_error const&)
     {
         // Do *NOT* use the logger since this may be called during logging and
-        // we don't want a recursive failure
-        std::clog << "Failed to convert " << repr(s)
-                  << " to double: " << e.what() << std::endl;
+        // we don't want a recursive failure. Simply refuse to simplify.
         return s;
     }
     return to_string_impl(d, precision);
