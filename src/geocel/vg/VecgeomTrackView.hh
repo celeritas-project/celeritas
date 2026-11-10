@@ -110,9 +110,10 @@ class VecgeomTrackView
         return real_type{1e-8} * lengthunits::centimeter;
     }
 
-    //! Number of ULPs to additionally bump each position component on a push,
-    //! so that the track moves off a surface it is nearly tangent to
-    static CELER_CONSTEXPR_FUNCTION unsigned int push_ulp() { return 10; }
+    //! Approximate number of ULPs to additionally bump each position
+    //! component on a push, so that the track moves off a surface it is
+    //! nearly tangent to
+    static CELER_CONSTEXPR_FUNCTION unsigned int push_ulp() { return 1024; }
 
     //// ACCESSORS ////
 
