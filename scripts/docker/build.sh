@@ -5,7 +5,8 @@
 #-----------------------------------------------------------------------------#
 # Build the GPU development and CI images with the Spack revisions pinned by
 # .github/actions/setup-spack and tag them with the date. The CI image is
-# pushed only if PUSH=1 is set.
+# pushed only if PUSH=1 is set. SPACK_INSTALL_ARGS (e.g. "-p 8 -j 32") is
+# passed to 'spack install'.
 # Additional arguments are passed to each build command, e.g. --no-cache.
 # See scripts/docker/_container.sh for the container engine selection.
 #-----------------------------------------------------------------------------#
@@ -55,6 +56,7 @@ build() {
   ${BUILD} \
     --build-arg BASE_IMAGE="${BASE_IMAGE}" \
     --build-arg CONFIG="${CONFIG}" \
+    --build-arg SPACK_INSTALL_ARGS="${SPACK_INSTALL_ARGS}" \
     --build-arg SPACK_REPO="${SPACK_REPO}" \
     --build-arg SPACK_REF="${SPACK_REF}" \
     --build-arg SPACK_PACKAGES_REPO="${SPACK_PACKAGES_REPO}" \

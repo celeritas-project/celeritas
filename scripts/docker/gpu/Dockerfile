@@ -73,9 +73,11 @@ RUN /opt/docker/write-gpu-externals.sh > ext-gpu.yaml \
  && cat ext-gpu.yaml
 
 ARG CONFIG
+# Extra install options, e.g. "-p 8 -j 32" for concurrent package builds
+ARG SPACK_INSTALL_ARGS=""
 COPY ${CONFIG}.yaml spack.yaml
 RUN spack -e . concretize --fresh \
- && spack -e . install --fail-fast
+ && spack -e . install --fail-fast ${SPACK_INSTALL_ARGS}
 
 # Modifications to the environment that are necessary to run
 RUN spack env activate --sh -d . > /etc/profile.d/celeritas_spack_env.sh
