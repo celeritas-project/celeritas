@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "version": 4,
+  "cmakeMinimumRequired": { "major": 4, "minor": 0, "patch": 0 },
   "configurePresets": [
     {
       "name": ".ccache",
@@ -63,7 +63,7 @@
     },
     {
       "name": "base",
-      "displayName": "executor: basic debug ORANGE build",
+      "displayName": "challenger: basic debug ORANGE build",
       "inherits": [".ccache", ".spackbase", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
@@ -78,7 +78,7 @@
     },
     {
       "name": "vecgeom",
-      "displayName": "executor: With vecgeom",
+      "displayName": "challenger: With vecgeom",
       "inherits": [".ccache", ".spackbase", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" }
@@ -86,7 +86,7 @@
     },
     {
       "name": "release-vecgeom",
-      "displayName": "executor: With vecgeom, g4 in optimized mode",
+      "displayName": "challenger: With vecgeom, g4 in optimized mode",
       "inherits": [".ccache", ".spackbase", ".release", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
@@ -97,7 +97,7 @@
     },
     {
       "name": "float",
-      "displayName": "executor: Single-precision arithmetic",
+      "displayName": "challenger: Single-precision arithmetic",
       "inherits": [".spackbase", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
