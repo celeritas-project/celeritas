@@ -25,6 +25,7 @@ TEST(StringSimplifierTest, floats)
     EXPECT_EQ("1e-3", simplify("0.001f"));
     EXPECT_EQ("-1e-3", simplify("-0.001"));
     EXPECT_EQ("-1e-3", simplify("-0.001f"));
+    EXPECT_EQ("1.234", simplify("+1.234"));
     EXPECT_EQ("1.234", simplify("1.234"));
     EXPECT_EQ("12.34", simplify("12.34"));
     EXPECT_EQ("123.4", simplify("123.4"));
@@ -70,8 +71,8 @@ TEST(StringSimplifierTest, embedded)
               simplify("{-6., 0., 0.} along local direction {1., 0., 0.}"));
     EXPECT_EQ("{-6, 0, 0} along local direction {1, 0, 0}",
               simplify("{-6, 0, 0} along local direction {1, 0, 0}"));
-    EXPECT_EQ("Cone z: t=5e-3 at {0,0,100}",
-              simplify("Cone z: t=0.005 at {0,0,100}"));
+    EXPECT_EQ("Cone z: t=5e-3 at {1.235,0.,100.0}",
+              simplify("Cone z: t=0.005 at {1.234567,+0.,100.0001}"));
 }
 
 TEST(StringSimplifierTest, sci)
@@ -90,6 +91,8 @@ TEST(StringSimplifierTest, sci)
     EXPECT_EQ("1e-3", simplify("0.001f"));
     EXPECT_EQ("1e-4", simplify("0.0001f"));
     EXPECT_EQ("1e-5", simplify("0.00001f"));
+
+    EXPECT_EQ("1e-4", simplify("+0.0001"));
 
     EXPECT_EQ("123456", simplify("123456"));
     EXPECT_EQ("1234.", simplify("1234."));

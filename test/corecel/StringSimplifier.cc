@@ -101,9 +101,9 @@ std::string to_sci(double value, int precision)
     // notation) with optional scientific notation and trailing f
     static std::regex const combined_regex(
         "(?:"
-        R"((-?(?:\d*\.\d+|\d+\.\d*|\d+)[eE][-+]?\d+f?)\b)"  // Sci
+        R"(([-+]?(?:\d*\.\d+|\d+\.\d*|\d+)[eE][-+]?\d+f?)\b)"  // Sci
         "|"
-        R"((-?(?:\d*\.\d+f?|\d+\.\d*f?|\d+f))(?![0-9e]+))"  // Float
+        R"(([-+]?(?:\d*\.\d+f?|\d+\.\d*f?|\d+f))(?![0-9e]+))"  // Float
         "|"
         "(\033\\[[0-9;]*m)"  // ANSI
         "|"
@@ -190,7 +190,7 @@ std::string StringSimplifier::simplify_float(std::string s) const
 
     // Count the number of significant digits
     auto begin = s.cbegin();
-    if (*begin == '-')
+    if (*begin == '-' || *begin == '+')
     {
         ++begin;
     }
