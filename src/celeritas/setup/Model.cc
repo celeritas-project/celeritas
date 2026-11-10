@@ -28,6 +28,9 @@ struct GeoBuilder
 {
     using result_type = std::shared_ptr<CoreGeoParams>;
 
+    //! Canonical volumes used by the rest of the problem setup
+    std::shared_ptr<VolumeParams const> volumes;
+
     //! Build from GDML (or JSON) filename
     result_type operator()(std::string const& filename)
     {
@@ -40,7 +43,10 @@ struct GeoBuilder
             && ends_with(filename, ".json"))
         {
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-            return CoreGeoParams::from_json(filename);
+            // Match the JSON volume names to the canonical volumes (e.g.,
+            // from Geant4) so that volume-based data such as materials is
+            // consistent
+            return CoreGeoParams::from_json(filename, volumes);
 #else
             CELER_ASSERT_UNREACHABLE();
 #endif
@@ -85,9 +91,10 @@ struct GeoBuilder
     }
 };
 
-auto build_geometry(inp::Model const& m)
+auto build_geometry(inp::Model const& m,
+                    std::shared_ptr<VolumeParams const> volumes)
 {
-    return std::visit(GeoBuilder{}, m.geometry);
+    return std::visit(GeoBuilder{std::move(volumes)}, m.geometry);
 }
 
 std::shared_ptr<VolumeParams> build_volumes(inp::Model const& m)
@@ -127,15 +134,15 @@ ModelLoaded model(inp::Model const& m)
 {
     ModelLoaded result;
 
-    // Load geometry: use existing world volume or reload from geometry file
-    result.geometry = build_geometry(m);
-
     // Construct volume params if it was added to the input
     if (!has_volume_data(m))
     {
         CELER_LOG(debug) << "Volume structure data is unavailable";
     }
     result.volume = build_volumes(m);
+
+    // Load geometry: use existing world volume or reload from geometry file
+    result.geometry = build_geometry(m, result.volume);
 
     // Construct surfaces
     if (!m.surfaces)
