@@ -18,8 +18,8 @@ on:
   workflow_dispatch: {} # Allow manual invocation for testing when not using CELER_CI
 
 concurrency:
-  group: push-${{github.ref_name}}-${{github.run_number}}
-  cancel-in-progress: true
+  group: push-${{github.ref_name}}
+  queue: max
 
 jobs:
   check-ci-vars:

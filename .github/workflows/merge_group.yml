@@ -102,6 +102,6 @@ jobs:
     if: ${{ needs.all.result == 'success' && needs.process-pr-number.result == 'success' }}
     with:
       key: ".*"
-      ref: refs/pull/${{ needs.process-pr-number.outputs.number }}/merge
+      ref: "(refs/pull/|gh-readonly-queue/.*/pr-)${{ needs.process-pr-number.outputs.number }}"
 
 # vim: set nowrap tw=100:

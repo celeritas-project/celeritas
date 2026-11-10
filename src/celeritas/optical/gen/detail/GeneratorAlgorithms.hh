@@ -55,6 +55,23 @@ inline CELER_FUNCTION size_type find_distribution_index(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether a distribution is valid.
+ *
+ * This returns a \c bool because distributions are only explicitly
+ * convertible to one, and some device select algorithms assign the result of
+ * the predicate to their flags.
+ */
+struct IsValid
+{
+    template<class T>
+    CELER_FUNCTION bool operator()(T const& data) const
+    {
+        return static_cast<bool>(data);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the number of photons in a buffered distribution.
  *
  * Indices past the current buffer size, which is read from the state's

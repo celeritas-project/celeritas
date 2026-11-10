@@ -143,23 +143,6 @@ struct GeneratorStateData
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the number of photons from a distribution.
- *
- * This is a functor rather than a function because it's used for the thrust
- * reduction and scan.
- */
-template<class T>
-struct GetNumPhotons
-{
-    // Return the number of photons to generate
-    CELER_FUNCTION size_type operator()(T const& data) const
-    {
-        return data.num_photons;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Store optical generation states in aux data.
  */
 template<MemSpace M>
