@@ -138,6 +138,11 @@ TEST_F(TwoBoxesVgdmlTest, TEST_IF_CELERITAS_DOUBLE(push_distance))
         auto geo = this->make_geo_track_view({1, 0, 0}, {1, 0, 0});
         EXPECT_SOFT_EQ(1e-13, to_cm(geo.track_view().push_distance()));
     }
+    if (vecgeom_version < Version{2})
+    {
+        GTEST_SKIP() << "VecGeom " << vecgeom_version
+                     << " cannot initialize a track on the world boundary";
+    }
     {
         // On the world boundary far from the origin, a zero-length boundary
         // step is lengthened in proportion to the position so that the track
