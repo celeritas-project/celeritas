@@ -159,6 +159,47 @@ TEST_F(SenseCalculatorTest, two_volumes)
         }
     }
     {
+        // Point is on the boundary: direction determines the sense
+        Real3 pos{1.5, 0, 0};
+        auto calc_with_dir = [&](Real3 const& dir, OnFace& face) {
+            return SenseCalculator(
+                this->make_surf_visitor(), inner, pos, dir, face)(FaceId{0});
+        };
+        {
+            SCOPED_TRACE("heading inward");
+            OnFace face;
+            EXPECT_EQ(Sense::inside, calc_with_dir({-1, 0, 0}, face));
+            EXPECT_EQ(FaceId{0}, face.id());
+            EXPECT_EQ(Sense::inside, face.sense());
+        }
+        {
+            SCOPED_TRACE("heading outward");
+            OnFace face;
+            EXPECT_EQ(Sense::outside, calc_with_dir({1, 0, 0}, face));
+            EXPECT_EQ(FaceId{0}, face.id());
+            EXPECT_EQ(Sense::outside, face.sense());
+        }
+        {
+            SCOPED_TRACE("tangent: same as without direction");
+            OnFace face;
+            EXPECT_EQ(Sense::outside, calc_with_dir({0, 0, 1}, face));
+            EXPECT_EQ(FaceId{0}, face.id());
+            EXPECT_EQ(Sense::outside, face.sense());
+        }
+        {
+            SCOPED_TRACE("off the surface: direction is ignored");
+            OnFace face;
+            Real3 dir{1, 0, 0};
+            Real3 inner_pos{0, 0.5, 0};
+            EXPECT_EQ(
+                Sense::inside,
+                SenseCalculator(
+                    this->make_surf_visitor(), inner, inner_pos, dir, face)(
+                    FaceId{0}));
+            EXPECT_FALSE(face);
+        }
+    }
+    {
         OnFace face;
         // Point is in the outer sphere
         auto result = SenseCalculator{this->construct_sense_calculator(

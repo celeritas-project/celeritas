@@ -282,7 +282,7 @@ void AtlasHgtdGeoTest::test_trace() const
             // Initialization is exactly on a surface with single precision
             auto up_view = test_->make_geo_track_view_interface();
             *up_view = test_->make_initializer(pos, dir);
-            EXPECT_EQ(GeoStatus::error, up_view->geo_status());
+            EXPECT_EQ(GeoStatus::boundary_out, up_view->geo_status());
             GTEST_SKIP() << "ORANGE single precision starts on a boundary";
         }
 

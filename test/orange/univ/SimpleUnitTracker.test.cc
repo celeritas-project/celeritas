@@ -445,10 +445,34 @@ TEST_F(TwoVolumeTest, initialize)
     }
     {
         // Test rejection
-        SCOPED_TRACE("On the boundary but not crossing a surface");
+        SCOPED_TRACE("On the boundary and moving tangent to it");
         auto init
             = tracker.initialize(this->make_state({1.5, 0, 0}, {0, 0, 1}));
         EXPECT_FALSE(init);
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+    }
+    {
+        SCOPED_TRACE("On the boundary heading in");
+        auto init
+            = tracker.initialize(this->make_state({1.5, 0, 0}, {-1, 0, 0}));
+        EXPECT_EQ("inside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::inside, init.surface.sense());
+
+        // Next intersection is the far side of the sphere
+        auto state = this->make_state(
+            {1.5, 0, 0}, {-1, 0, 0}, "inside", "sphere", '-');
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("sphere", this->id_to_label(isect.surface.id()));
+        EXPECT_SOFT_EQ(3.0, isect.distance);
+    }
+    {
+        SCOPED_TRACE("On the boundary heading out");
+        auto init
+            = tracker.initialize(this->make_state({0, 1.5, 0}, {0, 0.6, 0.8}));
+        EXPECT_EQ("outside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
         SCOPED_TRACE("Outside the sphere");
@@ -804,11 +828,13 @@ TEST_F(FiveVolumesTest, initialize)
         EXPECT_FALSE(init.surface);
     }
     {
-        // Triple point between a, c, d
-        SCOPED_TRACE("On the boundary but not crossing a surface");
+        // Triple point between a, c, d: direction selects 'd'
+        SCOPED_TRACE("On the boundary heading into d");
         auto init
             = tracker.initialize(this->make_state({0, 0.75, 0}, {1, 1, 0}));
-        EXPECT_FALSE(init);
+        EXPECT_EQ("d", this->id_to_label(init.volume));
+        EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
     }
 }
 
