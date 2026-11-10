@@ -85,9 +85,6 @@ class SenseCalculator
     inline CELER_FUNCTION Sense operator()(FaceId face_id);
 
   private:
-    // Calculate the sense on a surface along the direction of travel
-    inline CELER_FUNCTION SignedSense calc_dir_sense(LocalSurfaceId surf);
-
     //! Apply a function to a local surface
     LocalSurfaceVisitor visit_;
 
@@ -179,8 +176,10 @@ CELER_FUNCTION auto SenseCalculator<DirT>::operator()(FaceId face_id) -> Sense
         {
             if (on_face)
             {
-                // Use the direction of travel to choose the side
-                ss = this->calc_dir_sense(surf);
+                // Use the direction of travel to choose the side: "on" if
+                // the direction is tangent to the surface
+                ss = real_to_sense(
+                    dot_product(visit_(CalcNormal{pos_}, surf), *dir_));
             }
         }
         sense = to_sense(ss);
@@ -198,29 +197,6 @@ CELER_FUNCTION auto SenseCalculator<DirT>::operator()(FaceId face_id) -> Sense
 
     CELER_ENSURE(!face_ || face_.id() < vol_.num_faces());
     return sense;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the sense on a surface along the direction of travel.
- *
- * The result is \c on if the direction is tangent to the surface.
- */
-template<class DirT>
-CELER_FUNCTION SignedSense SenseCalculator<DirT>::calc_dir_sense(
-    LocalSurfaceId surf)
-{
-    static_assert(use_direction);
-    real_type n_dot_dir = dot_product(visit_(CalcNormal{pos_}, surf), *dir_);
-    if (n_dot_dir > 0)
-    {
-        return SignedSense::outside;
-    }
-    if (n_dot_dir < 0)
-    {
-        return SignedSense::inside;
-    }
-    return SignedSense::on;
 }
 
 //---------------------------------------------------------------------------//

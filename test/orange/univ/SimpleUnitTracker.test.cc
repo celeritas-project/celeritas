@@ -828,13 +828,26 @@ TEST_F(FiveVolumesTest, initialize)
         EXPECT_FALSE(init.surface);
     }
     {
-        // Triple point between a, c, d: direction selects 'd'
+        // Triple point between a, c, d: on the alpha.px plane (x = 0) and
+        // the gamma sphere (r = 0.75); both "on" tests and normals are exact
+        // since 0.75 and 0.75^2 are exactly representable. The direction is
+        // outward from both, which selects 'd'. The stored surface is the
+        // first face of 'd' that the point is on.
         SCOPED_TRACE("On the boundary heading into d");
-        auto init
-            = tracker.initialize(this->make_state({0, 0.75, 0}, {1, 1, 0}));
+        auto state = this->make_state({0, 0.75, 0}, {1, 1, 0});
+        auto init = tracker.initialize(state);
         EXPECT_EQ("d", this->id_to_label(init.volume));
         EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
         EXPECT_EQ(Sense::outside, init.surface.sense());
+
+        // The next intersection must be the outer sphere, a nonzero distance
+        // away: neither surface the point is on can be hit at zero distance
+        state.volume = init.volume;
+        state.surface = init.surface;
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(99.46826365422226, isect.distance);
     }
 }
 
