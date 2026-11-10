@@ -40,9 +40,9 @@ template<>
 struct CartMapFieldParamsData<Ownership::value, MemSpace::host>
     : CartMapFieldParamsDataBase<MemSpace::host>
 {
-    CELER_FUNCTION view_t get_view() const { return view_t(*field); }
+    view_t get_view() const { return view_t(*field); }
 
-    CELER_FUNCTION explicit operator bool() const { return field.get(); }
+    explicit operator bool() const { return field.get(); }
 
     std::unique_ptr<field_t> field;
 };
@@ -61,12 +61,9 @@ template<>
 struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
     : CartMapFieldParamsDataBase<MemSpace::device>
 {
-    CELER_FUNCTION view_t const& get_view() const
-    {
-        return field_view.device_ref()[0];
-    }
+    view_t const& get_view() const { return field_view.device_ref()[0]; }
 
-    CELER_FUNCTION explicit operator bool() const
+    explicit operator bool() const
     {
         return field.get() && field_view.size() == 1;
     }
