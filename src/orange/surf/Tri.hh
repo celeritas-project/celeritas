@@ -99,6 +99,13 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
+    // Early return if particle is on surface to prevent re-entry
+    // TODO: Revisit as triangle mesh tracker progresses
+    if (on_surface == SurfaceState::on)
+    {
+        return {real_type(no_intersection())};
+    }
+
     // Edge 1 and Edge 2
     auto edge1 = verts_[1] - verts_[0];
     auto edge2 = verts_[2] - verts_[0];
