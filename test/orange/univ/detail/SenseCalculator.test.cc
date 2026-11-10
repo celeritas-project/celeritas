@@ -7,6 +7,9 @@
 
 #include "orange/univ/detail/SenseCalculator.hh"
 
+#include <cstddef>
+#include <type_traits>
+#include <utility>
 #include <vector>
 #include <gtest/gtest.h>
 
@@ -52,6 +55,25 @@ TEST(Types, OnFace)
 }
 
 //---------------------------------------------------------------------------//
+// Constructor arguments select (at compile time) whether to use a direction
+template<class... Args>
+using SenseCalcFrom = decltype(SenseCalculator(std::declval<Args>()...));
+
+static_assert(std::is_same_v<SenseCalcFrom<LocalSurfaceVisitor const&,
+                                           LocalVolumeView const&,
+                                           Real3 const&,
+                                           OnFace&>,
+                             SenseCalculator<std::nullptr_t>>);
+static_assert(std::is_same_v<SenseCalcFrom<LocalSurfaceVisitor const&,
+                                           LocalVolumeView const&,
+                                           Real3 const&,
+                                           Real3 const&,
+                                           OnFace&>,
+                             SenseCalculator<Real3 const*>>);
+static_assert(!SenseCalculator<>::use_direction);
+static_assert(SenseCalculator<Real3 const*>::use_direction);
+
+//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
@@ -71,10 +93,11 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
         return LocalSurfaceVisitor(this->host_params(), SimpleUnitId{0});
     }
 
-    SenseCalculator construct_sense_calculator(LocalSurfaceVisitor const& visit,
-                                               LocalVolumeView const& vol,
-                                               Real3 const& pos,
-                                               OnFace& face)
+    SenseCalculator<> construct_sense_calculator(
+        LocalSurfaceVisitor const& visit,
+        LocalVolumeView const& vol,
+        Real3 const& pos,
+        OnFace& face)
     {
         return SenseCalculator(visit, vol, pos, face);
     }

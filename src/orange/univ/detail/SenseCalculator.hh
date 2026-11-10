@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -46,10 +49,24 @@ namespace detail
  * place the track on that surface. If the direction is exactly tangent to the
  * surface, the sense is undetermined and the conventional (position-only)
  * sense is used.
+ *
+ * The template parameter is the type of the stored direction: \c
+ * std::nullptr_t (the default, selected by the constructor without a
+ * direction) or <code>Real3 const*</code> (selected by the constructor with a
+ * direction). Resolving on-face senses with the direction is thus enabled or
+ * eliminated at compile time, so the common position-only case incurs no
+ * runtime check.
  */
+template<class DirT = std::nullptr_t>
 class SenseCalculator
 {
+    static_assert(std::is_same_v<DirT, std::nullptr_t>
+                  || std::is_same_v<DirT, Real3 const*>);
+
   public:
+    //! Whether a direction is used to resolve senses exactly on a face
+    static constexpr bool use_direction = !std::is_null_pointer_v<DirT>;
+
     // Construct from persistent, current, and temporary data
     inline CELER_FUNCTION SenseCalculator(LocalSurfaceVisitor const& visit,
                                           LocalVolumeView const& vol,
@@ -80,12 +97,26 @@ class SenseCalculator
     //! Local position
     Real3 const& pos_;
 
-    //! Local direction (optional: null if not resolving on-face senses)
-    Real3 const* dir_{nullptr};
-
     //! The first face encountered that we are "on"
     OnFace& face_;
+
+    //! Local direction (if used to resolve on-face senses)
+    DirT dir_;
 };
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+SenseCalculator(
+    LocalSurfaceVisitor const&, LocalVolumeView const&, Real3 const&, OnFace&)
+    -> SenseCalculator<std::nullptr_t>;
+
+SenseCalculator(LocalSurfaceVisitor const&,
+                LocalVolumeView const&,
+                Real3 const&,
+                Real3 const&,
+                OnFace&) -> SenseCalculator<Real3 const*>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -93,13 +124,15 @@ class SenseCalculator
 /*!
  * Construct from persistent, current, and temporary data.
  */
-CELER_FUNCTION SenseCalculator::SenseCalculator(
+template<class DirT>
+CELER_FUNCTION SenseCalculator<DirT>::SenseCalculator(
     LocalSurfaceVisitor const& visit,
     LocalVolumeView const& vol,
     Real3 const& pos,
     OnFace& face)
-    : visit_{visit}, vol_{vol}, pos_{pos}, face_{face}
+    : visit_{visit}, vol_{vol}, pos_{pos}, face_{face}, dir_{nullptr}
 {
+    static_assert(!use_direction, "direction is required");
 }
 
 //---------------------------------------------------------------------------//
@@ -108,14 +141,16 @@ CELER_FUNCTION SenseCalculator::SenseCalculator(
  *
  * The direction must remain valid for the lifetime of this instance.
  */
-CELER_FUNCTION SenseCalculator::SenseCalculator(
+template<class DirT>
+CELER_FUNCTION SenseCalculator<DirT>::SenseCalculator(
     LocalSurfaceVisitor const& visit,
     LocalVolumeView const& vol,
     Real3 const& pos,
     Real3 const& dir,
     OnFace& face)
-    : visit_{visit}, vol_{vol}, pos_{pos}, dir_{&dir}, face_{face}
+    : visit_{visit}, vol_{vol}, pos_{pos}, face_{face}, dir_{&dir}
 {
+    static_assert(use_direction, "direction is unused");
 }
 
 //---------------------------------------------------------------------------//
@@ -127,7 +162,8 @@ CELER_FUNCTION SenseCalculator::SenseCalculator(
  * was given, the sense of any face the point is on is that of the side the
  * track is moving toward.
  */
-CELER_FUNCTION auto SenseCalculator::operator()(FaceId face_id) -> Sense
+template<class DirT>
+CELER_FUNCTION auto SenseCalculator<DirT>::operator()(FaceId face_id) -> Sense
 {
     CELER_EXPECT(face_id < vol_.num_faces());
     CELER_EXPECT(!face_ || face_.id() < vol_.num_faces());
@@ -138,23 +174,20 @@ CELER_FUNCTION auto SenseCalculator::operator()(FaceId face_id) -> Sense
         // Calculate sense
         LocalSurfaceId surf = vol_.get_surface(face_id);
         SignedSense ss = visit_(CalcSense{pos_}, surf);
-        if (ss == SignedSense::on)
+        bool const on_face = (ss == SignedSense::on);
+        if constexpr (use_direction)
         {
-            if (dir_)
+            if (on_face)
             {
                 // Use the direction of travel to choose the side
                 ss = this->calc_dir_sense(surf);
             }
-            sense = to_sense(ss);
-            if (!face_)
-            {
-                // This is the first face that we're exactly on: save it
-                face_ = {face_id, sense};
-            }
         }
-        else
+        sense = to_sense(ss);
+        if (on_face && !face_)
         {
-            sense = to_sense(ss);
+            // This is the first face that we're exactly on: save it
+            face_ = {face_id, sense};
         }
     }
     else
@@ -173,9 +206,11 @@ CELER_FUNCTION auto SenseCalculator::operator()(FaceId face_id) -> Sense
  *
  * The result is \c on if the direction is tangent to the surface.
  */
-CELER_FUNCTION SignedSense SenseCalculator::calc_dir_sense(LocalSurfaceId surf)
+template<class DirT>
+CELER_FUNCTION SignedSense SenseCalculator<DirT>::calc_dir_sense(
+    LocalSurfaceId surf)
 {
-    CELER_EXPECT(dir_);
+    static_assert(use_direction);
     real_type n_dot_dir = dot_product(visit_(CalcNormal{pos_}, surf), *dir_);
     if (n_dot_dir > 0)
     {
