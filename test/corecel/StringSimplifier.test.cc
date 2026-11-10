@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "StringSimplifier.hh"
 
+#include "corecel/io/ScopedStreamRedirect.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -128,13 +130,29 @@ TEST(StringSimplifierTest, version)
     StringSimplifier simplify(2);
 
     // Unrepresentable numbers remain unchanged
-    EXPECT_IDENTITY(simplify, "1.25678e+10000");
-    EXPECT_IDENTITY(simplify, "1.fc96e4492");
+    auto msg = [&simplify] {
+        ScopedStreamRedirect clog_redirect(&std::clog);
+        EXPECT_IDENTITY(simplify, "1.25678e+10000");
+        EXPECT_IDENTITY(simplify, "1.0-fc96e4492");
+        return std::move(clog_redirect).str();
+    }();
+    EXPECT_EQ(
+        R"(Failed to convert "1.25678e+10000" to double: stod: out of range
+Failed to convert "96e4492" to double: stod: out of range)",
+        msg);
 
     // Note: 96e4492 looks like an out of range floating point value :P
     std::string const& setup_str
         = R"(Activating Celeritas version 0.7+fc96e4492 on CPU)";
-    EXPECT_EQ(setup_str, simplify(setup_str));
+    msg = [&simplify] {
+        ScopedStreamRedirect clog_redirect(&std::clog);
+        EXPECT_IDENTITY(
+            simplify, R"(Activating Celeritas version 0.7+fc96e4492 on CPU)");
+        return std::move(clog_redirect).str();
+    }();
+    EXPECT_EQ("Failed to convert \"96e4492\" to double: stod: out of range",
+              msg)
+        << repr(msg);
 }
 
 //---------------------------------------------------------------------------//

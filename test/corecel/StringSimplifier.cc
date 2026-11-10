@@ -8,10 +8,10 @@
 
 #include <iomanip>
 #include <ios>
+#include <iostream>
 #include <regex>
 #include <sstream>
 
-#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 
 namespace celeritas
@@ -20,19 +20,24 @@ namespace test
 {
 namespace
 {
-double stod_impl(std::string const& s)
+template<class F>
+std::string rounded_stod_impl(
+    F&& to_string_impl, std::string const& s, int precision)
 {
+    double d{};
     try
     {
-        return std::stod(s);
+        d = std::stod(s);
     }
-    catch (std::invalid_argument const& e)
+    catch (std::logic_error const& e)
     {
-        CELER_LOG_LOCAL(critical)
-            << "Invalid argument during string-to-double conversion: "
-            << repr(s);
-        throw;
+        // Do *NOT* use the logger since this may be called during logging and
+        // we don't want a recursive failure
+        std::clog << "Failed to convert " << repr(s)
+                  << " to double: " << e.what() << std::endl;
+        return s;
     }
+    return to_string_impl(d, precision);
 }
 
 using StreamManip = std::ios_base& (*)(std::ios_base&);
@@ -166,7 +171,7 @@ std::string StringSimplifier::simplify_sci(std::string s) const
         = std::min<int>(1 + std::distance(iter, exp_iter), precision_);
 
     // Format the rounded number with appropriate notation
-    s = to_sci(stod_impl(s), precision);
+    s = rounded_stod_impl(to_sci, s, precision);
 
     return s;
 }
@@ -228,14 +233,14 @@ std::string StringSimplifier::simplify_float(std::string s) const
     {
         // Leading digits are too precise, or there are too many leading zeros:
         // write as scientific
-        s = to_sci(stod_impl(s), precision);
+        s = rounded_stod_impl(to_sci, s, precision);
         CELER_ASSERT(!s.empty());
     }
     else
     {
         dec_precision = std::min(dec_precision, precision_ - lead_precision)
                         + lead_zeros;
-        s = to_float(stod_impl(s), dec_precision);
+        s = rounded_stod_impl(to_float, s, dec_precision);
         if (dec_precision == 0)
         {
             // Don't make it an integer except if we parsed it as a float
