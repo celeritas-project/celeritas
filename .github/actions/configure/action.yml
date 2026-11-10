@@ -37,21 +37,32 @@ runs:
         SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct ${REF})
         echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
         echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}" >> $GITHUB_ENV
-    - name: Extend repo history to get version
+    - name: Load Git metadata from GitHub API
+      id: git-description
       if: ${{!inputs.version-string}}
       shell: bash
-      # FIXME: this is based on v0.7.0-dev-508-gef97adf8e plus lots of commits
-      # reduce after the next release
       run: |
-        git fetch --deepen 600
-
+        REF=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/${GITHUB_REF#refs/}" --jq '.ref' 2>/dev/null || true)
+        if [[ "$REF" == refs/tags/* ]]; then
+          CELER_VERSION=${REF#refs/tags/}
+        else
+          COMMIT=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}" --jq '.sha')
+          CELER_VERSION=+${COMMIT:0:7}
+        fi
+        echo "CELER_VERSION=${CELER_VERSION}" >> "$GITHUB_OUTPUT"
     - name: Configure Celeritas
       id: configure
       shell: bash
+      env:
+        CMAKE_PRESET: ${{inputs.preset}}
+        VERSION_STRING: >-
+          ${{ inputs.version-string
+              || steps.git-description.outputs.CELER_VERSION
+          }}
       run: |
-        cmake --preset=${{inputs.preset}} --log-level=VERBOSE \
+        cmake --preset="$CMAKE_PRESET" --log-level=VERBOSE \
           ${{inputs.args}} \
-          -DCeleritas_VERSION_STRING="${{inputs.version-string}}"
+          -DCeleritas_VERSION_STRING="$VERSION_STRING"
     - name: Print debug diagnostics on failure
       if: ${{ failure() || runner.debug }}
       shell: bash
