@@ -53,9 +53,9 @@ TEST_F(TriTest, calc_intersections)
 
     Tri<real_type> tri({a, b, c});
 
+    // Ray intersects triangle
     Real3 pos = {0.4f, 0.4f, 0};
     Real3 dir = {0, 0, 1};
-
     auto t = tri.calc_intersections(pos, dir, SurfaceState::off);
     EXPECT_SOFT_EQ(0.4f, t[0]);
 
