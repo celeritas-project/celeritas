@@ -16,7 +16,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Openmp.hh"
-#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -52,6 +51,10 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
         std::holds_alternative<std::string>(si.problem.model.geometry));
     std::shared_ptr<GeantGeoParams> ggp;
 
+    // Keep Geant4 alive until the problem is set up: exporting the geometry
+    // needs the UI manager, which is destroyed along with the run manager
+    GeantSetup geant_setup;
+
     // Import physics data from Geant4 or ROOT: see Import.hh
     ImportData imported;
     std::visit(Overload{
@@ -65,24 +68,13 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
                    [&](inp::PhysicsFromGeant& pfg) {
                        // Take file name from problem and physics options from
                        // the arguments, and set up Geant4
-                       GeantSetup geant_setup(
+                       geant_setup = GeantSetup(
                            std::get<std::string>(si.problem.model.geometry),
                            si.geant_setup);
 
                        // Keep the geant4 geometry and set it as global
                        ggp = geant_setup.geo_params();
                        CELER_ASSERT(ggp);
-
-                       // Export the geometry while Geant4 is still alive:
-                       // the GDML parser needs the UI manager, which is
-                       // destroyed along with the run manager
-                       auto& export_geo
-                           = si.problem.diagnostics.export_files.geometry;
-                       if (!export_geo.empty())
-                       {
-                           save_gdml(ggp->world(), export_geo);
-                           export_geo.clear();
-                       }
 
                        // Adjust Geant4 data selection based on physics options
                        GeantImportDataSelection::Flags selection
