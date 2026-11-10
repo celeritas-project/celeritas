@@ -131,6 +131,29 @@ TEST_F(TwoBoxesVgdmlTest, trace)
     this->impl().test_trace();
 }
 
+TEST_F(TwoBoxesVgdmlTest, TEST_IF_CELERITAS_DOUBLE(push_distance))
+{
+    {
+        // Near the origin, the push is the minimum physical length
+        auto geo = this->make_geo_track_view({1, 0, 0}, {1, 0, 0});
+        EXPECT_SOFT_EQ(1e-13, to_cm(geo.track_view().push_distance()));
+    }
+    {
+        // On the world boundary far from the origin, a zero-length boundary
+        // step is lengthened in proportion to the position so that the track
+        // actually moves
+        auto geo = this->make_geo_track_view({-3, 4, 500}, {0, 0, 1});
+        EXPECT_SOFT_EQ(5e-11, to_cm(geo.track_view().push_distance()));
+        auto next = geo.find_next_step(from_cm(1.0));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(5e-11, to_cm(next.distance));
+        geo.move_to_boundary();
+        EXPECT_GT(geo.pos()[2], from_cm(500));
+        geo.cross_boundary();
+        EXPECT_TRUE(geo.is_outside());
+    }
+}
+
 //---------------------------------------------------------------------------//
 // G4VG TESTS
 //---------------------------------------------------------------------------//
