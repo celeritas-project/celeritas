@@ -37,23 +37,6 @@ runs:
         SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct ${REF})
         echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
         echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}" >> $GITHUB_ENV
-    - name: Construct version string
-      id: git-description
-      if: ${{!inputs.version-string}}
-      env:
-        PR_NUMBER: ${{ github.event.pull_request.number || "" }}
-      shell: bash
-      run: |
-        REF=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/${GITHUB_REF#refs/}" --jq '.ref' 2>/dev/null || true)
-        if [[ "$REF" == refs/tags/* ]]; then
-          VERSION_STRING=${REF#refs/tags/}
-        elif [[ -n "$PR_NUMBER" ]]; then
-          CELER_VERSION="-pr.$PR_NUMBER"
-        else
-          COMMIT=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}" --jq '.sha')
-          VERSION_STRING=+${COMMIT:0:7}
-        fi
-        echo "VERSION_STRING=${VERSION_STRING}" >> "$GITHUB_OUTPUT"
     - name: Configure Celeritas
       id: configure
       shell: bash
@@ -61,7 +44,8 @@ runs:
         CMAKE_PRESET: ${{inputs.preset}}
         VERSION_STRING: >-
           ${{ inputs.version-string
-              || steps.git-description.outputs.VERSION_STRING
+              || github.event.pull_request && format('-pr.{0}', github.event.pull_request.number)
+              || format('-{0}', github.ref_name)
           }}
       run: |
         cmake --preset="$CMAKE_PRESET" --log-level=VERBOSE \
