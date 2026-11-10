@@ -4,7 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 # Build the GPU development and CI images with the Spack revisions pinned by
-# .github/actions/setup-spack, then push the dated CI image.
+# .github/actions/setup-spack and tag them with the date. The CI image is
+# pushed only if PUSH=1 is set.
 # Additional arguments are passed to each build command, e.g. --no-cache.
 # See scripts/docker/_container.sh for the container engine selection.
 #-----------------------------------------------------------------------------#
@@ -72,4 +73,9 @@ build ci "$@"
 DATE=$(date '+%Y-%m-%d')
 ${CONTAINER_EXE} tag "dev-${CONFIG}" "celeritas/dev-${CONFIG}:${DATE}"
 ${CONTAINER_EXE} tag "ci-${CONFIG}" "celeritas/ci-${CONFIG}:${DATE}"
-${CONTAINER_EXE} push "celeritas/ci-${CONFIG}:${DATE}"
+if [ "${PUSH}" = 1 ]; then
+  ${CONTAINER_EXE} push "celeritas/ci-${CONFIG}:${DATE}"
+else
+  log info "Built celeritas/ci-${CONFIG}:${DATE}: to publish it, run"
+  log info "  ${CONTAINER_EXE} push celeritas/ci-${CONFIG}:${DATE}"
+fi

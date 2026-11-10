@@ -27,13 +27,14 @@ architectures in the environments consistent with
 
 Run `build.sh` with a configuration name, or `cuda` or `rocm` as
 shortcuts. It builds the `dev` and `ci` targets, tags them
-`celeritas/{dev,ci}-<config>:<date>`, and pushes the CI image. Then update the
+`celeritas/{dev,ci}-<config>:<date>`, and prints the command to push the CI
+image (set `PUSH=1` to push it directly). After pushing, update the
 image tags in `.github/workflows/build-docker.yml` and `build-codecov.yml`.
 Like the buildcache image, the build uses the container engine in
 `_container.sh` and needs an `x86_64_v3` (AVX2) Linux host: CPU emulation is
 far too slow to build these dependencies.
 
-If the final docker push fails, you may have to log in with your `docker.io`
+If the push fails, you may have to log in with your `docker.io`
 credentials first:
 ```console
 $ docker login -u <username>
