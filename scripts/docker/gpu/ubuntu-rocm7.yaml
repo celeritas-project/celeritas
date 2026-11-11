@@ -60,4 +60,10 @@ spack:
   config:
     install_tree:
       root: /opt/software
-  view: /opt/view
+  view:
+    default:
+      root: /opt/view
+      # The system compiler provides the GCC runtime libraries: linking the
+      # spack copies into the view makes CMake warn that they may hide them
+      exclude:
+        - gcc-runtime
