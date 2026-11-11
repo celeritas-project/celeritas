@@ -12,6 +12,7 @@
 #include <G4RunManager.hh>
 #include <G4Step.hh>
 #include <G4StepPoint.hh>
+#include <G4Version.hh>
 
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
@@ -228,6 +229,11 @@ TEST_F(LarSphereGammaScintOffload, emission_point)
     if (this->test_offload() == TestOffload::g4)
     {
         GTEST_SKIP() << "Scintillation is not offloaded";
+    }
+    if (G4VERSION_NUMBER < 1100)
+    {
+        GTEST_SKIP() << "Geant4 before 11 does not read the scintillation "
+                        "properties of this material, so nothing scintillates";
     }
     CountingScintillationOffload::counts() = {};
 
