@@ -21,9 +21,9 @@ namespace test
 TEST(RotationCounterTest, unrotated)
 {
     RotationCounter rc;
-    rc(NoTransformation{});
-    rc(Translation{Real3{1, 2, 3}});
-    rc(Transformation{make_identity(), Real3{0, 0, 1}});
+    rc.count(NoTransformation{});
+    rc.count(Translation{Real3{1, 2, 3}});
+    rc.count(Transformation{make_identity(), Real3{0, 0, 1}});
     EXPECT_EQ(1, rc.num_rotations());
 
     auto result = rc.calc_most_common();
@@ -41,11 +41,11 @@ TEST(RotationCounterTest, shared_rotations)
     // Insert 10 of rot_0 and 9 of rot_1
     for (auto i : range(10))
     {
-        rc(Transformation{rot_0, Real3{0, 0, static_cast<real_type>(i)}});
+        rc.count(Transformation{rot_0, Real3{0, 0, static_cast<real_type>(i)}});
     }
     for (auto i : range(9))
     {
-        rc(Transformation{rot_1, Real3{0, 0, static_cast<real_type>(i)}});
+        rc.count(Transformation{rot_1, Real3{0, 0, static_cast<real_type>(i)}});
     }
 
     EXPECT_EQ(2, rc.num_rotations());
@@ -62,7 +62,7 @@ TEST(RotationCounterTest, distinct)
     for (auto i : range(8))
     {
         Turn const turn{static_cast<real_type>(0.05 * i)};
-        rc(Transformation{make_rotation(Axis::x, turn), Real3{0, 0, 0}});
+        rc.count(Transformation{make_rotation(Axis::x, turn), Real3{0, 0, 0}});
     }
     EXPECT_EQ(8, rc.num_rotations());
 

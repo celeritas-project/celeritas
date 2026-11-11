@@ -41,8 +41,8 @@ class RotationCounter
   public:
     //// METHODS ////
 
-    // Process a single transform's rotation
-    void operator()(VariantTransform const& transform);
+    // Count a single transform's rotation
+    void count(VariantTransform const& transform);
 
     // Calculate the most common rotation and the number of transforms sharing
     // it

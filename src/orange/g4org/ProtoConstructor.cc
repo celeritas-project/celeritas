@@ -247,7 +247,7 @@ auto ProtoConstructor::find_common_rotation(LogicalVolume const& lv) const
     RotationCounter rc;
     for (PhysicalVolume const& pv : lv.children)
     {
-        rc(pv.transform);
+        rc.count(pv.transform);
     }
 
     // Find most common rotation

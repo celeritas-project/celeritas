@@ -28,11 +28,11 @@ std::size_t RotationCounter::RotationMatrixHasher::operator()(
 
 //---------------------------------------------------------------------------//
 /*!
- * Process a single transform's rotation.
+ * Count a single transform's rotation.
  *
  * A transform without a rotation counts as the identity.
  */
-void RotationCounter::operator()(VariantTransform const& transform)
+void RotationCounter::count(VariantTransform const& transform)
 {
     auto const* tr = std::get_if<Transformation>(&transform);
     ++counts_[tr ? tr->rotation() : make_identity()];
