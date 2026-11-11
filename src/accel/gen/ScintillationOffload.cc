@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "ScintillationOffload.hh"
 
+#include <type_traits>
 #include <G4ParticleDefinition.hh>
 #include <G4Track.hh>
 
@@ -87,8 +88,11 @@ G4VParticleChange* ScintillationOffload::PostStepDoIt(G4Track const& aTrack,
 optical::GeneratorDistributionData ScintillationOffload::MakeDistribution(
     G4Track const& aTrack, G4Step const& aStep) const
 {
+    CELER_EXPECT(this->GetNumPhotons() > 0);
     auto data = distribution_from_step(aStep);
     data.type = GeneratorType::scintillation;
+    // Photon count is already an integer: the cast does not truncate
+    static_assert(std::is_integral_v<decltype(this->GetNumPhotons())>);
     data.num_photons = static_cast<size_type>(this->GetNumPhotons());
     data.continuous_edep_fraction
         = (aTrack.GetDefinition()->GetPDGCharge() == 0 ? 0 : 1);
