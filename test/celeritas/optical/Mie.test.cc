@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Mie.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/io/Repr.hh"
 #include "corecel/random/Histogram.hh"
 #include "corecel/random/HistogramSampler.hh"
 #include "celeritas/Quantities.hh"
@@ -129,53 +130,60 @@ TEST_F(MieTest, mfp)
 TEST_F(MieTest, stress_test)
 {
     constexpr size_type num_samples = 1'000'000;
-    MieInteractor interact(
-        data_, this->particle_track(), direction_, material_id_);
-
     auto& rng_engine = this->InteractorHostBase::rng();
     this->set_inc_polarization({0, 1, 0});
 
-    Histogram accum_dir{8, {-1, 1}};
-    Histogram accum_pol{8, {-1, 1}};
-    accumulate_n(
-        [&](auto&& result) {
-            accum_dir(dot_product(result.direction, direction_));
-            accum_pol(dot_product(result.polarization,
-                                  this->particle_track().polarization()));
-        },
-        interact,
-        rng_engine,
-        num_samples);
-    EXPECT_FALSE(accum_dir.underflow() || accum_dir.overflow()
-                 || accum_pol.underflow() || accum_pol.overflow());
+    // The scattering angle is relative to the incident direction, so the
+    // distributions must not depend on which way the photon was travelling
+    for (Real3 const& inc_dir : {Real3{0, 0, 1}, Real3{1, 0, 0}})
+    {
+        SCOPED_TRACE(repr(inc_dir));
+        MieInteractor interact(
+            data_, this->particle_track(), inc_dir, material_id_);
 
-    static double const expected_accum_dir[] = {
-        0.792728,
-        0.001868,
-        0.002324,
-        0.002896,
-        0.0042,
-        0.00708,
-        0.0164,
-        3.172504,
-    };
-    static double const expected_accum_pol[] = {
-        1.992904,
-        0.004736,
-        0.001632,
-        0.003144,
-        0.002992,
-        0.001624,
-        0.004784,
-        1.993412,
-    };
+        Histogram accum_dir{8, {-1, 1}};
+        Histogram accum_pol{8, {-1, 1}};
+        accumulate_n(
+            [&](auto&& result) {
+                accum_dir(dot_product(result.direction, inc_dir));
+                accum_pol(dot_product(result.polarization,
+                                      this->particle_track().polarization()));
+            },
+            interact,
+            rng_engine,
+            num_samples);
+        EXPECT_FALSE(accum_dir.underflow() || accum_dir.overflow()
+                     || accum_pol.underflow() || accum_pol.overflow());
 
-    auto avg_samples = static_cast<double>(rng_engine.exchange_count())
-                       / static_cast<double>(num_samples);
-    SoftEqual<double> tol{1e-2, 1e-2};
-    EXPECT_VEC_NEAR(expected_accum_dir, accum_dir.calc_density(), tol);
-    EXPECT_VEC_NEAR(expected_accum_pol, accum_pol.calc_density(), tol);
-    EXPECT_SOFT_NEAR(4.0 * sizeof(real_type) / sizeof(float), avg_samples, tol);
+        static double const expected_accum_dir[] = {
+            0.792728,
+            0.001868,
+            0.002324,
+            0.002896,
+            0.0042,
+            0.00708,
+            0.0164,
+            3.172504,
+        };
+        static double const expected_accum_pol[] = {
+            1.992904,
+            0.004736,
+            0.001632,
+            0.003144,
+            0.002992,
+            0.001624,
+            0.004784,
+            1.993412,
+        };
+
+        auto avg_samples = static_cast<double>(rng_engine.exchange_count())
+                           / static_cast<double>(num_samples);
+        SoftEqual<double> tol{1e-2, 1e-2};
+        EXPECT_VEC_NEAR(expected_accum_dir, accum_dir.calc_density(), tol);
+        EXPECT_VEC_NEAR(expected_accum_pol, accum_pol.calc_density(), tol);
+        EXPECT_SOFT_NEAR(
+            4.0 * sizeof(real_type) / sizeof(float), avg_samples, tol);
+    }
 }
 
 //---------------------------------------------------------------------------//
