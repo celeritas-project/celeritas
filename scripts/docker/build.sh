@@ -72,7 +72,8 @@ build() {
 build dev "$@"
 build ci "$@"
 
-DATE=$(date '+%Y-%m-%d')
+# Use UTC so the tag does not depend on the build host's time zone
+DATE=$(date -u '+%Y-%m-%d')
 ${CONTAINER_EXE} tag "dev-${CONFIG}" "celeritas/dev-${CONFIG}:${DATE}"
 ${CONTAINER_EXE} tag "ci-${CONFIG}" "celeritas/ci-${CONFIG}:${DATE}"
 if [ "${PUSH}" = 1 ]; then
