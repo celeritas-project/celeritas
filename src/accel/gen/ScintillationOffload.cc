@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "ScintillationOffload.hh"
 
+#include <G4ParticleDefinition.hh>
+#include <G4Track.hh>
+
 #include "corecel/io/Logger.hh"
 #include "celeritas/g4/GeantOffloadUtils.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
@@ -57,7 +60,10 @@ G4VParticleChange* ScintillationOffload::PostStepDoIt(G4Track const& aTrack,
         auto data = distribution_from_step(aStep);
         data.type = GeneratorType::scintillation;
         data.num_photons = static_cast<size_type>(this->GetNumPhotons());
-        data.continuous_edep_fraction = 1;
+        // As in G4Scintillation, photons from a neutral particle's step
+        // (e.g. a gamma's local deposit) are emitted at its end point
+        data.continuous_edep_fraction
+            = (aTrack.GetDefinition()->GetPDGCharge() == 0 ? 0 : 1);
 
         // Push generator distribution for this step to offload
         auto& local = detail::IntegrationSingleton::instance().local_offload();
