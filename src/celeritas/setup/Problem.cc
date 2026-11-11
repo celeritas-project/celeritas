@@ -115,7 +115,7 @@ auto build_physics_processes(inp::EmPhysics const& em,
 {
     // TODO: process builder should be deleted; instead it should get
     // p.physics.em or whatever
-    std::vector<std::shared_ptr<Process const>> result;
+    std::vector<std::shared_ptr<InteractionProcess const>> result;
     ProcessBuilder build_process(
         imported, params.particle, params.material, em.user_processes);
     for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
