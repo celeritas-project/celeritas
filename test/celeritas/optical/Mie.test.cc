@@ -141,10 +141,12 @@ TEST_F(MieTest, stress_test)
     // with no zero component
     Real3 const oblique = make_unit_vector(Real3{1, 2, 3});
     Real3 const oblique_pol = make_unit_vector(Real3{2, -1, 0});
-    for (auto const& [inc_dir, inc_pol] :
-         {std::pair{Real3{0, 0, 1}, Real3{0, 1, 0}},
-          std::pair{oblique, oblique_pol}})
+    for (auto const& dir_pol : {std::pair{Real3{0, 0, 1}, Real3{0, 1, 0}},
+                                std::pair{oblique, oblique_pol}})
     {
+        // Not a structured binding: C++17 lambdas cannot capture one
+        Real3 const& inc_dir = dir_pol.first;
+        Real3 const& inc_pol = dir_pol.second;
         SCOPED_TRACE(repr(inc_dir));
         this->set_inc_polarization(inc_pol);
         MieInteractor interact(
