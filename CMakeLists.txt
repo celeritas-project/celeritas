@@ -654,6 +654,14 @@ if(CELERITAS_USE_VecGeom)
         "runtime errors may result"
       )
     endif()
+  elseif(VecGeom_CUDA_FOUND)
+    # Only the CUDA RDC link wrappers resolve the device symbols of a
+    # CUDA-enabled VecGeom
+    celeritas_error_incompatible_option(
+      "VecGeom installation at \"${VecGeom_DIR}\" is CUDA-enabled: Celeritas must also use CUDA"
+      CELERITAS_USE_CUDA
+      "${VecGeom_CUDA_FOUND}"
+    )
   endif()
   if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
     celeritas_error_incompatible_option(
