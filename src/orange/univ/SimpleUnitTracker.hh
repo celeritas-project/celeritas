@@ -418,7 +418,9 @@ CELER_FUNCTION auto SimpleUnitTracker::normal(
     CELER_EXPECT(surf);
 
     LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
-    return visit_surface(detail::CalcNormal{pos}, surf);
+    auto grad = visit_surface(
+        [&pos](auto&& surf) { return surf.calc_gradient(pos); }, surf);
+    return make_unit_vector(grad);
 }
 
 //---------------------------------------------------------------------------//
@@ -492,9 +494,11 @@ CELER_FUNCTION auto SimpleUnitTracker::simple_intersect(
     }
     else
     {
-        LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
-        SignedSense ss = visit_surface(detail::CalcSense{state.pos}, surface);
-        CELER_ASSERT(ss != SignedSense::on);
+        SignedSense ss = detail::calc_sense_impl(
+            LocalSurfaceVisitor(params_, unit_record_.surfaces),
+            state.pos,
+            surface);
+        CELER_ASSUME(ss != SignedSense::on);
         cur_sense = to_sense(ss);
     }
 

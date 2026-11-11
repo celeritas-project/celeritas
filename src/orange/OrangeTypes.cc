@@ -155,6 +155,7 @@ char const* to_cstring(SurfaceType value)
         "px",
         "py",
         "pz",
+        "p",
         "cxc",
         "cyc",
         "czc",
@@ -162,14 +163,13 @@ char const* to_cstring(SurfaceType value)
         "cx",
         "cy",
         "cz",
-        "p",
         "s",
         "kx",
         "ky",
         "kz",
         "sq",
         "gq",
-        "tor",
+        "tzc",
         "inv",
         // clang-format on
     };

@@ -13,7 +13,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/SenseUtils.hh"
 
-#include "detail/QuadraticSolver.hh"
+#include "detail/IntersectionSolver.hh"
 
 namespace celeritas
 {
@@ -80,12 +80,23 @@ class Sphere
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the sphere expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
+    // Prepare intersection inputs for the shared quadratic solver
+    inline CELER_FUNCTION detail::QuadraticIntersectionInput
+    calc_intersection_quadratic(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
 
   private:
     // Spatial position
@@ -125,9 +136,19 @@ CELER_FUNCTION Sphere::Sphere(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Sphere::calc_sense(Real3 const& pos) const
 {
-    Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
+    return real_to_sense(this->calc_value(pos));
+}
 
-    return real_to_sense(dot_product(tpos, tpos) - radius_sq_);
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the sphere expression at a point.
+ */
+CELER_FUNCTION real_type Sphere::calc_value(Real3 const& pos) const
+{
+    Real3 const tpos{
+        pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
+
+    return dot_product(tpos, tpos) - radius_sq_;
 }
 
 //---------------------------------------------------------------------------//
@@ -138,19 +159,23 @@ CELER_FUNCTION auto Sphere::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
-    using namespace celeritas::literals;
+    return detail::solve_intersections(
+        this->calc_intersection_quadratic(pos, dir, on_surface));
+}
 
-    Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
-
-    detail::QuadraticSolver solve_quadric(1.0_r, dot_product(tpos, dir));
-    if (on_surface == SurfaceState::off)
-    {
-        return solve_quadric(dot_product(tpos, tpos) - radius_sq_);
-    }
-    else
-    {
-        return solve_quadric();
-    }
+//---------------------------------------------------------------------------//
+/*!
+ * Prepare input values for the shared quadratic intersection solver.
+ */
+CELER_FUNCTION auto Sphere::calc_intersection_quadratic(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
+    -> detail::QuadraticIntersectionInput
+{
+    Real3 const tpos{
+        pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
+    real_type const half_b = dot_product(tpos, dir);
+    real_type const c = dot_product(tpos, tpos) - radius_sq_;
+    return {1, half_b, c, on_surface};
 }
 
 //---------------------------------------------------------------------------//
@@ -159,8 +184,18 @@ CELER_FUNCTION auto Sphere::calc_intersections(
  */
 CELER_FUNCTION Real3 Sphere::calc_normal(Real3 const& pos) const
 {
-    return make_unit_vector(
-        Real3{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]});
+    return make_unit_vector(this->calc_gradient(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FUNCTION Real3 Sphere::calc_gradient(Real3 const& pos) const
+{
+    return {2 * (pos[0] - origin_[0]),
+            2 * (pos[1] - origin_[1]),
+            2 * (pos[2] - origin_[2])};
 }
 
 //---------------------------------------------------------------------------//
