@@ -103,7 +103,7 @@ class ProtoConstructor
     // Get the alignment for an LV, if applicable
     Alignment const* find_alignment(LogicalVolume const&);
 
-    // Find a rotation shared by the plurality of an LV's daughters
+    // Find a rotation shared by the majority of an LV's daughters
     std::optional<SquareMatrixReal3> find_common_rotation(
         LogicalVolume const&) const;
 

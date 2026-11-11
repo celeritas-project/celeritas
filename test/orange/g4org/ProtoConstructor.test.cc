@@ -1141,6 +1141,12 @@ TEST_F(TiltedWiresTest, fraction_errors)
     opts_.align_daughter_fraction = 0;
     EXPECT_THROW(this->load("tilted-wires"), RuntimeError);
 
+    opts_.align_daughter_fraction = 0.25;
+    EXPECT_THROW(this->load("tilted-wires"), RuntimeError);
+
+    opts_.align_daughter_fraction = 0.5;
+    EXPECT_THROW(this->load("tilted-wires"), RuntimeError);
+
     opts_.align_daughter_fraction = 1.5;
     EXPECT_THROW(this->load("tilted-wires"), RuntimeError);
 }

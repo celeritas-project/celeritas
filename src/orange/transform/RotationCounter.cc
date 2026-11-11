@@ -44,7 +44,9 @@ void RotationCounter::count(VariantTransform const& transform)
  *
  * If there is a tie, the rotation returned is whichever \c std::max_element
  * encounters first in the hash map's iteration order, which is not
- * guaranteed to be consistent across multiple platforms.
+ * guaranteed to be consistent across multiple platforms. Therefore, client
+ * code should only use rotations when the constitute of a majority, i.e.,
+ * > 0.5 of all transforms.
  */
 auto RotationCounter::calc_most_common() const -> Results
 {

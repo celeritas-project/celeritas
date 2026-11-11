@@ -113,7 +113,7 @@ struct OrangeGeoFromGeant : public OrangeGeoFromCsg
     unsigned int align_daughter_threshold{10};
 
     //! Fraction of daughters that must share a rotation to automatically
-    //! align an LV
+    //! align an LV. Must be > 0.5.
     double align_daughter_fraction{0.8};
 
     //!@}

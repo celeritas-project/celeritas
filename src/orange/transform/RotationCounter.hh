@@ -21,7 +21,7 @@ namespace celeritas
  * Find the most common rotation among set of transformations.
  *
  * The most common rotation is used for universe alignment, such that an LV
- * is oriented with the plurality of it's daughters axis-aligned. Rotations are
+ * is oriented with the majority of it's daughters axis-aligned. Rotations are
  * hashed based on their exact values; there is no notion of soft equivalence.
  *
  * \todo Merge rotations that are soft equal (see similar todo in

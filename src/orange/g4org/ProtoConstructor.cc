@@ -72,10 +72,11 @@ ProtoConstructor::ProtoConstructor(VolumeParams const& vols,
     : volumes_{vols}, opts_{options}
 {
     CELER_EXPECT(opts_.tol);
-    CELER_VALIDATE(opts_.align_daughter_fraction > 0
+    CELER_VALIDATE(opts_.align_daughter_fraction > 0.5
                        && opts_.align_daughter_fraction <= 1,
                    << "invalid daughter alignment fraction "
-                   << opts_.align_daughter_fraction << " [must be in (0, 1]]");
+                   << opts_.align_daughter_fraction
+                   << " [must be in (0.5, 1]]");
 
     for (auto const& [name, rot] : opts_.universe_alignment)
     {
@@ -224,7 +225,7 @@ auto ProtoConstructor::find_alignment(LogicalVolume const& lv)
 
 //---------------------------------------------------------------------------//
 /*!
- * Find a rotation shared by the plurality of an LV's daughters.
+ * Find a rotation shared by the majority of an LV's daughters.
  *
  * The volume must have at least \c align_daughter_threshold daughters, and at
  * least the fraction \c align_daughter_fraction of them must have the same
