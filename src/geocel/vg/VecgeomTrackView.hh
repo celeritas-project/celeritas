@@ -18,8 +18,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/BumpPosition.hh"
 #include "geocel/Types.hh"
@@ -101,13 +103,13 @@ class VecgeomTrackView
     //! truncated by floating point roundoff far from the origin
     static CELER_CONSTEXPR_FUNCTION real_type rel_extra_push()
     {
-        return real_type{1e-13};
+        return max(real_type{1e-13}, 4 * numeric_limits<real_type>::epsilon());
     }
 
     //! Maximum push: VecGeom's own boundary push on each step
     static CELER_CONSTEXPR_FUNCTION real_type max_extra_push()
     {
-        return real_type{1e-8} * lengthunits::centimeter;
+        return real_type(10 * vecgeom::kTolerance) * lengthunits::centimeter;
     }
 
     //// ACCESSORS ////
@@ -434,7 +436,9 @@ CELER_FUNCTION Real3 VecgeomTrackView::normal() const
  * A fixed push is lost to roundoff far from the origin (e.g., 1e-13 cm is
  * below one ULP for coordinates beyond ~512 cm), so a zero-length boundary
  * step would not move the track and it could be relocated into the same
- * state forever. The push is capped at VecGeom's own boundary push.
+ * state forever. The relative push is at least a few machine epsilons so that
+ * it is resolvable in single precision, and the push is capped at VecGeom's
+ * own boundary push for its precision.
  */
 CELER_FUNCTION real_type VecgeomTrackView::push_distance() const
 {
