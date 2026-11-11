@@ -275,7 +275,7 @@ CELER_FUNCTION auto Toroid::calc_gradient(Real3 const& pos) const -> Real3
     auto [x0, y0, z0] = pos - origin_;
 
     real_type const rho_sq = sq(x0) + sq(y0);
-    real_type const scale_z = sq(a_) / sq(b_);
+    real_type const scale_z = sq(a_ / b_);
     real_type const q = rho_sq + scale_z * sq(z0) + (sq(r_) - sq(a_));
     real_type const common = 4 * (q - 2 * sq(r_));
     return {common * x0, common * y0, 4 * scale_z * q * z0};

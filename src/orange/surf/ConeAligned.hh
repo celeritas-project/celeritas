@@ -232,20 +232,9 @@ CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
 template<Axis T>
 CELER_FUNCTION Real3 ConeAligned<T>::calc_gradient(Real3 const& pos) const
 {
-    real_type const x = pos[to_int(T)] - origin_[to_int(T)];
-    real_type const y = pos[to_int(U)] - origin_[to_int(U)];
-    real_type const z = pos[to_int(V)] - origin_[to_int(V)];
-
-    Real3 norm;
-    for (auto i = to_int(Axis::x); i < to_int(Axis::size_); ++i)
-    {
-        norm[i] = pos[i] - origin_[i];
-    }
-    norm[to_int(T)] = -tsq_ * x;
-    norm[to_int(U)] = y;
-    norm[to_int(V)] = z;
-
-    return norm;
+    // Calculate the position relative to the origin of the quadric
+    auto rpos = [&](Axis ax) { return pos[to_int(ax)] - origin_[to_int(ax)]; };
+    return {-tsq_ * rpos(T), rpos(U), rpos(V)};
 }
 
 //---------------------------------------------------------------------------//

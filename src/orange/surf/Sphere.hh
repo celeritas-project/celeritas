@@ -11,6 +11,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/Types.hh"
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
@@ -140,10 +141,11 @@ CELER_FUNCTION SignedSense Sphere::calc_sense(Real3 const& pos) const
  */
 CELER_FUNCTION real_type Sphere::calc_value(Real3 const& pos) const
 {
-    Real3 const tpos{
-        pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
-
-    return dot_product(tpos, tpos) - radius_sq_;
+    // Calculate the position relative to the origin of the quadric
+    auto rpos_sq = [&](Axis ax) {
+        return ipow<2>(pos[to_int(ax)] - origin_[to_int(ax)]);
+    };
+    return rpos_sq(Axis::x) + rpos_sq(Axis::y) + rpos_sq(Axis::z) - radius_sq_;
 }
 
 //---------------------------------------------------------------------------//
