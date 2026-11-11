@@ -1,0 +1,22 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# This file is copied into the top-level directory of Celeritas by the
+# build-docs CI jobs (see `.github/workflows/build-docs.yml`) to provide a
+# pinned Doxygen. Other documentation dependencies come from apt and pip.
+#-----------------------------------------------------------------------------#
+
+spack:
+  include:
+    - reqs-celer.yaml
+    - reqs-ci.yaml
+    - prefs-hep-nogui.yaml
+    - ext-ubuntu26.yaml
+
+  specs:
+    # NOTE: the system Doxygen 1.15.0 on Ubuntu 26.04 fails to match
+    # out-of-line definitions with trailing return types to overloaded members
+    # ("no matching class member found"); versions before 1.14 conflict with
+    # the LLVM 19+ compilers used in CI.
+    - doxygen@1.17.0

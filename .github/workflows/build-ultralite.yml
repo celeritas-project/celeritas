@@ -26,7 +26,7 @@ jobs:
       matrix:
         platform: ["ubuntu", "windows"]
     runs-on: >-
-      ${{  matrix.platform == 'ubuntu' && 'ubuntu-24.04'
+      ${{  matrix.platform == 'ubuntu' && 'ubuntu-26.04'
         || matrix.platform == 'windows' && 'windows-2025'
       }}
     steps:

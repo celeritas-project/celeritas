@@ -63,6 +63,6 @@ packages:
       - generator=ninja
   # Compilers
   c:
-    require: "llvm@18"
+    require: "llvm@22"
   cxx:
-    require: "llvm@18"
+    require: "llvm@22"

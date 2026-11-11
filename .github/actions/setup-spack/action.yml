@@ -49,7 +49,7 @@ runs:
           echo "SPACK_ROOT=$SPACK_ROOT"
         } >> "$GITHUB_ENV"
         {
-          echo "BASE_IMAGE=ubuntu:24.04"
+          echo "BASE_IMAGE=ubuntu:26.04"
           echo "BUILDCACHE=celeritas"
           echo "SPACK_PACKAGES_ROOT=$GITHUB_WORKSPACE/spack-pkg"
         } >> "$GITHUB_OUTPUT"
@@ -120,6 +120,8 @@ runs:
       id: concretize
       shell: sh
       working-directory: ${{env.CELER_SPACK_ENV}}
+      env:
+        CXXSTD: ${{inputs.cxxstd}}
       run: |
         # Bootstrap before concretize so that the buildcache state is kept
         echo "::group::Bootstrapping spack"
