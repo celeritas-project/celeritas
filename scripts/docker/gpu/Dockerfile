@@ -21,12 +21,15 @@ LABEL description="Celeritas GPU prerequisites built with Spack"
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8
 
+# Extra GPU toolkit packages (e.g. ROCm libraries used by Celeritas)
+ARG GPU_APT_PACKAGES=""
+
 # System externals must match the versions in scripts/spack/ext-ubuntu24.yaml
 RUN apt-get -qq update \
  && apt-get -qq install -y --no-install-recommends \
     autoconf bash build-essential bzip2 ca-certificates curl file flex \
     gfortran git gzip libfl-dev m4 make patch perl python3 tar unzip \
-    xz-utils zstd \
+    xz-utils zstd ${GPU_APT_PACKAGES} \
  && rm -rf /var/lib/apt/lists/* \
  && git config --system --add safe.directory '*'
 
@@ -103,12 +106,14 @@ LABEL description="Celeritas GPU CI build"
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8
 
+ARG GPU_APT_PACKAGES=""
+
 # Spack externals (compilers, perl, git) and tools for the CI actions
 # (gnupg is used by the codecov uploader)
 RUN apt-get -qq update \
  && apt-get -qq install -y --no-install-recommends \
     bash build-essential ca-certificates curl file git gnupg \
-    libc6-dbg perl python3 python3-pip ssh vim zstd \
+    libc6-dbg perl python3 python3-pip ssh vim zstd ${GPU_APT_PACKAGES} \
  && rm -rf /var/lib/apt/lists/* \
  && git config --system --add safe.directory '*'
 

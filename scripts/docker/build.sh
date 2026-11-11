@@ -40,8 +40,9 @@ case ${CONFIG} in
     BASE_IMAGE=docker.io/nvidia/cuda:13.4.1-devel-ubuntu24.04
     ;;
   ubuntu-rocm7)
-    # The "complete" image provides the rocrand/rocthrust/hipcub libraries
-    BASE_IMAGE=docker.io/rocm/dev-ubuntu-24.04:7.2.3-complete
+    BASE_IMAGE=docker.io/rocm/dev-ubuntu-24.04:7.2.3
+    # Only the libraries Celeritas uses: the "complete" image is 6 GB larger
+    GPU_APT_PACKAGES="hipcub-dev hiprand-dev rocprim-dev rocrand-dev rocthrust-dev roctracer-dev"
     ;;
   *)
     log error "invalid configuration: ${CONFIG}"
@@ -56,6 +57,7 @@ build() {
   ${BUILD} \
     --build-arg BASE_IMAGE="${BASE_IMAGE}" \
     --build-arg CONFIG="${CONFIG}" \
+    --build-arg GPU_APT_PACKAGES="${GPU_APT_PACKAGES}" \
     --build-arg SPACK_INSTALL_ARGS="${SPACK_INSTALL_ARGS}" \
     --build-arg SPACK_REPO="${SPACK_REPO}" \
     --build-arg SPACK_REF="${SPACK_REF}" \
