@@ -116,6 +116,8 @@ runs:
       id: concretize
       shell: sh
       working-directory: ${{env.CELER_SPACK_ENV}}
+      env:
+        CXXSTD: ${{inputs.cxxstd}}
       run: |
         # Bootstrap before concretize so that the buildcache state is kept
         echo "::group::Bootstrapping spack"
