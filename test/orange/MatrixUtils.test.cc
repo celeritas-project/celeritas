@@ -216,7 +216,7 @@ TEST_F(MatrixUtilsTest, is_signed_permutation)
 
     // Multiple entries in a row
     Mat3 multiple{Real3{1, 0, 0}, Real3{1, 1, 0}, Real3{0, 0, 1}};
-    EXPECT_FALSE(is_signed_permutation(repeated, tol));
+    EXPECT_FALSE(is_signed_permutation(multiple, tol));
 }
 
 //---------------------------------------------------------------------------//
