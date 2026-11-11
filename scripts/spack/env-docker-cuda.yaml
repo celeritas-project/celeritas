@@ -2,22 +2,25 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# Spack environment for the CUDA docker image: see scripts/docker/build.sh.
-# The included files are copied from scripts/spack, except ext-gpu.yaml which
-# is written by write-gpu-externals.sh.
+# Spack environment for the CUDA docker image: see scripts/docker/README.md.
+# ext-gpu.yaml is written in the image by scripts/docker/gpu/write-gpu-externals.sh.
 #-----------------------------------------------------------------------------#
 
 spack:
   include:
     - reqs-celer.yaml
+    - reqs-docker.yaml
+    - prefs-build.yaml
     - prefs-hep-nogui.yaml
     - ext-ubuntu24.yaml
     - ext-gpu.yaml
 
   specs:
+    - ccache
     - cli11
     - cmake
     - covfie
+    - cub
     - g4vg
     - "geant4@11.3"
     - googletest
@@ -28,53 +31,17 @@ spack:
     - openmpi
     - py-gcovr # coverage reports in build-codecov
     - root
+    - thrust
     - "vecgeom@2.2:"
-
-  concretizer:
-    unify: true
-    targets:
-      granularity: generic
-      host_compatible: true
 
   packages:
     all:
       prefer:
         - "cxxstd=20"
-    # Build everything with the system GCC, which nvcc uses as host compiler
-    c:
-      require: gcc
-    cxx:
-      require: gcc
-    fortran:
-      require: gcc
     # Keep in sync with the CUDA architecture of scripts/cmake-presets/ci-ubuntu-cuda.json
     covfie:
       require:
         - "+cuda cuda_arch=80"
-      variants:
-        - generator=ninja
-    geant4:
-      variants:
-        - generator=ninja
-    g4vg:
-      variants:
-        - generator=ninja
-    root:
-      variants:
-        - generator=ninja
     vecgeom:
       require:
         - "+cuda cuda_arch=80"
-      variants:
-        - generator=ninja
-
-  config:
-    install_tree:
-      root: /opt/software
-  view:
-    default:
-      root: /opt/view
-      # The system compiler provides the GCC runtime libraries: linking the
-      # spack copies into the view makes CMake warn that they may hide them
-      exclude:
-        - gcc-runtime

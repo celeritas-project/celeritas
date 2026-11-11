@@ -6,39 +6,40 @@ The `gpu` subdirectory builds CUDA and ROCm images for the `build-docker` and
 `build-codecov` workflows. They install Celeritas dependencies with
 [Spack](https://github.com/spack/spack), using the Spack and spack-packages
 commits pinned in `.github/actions/setup-spack/action.yml` and the shared
-configuration in `scripts/spack` (`reqs-celer.yaml`, `prefs-hep-nogui.yaml`,
-`ext-ubuntu24.yaml`). The multi-stage `gpu/Dockerfile` has two targets:
+configuration in `scripts/spack`. The multi-stage `gpu/Dockerfile` has two targets:
 - `dev`, which keeps Spack and the environment in `/opt/spack-environment`; and
 - `ci`, which only copies the installed software (`/opt/software`,
   `/opt/view`) onto the base image, so CI downloads less.
 
-There are two image configurations:
-- `ubuntu-cuda13`: Ubuntu 24.04 with CUDA 13.4 (`sm_80`), including VecGeom 2
-  with CUDA.
-- `ubuntu-rocm7`: Ubuntu 24.04 with ROCm 7.2 (`gfx90a`), without VecGeom.
+There are two image configurations, both based on Ubuntu 24.04:
+- `cuda`: CUDA 13.4 (`sm_80`), including VecGeom 2 with CUDA.
+- `rocm`: ROCm 7.2 (`gfx90a`), without VecGeom.
 
-The Spack environments are `gpu/<config>.yaml`. The CUDA or ROCm toolkit of
-the base image is added as an external by `gpu/write-gpu-externals.sh`, so its
-version is set only by the base image tag in `build.sh`. Keep the GPU
-architectures in the environments consistent with
-`scripts/cmake-presets/ci-ubuntu-{cuda,rocm}.json`.
+The Spack environments are `scripts/spack/env-docker-<config>.yaml`, which
+share `reqs-docker.yaml` (install tree, view, and system GCC). The CUDA or ROCm
+toolkit and libraries of the base image are added as externals by
+`gpu/write-gpu-externals.sh`, so their version is set only by the base image
+tag in `build.sh`. Keep the GPU architectures in the environments consistent
+with `scripts/cmake-presets/ci-ubuntu-{cuda,rocm}.json`.
 
 ### Building
 
-Run `build.sh` with a configuration name, or `cuda` or `rocm` as
-shortcuts. It builds the `dev` and `ci` targets, tags them
-`celeritas/{dev,ci}-<config>:<date>`, and prints the command to push the CI
-image (set `PUSH=1` to push it directly). After pushing, update the
+Run `build.sh cuda` or `build.sh rocm`. It builds the `dev` and `ci` targets,
+tags them `ghcr.io/celeritas-project/{dev,ci}-<config>:<date>` (set `REGISTRY`
+to change the prefix), and prints the command to push the CI image (set
+`PUSH=1` to push it directly). After pushing, update the
 image tags in `.github/workflows/build-docker.yml` and `build-codecov.yml`.
 Like the buildcache image, the build uses the container engine in
 `_container.sh` and needs an `x86_64_v3` (AVX2) Linux host: CPU emulation is
 far too slow to build these dependencies.
 
-If the push fails, you may have to log in with your `docker.io`
-credentials first:
+Pushing requires a GitHub personal access token (classic) with the
+`write:packages` scope, authorized for the `celeritas-project` organization:
 ```console
-$ docker login -u <username>
+$ docker login ghcr.io -u <username>
 ```
+A newly created package is private: make it public in its GitHub package
+settings so that CI can pull it.
 
 After changing the Spack pins in the setup-spack action, rebuild the images so
 that the GPU and CPU CI use the same package recipes.
@@ -49,10 +50,10 @@ To run the CI image with your local Celeritas source directory mounted:
 ```console
 $ docker run --rm -ti -e "TERM=xterm-256color" \
     -v ${SOURCE}:/src -w /src \
-    celeritas/ci-ubuntu-cuda13:${DATE}
+    ghcr.io/celeritas-project/ci-cuda:${DATE}
 ```
 where `${SOURCE}` is your local Celeritas source directory and `${DATE}` is the
-date stamp of the desired image (or use the local tag `ci-ubuntu-cuda13` if you
+date stamp of the desired image (or use the local tag `ci-cuda` if you
 just built it). The `--rm` option deletes the container state, including any
 build, when you exit. Inside the container, configure with the CI presets:
 ```console

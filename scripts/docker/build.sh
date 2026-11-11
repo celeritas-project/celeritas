@@ -4,15 +4,16 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 # Build the GPU development and CI images with the Spack revisions pinned by
-# .github/actions/setup-spack and tag them with the date. The CI image is
-# pushed only if PUSH=1 is set. SPACK_INSTALL_ARGS (e.g. "-p 8 -j 32") is
+# .github/actions/setup-spack and tag them with the date in REGISTRY
+# (default: ghcr.io/celeritas-project). The CI image is pushed only if PUSH=1
+# is set. SPACK_INSTALL_ARGS (e.g. "-p 8 -j 32") is
 # passed to 'spack install'.
 # Additional arguments are passed to each build command, e.g. --no-cache.
 # See scripts/docker/_container.sh for the container engine selection.
 #-----------------------------------------------------------------------------#
 
 if [ -z "$1" ]; then
-  echo "usage: $0 {cuda|rocm|ubuntu-cuda13|ubuntu-rocm7} [build args...]" >&2
+  echo "usage: $0 {cuda|rocm} [build args...]" >&2
   exit 2
 fi
 CONFIG=$1
@@ -23,23 +24,14 @@ CELER_SOURCE_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 
 . "${SCRIPT_DIR}/_container.sh"
 
-case ${CONFIG} in
-  cuda )
-    CONFIG=ubuntu-cuda13
-    ;;
-  rocm )
-    CONFIG=ubuntu-rocm7
-    ;;
-esac
-
 # Use the newest toolkit versions known to the pinned spack-packages.
 # When updating a base image, also update the versions listed in README.md
 # and the image tags in .github/workflows/build-{docker,codecov}.yml
 case ${CONFIG} in
-  ubuntu-cuda13)
+  cuda)
     BASE_IMAGE=docker.io/nvidia/cuda:13.4.1-devel-ubuntu24.04
     ;;
-  ubuntu-rocm7)
+  rocm)
     BASE_IMAGE=docker.io/rocm/dev-ubuntu-24.04:7.2.3
     # Only the libraries Celeritas uses: the "complete" image is 6 GB larger
     GPU_APT_PACKAGES="hipcub-dev hiprand-dev rocprim-dev rocrand-dev rocthrust-dev roctracer-dev"
@@ -76,11 +68,13 @@ build ci "$@"
 
 # Use UTC so the tag does not depend on the build host's time zone
 DATE=$(date -u '+%Y-%m-%d')
-${CONTAINER_EXE} tag "dev-${CONFIG}" "celeritas/dev-${CONFIG}:${DATE}"
-${CONTAINER_EXE} tag "ci-${CONFIG}" "celeritas/ci-${CONFIG}:${DATE}"
+REGISTRY=${REGISTRY:-ghcr.io/celeritas-project}
+CI_IMAGE="${REGISTRY}/ci-${CONFIG}:${DATE}"
+${CONTAINER_EXE} tag "dev-${CONFIG}" "${REGISTRY}/dev-${CONFIG}:${DATE}"
+${CONTAINER_EXE} tag "ci-${CONFIG}" "${CI_IMAGE}"
 if [ "${PUSH}" = 1 ]; then
-  ${CONTAINER_EXE} push "celeritas/ci-${CONFIG}:${DATE}"
+  ${CONTAINER_EXE} push "${CI_IMAGE}"
 else
-  log info "Built celeritas/ci-${CONFIG}:${DATE}: to publish it, run"
-  log info "  ${CONTAINER_EXE} push celeritas/ci-${CONFIG}:${DATE}"
+  log info "Built ${CI_IMAGE}: to publish it, run"
+  log info "  ${CONTAINER_EXE} push ${CI_IMAGE}"
 fi

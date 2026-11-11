@@ -49,36 +49,39 @@ ENV SPACK_ROOT=/opt/spack \
 
 # Check out the pinned revisions, use the pinned package repository instead
 # of letting Spack clone its own, and bootstrap the concretizer
-RUN if [ -z "${SPACK_REF}" ] || [ -z "${SPACK_PACKAGES_REF}" ]; then \
-      echo "error: SPACK_REF and SPACK_PACKAGES_REF build args are required:" \
-           "use scripts/docker/build.sh" >&2 ; \
-      exit 1 ; \
-    fi \
- && for pin in "${SPACK_ROOT} ${SPACK_REPO} ${SPACK_REF}" \
-               "${SPACK_PACKAGES_ROOT} ${SPACK_PACKAGES_REPO} ${SPACK_PACKAGES_REF}"; do \
-      set -- ${pin} \
-      && git init -q "$1" \
-      && git -C "$1" fetch -q --depth 1 "https://github.com/$2.git" "$3" \
-      && git -C "$1" checkout -q --detach FETCH_HEAD \
-      || exit 1 ; \
-    done \
- && spack repo set --destination "${SPACK_PACKAGES_ROOT}" builtin \
- && spack bootstrap now
+RUN <<'EOF'
+set -e
+if [ -z "${SPACK_REF}" ] || [ -z "${SPACK_PACKAGES_REF}" ]; then
+  echo "error: SPACK_REF and SPACK_PACKAGES_REF build args are required:" \
+       "use scripts/docker/build.sh" >&2
+  exit 1
+fi
+checkout() {
+  git init -q "$1"
+  git -C "$1" fetch -q --depth 1 "https://github.com/$2.git" "$3"
+  git -C "$1" checkout -q --detach FETCH_HEAD
+}
+checkout "${SPACK_ROOT}" "${SPACK_REPO}" "${SPACK_REF}"
+checkout "${SPACK_PACKAGES_ROOT}" "${SPACK_PACKAGES_REPO}" "${SPACK_PACKAGES_REF}"
+spack repo set --destination "${SPACK_PACKAGES_ROOT}" builtin
+spack bootstrap now
+EOF
 
-# Shared Celeritas requirements and runner externals
+# Environment and shared configuration from scripts/spack
 WORKDIR /opt/spack-environment
+ARG CONFIG
 COPY --from=spack-config \
-     reqs-celer.yaml prefs-hep-nogui.yaml ext-ubuntu24.yaml ./
+     reqs-celer.yaml reqs-docker.yaml prefs-build.yaml prefs-hep-nogui.yaml \
+     ext-ubuntu24.yaml ./
+COPY --from=spack-config env-docker-${CONFIG}.yaml spack.yaml
 
 # GPU toolkit externals, read from the base image installation
 COPY write-gpu-externals.sh /opt/docker/
 RUN /opt/docker/write-gpu-externals.sh > ext-gpu.yaml \
  && cat ext-gpu.yaml
 
-ARG CONFIG
 # Extra install options, e.g. "-p 8 -j 32" for concurrent package builds
 ARG SPACK_INSTALL_ARGS=""
-COPY ${CONFIG}.yaml spack.yaml
 RUN spack -e . concretize --fresh \
  && spack -e . install --fail-fast ${SPACK_INSTALL_ARGS}
 
@@ -90,11 +93,13 @@ ENTRYPOINT ["/opt/docker/entrypoint.bash"]
 CMD ["bash", "-l"]
 
 #-----------------------------------------------------------------------------#
-# Remove build-only dependencies before copying into the CI image
+# Remove build-only dependencies and Spack metadata (the build logs and specs
+# of each installation, and the database) before copying into the CI image
 #-----------------------------------------------------------------------------#
 FROM dev AS export
 
-RUN spack -e /opt/spack-environment gc -y
+RUN spack -e /opt/spack-environment gc -y \
+ && find /opt/software /opt/view/ -name '.spack*' -prune -exec rm -rf {} +
 
 #-----------------------------------------------------------------------------#
 # CI image: base toolkit image plus the installed Spack environment
