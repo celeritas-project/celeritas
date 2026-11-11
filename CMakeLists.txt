@@ -493,6 +493,24 @@ elseif(CELERITAS_USE_HIP)
       OFF
     )
   endif()
+
+  # Clang treats deduction guides as host+device only since LLVM PR #168711,
+  # which some "Clang 22" ROCm compilers (e.g. ROCm 7.2) do not include:
+  # check whether guides must be annotated (see CELER_CTAD_FUNCTION)
+  set(_saved_try_type "${CMAKE_TRY_COMPILE_TARGET_TYPE}")
+  set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+  try_compile(CELERITAS_TRY_HIP_CTAD
+    # NOTE: the line below is required for CMake < 3.25
+    "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeScratch/hipctad"
+    SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-hip-ctad.hip"
+  )
+  set(CMAKE_TRY_COMPILE_TARGET_TYPE "${_saved_try_type}")
+  if(CELERITAS_TRY_HIP_CTAD)
+    set(CELERITAS_HIP_ANNOTATE_CTAD OFF)
+  else()
+    set(CELERITAS_HIP_ANNOTATE_CTAD ON)
+  endif()
+  message(STATUS "Annotate HIP deduction guides: ${CELERITAS_HIP_ANNOTATE_CTAD}")
 endif()
 # Unconditionally set availability for downstream configuration
 foreach(_pkg IN ITEMS CUB Thrust hipcub hiprand rocthrust roctracer)
