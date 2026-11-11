@@ -4,6 +4,9 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Mie.test.cc
 //---------------------------------------------------------------------------//
+#include <algorithm>
+#include <utility>
+
 #include "corecel/io/Repr.hh"
 #include "corecel/random/Histogram.hh"
 #include "corecel/random/HistogramSampler.hh"
@@ -131,23 +134,33 @@ TEST_F(MieTest, stress_test)
 {
     constexpr size_type num_samples = 1'000'000;
     auto& rng_engine = this->InteractorHostBase::rng();
-    this->set_inc_polarization({0, 1, 0});
 
     // The scattering angle is relative to the incident direction, so the
-    // distributions must not depend on which way the photon was travelling
-    for (Real3 const& inc_dir : {Real3{0, 0, 1}, Real3{1, 0, 0}})
+    // distributions must not depend on which way the photon was travelling:
+    // +z, where the frame rotation is the identity, and an oblique direction
+    // with no zero component
+    Real3 const oblique = make_unit_vector(Real3{1, 2, 3});
+    Real3 const oblique_pol = make_unit_vector(Real3{2, -1, 0});
+    for (auto const& [inc_dir, inc_pol] :
+         {std::pair{Real3{0, 0, 1}, Real3{0, 1, 0}},
+          std::pair{oblique, oblique_pol}})
     {
         SCOPED_TRACE(repr(inc_dir));
+        this->set_inc_polarization(inc_pol);
         MieInteractor interact(
             data_, this->particle_track(), inc_dir, material_id_);
 
         Histogram accum_dir{8, {-1, 1}};
         Histogram accum_pol{8, {-1, 1}};
+        // Rounding can put the cosine of an oblique pair just past 1
+        auto cosine = [](Real3 const& a, Real3 const& b) {
+            return std::clamp(dot_product(a, b), real_type{-1}, real_type{1});
+        };
         accumulate_n(
             [&](auto&& result) {
-                accum_dir(dot_product(result.direction, inc_dir));
-                accum_pol(dot_product(result.polarization,
-                                      this->particle_track().polarization()));
+                accum_dir(cosine(result.direction, inc_dir));
+                accum_pol(cosine(result.polarization,
+                                 this->particle_track().polarization()));
             },
             interact,
             rng_engine,
