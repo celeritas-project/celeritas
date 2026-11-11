@@ -76,7 +76,7 @@ jobs:
       CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
     runs-on: ubuntu-24.04
     container:
-      image: docker.io/celeritas/ci-ubuntu-cuda13:2026-11-10
+      image: docker.io/celeritas/ci-ubuntu-cuda13:2026-11-11
     steps:
       - name: Set up environment
         run: |

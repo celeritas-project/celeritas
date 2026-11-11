@@ -49,8 +49,8 @@ jobs:
     container:
       image: >-
         docker.io/celeritas/${{
-             matrix.image == 'ubuntu-cuda' && 'ci-ubuntu-cuda13:2026-11-10'
-          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm7:2026-11-10'
+             matrix.image == 'ubuntu-cuda' && 'ci-ubuntu-cuda13:2026-11-11'
+          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm7:2026-11-11'
         }}
     steps:
       - name: Set up environment
