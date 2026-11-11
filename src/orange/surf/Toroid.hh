@@ -19,11 +19,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Z-aligned Elliptical Toroid.
+ * Z-centered elliptical toroid.
  *
  * An elliptical toroid is a shape created by revolving an axis-aligned ellipse
  * around a central axis. This shape can be used in everything from pipe bends
- * to tokamaks in fusion reactors. It possesses a major radius \em r, and
+ * to tokamaks in fusion reactors.
+ * It is parameterized by a major radius \em r and
  * ellipse radii \em a and \em b, as shown in the below diagram:
  *
  * \verbatim
@@ -38,11 +39,11 @@ namespace celeritas
 
    \endverbatim
  *
- * This torus can be defined with the following quartic equation:
+ * This torus is defined by the following quartic equation:
  * \f[
- *   (x^2 + y^2 + p*z^2 + B_0)^2 - 4 r^2 * (x^2 + y^2) = 0
+ *   \left( x^2 + y^2 + \frac{a^2}{b^2} z^2 + r^2 - a^2 \right)^2
+     - 4 r^2 (x^2 + y^2) = 0 \,.
  * \f]
- * where \f$p = a^2/b^2 \f$, \f$A_0 = 4 r^2 \f$, and \f$ B_0 = (r^2-a^2)\f$.
  *
  * The intersection is calculated using an algorithm from
  * \cite{arvo-graphicsgems-1995}.
