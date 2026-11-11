@@ -85,8 +85,8 @@ class UniverseInserter
     // Data being constructed
     CollectionBuilder<UnivType, MemSpace::host, UnivId> types_;
     CollectionBuilder<size_type, MemSpace::host, UnivId> indices_;
-    CollectionBuilder<size_type> surfaces_;
-    CollectionBuilder<size_type> volumes_;
+    CollectionBuilder<SurfId, MemSpace::host, UnivId> surfaces_;
+    CollectionBuilder<VolId, MemSpace::host, UnivId> volumes_;
 
     // Optional data being constructed
     CollectionBuilder<VolumeId, MemSpace::host, ImplVolumeId> volume_ids_;

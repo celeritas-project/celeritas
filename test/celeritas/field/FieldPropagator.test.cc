@@ -1119,6 +1119,37 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(nonuniform_field))
     EXPECT_VEC_EQ(expected_step_counter, step_counter);
 }
 
+// Leave the world from its boundary far from the origin, where the push off a
+// zero-length boundary step is proportional to the position
+TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(far_from_origin))
+{
+    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM
+        || CELERITAS_VECGEOM_VERSION < 0x020000)
+    {
+        GTEST_SKIP() << "Only VecGeom 2 can initialize a track on the world "
+                        "boundary";
+    }
+
+    auto particle = this->make_particle_view(pdg::electron(), MevEnergy{1});
+    UniformZField field(real_type(1 * units::tesla));
+    FieldDriverOptions driver_options;
+
+    auto geo = this->make_geo_track_view({-3, 4, 500}, {0.6, 0, 0.8});
+    EXPECT_EQ("world", this->volume_name(geo));
+    auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
+        field, particle.charge());
+    auto propagate
+        = make_field_propagator(integrate, driver_options, particle, geo);
+    auto result = propagate(1.0);
+    EXPECT_TRUE(result.boundary);
+    // Push is proportional to the position
+    EXPECT_SOFT_EQ(5.0523270844811e-11, result.distance);
+    EXPECT_GT(geo.pos()[2], 500);
+    ASSERT_TRUE(geo.is_on_boundary());
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_outside());
+}
+
 //---------------------------------------------------------------------------//
 
 TEST_F(LayersTest, revolutions_through_layers)

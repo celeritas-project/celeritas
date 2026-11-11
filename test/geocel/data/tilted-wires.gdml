@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<!--
+  This geometry, a simplified version of DUNE, is a 100 cm x 100 cm x 100 cm
+  world cube holding three copies of the same thin plane box (0.2 × 24 × 30 cm)
+  at x = −6, −2, +2, each with four 20 cm copper wire tubes at y = −6, −2, 2, 6:
+
+  - plane_u: all four wires rotated 30 degrees around x
+  - plane_v: three with a −30 degrees rotation and one with a +30 degrees
+    rotation around x
+  - plane_z: no rotation
+-->
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <materials>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <element name="H">
+      <fraction n="1" ref="H1"/>
+    </element>
+    <material name="vacuum" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="H"/>
+    </material>
+    <element name="Cu" formula="Cu" Z="29">
+      <atom unit="g/mole" value="63.546"/>
+    </element>
+    <material name="copper" state="solid">
+      <D unit="g/cm3" value="8.96"/>
+      <fraction n="1" ref="Cu"/>
+    </material>
+  </materials>
+  <solids>
+    <tube lunit="cm" aunit="deg" name="wire_tube" rmin="0" rmax="0.05" z="20" startphi="0" deltaphi="360"/>
+    <box lunit="cm" name="plane_box" x="0.2" y="24" z="30"/>
+    <box lunit="cm" name="world_box" x="100" y="100" z="100"/>
+  </solids>
+  <structure>
+    <volume name="wire">
+      <materialref ref="copper"/>
+      <solidref ref="wire_tube"/>
+    </volume>
+    <volume name="plane_u">
+      <materialref ref="vacuum"/>
+      <solidref ref="plane_box"/>
+      <physvol name="wire_u0">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="-6" z="0"/>
+        <rotation unit="deg" x="30" y="0" z="0"/>
+      </physvol>
+      <physvol name="wire_u1">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="-2" z="0"/>
+        <rotation unit="deg" x="30" y="0" z="0"/>
+      </physvol>
+      <physvol name="wire_u2">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="2" z="0"/>
+        <rotation unit="deg" x="30" y="0" z="0"/>
+      </physvol>
+      <physvol name="wire_u3">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="6" z="0"/>
+        <rotation unit="deg" x="30" y="0" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="plane_v">
+      <materialref ref="vacuum"/>
+      <solidref ref="plane_box"/>
+      <physvol name="wire_v0">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="-6" z="0"/>
+        <rotation unit="deg" x="-30" y="0" z="0"/>
+      </physvol>
+      <physvol name="wire_v1">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="-2" z="0"/>
+        <rotation unit="deg" x="-30" y="0" z="0"/>
+      </physvol>
+      <physvol name="wire_v2">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="2" z="0"/>
+        <rotation unit="deg" x="-30" y="0" z="0"/>
+      </physvol>
+      <physvol name="wire_v3">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="6" z="0"/>
+        <rotation unit="deg" x="30" y="0" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="plane_z">
+      <materialref ref="vacuum"/>
+      <solidref ref="plane_box"/>
+      <physvol name="wire_z0">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="-6" z="0"/>
+      </physvol>
+      <physvol name="wire_z1">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="-2" z="0"/>
+      </physvol>
+      <physvol name="wire_z2">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="2" z="0"/>
+      </physvol>
+      <physvol name="wire_z3">
+        <volumeref ref="wire"/>
+        <position unit="cm" x="0" y="6" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="world">
+      <materialref ref="vacuum"/>
+      <solidref ref="world_box"/>
+      <physvol name="plane_u_pv">
+        <volumeref ref="plane_u"/>
+        <position unit="cm" x="-6" y="0" z="0"/>
+      </physvol>
+      <physvol name="plane_v_pv">
+        <volumeref ref="plane_v"/>
+        <position unit="cm" x="-2" y="0" z="0"/>
+      </physvol>
+      <physvol name="plane_z_pv">
+        <volumeref ref="plane_z"/>
+        <position unit="cm" x="2" y="0" z="0"/>
+      </physvol>
+    </volume>
+  </structure>
+  <setup name="default" version="1.0">
+    <world ref="world"/>
+  </setup>
+</gdml>
