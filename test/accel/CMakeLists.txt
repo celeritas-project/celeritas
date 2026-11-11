@@ -256,5 +256,10 @@ celeritas_add_integration_tests(
   OFFLOAD cpu gpu g4
   ${_optical_args}
 )
+celeritas_add_integration_tests(
+  UserActionIntegration LarSphereGammaScintOffload emission_point
+  OFFLOAD cpu gpu
+  ${_optical_args}
+)
 
 #-----------------------------------------------------------------------------#

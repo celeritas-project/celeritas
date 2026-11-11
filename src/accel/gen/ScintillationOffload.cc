@@ -57,13 +57,7 @@ G4VParticleChange* ScintillationOffload::PostStepDoIt(G4Track const& aTrack,
 
     if (this->GetNumPhotons() > 0)
     {
-        auto data = distribution_from_step(aStep);
-        data.type = GeneratorType::scintillation;
-        data.num_photons = static_cast<size_type>(this->GetNumPhotons());
-        // As in G4Scintillation, photons from a neutral particle's step
-        // (e.g. a gamma's local deposit) are emitted at its end point
-        data.continuous_edep_fraction
-            = (aTrack.GetDefinition()->GetPDGCharge() == 0 ? 0 : 1);
+        auto data = this->MakeDistribution(aTrack, aStep);
 
         // Push generator distribution for this step to offload
         auto& local = detail::IntegrationSingleton::instance().local_offload();
@@ -80,6 +74,25 @@ G4VParticleChange* ScintillationOffload::PostStepDoIt(G4Track const& aTrack,
     }
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Distribution for the photons sampled by the last \c PostStepDoIt.
+ *
+ * As in \c G4Scintillation, photons from a neutral particle's step (e.g. a
+ * gamma's local energy deposit) are emitted at its end point; those from a
+ * charged particle's step are emitted uniformly along it.
+ */
+optical::GeneratorDistributionData ScintillationOffload::MakeDistribution(
+    G4Track const& aTrack, G4Step const& aStep) const
+{
+    auto data = distribution_from_step(aStep);
+    data.type = GeneratorType::scintillation;
+    data.num_photons = static_cast<size_type>(this->GetNumPhotons());
+    data.continuous_edep_fraction
+        = (aTrack.GetDefinition()->GetPDGCharge() == 0 ? 0 : 1);
+    return data;
 }
 
 //---------------------------------------------------------------------------//

@@ -8,6 +8,8 @@
 
 #include <G4Scintillation.hh>
 
+#include "celeritas/optical/gen/GeneratorData.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -31,6 +33,10 @@ class ScintillationOffload : public G4Scintillation
     // Create a generator distribution for the given track and step
     G4VParticleChange* AtRestDoIt(G4Track const& aTrack,
                                   G4Step const& aStep) override;
+
+    // Distribution for the photons sampled by the last PostStepDoIt
+    optical::GeneratorDistributionData MakeDistribution(
+        G4Track const& aTrack, G4Step const& aStep) const;
 };
 
 //---------------------------------------------------------------------------//
