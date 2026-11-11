@@ -40,8 +40,6 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true
       - name: Install dependencies
         run: |
           sudo apt-get -y update

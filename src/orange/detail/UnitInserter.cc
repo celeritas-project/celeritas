@@ -212,57 +212,6 @@ BoundingBoxBumper<fast_real_type, real_type> make_bumper(Tolerance<> const& tol)
     return BoundingBoxBumper<fast_real_type, real_type>(std::move(bbox_tol));
 }
 
-struct ForceMax
-{
-    size_type faces = std::numeric_limits<size_type>::max();
-    size_type intersections = std::numeric_limits<size_type>::max();
-};
-
-static char const mfi_hack_envname[] = "ORANGE_MAX_FACE_INTERSECT";
-
-//---------------------------------------------------------------------------//
-/*!
- * Force maximum faces/intersections.
- *
- * This is if we know the "automatic" value is wrong, specifically if all
- * complicated/background cells are unreachable.
- *
- * See https://github.com/celeritas-project/celeritas/issues/1334 .
- */
-ForceMax const& forced_scalar_max()
-{
-    static ForceMax const result = [] {
-        std::string mfi = celeritas::getenv(mfi_hack_envname);
-        if (mfi.empty())
-        {
-            return ForceMax{};
-        }
-        CELER_LOG(warning)
-            << "Using a temporary, unsupported, and dangerous hack to "
-               "override maximum faces and intersections in ORANGE: "
-            << mfi_hack_envname << "='" << mfi << "'";
-
-        ForceMax result;
-        static std::regex const mfi_regex{R"re(^(\d+),(\d+)$)re"};
-        std::smatch mfi_match;
-        CELER_VALIDATE(std::regex_match(mfi, mfi_match, mfi_regex),
-                       << "invalid pattern for " << mfi_hack_envname);
-        auto get = [](char const* type, auto const& submatch) {
-            auto&& s = submatch.str();
-            auto updated = std::stoi(s);
-            CELER_VALIDATE(updated > 0,
-                           << "invalid maximum " << type << ": " << updated);
-            CELER_LOG(warning)
-                << "Forcing maximum " << type << " to " << updated;
-            return static_cast<size_type>(updated);
-        };
-        result.faces = get("faces", mfi_match[0]);
-        result.intersections = get("intersections", mfi_match[1]);
-        return result;
-    }();
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 std::string to_string(VolumeInput::VariantLabel const& vlabel)
 {
@@ -429,7 +378,6 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe,
     CELER_EXPECT(orange_data->scalars.tol);
 
     // Initialize scalars
-    orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
 }
 
@@ -641,26 +589,8 @@ LocalVolumeRecord UnitInserter::insert_volume(
         output.flags |= LocalVolumeRecord::Flags::simple_safety;
     }
 
-    if (output.max_intersections > forced_scalar_max().intersections
-        || output.faces.size() > forced_scalar_max().faces)
-    {
-        CELER_LOG(warning) << "Max intersections (" << output.max_intersections
-                           << ") and/or faces (" << output.faces.size()
-                           << ") exceed limits of '" << mfi_hack_envname
-                           << " in volume '" << to_string(v.label)
-                           << "': replacing with unreachable volume";
-
-        output.faces = {};
-        auto nowhere = detail::make_nowhere_expr(orange_tracking_logic);
-        output.logic = logic_ints_.insert_back(nowhere.begin(), nowhere.end());
-        output.max_intersections = 0;
-        output.flags = LocalVolumeRecord::implicit_vol
-                       | LocalVolumeRecord::Flags::simple_safety;
-    }
-
     // Update global max faces/intersections/logic
     OrangeParamsScalars& scalars = orange_data_->scalars;
-    inplace_max<size_type>(&scalars.max_faces, output.faces.size());
     inplace_max<size_type>(&scalars.max_intersections,
                            output.max_intersections);
 

@@ -143,7 +143,6 @@ debug@IntegrationTestBase.cc: Environment variables after setup: {
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
@@ -153,8 +152,7 @@ status@LocalTransporter.cc: Executing the first Celeritas stepping loop
 debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 warning@GeantTrackReconstruction.cc: Geant4 track data was not cleared during the event
-debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / number of step iterations exceeded the allowed maximum (1) / LocalTransporter.cc: 'celer.track.push' failed
-critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.track.push)
+critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.track.push): Geant4 error / Celeritas runtime error / number of step iterations exceeded the allowed maximum (1) / LocalTransporter.cc: 'celer.track.push' failed
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Local Celeritas state already finalized on thread 0
@@ -185,7 +183,6 @@ debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
   CELER_DISABLE_SIGNALS: '0',

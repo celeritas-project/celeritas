@@ -40,7 +40,6 @@ void GeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
-    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
@@ -48,19 +47,18 @@ void GeneratorAction::generate(CoreParams const& params,
                                           params.device_ref().cherenkov,
                                           params.device_ref().scintillation,
                                           aux_state.store.ref(),
-                                          aux_state.counters.buffer_size};
+                                          aux_state.device_counters()};
         static ActionLauncher<decltype(execute)> const launch(*this);
-        launch(num_gen, state.stream_id(), execute);
+        launch(state, execute);
     }
     {
         // Update the cumulative sum of the number of photons per distribution
         // according to how many were generated
         detail::UpdateSumExecutor execute{
-            state.ptr(), aux_state.store.ref(), num_gen};
+            state.ptr(), aux_state.store.ref(), aux_state.device_counters()};
         static KernelLauncher<decltype(execute)> const launch_kernel(
             "update-sum");
-        launch_kernel(
-            aux_state.counters.buffer_size, state.stream_id(), execute);
+        launch_kernel(aux_state.buffer_bound(), state.stream_id(), execute);
     }
 }
 

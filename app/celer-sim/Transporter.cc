@@ -214,7 +214,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             << counters.step_iters << " step iterations over "
             << counters.flushes << " flushes";
 
-        auto const& buffer_counts = optical_->buffer_counts(aux);
+        auto const& buffer_counts = optical_->sync_buffer_counts(aux);
         if (!buffer_counts.empty())
         {
             CELER_LOG_LOCAL(warning)

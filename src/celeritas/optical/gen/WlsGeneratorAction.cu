@@ -42,10 +42,9 @@ void WlsGeneratorAction::generate(CoreParams const& params,
         wls_ ? wls_->device_ref() : NativeCRef<WavelengthShiftData>{},
         wls2_ ? wls2_->device_ref() : NativeCRef<WavelengthShiftData>{},
         aux_state.store.ref(),
-        aux_state.counters.buffer_size};
+        aux_state.device_counters()};
     static ActionLauncher<decltype(execute)> const launch(*this);
-    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
-    launch(num_gen, state.stream_id(), execute);
+    launch(state, execute);
 }
 
 //---------------------------------------------------------------------------//

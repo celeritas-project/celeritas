@@ -26,6 +26,10 @@ inputs:
     description: "Packages to build in a separate environment using the cached core specs"
     required: false
     default: ""
+  no-save:
+    description: "Disable saving the ccache after the build (for ephemeral jobs)"
+    required: false
+    default: "${{ github.event.merge_group && true || false }}"
 
 runs:
   using: "composite"
@@ -133,7 +137,10 @@ runs:
         # NOTE that even 'fresh' may try to reuse compilers
         spack -e . -v concretize --fresh --non-defaults
     - name: Cache lockfile
-      if: ${{ steps.concretize.outcome == 'success' }}
+      if: >-
+        ${{ steps.concretize.outcome == 'success'
+            && !fromJSON(inputs.no-save)
+        }}
       uses: actions/cache/save@v6
       with:
         path: ${{env.CELER_SPACK_ENV}}/spack.lock

@@ -51,9 +51,6 @@ jobs:
       - name: Check out Celeritas
         id: celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true
-
       - name: Select VecGeom revision
         id: vecgeom
         env:

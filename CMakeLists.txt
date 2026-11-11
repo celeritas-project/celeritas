@@ -109,13 +109,13 @@ else()
 endif()
 cmake_dependent_option(CELERITAS_TEST_RESOURCE_LOCK
   "Only run one GPU-enabled test at a time" "${_default_lock}"
-  "CELERITAS_BUILD_TESTS" OFF
+  "CELERITAS_ENABLE_TESTING" OFF
 )
 cmake_dependent_option(CELERITAS_TEST_VERBOSE
   "Increase logging level for tests" "${CELERITAS_DEBUG}"
-  "CELERITAS_BUILD_TESTS" OFF
+  "CELERITAS_ENABLE_TESTING" OFF
 )
-if(CELERITAS_BUILD_TESTS)
+if(CELERITAS_ENABLE_TESTING)
   # NOTE: CMake "normalizes" this path by stripping trailing directory
   # separators, so this *must* be a directory.
   set(CELERITAS_TEST_XML "" CACHE PATH
@@ -492,6 +492,29 @@ elseif(CELERITAS_USE_HIP)
       CELERITAS_USE_covfie
       OFF
     )
+  endif()
+
+  # Clang treats deduction guides as host+device only since LLVM PR #168711,
+  # which some "Clang 22" ROCm compilers (e.g. ROCm 7.2) do not include:
+  # check whether guides must be annotated (see CELER_CTAD_FUNCTION)
+  if(NOT DEFINED CELERITAS_HIP_ANNOTATE_CTAD)
+    set(_saved_try_type "${CMAKE_TRY_COMPILE_TARGET_TYPE}")
+    set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+    try_compile(CELERITAS_TRY_HIP_CTAD
+      # NOTE: the line below is required for CMake < 3.25
+      "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeScratch/hipctad"
+      SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-hip-ctad.hip"
+    )
+    set(CMAKE_TRY_COMPILE_TARGET_TYPE "${_saved_try_type}")
+    if(CELERITAS_TRY_HIP_CTAD)
+      set(_annotate OFF)
+    else()
+      set(_annotate ON)
+    endif()
+    set(CELERITAS_HIP_ANNOTATE_CTAD ${_annotate} CACHE INTERNAL
+      "HIP deduction guides need host/device annotations"
+    )
+    message(STATUS "Annotate HIP deduction guides: ${_annotate}")
   endif()
 endif()
 # Unconditionally set availability for downstream configuration

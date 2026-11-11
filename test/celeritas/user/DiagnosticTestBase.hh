@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <memory>
 #include <vector>
 
@@ -23,6 +25,8 @@ class StepDiagnostic;
 
 namespace test
 {
+class AssertionHelper;
+
 //---------------------------------------------------------------------------//
 class DiagnosticTestBase : virtual public SimpleLoopTestBase
 {
@@ -34,11 +38,15 @@ class DiagnosticTestBase : virtual public SimpleLoopTestBase
 
     struct RunResult
     {
+        static constexpr char class_str[] = "RunResult";
+
         std::vector<std::string> nonzero_action_keys;
         std::vector<size_type> nonzero_action_counts;
         std::vector<size_type> steps;
 
-        void print_expected() const;
+        friend std::ostream& operator<<(std::ostream&, RunResult const&);
+        friend bool is_ref_eq(
+            AssertionHelper&, RunResult const&, RunResult const&);
     };
 
   public:
@@ -55,9 +63,6 @@ class DiagnosticTestBase : virtual public SimpleLoopTestBase
 
     // Get JSON output from the step diagnostic
     std::string step_output() const;
-
-    // Print expected results
-    void print_expected() const;
 
   protected:
     std::shared_ptr<ActionDiagnostic> action_diagnostic_;

@@ -47,8 +47,7 @@ SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 [M] debug@IntegrationSingleton.cc: Initializing shared params
-[M!] debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / SetOptions or UI entries were not completely set before BeginRun / IntegrationSingleton.cc: 'celer.init.global' failed
-[M!] critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.init.global)
+[M!] critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.init.global): Geant4 error / Celeritas runtime error / SetOptions or UI entries were not completely set before BeginRun / IntegrationSingleton.cc: 'celer.init.global' failed
 Run is not in progress. AbortRun() ignored.
 [M!] debug@IntegrationSingleton.cc: Skipping local initialization due to failure
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: ActionInitialization::Build

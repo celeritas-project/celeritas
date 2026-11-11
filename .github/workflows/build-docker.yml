@@ -62,8 +62,6 @@ jobs:
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true
 
       # TODO: fix when we update docker images
       - name: Update git config to allow running as root

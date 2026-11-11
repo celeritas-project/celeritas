@@ -15,14 +15,6 @@ on:
     branches:
       - develop
       - backports/**
-    paths-ignore:
-      - "**.rst"
-      - "**.md"
-      - "scripts"
-      - ".jenkins"
-      - "!scripts/cmake-presets/ci*"
-      - "!scripts/ci"
-      - "!scripts/build.sh"
 
 # Only allow one PR action per PR, and cancel old ones when a new one (e.g. new commit)
 # is triggered
