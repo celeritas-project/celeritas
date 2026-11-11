@@ -38,16 +38,12 @@ struct WlsGeneratorExecutor
     NativeCRef<WavelengthShiftData> wls;
     NativeCRef<WavelengthShiftData> wls2;
     NativeRef<WlsGeneratorStateData> data;
-    size_type buffer_size{};
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 
     //// FUNCTIONS ////
 
     // Generate optical photons
-    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
-    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
-    {
-        return (*this)(TrackSlotId{tid.unchecked_get()});
-    }
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -56,18 +52,28 @@ struct WlsGeneratorExecutor
 /*!
  * Generate WLS photons from optical distribution data.
  */
-CELER_FUNCTION void WlsGeneratorExecutor::operator()(TrackSlotId tid) const
+CELER_FUNCTION void WlsGeneratorExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(state);
     CELER_EXPECT(data);
+    CELER_EXPECT(gen_counters);
 
     using DistId = ItemId<WlsDistributionData>;
 
-    auto* counters = state->init.counters.data().get();
+    auto counters = state->init.counters.data();
+    auto const& current = gen_counters->current;
 
-    // Get the cumulative sum of the number of photons in the distributions.
-    // The values are used to determine which threads will generate from the
-    // corresponding distribution
+    // The kernel is launched over all track slots to avoid copying the
+    // counters to the host: skip threads beyond the number of vacancies or
+    // the number of photons left to generate
+    if (!(tid < min(counters->num_vacancies, current.num_pending)))
+    {
+        return;
+    }
+    size_type const buffer_size = current.buffer_size;
+    // Get the cumulative sum of the number of photons in the
+    // distributions. The values are used to determine which threads will
+    // generate from the corresponding distribution
     auto offsets = data.offsets[ItemRange<size_type>(
         ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
 

@@ -15,6 +15,7 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 
 #include "StepInterface.hh"
 
@@ -82,6 +83,31 @@ StepSelection const& StepCollector::selection() const
     CELER_EXPECT(params_);
     return params_->selection();
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the step state stored in a core state's auxiliary data.
+ *
+ * This allows step interfaces to prepare for the state's capacity at setup
+ * time, e.g. to allocate host buffers sized to the scratch space. The memory
+ * space must match the core state's.
+ */
+template<MemSpace M>
+StepStateData<Ownership::reference, M> const& StepCollector::step_state(
+    CoreStateInterface const& core) const
+{
+    CELER_EXPECT(params_);
+    return params_->state_ref<M>(core.aux());
+}
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template StepStateData<Ownership::reference, MemSpace::host> const&
+StepCollector::step_state<MemSpace::host>(CoreStateInterface const&) const;
+template StepStateData<Ownership::reference, MemSpace::device> const&
+StepCollector::step_state<MemSpace::device>(CoreStateInterface const&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

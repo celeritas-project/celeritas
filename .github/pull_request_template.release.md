@@ -21,16 +21,16 @@ Target: upstream/develop (always, even if backporting!)
 ## Post-merge checklist
 
 - [ ] If releasing a backported version branch, cherry-pick this documentation commit into the backport branch.
-- [ ] Use the [release scripts](https://github.com/celeritas-project/release-scripts) to:
-  - Add a text description of the release based on the change set
-  - Draft a new GitHub release
-  - (then, using the GitHub web interface) Publish the release
-  - Draft a zenodo release
-  - (then, using the Zenodo web interface) Publish the zenodo citation
+- Use the [release scripts](https://github.com/celeritas-project/release-scripts) to:
+  - [ ] Add a text description of the release based on the change set
+  - [ ] Tag, compress, hash the source code
+  - [ ] Build and upload the PDF documentation
+  - [ ] Push thee  a new GitHub release
+  - [ ] (then, using the GitHub web interface) Publish the release
+  - [ ] Draft a zenodo release
+  - [ ] (then, using the Zenodo web interface) Publish the zenodo citation
 
 ## Post-release checklist
 
-- [ ] Use the release script to update the archive.
-- [ ] Pull locally (make sure to use the ``--tags`` option) and build PDF user documentation for the release, and upload it. Ensure breathe is activated (so the API is listed) and that the version is embedded correctly.
-- [ ] Update the Spack recipe for Celeritas with the new version and the sha256 value returned by the release script. Submit a [pull request to the Spack project](https://github.com/spack/spack/pull).
+- [ ] Update the Spack recipe for Celeritas with the new version and the sha256 value returned by the release script. Submit a [pull request to the Spack project](https://github.com/spack/spack-packages/pull/).
 - [ ] Mark the GitHub [release milestone](https://github.com/celeritas-project/celeritas/milestones) as completed.

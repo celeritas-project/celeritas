@@ -9,14 +9,12 @@
 #include <utility>
 
 #include "corecel/Macros.hh"
+#include "corecel/SourceFile.hh"
 #include "corecel/io/detail/NullLoggerMessage.hh"
 
 #include "LoggerTypes.hh"
 
 #include "detail/LoggerMessage.hh"  // IWYU pragma: export
-#if CELER_DEVICE_COMPILE
-#    include "detail/NullLoggerMessage.hh"  // IWYU pragma: export
-#endif
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -25,7 +23,7 @@
 #define CELER_CODE_PROVENANCE \
     ::celeritas::LogProvenance \
     { \
-        __FILE__, __LINE__ \
+        CELER_SOURCE_FILE, __LINE__ \
     }
 
 /*!

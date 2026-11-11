@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 
 // Simply include these because SCALE does too :eyeroll:
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/sys/Device.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"

@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ThreadId.hh"
 
 namespace celeritas
 {
@@ -43,6 +44,7 @@ class DisabledStorage
     //! Null-op functions that should never be called
     DisabledStorage() { CELER_ASSERT_UNREACHABLE(); }
     explicit DisabledStorage(size_type) { CELER_ASSERT_UNREACHABLE(); }
+    DisabledStorage(size_type, StreamId) { CELER_ASSERT_UNREACHABLE(); }
     CELER_FORCEINLINE_FUNCTION bool empty() const
     {
         CELER_ASSERT_UNREACHABLE();

@@ -76,6 +76,9 @@ class Environment
     // Insert (not overriding!) from another environment
     void merge(Environment const& other);
 
+    // Write the accessed environment variables to a stream
+    friend std::ostream& operator<<(std::ostream&, Environment const&);
+
     //!@{
     //! Access all entries, unordered, by const iterator
     const_iterator begin() const { return vars_.cbegin(); }
@@ -115,9 +118,6 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val);
 // Thread-safe flag access to environment variables with lazy function default
 GetenvFlagResult getenv_flag_lazy(std::string const& key,
                                   std::function<bool()> const&);
-
-// Write the accessed environment variables to a stream
-std::ostream& operator<<(std::ostream&, Environment const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

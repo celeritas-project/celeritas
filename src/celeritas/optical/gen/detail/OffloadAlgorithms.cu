@@ -6,83 +6,109 @@
 //---------------------------------------------------------------------------//
 #include "OffloadAlgorithms.hh"
 
-#include <thrust/device_ptr.h>
-#include <thrust/execution_policy.h>
-#include <thrust/functional.h>
-#include <thrust/remove.h>
-#include <thrust/transform_reduce.h>
+#include <thrust/iterator/counting_iterator.h>
+#include <thrust/iterator/transform_iterator.h>
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "corecel/data/Copier.hh"
-#include "corecel/math/Algorithms.hh"
-#include "corecel/sys/Device.hh"
+#include "corecel/data/DeviceAlgorithms.device.hh"
+#include "corecel/data/DeviceVector.hh"
+#include "corecel/data/ObserverPtr.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "corecel/sys/Thrust.device.hh"
+#include "corecel/sys/ThreadId.hh"
 
-using namespace celeritas::literals;
+#include "GeneratorAlgorithms.hh"
+#include "GeneratorCounterAlgorithms.hh"
 
 namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Copy the selected distributions to the end of the buffer
+struct AppendExecutor
+{
+    ObserverPtr<GeneratorDistributionData> data;
+    ObserverPtr<GeneratorDistributionData const> selected;
+    ObserverPtr<size_type const> num_selected;
+    ObserverPtr<size_type const> buffer_size;
+
+    CELER_FUNCTION void operator()(ThreadId tid) const
+    {
+        if (tid.get() < *num_selected)
+        {
+            data[*buffer_size + tid.get()] = selected[tid.get()];
+        }
+    }
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
- * Remove all invalid distributions from the buffer.
+ * Append the valid distributions created in this step to the buffer.
  *
- * \return Total number of valid distributions in the buffer
+ * The distributions written by each track slot past the buffered data are
+ * stably compacted, the buffer size is increased by the number of valid
+ * distributions, and their photons are added to the number of pending tracks.
+ * Since the buffer size is read on device, this does not synchronize.
  */
-template<class T>
-size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const& buffer,
-                            size_type offset,
-                            size_type size,
-                            StreamId stream)
-{
-    ScopedProfiling profile_this{"remove-if-invalid"};
-    auto start = thrust::device_pointer_cast(buffer.data().get());
-    auto stop = thrust::remove_if(
-        thrust_execute_on(stream), start + offset, start + size, LogicalNot{});
-    CELER_DEVICE_API_CALL(PeekAtLastError());
-    return stop - start;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Count the number of optical photons in the distributions.
- */
-size_type count_num_photons(
+void append_distributions(
+    optical::CoreState<MemSpace::device>& state,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const& buffer,
-    size_type offset,
-    size_type size,
-    StreamId stream)
+    ObserverPtr<GeneratorStateCounters, MemSpace::device> counters,
+    size_type num_slots,
+    StreamId stream_id)
 {
-    ScopedProfiling profile_this{"count-num-photons"};
-    auto start = thrust::device_pointer_cast(buffer.data().get());
-    size_type count = thrust::transform_reduce(
-        thrust_execute_on(stream),
-        start + offset,
-        start + size,
-        celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
-        0_sz,
-        thrust::plus<size_type>());
-    CELER_DEVICE_API_CALL(PeekAtLastError());
-    return count;
+    CELER_EXPECT(counters);
+    CELER_EXPECT(num_slots <= buffer.size());
+
+    ScopedProfiling profile_this{"append-distributions"};
+
+    auto buffer_size = optical::detail::buffer_size_ptr(counters);
+    auto data = buffer.data();
+
+    // Temporary storage for the compacted distributions, and a single
+    // allocation for the number of selected distributions and of photons
+    DeviceVector<GeneratorDistributionData> selected_vec(num_slots, stream_id);
+    DeviceVector<size_type> counts_vec(2, stream_id);
+    auto selected = make_observer(selected_vec);
+    ObserverPtr<size_type, MemSpace::device> num_selected{counts_vec.data()};
+    ObserverPtr<size_type, MemSpace::device> num_photons{counts_vec.data() + 1};
+
+    // Compact the distributions created in this step
+    auto counting = thrust::make_counting_iterator<size_type>(0);
+    copy_if_async(thrust::make_transform_iterator(
+                      counting, OffloadedDistribution{data, buffer_size}),
+                  selected,
+                  num_slots,
+                  num_selected,
+                  optical::detail::IsValid{},
+                  stream_id);
+
+    // Count the photons to generate and add them to the pending tracks
+    using PhotonCount
+        = optical::detail::BufferedPhotonCount<GeneratorDistributionData>;
+    reduce_sum_async(thrust::make_transform_iterator(
+                         counting, PhotonCount{selected, num_selected}),
+                     num_photons,
+                     num_slots,
+                     stream_id);
+    state.add_pending(num_photons);
+
+    // Append the compacted distributions and update the buffer size
+    {
+        AppendExecutor execute_thread{
+            data, selected, num_selected, buffer_size};
+        static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+            "append-distributions");
+        launch_kernel(num_slots, stream_id, execute_thread);
+    }
+    optical::detail::add_buffer_size(counters, num_selected, stream_id);
 }
-
-//---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
-//---------------------------------------------------------------------------//
-
-template size_type remove_if_invalid(
-    ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-    size_type,
-    size_type,
-    StreamId);
-template size_type remove_if_invalid(
-    ItemsRef<WlsDistributionData, MemSpace::device> const&,
-    size_type,
-    size_type,
-    StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

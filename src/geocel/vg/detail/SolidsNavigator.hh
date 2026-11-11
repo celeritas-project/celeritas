@@ -20,13 +20,16 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Adapt VecGeom's solid navigation to Celeritas navigation state.
+ * Adapt VecGeom's solid model navigation to Celeritas navigation state.
  *
  * Host and device queries use VecGeom's IndexedBVH-backed BVHNavigator
  * directly on the stored VecGeom navigation state, which retains the boundary
  * flag between calls. The last exited volume is retained only from
  * \c ComputeStepAndNextVolume until it is used and cleared by
  * \c RelocateToNextVolume .
+ *
+ * \deprecated This is the only model supported for vecgeom 2.x and will be
+ * replaced by using \c VgView.
  */
 class SolidsNavigator
 {
@@ -104,6 +107,17 @@ class SolidsNavigator
         // later crossing (e.g., after reflection) may reenter it, and so that
         // entering a daughter never inherits an unrelated excluded volume
         out_state.SetLastExited(decltype(out_state.GetLastExitedState()){});
+    }
+
+    //-----------------------------------------------------------------------//
+    // Compute the global boundary normal pointing from current to next state.
+    CELER_FUNCTION static bool ComputeNextNormal(VgReal3 const& globalpoint,
+                                                 NavState const& current,
+                                                 NavState const& next,
+                                                 VgReal3& normal)
+    {
+        return vecgeom::BVHNavigator::ComputeNextNormal(
+            globalpoint, current, next, normal);
     }
 };
 

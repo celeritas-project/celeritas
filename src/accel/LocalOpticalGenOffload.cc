@@ -180,9 +180,6 @@ void LocalOpticalGenOffload::Flush()
     // Copy the buffered distributions to device
     generate_->insert(*state_, make_span(buffer_));
 
-    auto counters = state_->sync_get_counters();
-    counters.num_pending += num_photons_;
-    state_->sync_put_counters(counters);
     num_photons_ = 0;
     buffer_.clear();
 

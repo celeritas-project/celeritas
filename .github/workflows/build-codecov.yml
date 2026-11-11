@@ -33,12 +33,10 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true # to get version information
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
-          add: vecgeom@2.1.0 geant4@11.3 g4vg root py-gcovr
+          add: vecgeom@2.2.0 geant4@11.3 g4vg root py-gcovr
           cxxstd: ${{env.CXXSTD}}
       - name: Configure Celeritas
         uses: ./.github/actions/configure
@@ -52,6 +50,10 @@ jobs:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack
           ccache-max-size: 512Mi
+      - name: Check debug is disabled
+        working-directory: build
+        run: |
+          test $(./bin/celer-config | jq .config.debug) == "false"
       - name: Run tests
         id: test
         uses: ./.github/actions/run-ctest
@@ -85,8 +87,6 @@ jobs:
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true
       - name: Trust checked-out repo
         run: |
           git config --global --add safe.directory ${PWD}

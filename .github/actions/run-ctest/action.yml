@@ -16,7 +16,7 @@ inputs:
     description: "Suffix for the uploaded test-results artifact"
     required: true
   strict:
-    description: "Enable exact comparisons in unit tests (Test::strict_testing)"
+    description: "Enable exact comparisons in unit tests: set CELER_TEST_STRICT=1 for Test::strict_testing"
     required: false
     default: "false"
   split-app:

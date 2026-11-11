@@ -1,0 +1,127 @@
+digraph assertions {
+    rankdir=TB;
+    labelloc=b;
+    node [shape=box, fontname="Helvetica", fontsize=10];
+    edge [fontname="Helvetica", fontsize=9];
+
+    // ---------------- Public API macros ----------------
+    subgraph {
+        node [shape=oval, style="rounded,filled", fillcolor="#5ac0f2"];
+        // label="Public macros"; style=dashed;
+        ASSERT   [label="CELER_EXPECT / ASSERT / ENSURE"];
+        ASSUME   [label="CELER_ASSUME"];
+        AUNREACH [label="CELER_ASSERT_UNREACHABLE"];
+        DFAIL    [label="CELER_DEBUG_FAIL"];
+        VALIDATE [label="CELER_VALIDATE"];
+        NOTCONF  [label="CELER_NOT_CONFIGURED"];
+        NOTIMPL  [label="CELER_NOT_IMPLEMENTED"];
+        RFAIL    [label="CELER_RUNTIME_FAIL"];
+    }
+
+    // ---------------- Terminal nodes ----------------
+    subgraph {
+        node [shape=box, style="rounded,filled", fillcolor="#f8c0c0"];
+        THROW_DBG [label="throw_debug_error"];
+        THROW_RT  [label="throw_runtime_error"];
+        ASSERT_STOP [label="assert(false && ...)"];
+        TRAP  [label="__trap()"];
+        ABORT [label="abort()"];
+        UNREACH_FN [label="unreachable()"];
+        CONTINUE [label="continue", fillcolor="#a0c0a0"];
+    }
+
+
+    // ---------------- Internal macros ----------------
+    subgraph {
+        node [shape=oval, style="rounded,filled", fillcolor="#e0e0e0"];
+        IMPL [label="CELER_ASSERT_IMPL_"];
+        NOASSERT_ [label="CELER_NOASSERT_"];
+        ASSUME_NDEBUG [label="CELER_ASSUME_NDEBUG_"];
+        DFAIL_ [label="CELER_DEBUG_FAIL_"];
+        RFAIL_ [label="CELER_RUNTIME_FAIL_"];
+    }
+
+    // ---------------- Internal functions ----------------
+    subgraph {
+        node [shape=box, style="filled", fillcolor="#e0e0e0"];
+        CUDA_DF [label="cuda_debug_fail"];
+        HIP_DF [label="hip_debug_fail"];
+        HIP_DEV [label="printf when HIP < 7.14", style="filled,dashed"];
+    }
+
+    // ---------------- Debug-enabled switch ----------------
+    ASSERT_DBG [label="Debug enabled?", shape=diamond];
+    ASSUME_DBG [label="Debug enabled?", shape=diamond];
+    AUNREACH_DBG [label="Debug enabled?", shape=diamond];
+
+    IMPL_COND [label="COND failed?", shape=diamond];
+    IMPL_COND [label="COND failed?", shape=diamond];
+    ASSUME_COND [label="COND failed?", shape=diamond];
+
+    ASSERT -> ASSERT_DBG;
+    ASSUME -> ASSUME_DBG;
+    AUNREACH -> AUNREACH_DBG;
+
+    ASSERT_DBG -> NOASSERT_ [color="#ac1111", label="no"];
+    ASSERT_DBG -> IMPL [color="#1f8a3d", label="yes"];
+    ASSUME_DBG -> ASSUME_NDEBUG [color="#ac1111", label="no"];
+    ASSUME_DBG -> IMPL [color="#1f8a3d", label="yes"];
+    AUNREACH_DBG -> UNREACH_FN [color="#ac1111", label="no"];
+    AUNREACH_DBG -> DFAIL_ [color="#1f8a3d", label="yes"];
+
+    IMPL -> IMPL_COND;
+    IMPL_COND -> DFAIL_ [color="#1f8a3d", label="yes"];
+    IMPL_COND -> CONTINUE [color="#ac1111", label="no"];
+    ASSUME_NDEBUG -> ASSUME_COND;
+    ASSUME_COND -> UNREACH_FN [color="#1f8a3d", label="yes"];
+    ASSUME_COND -> CONTINUE [color="#ac1111", label="no"];
+
+    NOASSERT_ -> CONTINUE
+
+    // ---------------- Debug failure dispatch ----------------
+    PLAT [label="Compiler", shape=diamond];
+    NVCC_PASS [label="NVCC compiler pass", shape=diamond];
+    CUDA_NDBG [label="NDEBUG defined?", shape=diamond];
+    HIP_COMP [label="execution space", shape=diamond];
+
+    DFAIL -> DFAIL_;
+    // DFAIL_ -> UNREACH_FN [label="(CELER_DEBUG_FAIL only)\nif it returns", style=dotted];
+
+    DFAIL_ -> PLAT;
+
+    PLAT -> NVCC_PASS [label="CUDA"];
+    PLAT -> THROW_DBG [label="host"];
+    PLAT -> HIP_DF  [label="HIP"];
+
+    NVCC_PASS -> CUDA_NDBG [label="device"];
+    NVCC_PASS -> THROW_DBG [label="host"];
+
+    CUDA_NDBG -> ASSERT_STOP [color="#ac1111", label="no"];
+    CUDA_NDBG -> CUDA_DF [color="#1f8a3d", label="yes"];
+
+    CUDA_DF -> TRAP;
+
+    HIP_DF -> HIP_COMP
+    HIP_COMP -> THROW_DBG [label="host"];
+    HIP_COMP -> HIP_DEV  [label="device"];
+    HIP_DEV -> ABORT;
+
+    // ---------------- Runtime failure dispatch ----------------
+    RDEV [label="Compiler", shape=diamond];
+    RDEV_DBG [label="Host debug enabled?", shape=diamond];
+    VAL_COND [label="COND failed?", shape=diamond];
+
+    VALIDATE -> VAL_COND
+    VAL_COND -> RFAIL_ [color="#1f8a3d", label="yes"];
+    VAL_COND -> CONTINUE [color="#ac1111", label="no"];
+
+    NOTCONF -> RFAIL_;
+    NOTIMPL -> RFAIL_;
+    RFAIL -> RFAIL_;
+
+    RFAIL_ -> RDEV;
+    RDEV -> THROW_RT [label="host"];
+    RDEV -> RDEV_DBG [label="device"];
+    RDEV_DBG -> DFAIL_ [color="#1f8a3d", label="yes"];
+    RDEV_DBG -> UNREACH_FN [color="#ac1111", label="no"];
+}

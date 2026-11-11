@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <functional>
+#include <limits>
 #include <map>
 #include <mutex>
 #include <regex>
@@ -92,7 +93,6 @@ class CounterTrackingAction final : public G4UserTrackingAction
     std::size_t num_electrons_{};
     std::size_t num_positrons_{};
 };
-
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -149,6 +149,47 @@ class TMITestBase : virtual public IntegrationTestBase
         }
     }
 
+    //! Check wrapped RuntimeError caught by GeantExceptionHandler
+    void caught_g4_runtime_error(RuntimeError const& e) override
+    {
+        if (!check_runtime_errors_)
+        {
+            // Let the base class manage and fail on the caught error
+            return IntegrationTestBase::caught_g4_runtime_error(e);
+        }
+        CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
+
+        static std::recursive_mutex exc_mutex;
+        std::scoped_lock lock{exc_mutex};
+
+        static std::regex extract_error{R"(runtime error:\s*(.+?)(?:\n|$))"};
+        std::smatch match;
+        std::string what = e.what();
+        if (std::regex_search(what, match, extract_error))
+        {
+            CELER_ASSERT(match.size() > 1);
+            exceptions_.push_back(match[1].str());
+        }
+        else
+        {
+            exceptions_.push_back(std::move(what));
+        }
+    }
+
+    void TearDown() override
+    {
+        if (!exceptions_.empty())
+        {
+            FAIL() << exceptions_.size()
+                   << " runtime errors were caught but not checked";
+        }
+    }
+
+    //! Append caught exceptions in this local test rather than failing
+    bool check_runtime_errors_{false};
+    //! Exceptions that were caught by this test suite's error handler
+    std::vector<std::string> exceptions_;
+
     std::mutex mutex_;
     std::function<void()> check_during_run_;
     std::map<StreamId, int> num_local_events_;
@@ -190,47 +231,6 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
                          step->GetTrack()->GetWeight());
     }
-
-    //! Check wrapped RuntimeError caught by GeantExceptionHandler
-    void caught_g4_runtime_error(RuntimeError const& e) override
-    {
-        if (!check_runtime_errors_)
-        {
-            // Let the base class manage and fail on the caught error
-            return TMITestBase::caught_g4_runtime_error(e);
-        }
-        CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
-
-        static std::recursive_mutex exc_mutex;
-        std::scoped_lock lock{exc_mutex};
-
-        static std::regex extract_error{R"(runtime error:\s*(.+?)(?:\n|$))"};
-        std::smatch match;
-        std::string what = e.what();
-        if (std::regex_search(what, match, extract_error))
-        {
-            CELER_ASSERT(match.size() > 1);
-            exceptions_.push_back(match[1].str());
-        }
-        else
-        {
-            exceptions_.push_back(std::move(what));
-        }
-    }
-
-    void TearDown() override
-    {
-        if (!exceptions_.empty())
-        {
-            FAIL() << exceptions_.size()
-                   << " runtime errors were caught but not checked";
-        }
-    }
-
-    //! Append caught exceptions in this local test rather than failing
-    bool check_runtime_errors_{false};
-    //! Exceptions that were caught by this test suite's error handler
-    std::vector<std::string> exceptions_;
 };
 
 /*!
@@ -760,10 +760,10 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(detector_x_positions_.size(), 0);
             EXPECT_GT(step_lengths_.size(), 0);
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
-            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+            EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
         }
     }
     if (G4Threading::IsMasterThread())
@@ -874,10 +874,10 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(accum_stats.flushes, 0);
 
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
-            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+            EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
         }
     }
     if (G4Threading::IsMasterThread())
@@ -1031,10 +1031,10 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
             }
 
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
-            EXPECT_EQ(0, counts.num_generated);  //!< Photons generated
+            EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
         }
     }
 
@@ -1084,47 +1084,29 @@ TEST_F(TestEm3, run)
     rm.BeamOn(2);
 }
 
-//---------------------------------------------------------------------------//
-class TestEm3Rayleigh : public TestEm3IntegrationMixin, public TMITestBase
-{
-  public:
-    PhysicsInput make_physics_input() const final
-    {
-        auto result = PhysicsInput::deactivated();
-        result.rayleigh_scattering = true;
-        return result;
-    }
-
-    PrimaryInput make_primary_input() const final
-    {
-        auto result = TestEm3IntegrationMixin::make_primary_input();
-        result.pdg = {pdg::gamma()};
-        result.energy = inp::MonoenergeticDistribution{1};  // [MeV]
-        return result;
-    }
-
-    SetupOptions make_setup_options() final
-    {
-        auto opts = TMITestBase::make_setup_options();
-        opts.max_num_tracks = 1;
-        opts.initializer_capacity = 1;
-        opts.secondary_stack_factor = 2;
-        opts.auto_flush = 1;
-        return opts;
-    }
-};
-
 /*!
- * Allow primary admission when secondary capacity exceeds initializer capacity.
+ * Check cleanup after a fatal error during transport.
  */
-TEST_F(TestEm3Rayleigh, run_small_capacity)
+TEST_F(TestEm3, max_step_iters_error)
 {
     auto& rm = this->run_manager();
-    TMI::Instance().SetOptions(this->make_setup_options());
+
+    auto opts = this->make_setup_options();
+    opts.max_step_iters = 1;
+    opts.auto_flush = 1;
+    TMI::Instance().SetOptions(std::move(opts));
+
+    check_runtime_errors_ = true;
 
     rm.Initialize();
     ASSERT_FALSE(this->HasFatalFailure());
     rm.BeamOn(1);
+
+    static char const* const expected_exceptions[] = {
+        "number of step iterations exceeded the allowed maximum (1)",
+    };
+    EXPECT_VEC_EQ(expected_exceptions, exceptions_);
+    exceptions_.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -1143,35 +1125,37 @@ class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
         EXPECT_GE(track_id, 0);
         EXPECT_GE(parent_id, 0);
 
-        auto atomic_max = [](std::atomic<int>& dst, int value) {
-            int current = dst.load(std::memory_order_relaxed);
-            while (current < value
-                   && !dst.compare_exchange_weak(current,
-                                                 value,
-                                                 std::memory_order_relaxed,
-                                                 std::memory_order_relaxed))
-            {
-            }
-        };
-
-        atomic_max(max_track_id_, track_id);
-        atomic_max(max_parent_id_, parent_id);
+        // Celeritas counts the IDs of the tracks it creates down from INT_MAX
+        // (see GeantTrackReconstruction::geant_track_id)
+        constexpr int min_celeritas_id = std::numeric_limits<int>::max() / 2;
+        if (track_id < min_celeritas_id)
+        {
+            // Geant4 numbers a parent before its secondaries
+            EXPECT_LT(parent_id, track_id);
+        }
+        else
+        {
+            // A track created by Celeritas descends from the offloaded track
+            // (Geant4 ID) or from a track Celeritas created before it
+            EXPECT_TRUE(parent_id < min_celeritas_id || parent_id > track_id)
+                << "track " << track_id << " has parent " << parent_id;
+            ++num_celeritas_hits_;
+        }
         ++num_hits_;
     }
 
-    //! Get and reset track, parent IDs
-    std::pair<int, int> exchange_max_ids()
+    //! Exchange counter of hits from tracks created by Celeritas
+    int exchange_celeritas_hit_count()
     {
-        return {max_track_id_.exchange(-1), max_parent_id_.exchange(-1)};
+        return num_celeritas_hits_.exchange(0);
     }
 
     //! Exchange hit counter
     int exchange_hit_count() { return num_hits_.exchange(0); }
 
   protected:
-    std::atomic<int> max_track_id_{-1};
-    std::atomic<int> max_parent_id_{-1};
     std::atomic<int> num_hits_{0};
+    std::atomic<int> num_celeritas_hits_{0};
 };
 
 /*!
@@ -1210,9 +1194,9 @@ TEST_F(WaterSphere, run_small_flush)
 
         auto num_hits = this->exchange_hit_count();
         EXPECT_GT(num_hits, 0);
-        auto&& [max_track, max_parent] = this->exchange_max_ids();
-        EXPECT_GE(max_parent, 0);
-        EXPECT_GT(max_track, max_parent);
+        auto num_celeritas_hits = this->exchange_celeritas_hit_count();
+        EXPECT_GT(num_celeritas_hits, 0);
+        EXPECT_LT(num_celeritas_hits, num_hits);
     }
 
     if (this->HasFatalFailure())
@@ -1224,9 +1208,48 @@ TEST_F(WaterSphere, run_small_flush)
     {
         auto num_hits = this->exchange_hit_count();
         EXPECT_GT(num_hits, 0);
-        auto&& [max_track, max_parent] = this->exchange_max_ids();
-        EXPECT_GE(max_parent, 0);
-        EXPECT_GT(max_track, max_parent);
+        auto num_celeritas_hits = this->exchange_celeritas_hit_count();
+        EXPECT_GT(num_celeritas_hits, 0);
+        EXPECT_LT(num_celeritas_hits, num_hits);
+    }
+}
+
+/*!
+ * Check that a primary batch can exceed the initial initializer capacity.
+ */
+TEST_F(WaterSphere, run_small_initializers)
+{
+    auto& rm = this->run_manager();
+
+    TMI::Instance().SetOptions([this] {
+        auto opts = this->make_setup_options();
+        opts.initializer_capacity = 2;
+        return opts;
+    }());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    ASSERT_FALSE(this->HasFatalFailure());
+
+    CELER_LOG(status) << "Beam on";
+    {
+        ScopedLogStorer scoped_log_{&self_logger(), LogLevel::info};
+        rm.BeamOn(1);
+
+        auto has_msg = [](std::string const& msg) {
+            return msg.find("Growing track initializer buffer from 2 ")
+                   != std::string::npos;
+        };
+        auto const& messages = scoped_log_.messages();
+        EXPECT_TRUE(std::any_of(messages.begin(), messages.end(), has_msg))
+            << "Expected message not found in logs:\n"
+            << scoped_log_;
+        auto num_hits = this->exchange_hit_count();
+        EXPECT_GT(num_hits, 0);
+        auto num_celeritas_hits = this->exchange_celeritas_hit_count();
+        EXPECT_GT(num_celeritas_hits, 0);
+        EXPECT_LT(num_celeritas_hits, num_hits);
     }
 }
 

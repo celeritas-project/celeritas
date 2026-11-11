@@ -7,6 +7,7 @@
 #include "corecel/cont/Array.hh"
 
 #include <type_traits>
+#include <gtest/gtest.h>
 
 #include "corecel/cont/EnumArray.hh"
 
@@ -161,6 +162,11 @@ TEST(EnumArrayTest, all)
     EXPECT_EQ(1, x[Color::red]);
     EXPECT_EQ(3, x[Color::green]);
     EXPECT_EQ(static_cast<void*>(&x), x.data());
+
+    // Default constructor
+    EnumArray<Color, int> y;
+    EXPECT_EQ(0, y[Color::red]);
+    EXPECT_EQ(0, y[Color::green]);
 }
 
 //---------------------------------------------------------------------------//

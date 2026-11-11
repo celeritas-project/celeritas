@@ -61,7 +61,7 @@ struct RZMapFieldParams::Impl
 
 inline void RZMapFieldParams::ImplDeleter::operator()(Impl*) const noexcept
 {
-    CELER_UNREACHABLE;
+    ::celeritas::unreachable();
 }
 
 inline RZMapFieldParams::RZMapFieldParams(Input const&)

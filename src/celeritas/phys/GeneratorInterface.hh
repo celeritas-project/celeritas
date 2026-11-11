@@ -64,13 +64,30 @@ class GeneratorInterface
 //---------------------------------------------------------------------------//
 /*!
  * Manage counters for generation states.
+ *
+ * The accumulated counters record the total number of queued distributions (\c
+ * buffer_size), queued tracks (\c num_pending), and generated tracks (\c
+ * num_generated). A difference between the accumulated pending and generated
+ * counts indicates there were photons that were queued but never generated.
+ *
+ * The counters are updated in the state's memory space during stepping, and
+ * \c sync_counters copies them back to \c counters and \c accum .
  */
 struct GeneratorStateBase : public AuxStateInterface
 {
-    //! Counts since the start of the optical loop
+    //! Counts since the start of the optical loop (host copy)
     GeneratorCounters<size_type> counters;
     //! Counts accumulated over the event for diagnostics
     GeneratorCounters<std::size_t> accum;
+
+    //! Update the host counters from the counters in the state's memory
+    virtual void sync_counters() = 0;
+
+    //! Clear the generated count at the start of a transport loop
+    virtual void clear_generated() = 0;
+
+    //! Discard pending work after an aborted loop, keeping accumulated counts
+    virtual void reset_counters() = 0;
 };
 
 //---------------------------------------------------------------------------//

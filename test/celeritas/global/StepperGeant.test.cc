@@ -16,6 +16,7 @@
 #include "celeritas/OneSteelSphereBase.hh"
 #include "celeritas/TestEm15Base.hh"
 #include "celeritas/TestEm3Base.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
@@ -27,6 +28,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
@@ -62,6 +64,7 @@ class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = PrimaryId{i};
         }
         return result;
     }
@@ -128,6 +131,15 @@ class TestEm3NoMsc : public TestEm3StepperTestBase
         auto opts = TestEm3Base::build_geant_options();
         opts.msc = MscModelSelection::none;
         return opts;
+    }
+
+    SPConstTrackInit build_init() override
+    {
+        TrackInitParams::Input input;
+        input.capacity = 32768;
+        input.max_events = 4096;
+        input.track_order = TrackOrder::none;
+        return std::make_shared<TrackInitParams>(input);
     }
 };
 
@@ -207,6 +219,7 @@ class TestEm15FieldMsc : public TestEm15Base, public StepperTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = PrimaryId{i};
             result[i].direction = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
@@ -261,6 +274,7 @@ class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
 
         for (auto i : range(count))
         {
+            result[i].primary_id = PrimaryId{i};
             result[i].direction = sample_dir(rng);
             result[i].particle_id = particles[i % particles.size()];
         }
@@ -286,6 +300,11 @@ class LeadBox : public LeadBoxTestBase, public StepperTestBase
         p.event_id = EventId{0};
 
         std::vector<Primary> result(count, p);
+
+        for (auto i : celeritas::range(result.size()))
+        {
+            result[i].primary_id = id_cast<PrimaryId>(i);
+        }
         return result;
     }
 
@@ -299,8 +318,9 @@ class LeadBox : public LeadBoxTestBase, public StepperTestBase
 TEST_F(TestEm3Compton, setup)
 {
     auto result = this->check_setup();
-    static char const* expected_process[] = {"Compton scattering"};
-    EXPECT_VEC_EQ(expected_process, result.processes);
+    auto ref = result;
+    ref.processes = {"Compton scattering"};
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TestEm3Compton, host)
@@ -311,7 +331,7 @@ TEST_F(TestEm3Compton, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(153, result.num_step_iters());
         EXPECT_SOFT_EQ(796, result.calc_avg_steps_per_primary());
@@ -322,7 +342,7 @@ TEST_F(TestEm3Compton, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -338,8 +358,8 @@ TEST_F(TestEm3Compton, host)
 TEST_F(TestEm3NoMsc, setup)
 {
     auto result = this->check_setup();
-
-    static char const* const expected_processes[] = {
+    auto ref = result;
+    ref.processes = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -347,8 +367,7 @@ TEST_F(TestEm3NoMsc, setup)
         "Electron/positron ionization",
         "Bremsstrahlung",
     };
-    EXPECT_VEC_EQ(expected_processes, result.processes);
-    static char const* const expected_actions[] = {
+    ref.actions = {
         "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
@@ -366,7 +385,7 @@ TEST_F(TestEm3NoMsc, setup)
         "tracking-cut",
         "extend-from-secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions, result.actions);
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TestEm3NoMsc, host)
@@ -378,7 +397,7 @@ TEST_F(TestEm3NoMsc, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(63490, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(329, result.num_step_iters());
         EXPECT_SOFT_EQ(59335, result.calc_avg_steps_per_primary());
@@ -389,7 +408,7 @@ TEST_F(TestEm3NoMsc, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -421,7 +440,7 @@ TEST_F(TestEm3NoMsc, host_multi)
     // Add some more primaries
     primaries = this->make_primaries(num_primaries);
     counts = step(make_span(primaries));
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(24, counts.active);
         EXPECT_EQ(24, counts.alive);
@@ -429,7 +448,7 @@ TEST_F(TestEm3NoMsc, host_multi)
 
     // Transport existing tracks
     counts = step();
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(36, counts.active);
         EXPECT_EQ(35, counts.alive);
@@ -446,7 +465,7 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(62756.625, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(212, result.num_step_iters());
         EXPECT_SOFT_EQ(61803.25, result.calc_avg_steps_per_primary());
@@ -457,7 +476,7 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -473,8 +492,8 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
 TEST_F(TestEm3Msc, setup)
 {
     auto result = this->check_setup();
-
-    static char const* const expected_processes[] = {
+    auto ref = result;
+    ref.processes = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -482,8 +501,7 @@ TEST_F(TestEm3Msc, setup)
         "Electron/positron ionization",
         "Bremsstrahlung",
     };
-    EXPECT_VEC_EQ(expected_processes, result.processes);
-    static char const* const expected_actions[] = {
+    ref.actions = {
         "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
@@ -501,9 +519,7 @@ TEST_F(TestEm3Msc, setup)
         "tracking-cut",
         "extend-from-secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions, result.actions);
-
-    static char const* const expected_actions_desc[] = {
+    ref.actions_desc = {
         "create track initializers from primaries",
         "initialize track states",
         "update beginning-of-step state",
@@ -521,7 +537,7 @@ TEST_F(TestEm3Msc, setup)
         "kill a track and deposit its energy",
         "create track initializers from secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions_desc, result.actions_desc);
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TestEm3Msc, host)
@@ -532,7 +548,7 @@ TEST_F(TestEm3Msc, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(58, result.num_step_iters());
         EXPECT_LE(37.375, result.calc_avg_steps_per_primary());
@@ -544,7 +560,7 @@ TEST_F(TestEm3Msc, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -561,7 +577,7 @@ TEST_F(TestEm3Msc, TEST_IF_CELER_DEVICE(device))
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(60, result.num_step_iters());
         EXPECT_SOFT_EQ(43.625, result.calc_avg_steps_per_primary());
@@ -572,7 +588,7 @@ TEST_F(TestEm3Msc, TEST_IF_CELER_DEVICE(device))
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -593,7 +609,7 @@ TEST_F(TestEm3MscNofluct, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_LE(69, result.num_step_iters());
         EXPECT_GE(73, result.num_step_iters());
@@ -606,7 +622,7 @@ TEST_F(TestEm3MscNofluct, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -623,7 +639,7 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_LE(76, result.num_step_iters());
         EXPECT_GE(88, result.num_step_iters());
@@ -636,7 +652,7 @@ TEST_F(TestEm3MscNofluct, TEST_IF_CELER_DEVICE(device))
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -657,7 +673,7 @@ TEST_F(TestEm3MscNoIntegral, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_LE(68, result.num_step_iters());
         EXPECT_GE(87, result.num_step_iters());
@@ -670,7 +686,7 @@ TEST_F(TestEm3MscNoIntegral, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -686,8 +702,8 @@ TEST_F(TestEm3MscNoIntegral, host)
 TEST_F(TestEm15FieldMsc, setup)
 {
     auto result = this->check_setup();
-
-    static char const* const expected_processes[] = {
+    auto ref = result;
+    ref.processes = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -695,8 +711,7 @@ TEST_F(TestEm15FieldMsc, setup)
         "Electron/positron ionization",
         "Bremsstrahlung",
     };
-    EXPECT_VEC_EQ(expected_processes, result.processes);
-    static char const* const expected_actions[] = {
+    ref.actions = {
         "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
@@ -714,7 +729,7 @@ TEST_F(TestEm15FieldMsc, setup)
         "tracking-cut",
         "extend-from-secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions, result.actions);
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(TestEm15FieldMsc, host)
@@ -725,7 +740,7 @@ TEST_F(TestEm15FieldMsc, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(15, result.num_step_iters());
         EXPECT_SOFT_EQ(38, result.calc_avg_steps_per_primary());
@@ -736,7 +751,7 @@ TEST_F(TestEm15FieldMsc, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -752,7 +767,7 @@ TEST_F(TestEm15FieldMsc, TEST_IF_CELER_DEVICE(device))
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(14, result.num_step_iters());
         EXPECT_SOFT_EQ(34.125, result.calc_avg_steps_per_primary());
@@ -763,7 +778,7 @@ TEST_F(TestEm15FieldMsc, TEST_IF_CELER_DEVICE(device))
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {
@@ -779,8 +794,8 @@ TEST_F(TestEm15FieldMsc, TEST_IF_CELER_DEVICE(device))
 TEST_F(OneSteelSphere, setup)
 {
     auto result = this->check_setup();
-
-    static char const* const expected_processes[] = {
+    auto ref = result;
+    ref.processes = {
         "Compton scattering",
         "Photoelectric effect",
         "Photon annihiliation",
@@ -788,8 +803,7 @@ TEST_F(OneSteelSphere, setup)
         "Electron/positron ionization",
         "Bremsstrahlung",
     };
-    EXPECT_VEC_EQ(expected_processes, result.processes);
-    static char const* const expected_actions[] = {
+    ref.actions = {
         "extend-from-primaries",
         "initialize-tracks",
         "pre-step",
@@ -807,7 +821,7 @@ TEST_F(OneSteelSphere, setup)
         "tracking-cut",
         "extend-from-secondaries",
     };
-    EXPECT_VEC_EQ(expected_actions, result.actions);
+    EXPECT_REF_EQ(ref, result);
 }
 
 TEST_F(OneSteelSphere, host)
@@ -819,7 +833,7 @@ TEST_F(OneSteelSphere, host)
     auto result = this->run(step, num_primaries);
     EXPECT_SOFT_NEAR(15.8671875, result.calc_avg_steps_per_primary(), 0.10);
 
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         EXPECT_EQ(16, result.num_step_iters());
         EXPECT_SOFT_EQ(16.265625, result.calc_avg_steps_per_primary());
@@ -830,7 +844,7 @@ TEST_F(OneSteelSphere, host)
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
 
         if (this->strict_testing())
         {

@@ -122,20 +122,9 @@ void Runner::insert(SpanConstGenDist data)
         loaded_.problem.generator);
     CELER_VALIDATE(generate,
                    << "runner call does not match input generator type");
-    // Insert optical distributions
-    generate->insert(*state_, data);
 
-    /*! \todo We could accumulate and update the number of pending tracks
-     * directly in GeneratorAction::insert, though this would be less efficient
-     * for some run modes, e.g. offloading distributions through accel where we
-     * already know the number of pending tracks.
-     */
-    auto counters = state_->sync_get_counters();
-    for (auto const& d : data)
-    {
-        counters.num_pending += d.num_photons;
-    }
-    state_->sync_put_counters(counters);
+    // Insert optical distributions and update the number of pending tracks
+    generate->insert(*state_, data);
 }
 
 //---------------------------------------------------------------------------//

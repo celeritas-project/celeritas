@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include <VecGeom/base/Version.h>
 // NOTE: must include Global before most other vecgeom/veccore includes
 #include <VecGeom/base/Global.h>
@@ -17,10 +18,13 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/NumericLimits.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/BumpPosition.hh"
 #include "geocel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
 
@@ -92,11 +96,24 @@ class VecgeomTrackView
 
     //// STATIC ACCESSORS ////
 
-    //! A tiny push to make sure tracks do not get stuck at boundaries
+    //! Minimum push to make sure tracks do not get stuck at boundaries
     //! (a physical length, so that it is resolvable in any unit system)
     static CELER_CONSTEXPR_FUNCTION real_type extra_push()
     {
         return real_type{1e-13} * lengthunits::centimeter;
+    }
+
+    //! Push relative to the largest position component, so that it is not
+    //! truncated by floating point roundoff far from the origin
+    static CELER_CONSTEXPR_FUNCTION real_type rel_extra_push()
+    {
+        return max(real_type{1e-13}, 4 * numeric_limits<real_type>::epsilon());
+    }
+
+    //! Maximum push: VecGeom's own boundary push on each step
+    static CELER_CONSTEXPR_FUNCTION real_type max_extra_push()
+    {
+        return real_type(10 * vecgeom::kTolerance) * lengthunits::centimeter;
     }
 
     //// ACCESSORS ////
@@ -135,6 +152,8 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
     // Get the normal vector of the current surface
     inline CELER_FUNCTION Real3 normal() const;
+    // Minimum boundary step that is resolvable at the current position
+    inline CELER_FUNCTION real_type push_distance() const;
 
     //// OPERATIONS ////
 
@@ -181,6 +200,7 @@ class VecgeomTrackView
     VgNavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
+    Real3& normal_;
 
     //!@}
 
@@ -214,6 +234,7 @@ CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
     , vgnext_{states.next_state[tid]}
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
+    , normal_(states.normal[tid])
 {
 }
 
@@ -234,6 +255,7 @@ CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
     failed_ = false;
+    normal_ = {0, 0, 0};
 
     // Initialize direction
     dir_ = init.dir;
@@ -407,8 +429,26 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 {
-    // FIXME: temporarily return a bogus but valid surface normal
-    return this->dir();
+    return normal_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Minimum boundary step that is resolvable at the current position.
+ *
+ * A fixed push is lost to roundoff far from the origin (e.g., 1e-13 cm is
+ * below one ULP for coordinates beyond ~512 cm), so a zero-length boundary
+ * step would not move the track and it could be relocated into the same
+ * state forever. The relative push is at least a few machine epsilons so that
+ * it is resolvable in single precision, and the push is capped at VecGeom's
+ * own boundary push for its precision.
+ */
+CELER_FUNCTION real_type VecgeomTrackView::push_distance() const
+{
+    real_type const pos_max
+        = max(std::fabs(pos_[0]), max(std::fabs(pos_[1]), std::fabs(pos_[2])));
+    return min(this->max_extra_push(),
+               max(this->extra_push(), this->rel_extra_push() * pos_max));
 }
 
 //---------------------------------------------------------------------------//
@@ -424,14 +464,21 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     real_type next_step = Navigator::ComputeStepAndNextVolume(
         to_vgvector(pos_), to_vgvector(dir_), max_step, vgstate_, vgnext_);
 
-    next_step = max(next_step, this->extra_push());
+    // Lengthen a (near) zero-length step so that the track moves: the
+    // position-dependent push is only needed below its maximum value
+    real_type push{0};
+    if (next_step < this->max_extra_push())
+    {
+        push = this->push_distance();
+        next_step = max(next_step, push);
+    }
 
     if (!this->is_next_boundary())
     {
         // Soft equivalence between distance and max step is because the
         // BVH navigator subtracts and then re-adds a bump distance to the
         // step
-        CELER_ASSERT(soft_equal(next_step, max(max_step, this->extra_push())));
+        CELER_ASSERT(soft_equal(next_step, max(max_step, push)));
         next_step = max_step;
     }
 
@@ -440,9 +487,9 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     result.boundary = this->is_next_boundary();
 
     CELER_ENSURE(result.distance > 0);
-    CELER_ENSURE(result.distance <= max(max_step, this->extra_push()));
+    CELER_ENSURE(result.distance <= max(max_step, push));
     CELER_ENSURE(result.boundary || result.distance == max_step
-                 || max_step < this->extra_push());
+                 || max_step < push);
     return result;
 }
 
@@ -489,14 +536,52 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
  * direction change away from a boundary is rejected by a debug assertion;
  * moving to the same boundary twice without crossing it is not detected here
  * (see \c CheckedGeoTrackView ).
+ *
+ * Since the view does not store whether \c find_next_step lengthened the step,
+ * a nonzero distance no longer than \c push_distance is treated as a push:
+ * every position component is bumped and the surface normal is not
+ * recomputed.
  */
 CELER_FUNCTION void VecgeomTrackView::move_to_boundary(real_type dist)
 {
     CELER_EXPECT(dist >= 0);
     CELER_EXPECT(this->is_next_boundary());
 
-    axpy(dist, dir_, &pos_);
+    // A nonzero distance no longer than the push distance is a (near)
+    // zero-length step lengthened by find_next_step
+    bool const is_push = dist > 0 && dist < this->max_extra_push()
+                         && dist <= this->push_distance();
+    if (is_push)
+    {
+        // Move every component by the push distance rather than along the
+        // direction, which can fail to leave the surface when the direction
+        // is nearly tangent to it
+        bump_position(dist, dir_, &pos_);
+    }
+    else
+    {
+        axpy(dist, dir_, &pos_);
+    }
     vgstate_.SetBoundaryState(true);
+
+    if (CELERITAS_VECGEOM_VERSION >= 0x020200 && !is_push)
+    {
+        // Don't recalculate normal if bumping on a reentrant surface
+        VgReal3 normal;
+        bool success = Navigator::ComputeNextNormal(
+            to_vgvector(pos_), vgstate_, vgnext_, normal);
+
+        if (CELER_UNLIKELY(!success))
+        {
+#if !CELER_DEVICE_COMPILE
+            auto msg = CELER_LOG_LOCAL(error);
+            msg << "Failed to get surface normal at " << repr(pos_) << ' '
+                << lengthunits::native_label;
+#endif
+            failed_ = true;
+        }
+        normal_ = to_array(normal);
+    }
 
     CELER_ENSURE(this->is_on_boundary());
 }

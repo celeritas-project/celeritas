@@ -73,7 +73,7 @@ def find_test(build_dir, test_name):
     if result.returncode != 0:
         sys.exit(f"error: ctest failed:\n{result.stderr}")
     data = json.loads(result.stdout)
-    matches = [t for t in data["tests"] if test_name in t["name"]]
+    matches = [t for t in data["tests"] if re.search(test_name, t["name"])]
     if not matches:
         sys.exit(f"error: no test matching {test_name!r}")
     if len(matches) > 1:
@@ -136,7 +136,7 @@ def main():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("test_name", help="CTest test name or substring")
+    parser.add_argument("test_name", help="CTest test name or regex")
     parser.add_argument(
         "--workspace",
         type=Path,

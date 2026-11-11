@@ -128,6 +128,7 @@ list(APPEND SOURCES
   optical/gen/ScintillationParams.cc
   optical/gen/GeneratorDataIO.json.cc
   optical/gen/GeneratorBase.cc
+  optical/gen/GeneratorCounterState.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/PhysicsParams.cc
@@ -259,6 +260,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
+    ext/detail/GeantParticleUtils.cc
     ext/detail/GeantPhysicsLoader.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeantScintillationLoader.cc
@@ -266,6 +268,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
     ext/detail/NaviTouchableUpdater.cc
+    ext/detail/NullGeantProcess.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
   )
@@ -428,6 +431,7 @@ celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/DirectGeneratorAction)
 celeritas_polysource(optical/gen/WlsGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
+celeritas_polysource(optical/gen/detail/GeneratorCounterAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
 celeritas_polysource(optical/surface/model/DielectricInteractionModel)
@@ -444,6 +448,7 @@ celeritas_polysource(phys/detail/TrackingCutAction)
 celeritas_polysource(random/RngReseed)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
+celeritas_polysource(track/CounterAlgorithms)
 celeritas_polysource(track/ExtendFromPrimariesAction)
 celeritas_polysource(track/ExtendFromSecondariesAction)
 celeritas_polysource(track/InitializeTracksAction)

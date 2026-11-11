@@ -21,7 +21,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static char const format_str[] = "rz-map-field";
+namespace
+{
+char const rz_map_field_format_str[] = "rz-map-field";
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
@@ -32,8 +35,8 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
 #define RZFI_LOAD(NAME) j.at(#NAME).get_to(inp.NAME)
     using namespace celeritas::units;
 
-    check_format(j, format_str);
-    check_units(j, format_str);
+    check_format(j, rz_map_field_format_str);
+    check_units(j, rz_map_field_format_str);
 
     RZFI_LOAD(num_grid_z);
     RZFI_LOAD(num_grid_r);
@@ -159,12 +162,19 @@ void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
         CELER_JSON_PAIR(inp, field_r),
         CELER_JSON_PAIR(inp, driver_options),
     };
-    save_format(j, format_str);
+    save_format(j, rz_map_field_format_str);
     save_units(j);
 }
 
-//---------------------------------------------------------------------------//
-// Helper to read the field from a file or stream.
+/*!
+ * Helper to read the field from a file or stream.
+ *
+ * Example to read from a file:
+ * \code
+   RZMapFieldInput inp;
+   std::ifstream("foo.json") >> inp;
+ * \endcode
+ */
 std::istream& operator>>(std::istream& is, RZMapFieldInput& inp)
 {
     auto j = nlohmann::json::parse(is);
@@ -172,8 +182,9 @@ std::istream& operator>>(std::istream& is, RZMapFieldInput& inp)
     return is;
 }
 
-//---------------------------------------------------------------------------//
-// Helper to write the field to a file or stream.
+/*!
+ * Helper to write the field to a file or stream.
+ */
 std::ostream& operator<<(std::ostream& os, RZMapFieldInput const& inp)
 {
     nlohmann::json j = inp;

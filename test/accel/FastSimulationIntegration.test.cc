@@ -19,23 +19,14 @@
 #include <G4UImanager.hh>
 #include <G4VModularPhysicsList.hh>
 
-#include "corecel/StringSimplifier.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"
-#include "geocel/ScopedGeantExceptionHandler.hh"
-#include "geocel/UnitUtils.hh"
-#include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/inp/Events.hh"
-#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/phys/PDGNumber.hh"
 #include "accel/FastSimulationModel.hh"
 #include "accel/LocalTransporter.hh"
-#include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
-#include "accel/detail/IntegrationSingleton.hh"
+#include "accel/detail/IntegrationSingleton.hh"  // IWYU pragma: keep
 
 #include "IntegrationTestBase.hh"
 #include "celeritas_test.hh"

@@ -6,9 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
 #include "corecel/Types.hh"
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxState.hh"
 #include "corecel/data/AuxStateVec.hh"
@@ -133,6 +132,15 @@ class CoreState final : public CoreStateInterface
     //! Reset the state data
     void reset();
 
+    //! Current capacity of the track initializer buffer
+    size_type initializer_capacity() const
+    {
+        return this->ref().init.initializers.size();
+    }
+
+    // Grow the track initializer buffer to hold at least this many
+    void reserve_initializers(size_type min_capacity);
+
     //// COUNTERS ////
 
     //! Synchronize and copy track initialization counters from device to host
@@ -142,6 +150,18 @@ class CoreState final : public CoreStateInterface
     //! For host-only code, this copies the local CoreStateCounters back to the
     //! class, since sync_get_counters() doesn't return a reference
     void sync_put_counters(CoreStateCounters const&) final;
+
+    // Reset counters that are accumulated during a step
+    void initialize_counters(size_type num_pending);
+
+    // Asynchronously copy counters to host-accessible storage
+    void async_copy_counters();
+
+    //! Access the host counters, which are copied asynchronously
+    AsyncSnapshot<CoreStateCounters> const& host_counters() const
+    {
+        return host_counters_;
+    }
 
     //// AUXILIARY DATA ////
 
@@ -193,6 +213,9 @@ class CoreState final : public CoreStateInterface
 
     // Whether no primaries should be generated
     bool warming_up_{false};
+
+    // Preallocated host storage for counters copied after most recent step
+    AsyncSnapshot<CoreStateCounters> host_counters_;
 };
 
 //---------------------------------------------------------------------------//

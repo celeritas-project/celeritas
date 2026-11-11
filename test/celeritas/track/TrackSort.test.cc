@@ -118,6 +118,7 @@ class TestEm3NoMsc : public TrackSortTestBase, public TestEm3Base
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = id_cast<PrimaryId>(i);
             result[i].particle_id = particles[i % particles.size()];
         }
         return result;
@@ -311,7 +312,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
        TEST_IF_CELER_DEVICE(device_is_partitioned))
 {
     // Initialize some primaries and take a step
-    auto step = this->make_stepper<MemSpace::device>(6400);
+    auto step = this->make_stepper<MemSpace::device>(1024);
     auto primaries = this->make_primaries(8);
     step(make_span(primaries));
 
@@ -395,7 +396,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
 TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
 {
     // Initialize some primaries and take a step
-    auto step = this->make_stepper<MemSpace::device>(6400);
+    auto step = this->make_stepper<MemSpace::device>(1024);
     auto primaries = this->make_primaries(8);
     step(make_span(primaries));
 
@@ -606,7 +607,7 @@ TEST_F(PartitionDataTest, step_host)
         result.push_back(this->get_result_string(
             dynamic_cast<CoreState<MemSpace::host> const&>(step.state())));
     }
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static std::string const expected_result[] = {
             "N____________________________________________________________CCC",
@@ -656,30 +657,30 @@ TEST_F(PartitionDataTest, TEST_IF_CELER_DEVICE(step_device))
         result.push_back(this->get_result_string(
             dynamic_cast<CoreState<MemSpace::device> const&>(step.state())));
     }
-    if (this->is_ci_build())
+    if (Test::strict_testing())
     {
         static std::string const expected_result[] = {
             "NNNNNNNNNN________________________________CCCCCCCCCCCCCCCCCCCCCC",
             "_NNNNNNN_N________________________________CCCCCCCCCCCCCCCCCCCCCC",
             "NNNNNNNNNNNNN_NNNN_NNNNNNNNNN________CCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "N_NNNNN_NNNNN_NNNNNNNNNNNNNNN_NNNN_NN_CCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "__NNNNNNNNNNNNNNN_NNNNNNNNNNNNNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNNN_N_NNN_NNNNNNCNNNNNNNNNNNNNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "N_NNNNN_NNNNNNNNN_NNNNNNNNNNNNNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNNNN_NNNNNNNNNNN_NNNNNNNNNNNNNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "_NNNNNNNNNN__NNNNNNN__NNNN__NNNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNN_NNNNNN_NNNNNNNNNN_NNNNNNNNN_NNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNNNNNN_NNNNNNN_NNNNNNNNN_NNN_NNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "_NNNNNN_NNNNNNNNNNNNNNNNN_NNNCNNNN_NNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNN_NNNNNN_NNNNNNNNNNNNNNCNNN_N_NNC_NNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "N_NNNNNNNNNNNNNNNNNNNNNNN_NNN__NNNCNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNNNNNNNNNNNN_NNNNNNNNNNNNNN_NNNNN_NNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NN_NNNNNNNNNNNNNNN_NNNNNN_NN_NNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNNNNNN_NNNNNNNNNNNNNNNNNNNNNNNN_NNNN_CCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNNNNNNNNNNNNNN_NNNNNNNNNNNNNNNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "N_NNNNNNNNNNNNNC_NNN_NNNNNNNNNNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNNNNNNNN_NNNN_CNNNNNN_NNN_NNNNN_NNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-            "NNNNNN_NN_NNNNNCNNNNNN_NNN_N_N_NCNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
+            "N_NNNNN_NNNNN_NNNNNNNNNNNNNNN_NNNN_NNCCCC_CCCCCCCCCCCCCCCCCCCCCC",
+            "__NNNNNNNNNNNNNNN_NNNNNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNN_N_NNN_NNNNNNCNNNNNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "N_NNNNN_NNNNNNNNNCNNNNNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "N_NNN_N_NNNNNNNNN_NNNNNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "_NNNNNN_NNN__NNNNNNN__NNNN__NNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNN_NNNNNN_NNNNNNNNNN_NNNNNNNNN_NNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNNNNNNNNNNN_N_NNNNNNN_NNN_NNNNNNNCCCC_CCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNNNNNNNNNNNNNNNNNNNNN_NNNNNNNN_NNCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+            "_NN_NNNNNN_NNNNNNNNNNNNNN_NNNNNNNNC_NCCCC_CCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNNN_NNNNNNNNNNNNNNNNNNNNNN__NNCNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNNNNNNNNN_NNNNNNNNNNNNNN_NNNNN_NNCCCC_CCCCCCCCCCCCCCCCCCCCCC",
+            "N__NNNNNNNNNNNN_NN_NNNNNNNNN_NNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "_NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN_NNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNN_NNNNNNNNNNN_NNNNNNNNNNNNNNNNN_NCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNN_NNNNNNNNNN_N_N_NNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNN_NNNNN_NNNN_NNNNNNN_NNN_NNNNN_NNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNN__N_NNNNNNNNNNNNNNNNNNNNNNCNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
         };
         EXPECT_VEC_EQ(expected_result, result);
     }

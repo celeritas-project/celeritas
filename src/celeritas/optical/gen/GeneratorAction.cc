@@ -28,25 +28,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Construct a state
-template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
-{
-    using StoreT = StateDataStore<GeneratorStateData, M>;
-
-    auto result = std::make_unique<GeneratorState<M>>();
-    result->store = StoreT{stream, size};
-
-    CELER_ENSURE(*result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -92,11 +73,13 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(id, initial_capacity_);
+        return make_state<MemSpace::host, GeneratorState>(id,
+                                                          initial_capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(id, initial_capacity_);
+        return make_state<MemSpace::device, GeneratorState>(id,
+                                                            initial_capacity_);
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -107,6 +90,7 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
  */
 void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
 {
+    size_type num_photons{0};
     for (auto const& d : data)
     {
         CELER_VALIDATE(d, << "invalid optical step distribution " << d);
@@ -120,17 +104,27 @@ void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
                    "direction due to coincident start/stop points: "
                 << d;
         }
+        num_photons += d.num_photons;
     }
 
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
     {
-        return this->insert_impl(*s, data);
+        this->insert_impl(*s, data);
     }
     else if (auto* s = dynamic_cast<CoreState<MemSpace::device>*>(&state))
     {
-        return this->insert_impl(*s, data);
+        this->insert_impl(*s, data);
     }
-    CELER_ASSERT_UNREACHABLE();
+    else
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
+
+    // Update the number of photons waiting to be generated
+    if (num_photons > 0)
+    {
+        state.add_pending(num_photons);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -176,7 +170,10 @@ void GeneratorAction::insert_impl(CoreState<M>& state, SpanConstData data) const
     }
 
     // Update counters and copy distributions to aux state
-    aux_state.counters.buffer_size = data.size();
+    auto counters = aux_state.counters;
+    counters.buffer_size = data.size();
+    aux_state.assign(counters);
+    aux_state.needs_scan = true;
     Copier<GeneratorDistributionData, M> copy_to_aux{aux_state.distributions(),
                                                      state.stream_id()};
     copy_to_aux(MemSpace::host, data);
@@ -193,37 +190,38 @@ void GeneratorAction::step_impl(CoreParams const& params,
     CELER_EXPECT(state.aux());
 
     auto& aux_state = get<GeneratorState<M>>(*state.aux(), this->aux_id());
-    auto& counters = aux_state.counters;
 
-    if (counters.num_generated == 0 && counters.buffer_size > 0)
+    // Upper bound on the number of buffered distributions
+    size_type bound = aux_state.buffer_bound();
+
+    if (aux_state.needs_scan && bound > 0)
     {
-        // If this process created photons, on the first step iteration
-        // calculate the cumulative sum of the number of photons in the
-        // buffered distributions. These values are used to determine which
-        // thread will generate photons from which distribution
-        counters.num_pending = detail::inclusive_scan_photons(
-            aux_state.store.ref().distributions,
-            aux_state.store.ref().offsets,
-            counters.buffer_size,
-            state.stream_id());
+        // If distributions were added, on the first step iteration calculate
+        // the cumulative sum of the number of photons in the buffered
+        // distributions. These values are used to determine which thread
+        // will generate photons from which distribution. The queued
+        // distributions and photons are accumulated.
+        detail::accumulate_buffer(aux_state.device_counters(),
+                                  state.stream_id());
+        detail::inclusive_scan_photons(aux_state.store.ref().distributions,
+                                       aux_state.store.ref().offsets,
+                                       bound,
+                                       aux_state.device_counters(),
+                                       state.stream_id());
     }
+    aux_state.needs_scan = false;
 
-    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (bound > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, the number of photons and vacancies are checked
+        // on device.
         this->generate(params, state);
     }
 
-    // Update the generator and optical core state counters
+    // Update the generator and optical core state counters, clearing the
+    // buffer once all photons have been generated
     this->update_counters(state);
-
-    // If there are no more tracks to generate, reset the buffer size and
-    // number of photons generated
-    if (counters.num_pending == 0)
-    {
-        aux_state.accum.buffer_size += counters.buffer_size;
-        counters = {};
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -240,8 +238,6 @@ void GeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
@@ -249,14 +245,15 @@ void GeneratorAction::generate(CoreParams const& params,
                                           params.host_ref().cherenkov,
                                           params.host_ref().scintillation,
                                           aux_state.store.ref(),
-                                          aux_state.counters.buffer_size};
-        launch_action(num_gen, execute);
+                                          aux_state.device_counters()};
+        launch_action(state.size(), execute);
     }
     {
         // Update the cumulative sum of the number of photons per distribution
         // according to how many were generated
-        detail::UpdateSumExecutor execute{aux_state.store.ref(), num_gen};
-        launch_kernel(aux_state.counters.buffer_size, execute);
+        detail::UpdateSumExecutor execute{
+            state.ptr(), aux_state.store.ref(), aux_state.device_counters()};
+        launch_kernel(aux_state.buffer_bound(), execute);
     }
 }
 

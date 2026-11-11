@@ -12,6 +12,7 @@
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/gen/CherenkovGenerator.hh"
 #include "celeritas/optical/gen/ScintillationGenerator.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/Utils.hh"
 
@@ -39,16 +40,12 @@ struct GeneratorExecutor
     NativeCRef<CherenkovData> const cherenkov;
     NativeCRef<ScintillationData> const scintillation;
     NativeRef<GeneratorStateData> const offload;
-    size_type buffer_size{};
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 
     //// FUNCTIONS ////
 
     // Generate optical photons
-    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
-    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
-    {
-        return (*this)(TrackSlotId{tid.unchecked_get()});
-    }
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -57,18 +54,28 @@ struct GeneratorExecutor
 /*!
  * Generate photons from optical distribution data.
  */
-CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
+CELER_FUNCTION void GeneratorExecutor::operator()(ThreadId tid) const
 {
     using namespace celeritas::literals;
     CELER_EXPECT(state);
     CELER_EXPECT(offload);
+    CELER_EXPECT(gen_counters);
 
     using DistId = ItemId<GeneratorDistributionData>;
 
-    auto* counters = state->init.counters.data().get();
+    auto counters = state->init.counters.data();
+    auto const& current = gen_counters->current;
 
-    // Find the index of the first distribution that has a nonzero number of
-    // primaries left to generate
+    // The kernel is launched over all track slots to avoid copying the
+    // counters to the host: skip threads beyond the number of vacancies or
+    // the number of photons left to generate
+    if (!(tid < min(counters->num_vacancies, current.num_pending)))
+    {
+        return;
+    }
+    size_type const buffer_size = current.buffer_size;
+    // Find the index of the first distribution that has a nonzero number
+    // of primaries left to generate
     auto all_offsets = offload.offsets[ItemRange<size_type>(
         ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
     auto buffer_start
@@ -88,14 +95,13 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_ASSERT(dist);
 
     // Create the view to the new track to be initialized
-    CoreTrackView vacancy{
-        *params, *state, [&] {
-            // Get the vacancy from the back in case there
-            // are more vacancies than photons to generate
-            TrackSlotId idx{
-                index_before(counters->num_vacancies, ThreadId(tid.get()))};
-            return state->init.vacancies[idx];
-        }()};
+    CoreTrackView vacancy{*params, *state, [&] {
+                              // Get the vacancy from the back in case there
+                              // are more vacancies than photons to generate
+                              TrackSlotId idx{
+                                  index_before(counters->num_vacancies, tid)};
+                              return state->init.vacancies[idx];
+                          }()};
 
     if (!dist.material)
     {

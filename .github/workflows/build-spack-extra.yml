@@ -28,8 +28,6 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true # to get version information
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
@@ -68,8 +66,6 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true # to get version information
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
@@ -111,12 +107,10 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true # to get version information
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
-          add: "geant4@11.3 vecgeom@2.1.0 g4vg hepmc3~rootio" # Same as vecgeom 11.3
+          add: "geant4@11.3 vecgeom@2.2.0 g4vg hepmc3~rootio" # Same as vecgeom 11.3
           cxxstd: ${{env.CXXSTD}}
       - name: Configure Celeritas
         uses: ./.github/actions/configure

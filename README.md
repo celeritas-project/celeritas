@@ -6,7 +6,7 @@ requirements of the [HL-LHC upgrade][HLLHC].
 
 [HLLHC]: https://home.cern/science/accelerators/high-luminosity-lhc
 
-# Documentation
+## Documentation
 
 See [the quick start guide][quickstart] for common use cases:
 - Loading as a LArSoft plugin
@@ -29,7 +29,7 @@ doc` (user) or `ninja doxygen` (developer).
 [user-docs]: https://celeritas-project.github.io/celeritas/user/index.html
 [dev-docs]: https://celeritas-project.github.io/celeritas/dev/index.html
 
-# Installation for applications
+## Installation for applications
 
 The easiest way to install Celeritas as a library/app is with Spack:
 - Follow these steps to install [Spack][spack-start].
@@ -75,7 +75,7 @@ $ spack install celeritas +cuda cuda_arch=80
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
 
-# Integrating into a Geant4 app
+## Integrating into a Geant4 app
 
 In the simplest case, integration requires a few small changes to your user
 applications, with many more details described in
@@ -99,33 +99,30 @@ code:
 ```diff
 --- example/geant4/trackingmanager-offload.cc
 +++ example/geant4/trackingmanager-offload.cc
-@@ -31,2 +31,4 @@
+@@ -33,8 +33,13 @@
+ #endif
 
 +// Celeritas
 +#include <CeleritasG4.hh>
++
+ // Celeritas convenience utils
+ #include <corecel/Assert.hh>
+ #include <corecel/io/Logger.hh>
 
++using TMI = celeritas::TrackingManagerIntegration;
++
+ namespace
+ {
 ```
 
-Celeritas uses the run action to set up and tear down cleanly:
+Celeritas integrates into the tracking loop primarily using the
+`G4VTrackingManager` interface. Register the Celeritas tracking manager with the
+physics list and set the offload options before initializing the run manager:
 ```diff
---- example/accel/trackingmanager-offload.cc
-+++ example/accel/trackingmanager-offload.cc
-@@ -133,2 +138,3 @@ class RunAction final : public G4UserRunAction
-     {
-+        TMI::Instance().BeginOfRunAction(run);
-     }
-@@ -136,2 +142,3 @@ class RunAction final : public G4UserRunAction
-     {
-+        TMI::Instance().EndOfRunAction(run);
-     }
-```
-
-And integrates into the tracking loop primarily using the `G4TrackingManager`
-interface:
-```diff
---- example/accel/trackingmanager-offload.cc
-+++ example/accel/trackingmanager-offload.cc
-@@ -203,4 +235,8 @@ int main()
+--- example/geant4/trackingmanager-offload.cc
++++ example/geant4/trackingmanager-offload.cc
+@@ -207,9 +212,15 @@ int main()
+     run_manager->SetUserInitialization(new DetectorConstruction{});
 
 +    auto& tmi = TMI::Instance();
 +
@@ -133,15 +130,27 @@ interface:
      auto* physics_list = new FTFP_BERT{/* verbosity = */ 0};
 +    physics_list->RegisterPhysics(
 +        new celeritas::TrackingManagerConstructor(&tmi));
+     run_manager->SetUserInitialization(physics_list);
+     run_manager->SetUserInitialization(new ActionInitialization());
+
++    tmi.SetOptions(MakeOptions());
++
+     run_manager->Initialize();
 ```
+
+No run action changes are needed: `TrackingManagerIntegration` sets up and
+tears down Celeritas automatically through Geant4 state hooks.
 
 More flexible alternatives to this high level interface, compatible with other
 run manager implementations and older versions of Geant4, are described in the
-manual.
+manual. These (`UserActionIntegration` and `FastSimulationIntegration`) still
+require calling `BeginOfRunAction` and `EndOfRunAction` from the user run
+action: see `example/geant4/simple-offload.cc` and
+`example/geant4/fastsim-offload.cc`.
 
 [integration]: https://celeritas-project.github.io/celeritas/user/usage/integration.html
 
-# Running a standalone Celeritas app
+## Running a standalone Celeritas app
 
 The `celer-sim` application runs electromagnetic particle transport with
 Celeritas directly from a JSON input file. At minimum, the input must specify a
@@ -204,7 +213,7 @@ complete input and invocation.
 [celer-sim-example]: https://celeritas-project.github.io/celeritas/user/example/celer-sim.html
 [celer-optical-example]: https://celeritas-project.github.io/celeritas/user/example/celer-optical.html
 
-# Installation for developers
+## Installation for developers
 
 Since Celeritas is still under very active development, you may be installing it
 for development purposes. The [installation documentation][installation] has a
@@ -221,7 +230,7 @@ $ spack env create celeritas scripts/spack/env-devmin.yaml
 $ spack env activate celeritas
 # Set up CUDA/HIP (optional; example here is for Nvidia A100)
 $ spack external find --not-buildable cuda
-$ spack config add packages:all:prefer:"+cuda cuda_arch=80"
+$ spack config add 'packages:all:prefer:["+cuda cuda_arch=80"]'
 # Install dependencies
 $ spack install
 # Configure, build, and test with a default development configure
@@ -260,7 +269,7 @@ See the configure output from the [GitHub runners][runners] for the full list of
     - C++17, C++20, C++23
 - Dependencies:
     - Geant4 10.5-11.4
-    - VecGeom 1.2.10-2.1
+    - VecGeom 1.2.10-1.2.11, 2.2
 
 Partial compatibility and correctness is available for an extended range of
 Geant4:
@@ -282,7 +291,7 @@ Compatibility fixes that do not cause newer versions to fail are welcome.
 [runners]: https://github.com/celeritas-project/celeritas/actions/workflows/push.yml
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
-# Development
+## Development
 
 <!-- This section should be kept in sync with the doc/development files -->
 
@@ -299,20 +308,17 @@ a good quick-start guide for humans.
 [development-guidelines]: https://celeritas-project.github.io/celeritas/user/development/coding.html
 [administration-guidelines]: https://celeritas-project.github.io/celeritas/user/development/administration.html
 
-# Directory structure
+## Directory structure
 
-| **Directory** | **Description**                                       |
-|---------------|-------------------------------------------------------|
-| **app**       | Source code for installed executable applications     |
-| **cmake**     | Implementation code for CMake build configuration     |
-| **doc**       | Code documentation and manual                         |
-| **example**   | Example applications and input files                  |
-| **external**  | Automatically fetched external CMake dependencies     |
-| **scripts**   | Development and continuous integration helper scripts |
-| **src**       | Library source code                                   |
-| **test**      | Unit tests                                            |
+- `src/`: library source code and headers
+- `test/`: unit and regression tests
+- `app/`: source code for installed executable applications
+- `cmake/`: implementation code for CMake build configuration
+- `scripts/`: helper scripts for ci and development
+- `doc/`: user+developer documentation that incorporates Doxygen documentation
+- `example/`: demonstrate usage of Celeritas as an installed app/library
 
-# Citing Celeritas
+## Citing Celeritas
 
 <!-- This section should be kept in sync with the CITATIONS.cff file -->
 

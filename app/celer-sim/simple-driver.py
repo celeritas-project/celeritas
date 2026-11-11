@@ -119,6 +119,7 @@ def build_input(cfg: RunConfig) -> dict:
         "timers": {"action": True, "step": cfg.use_device},
         "slot": {"basename": f"slot-diag-{cfg.run_name}-"},
         "step": {"bins": 200},
+        "export_files": {"geometry": f"{cfg.run_name}-export.gdml"},
     }
     problem = {
         "model": {"geometry": cfg.geometry_file},
@@ -152,7 +153,6 @@ def build_input(cfg: RunConfig) -> dict:
         num_optical_tracks = 8192
         optical_capacity = {
             "tracks": num_optical_tracks,
-            "generators": 4 * max_steps * num_optical_tracks,
             "primaries": num_optical_tracks,
         }
         control["optical_capacity"] = optical_capacity
@@ -209,6 +209,9 @@ def run_celer_sim(inp: dict, run_name: str) -> dict:
 
 
 def validate_output(j: dict, inp: dict, use_device: bool) -> None:
+    export_geo = Path(inp["problem"]["diagnostics"]["export_files"]["geometry"])
+    assert export_geo.stat().st_size > 0, export_geo
+
     run_output = j["result"]["runner"]
     time = run_output["time"].copy()
     steps = time.pop("steps")
@@ -239,7 +242,7 @@ def validate_output(j: dict, inp: dict, use_device: bool) -> None:
         }
     if not use_device and "lar" in inp["problem"]["model"]["geometry"]:
         expected_opt_sizes = {
-            "generators": 8388608,
+            "generators": 16384,
             "tracks": 8192,
             "primaries": 8192,
         }
@@ -276,6 +279,10 @@ def main():
         physics_filename=physics_filename,
     )
     inp = build_input(cfg)
+    # Geant4 refuses to overwrite an existing GDML file
+    Path(inp["problem"]["diagnostics"]["export_files"]["geometry"]).unlink(
+        missing_ok=True
+    )
     j = run_celer_sim(inp, run_name)
     validate_output(j, inp, use_device)
 

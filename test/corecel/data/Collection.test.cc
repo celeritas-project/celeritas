@@ -19,6 +19,7 @@
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ParamsDataStore.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/sys/Device.hh"
 
 #include "Collection.test.hh"
 #include "celeritas_test.hh"
@@ -371,6 +372,14 @@ TEST_F(SimpleCollectionTest, algo_host)
     {
         EXPECT_EQ(i, dst[i]);
     }
+
+    // Test 'reserve': the first three values are preserved
+    reserve(&src, 3, 10, StreamId{0});
+    EXPECT_EQ(10, src.size());
+    for (size_type i = 0; i < 3; ++i)
+    {
+        EXPECT_EQ(i, src[IntId{i}]);
+    }
 }
 
 TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
@@ -399,6 +408,15 @@ TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
     {
         EXPECT_EQ(i, dst[i]);
     }
+
+    // Test 'reserve' with a stream: the first value is preserved
+    celeritas::device().create_streams(1);
+    reserve(&src, 1, 4, StreamId{0});
+    EXPECT_EQ(4, src.size());
+    dst.resize(src.size());
+    copy_to_host(src, make_span(dst), StreamId{0});
+    celeritas::device().stream(StreamId{0}).sync();
+    EXPECT_EQ(0, dst[0]);
 }
 
 //---------------------------------------------------------------------------//

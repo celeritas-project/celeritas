@@ -66,7 +66,7 @@ struct CartMapFieldParams::Impl
 
 inline void CartMapFieldParams::ImplDeleter::operator()(Impl*) const noexcept
 {
-    CELER_UNREACHABLE;
+    ::celeritas::unreachable();
 }
 
 inline CartMapFieldParams::CartMapFieldParams(Input const&)

@@ -8,6 +8,7 @@
 
 #include <iomanip>
 #include <ios>
+#include <iostream>
 #include <regex>
 #include <sstream>
 
@@ -17,6 +18,24 @@ namespace test
 {
 namespace
 {
+template<class F>
+std::string rounded_stod_impl(
+    F&& to_string_impl, std::string const& s, int precision)
+{
+    double d{};
+    try
+    {
+        d = std::stod(s);
+    }
+    catch (std::logic_error const&)
+    {
+        // Do *NOT* use the logger since this may be called during logging and
+        // we don't want a recursive failure. Simply refuse to simplify.
+        return s;
+    }
+    return to_string_impl(d, precision);
+}
+
 using StreamManip = std::ios_base& (*)(std::ios_base&);
 std::string to_str_impl(double value, int precision, StreamManip mode)
 {
@@ -78,9 +97,9 @@ std::string to_sci(double value, int precision)
     // notation) with optional scientific notation and trailing f
     static std::regex const combined_regex(
         "(?:"
-        R"((-?(?:\d*\.\d+|\d+\.\d*|\d+)[eE][-+]?\d+f?)\b)"  // Sci
+        R"(([-+]?(?:\d*\.\d+|\d+\.\d*|\d+)[eE][-+]?\d+f?)\b)"  // Sci
         "|"
-        R"((-?(?:\d*\.\d+f?|\d+\.\d*f?|\d+f))(?![0-9e]+))"  // Float
+        R"(([-+]?(?:\d*\.\d+f?|\d+\.\d*f?|\d+f))(?![0-9e]+))"  // Float
         "|"
         "(\033\\[[0-9;]*m)"  // ANSI
         "|"
@@ -148,7 +167,7 @@ std::string StringSimplifier::simplify_sci(std::string s) const
         = std::min<int>(1 + std::distance(iter, exp_iter), precision_);
 
     // Format the rounded number with appropriate notation
-    s = to_sci(std::stod(s), precision);
+    s = rounded_stod_impl(to_sci, s, precision);
 
     return s;
 }
@@ -167,7 +186,7 @@ std::string StringSimplifier::simplify_float(std::string s) const
 
     // Count the number of significant digits
     auto begin = s.cbegin();
-    if (*begin == '-')
+    if (*begin == '-' || *begin == '+')
     {
         ++begin;
     }
@@ -210,14 +229,14 @@ std::string StringSimplifier::simplify_float(std::string s) const
     {
         // Leading digits are too precise, or there are too many leading zeros:
         // write as scientific
-        s = to_sci(std::stod(s), precision);
+        s = rounded_stod_impl(to_sci, s, precision);
         CELER_ASSERT(!s.empty());
     }
     else
     {
         dec_precision = std::min(dec_precision, precision_ - lead_precision)
                         + lead_zeros;
-        s = to_float(std::stod(s), dec_precision);
+        s = rounded_stod_impl(to_float, s, dec_precision);
         if (dec_precision == 0)
         {
             // Don't make it an integer except if we parsed it as a float

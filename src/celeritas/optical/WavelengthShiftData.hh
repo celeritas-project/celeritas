@@ -9,10 +9,12 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/Filler.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/optical/Types.hh"
+#include "celeritas/optical/gen/GeneratorCounterState.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
 namespace celeritas
@@ -114,7 +116,8 @@ struct WavelengthShiftData
  * The distributions are stored in a buffer indexed by the current buffer size
  * plus the track slot ID. The data is compacted at the end of each step by
  * removing all invalid distributions. The order of the distributions in the
- * buffers is guaranteed to be reproducible.
+ * buffers is guaranteed to be reproducible. All distributions past the
+ * buffer size and the slots written in the current step are invalid.
  */
 template<Ownership W, MemSpace M>
 struct WlsGeneratorStateData
@@ -159,13 +162,38 @@ struct WlsGeneratorStateData
  * Store optical WLS generation states in aux data.
  */
 template<MemSpace M>
-struct WlsGeneratorState : public GeneratorStateBase
+struct WlsGeneratorState final : public GeneratorCounterState<M>
 {
     StateDataStore<WlsGeneratorStateData, M> store;
+
+    //! Number of track slots, which is the most distributions added per step
+    size_type num_slots{};
+
+    //! Construct with stream, buffer capacity, and number of track slots
+    WlsGeneratorState(StreamId stream, size_type capacity, size_type slots)
+        : GeneratorCounterState<M>{stream}
+        , store{stream, capacity}
+        , num_slots{slots}
+    {
+        this->clear_buffer();
+    }
+
+    // Count and discard buffered distributions after an aborted loop
+    void reset_counters() final;
+
+    //! Mark all distributions in the buffer as invalid
+    void clear_buffer()
+    {
+        Filler<WlsDistributionData, M> fill{{}, this->stream_id()};
+        fill(store.ref().distributions[AllItems<WlsDistributionData, M>{}]);
+    }
 
     //! True if states have been allocated
     explicit operator bool() const { return static_cast<bool>(store); }
 };
+
+extern template struct WlsGeneratorState<MemSpace::host>;
+extern template struct WlsGeneratorState<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -173,12 +201,12 @@ struct WlsGeneratorState : public GeneratorStateBase
  */
 template<MemSpace M>
 void resize(WlsGeneratorStateData<Ownership::value, M>* state,
-            StreamId,
+            StreamId stream,
             size_type size)
 {
     CELER_EXPECT(size > 0);
-    resize(&state->distributions, size);
-    resize(&state->offsets, size);
+    resize(&state->distributions, size, stream);
+    resize(&state->offsets, size, stream);
     CELER_ENSURE(*state);
 }
 

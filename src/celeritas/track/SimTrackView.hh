@@ -81,6 +81,9 @@ class SimTrackView
     // Track ID of parent
     inline CELER_FUNCTION TrackId parent_id() const;
 
+    // Number of generations since the track's ancestor was offloaded
+    inline CELER_FUNCTION size_type generation() const;
+
     // Event ID
     inline CELER_FUNCTION EventId event_id() const;
 
@@ -153,6 +156,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.track_ids[track_slot_] = other.track_id;
     states_.primary_ids[track_slot_] = other.primary_id;
     states_.parent_ids[track_slot_] = other.parent_id;
+    states_.generations[track_slot_] = other.generation;
     states_.event_ids[track_slot_] = other.event_id;
     states_.num_steps[track_slot_] = 0;
     states_.weight[track_slot_] = other.weight;
@@ -349,6 +353,26 @@ CELER_FORCEINLINE_FUNCTION PrimaryId SimTrackView::primary_id() const
 CELER_FORCEINLINE_FUNCTION TrackId SimTrackView::parent_id() const
 {
     return states_.parent_ids[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of generations since the track's ancestor was offloaded.
+ *
+ * This is zero for a primary, i.e. a track given to Celeritas (e.g.,
+ * offloaded from Geant4), and one more than its parent for a secondary. A
+ * track that leaves Celeritas (e.g., is handed back to Geant4) and is
+ * offloaded again becomes a new primary and restarts at zero, so this is the
+ * generation since the latest offload, \em not the generation in the full
+ * event history.
+ *
+ * Integrations use it to recognize secondaries of the offloaded track itself
+ * (generation 1), whose parent the host application knows by its original
+ * (e.g., Geant4) identity rather than by its Celeritas track ID.
+ */
+CELER_FORCEINLINE_FUNCTION size_type SimTrackView::generation() const
+{
+    return states_.generations[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

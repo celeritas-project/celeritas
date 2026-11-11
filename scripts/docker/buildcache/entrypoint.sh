@@ -19,14 +19,16 @@ if [ ! -f "${ACTION_FILE}" ]; then
   exit 1
 fi
 
+# IMAGE_SPACK_* was saved as an environment variable during image build
+
 pins=$(python3 "${CELER_SOURCE_DIR}/scripts/ci/parse-spack-versions.py" \
   "${ACTION_FILE}")
 eval "${pins}"
-if [ "${SPACK_REF}" != "${CELER_SPACK_REF}" ] \
-    || [ "${SPACK_PACKAGES_REF}" != "${CELER_SPACK_PACKAGES_REF}" ]; then
+if [ "${SPACK_REF}" != "${IMAGE_SPACK_REF}" ] \
+    || [ "${SPACK_PACKAGES_REF}" != "${IMAGE_SPACK_PACKAGES_REF}" ]; then
   log error "Spack revisions in the image do not match ${ACTION_FILE}:"
-  log error "  spack:          image ${CELER_SPACK_REF}, source ${SPACK_REF}"
-  log error "  spack-packages: image ${CELER_SPACK_PACKAGES_REF}, source ${SPACK_PACKAGES_REF}"
+  log error "  spack:          image ${IMAGE_SPACK_REF}, source ${SPACK_REF}"
+  log error "  spack-packages: image ${IMAGE_SPACK_PACKAGES_REF}, source ${SPACK_PACKAGES_REF}"
   log error "rebuild the image with scripts/docker/buildcache/build.sh"
   exit 1
 fi

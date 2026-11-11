@@ -11,10 +11,12 @@
 
 #include "corecel/Config.hh"
 
+#include "geocel/GeantGeoUtils.hh"
 #include "geocel/Types.hh"
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class G4NavigationHistory;
 
 namespace celeritas
 {
@@ -62,6 +64,10 @@ class GeantVolumeInstanceMapper
     // Get the volume instance *without* checking replica state
     VolumeInstanceId geant_to_id(G4PV const&, int copy_no) const;
 
+    // Get the volume instance at a nav level (zero for world)
+    VolumeInstanceId geant_to_id(G4NavigationHistory const&,
+                                 VolumeLevelId level) const;
+
     // Return and (if replica) update the volume from an instance ID.
     G4PV const& id_to_geant(VolumeInstanceId) const;
 
@@ -82,6 +88,13 @@ class GeantVolumeInstanceMapper
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Get the navigation depth of a G4 navigation path: 0 for outside, 1 for world
+VolumeLevelId get_num_volume_levels(G4NavigationHistory const& nav);
+
+//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
 inline VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
     G4PV const&) const
@@ -90,6 +103,11 @@ inline VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
 }
 inline VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const&,
                                                                int) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
+    G4NavigationHistory const&, VolumeLevelId) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

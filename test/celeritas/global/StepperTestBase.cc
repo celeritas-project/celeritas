@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <numeric>
 #include <gtest/gtest.h>
 
@@ -19,21 +20,16 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
+#include "AssertionHelper.hh"
+#include "RefComparer.hh"
+#include "TestMacros.hh"
+
 using std::cout;
 
 namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-//! Whether the build uses the default real type and RNG.
-bool StepperTestBase::is_default_build()
-{
-    return CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-           && CELERITAS_UNITS == CELERITAS_UNITS_CGS
-           && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW;
-}
-
 //---------------------------------------------------------------------------//
 //! Generate a stepper construction class
 StepperInput StepperTestBase::make_stepper_input(size_type tracks)
@@ -87,10 +83,6 @@ auto StepperTestBase::run(StepperInterface& step,
 {
     // Perform first step
     auto primaries = this->make_primaries(num_primaries);
-    for (auto i : celeritas::range(primaries.size()))
-    {
-        primaries[i].primary_id = id_cast<PrimaryId>(i);
-    }
 
     StepperResult counts;
     CELER_TRY_HANDLE(counts = step(make_span(primaries)),
@@ -184,45 +176,43 @@ auto StepperTestBase::RunResult::calc_queue_hwm() const -> StepCount
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void StepperTestBase::SetupCheckResult::print_expected() const
+std::ostream& operator<<(std::ostream& os,
+                         StepperTestBase::SetupCheckResult const& ref)
 {
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "static const char* const expected_processes[] = "
-         << repr(this->processes)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_processes, result.processes);\n"
-            "static const char* const expected_actions[] = "
-         << repr(this->actions)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_actions, result.actions);\n"
-            "static const char* const expected_actions_desc[] = "
-         << repr(this->actions_desc)
-         << ";\n"
-            "EXPECT_VEC_EQ(expected_actions_desc, result.actions_desc);\n"
-            "/*** END CODE ***/\n";
+    return os << '{' << CELER_REPR_ATTR(ref, processes) << ", "
+              << CELER_REPR_ATTR(ref, actions) << ", "
+              << CELER_REPR_ATTR(ref, actions_desc) << '}';
+}
+
+bool is_ref_eq(AssertionHelper& helper,
+               StepperTestBase::SetupCheckResult const& expected,
+               StepperTestBase::SetupCheckResult const& actual)
+{
+    using Result = StepperTestBase::SetupCheckResult;
+    RefComparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, processes);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, actions);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, actions_desc);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
-//! Print the expected result
-void StepperTestBase::RunResult::print_expected() const
+std::ostream& operator<<(std::ostream& os,
+                         StepperTestBase::RunResult const& ref)
 {
-    CELER_EXPECT(*this);
-    auto step_value = this->calc_queue_hwm();
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "EXPECT_EQ("
-         << this->num_step_iters()
-         << ", result.num_step_iters());\n"
-            "EXPECT_SOFT_EQ("
-         << repr(this->calc_avg_steps_per_primary())
-         << ", result.calc_avg_steps_per_primary());\n"
-            "EXPECT_EQ("
-         << this->calc_emptying_step()
-         << ", result.calc_emptying_step());\n"
-            "EXPECT_EQ(RunResult::StepCount({"
-         << step_value.first << ", " << step_value.second
-         << "}), result.calc_queue_hwm());\n"
-            "/*** END CODE ***/\n";
+    return os << '{' << CELER_REPR_ATTR(ref, active) << ", "
+              << CELER_REPR_ATTR(ref, queued) << '}';
+}
+
+bool is_ref_eq(AssertionHelper& helper,
+               StepperTestBase::RunResult const& expected,
+               StepperTestBase::RunResult const& actual)
+{
+    using Result = StepperTestBase::RunResult;
+    RefComparer<Result> compare{helper, expected, actual};
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, active);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, Result, queued);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

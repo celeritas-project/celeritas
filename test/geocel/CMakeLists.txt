@@ -37,6 +37,7 @@ set(SOURCES
   GenericGeoResults.cc
   GenericGeoTestInterface.cc
   GeoTests.cc
+  RefUtils.cc
   SurfaceTestBase.cc
   VolumeTestBase.cc
 )
@@ -74,6 +75,7 @@ celeritas_setup_tests(SERIAL
 celeritas_add_test(BoundingBox.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
+celeritas_add_test(BumpPosition.test.cc)
 
 # These tests verify both Params and View
 celeritas_add_test(Detector.test.cc)
@@ -137,7 +139,7 @@ if(CELERITAS_USE_VecGeom)
   )
 endif()
 
-if(CELERITAS_USE_VecGeom AND VecGeom_VERSION VERSION_GREATER_EQUAL 2.1)
+if(CELERITAS_USE_VecGeom AND VecGeom_VERSION VERSION_GREATER_EQUAL 2.2)
   celeritas_add_test(vg/VgBasicTrackView.test.cc
     LINK_LIBRARIES VecGeom::vecgeom
   )

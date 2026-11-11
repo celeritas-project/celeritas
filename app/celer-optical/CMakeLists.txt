@@ -23,19 +23,21 @@ celeritas_target_link_libraries(celer-optical PRIVATE ${LIBRARIES})
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT BUILD_TESTING)
+if(NOT CELERITAS_ENABLE_TESTING)
   return()
 endif()
 
 #-----------------------------------------------------------------------------#
+set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/driver.py")
+set(_exe "$<TARGET_FILE:celer-optical>")
+
 function(celer_optical_add_test ext gdml backend)
-  set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/driver.py")
   set(_gdml_inp "${CELER_APP_DATA_DIR}/${gdml}")
   set(_env
     ${CELER_PYTHONENV}
     ${CELER_G4ENV}
     ${CELER_OMP_ENV}
-    "CELERITAS_EXE=$<TARGET_FILE:celer-optical>"
+    "CELERITAS_EXE=${_exe}"
     "CELER_DISABLE_PARALLEL=1"
     "CELER_CORE_GEO=${CELERITAS_CORE_GEO}"
   )
@@ -46,6 +48,10 @@ function(celer_optical_add_test ext gdml backend)
      OR CELERITAS_CORE_GEO STREQUAL "Geant4"
      OR (NOT VecGeom_GDML_FOUND AND CELERITAS_CORE_GEO STREQUAL "VecGeom"))
     list(APPEND _props DISABLED TRUE)
+  endif()
+  if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+     # VecGeom < 2.2 does not provide surface normals: required for optical
+    list(APPEND _props DISABLED true)
   endif()
 
   if("${backend}" STREQUAL "cpu")
@@ -67,7 +73,7 @@ function(celer_optical_add_test ext gdml backend)
   )
   set_tests_properties("${_name}" PROPERTIES
     ENVIRONMENT "${_env}"
-    REQUIRED_FILES "${_driver};${_gdml_inp}"
+    REQUIRED_FILES "${_driver};${_exe};${_gdml_inp}"
     LABELS "${_labels}"
     ${_props}
   )

@@ -33,6 +33,11 @@ inputs:
     description: "Save ccache debug logs to this directory when ccache-debug"
     required: false
     default: "${{runner.temp}}/ccache-debug"
+  no-save:
+    description: "Disable saving the ccache after the build (for ephemeral jobs)"
+    required: false
+    default: "${{ github.event.merge_group && true || false }}"
+
 outputs:
   outcome:
     description: "Outcome of the build step ('success', 'failure', 'cancelled', 'skipped')"
@@ -52,6 +57,7 @@ runs:
           echo "CCACHE_DEBUG=${{ fromJSON(inputs.ccache-debug) > 0 && '1' || '' }}"
           echo "CCACHE_DEBUGLEVEL=${{ inputs.ccache-debug }}"
           echo "CCACHE_DEBUGDIR=$(tr '\\' '/' <<< '${{ inputs.ccache-debug-dir }}')"
+          echo "CCACHE_NOINODECACHE=true" # Always a fresh checkout so ctime is always new
         } >> "$GITHUB_ENV"
 
     - name: Restore ccache
@@ -61,6 +67,12 @@ runs:
         path: ${{ env.CCACHE_DIR }}
         key: ccache-${{ inputs.name }}-${{ github.run_id }}
         restore-keys: ccache-${{ inputs.name }}
+        # NOTE: outputs.cache-hit is a *string* that has values:
+        # - '': no hit at all
+        # - 'false': hit but only using "restore-keys" (i.e. indirect match,
+        #   maybe  from an older build or from develop)
+        # - 'true': hit using the exact name: multiple jobs sharing cache within
+        #   the same run (or re-run)
 
     - name: Zero ccache stats
       shell: bash
@@ -71,10 +83,37 @@ runs:
       id: build
       shell: bash
       run: cmake --build --preset=${{ inputs.preset }} ${{ inputs.targets && '--target' || '' }} ${{ inputs.targets }}
-    - name: Show ccache stats
+    - name: Show cache result
       if: ${{ !failure() && steps.build.outcome != 'skipped' }}
       shell: bash
-      run: ccache -s
+      env:
+        CACHE_HIT_OUTPUT: ${{ steps.restore.outputs.cache-hit }}
+        CACHE_KEY_MATCH: ${{ steps.restore.outputs.cache-matched-key }}
+      run: |
+        case "$CACHE_HIT_OUTPUT" in
+          "true")
+            _ansi="33;1" # Exact match: unlikely, no saving after exit
+            ;;
+          "false")
+            _ansi="32" # Inexact match: typical case
+            ;;
+          "")
+            _ansi="31;1" # No match: should only happen during weekly cron
+            ;;
+          *)
+            _ansi="30;41" # Shouldn't be possible unless action API changes
+            ;;
+        esac
+        printf "\033[%smCache restore result:\033[0m \033[%sm%s\033[0m \033[%smfrom %s\033[0m\n" \
+          "44;30" \
+          "$_ansi" \
+          "$CACHE_HIT_OUTPUT" \
+          "1;30" \
+          "$CACHE_KEY_MATCH"
+        ccache -s
+        echo "::group::Verbose stats"
+        ccache -s -v -v
+        echo "::endgroup::"
 
     - name: Save ccache
       # Allow interrupted builds to save (use !failure not !cancelled)
@@ -84,7 +123,8 @@ runs:
       if: >-
         ${{ !failure()
            && steps.build.outcome != 'skipped'
-           && !steps.restore.outputs.cache-hit
+           && steps.restore.outputs.cache-hit != 'true'
+           && !fromJSON(inputs.no-save)
          }}
       uses: actions/cache/save@v6
       with:

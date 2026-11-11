@@ -7,8 +7,10 @@
 #pragma once
 
 #include "corecel/cont/Span.hh"
+#include "corecel/data/AsyncSnapshot.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
@@ -91,6 +93,9 @@ class CoreStateBase : public CoreStateInterface
     //! Optical loop statistics
     CounterAccumStats& accum() { return accum_; }
 
+    //! Add to the number of pending optical photons
+    virtual void add_pending(size_type count) = 0;
+
     //// AUXILIARY DATA ////
 
     //! Access auxiliary core state data
@@ -159,8 +164,28 @@ class CoreState final : public CoreStateBase
     //! class, since sync_get_counters() doesn't return a reference
     void sync_put_counters(CoreStateCounters const&) final;
 
+    // Add to the number of pending optical photons
+    void add_pending(size_type count) final;
+
+    // Add to the number of pending optical photons from same-memspace memory
+    void add_pending(ObserverPtr<size_type, M> count);
+
     // Whether the state is being transported with no active particles
     bool warming_up() const;
+
+    //// COUNTERS ////
+
+    // Clear the generated, cut, and errored counts for a new loop
+    void clear_tallies();
+
+    // Asynchronously copy counters to host-accessible storage
+    void async_copy_counters();
+
+    //! Access the host counters, which are copied asynchronously
+    AsyncSnapshot<CoreStateCounters> const& host_counters() const
+    {
+        return host_counters_;
+    }
 
     //// CORE DATA ////
 
@@ -191,7 +216,17 @@ class CoreState final : public CoreStateBase
 
     // Native pointer to ref or
     Ptr ptr_;
+
+    // Host copy of the counters
+    AsyncSnapshot<CoreStateCounters> host_counters_;
 };
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class CoreState<MemSpace::host>;
+extern template class CoreState<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

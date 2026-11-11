@@ -35,7 +35,7 @@ jobs:
           ref: doc/gh-pages-base
       - uses: actions/setup-python@v7
         with:
-          python-version-file: .python-version
+          python-version-file: .github/python-version
       - name: Install Python packages
         # NOTE: this is the requirements path in the orphaned
         # doc/gh-pages-base branch, NOT the Celeritas branch!
@@ -54,12 +54,13 @@ jobs:
         if: >-
           ${{ steps.update.outcome != 'failure'
               && fromJSON(steps.update.outputs.DIFF_COUNT) > 0 }}
-        continue-on-error: true
+        env:
+          EMAIL: "${{github.triggering_actor}}@users.noreply.github.com"
         run: |
-          git commit \
+          git \
             -c user.name="Github Action" \
-            -c user.email="${{github.triggering_actor}}@users.noreply.github.com" \
-            -am "Update publications"
+            -c user.email="${EMAIL}" \
+            commit -am "Update publications"
           git push
 
   build-jekyll:
@@ -130,7 +131,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v7
         with:
-          name: github-pages
+          name: github-pages # Exact name required by actions/deploy-pages
           path: ${{ runner.temp }}/artifact.tar
           retention-days: 1
           if-no-files-found: error

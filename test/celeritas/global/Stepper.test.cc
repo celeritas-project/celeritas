@@ -78,6 +78,10 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         p.event_id = EventId{0};
 
         std::vector<Primary> result(count, p);
+        for (auto i : celeritas::range(result.size()))
+        {
+            result[i].primary_id = id_cast<PrimaryId>(i);
+        }
         return result;
     }
 
@@ -106,7 +110,8 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         step.stage_primaries(make_span(primaries));
 
         auto counters = step.state().sync_get_counters();
-        EXPECT_EQ(num_primaries, counters.num_pending);
+        EXPECT_EQ(0, counters.num_pending);
+        EXPECT_EQ(num_primaries, step.staged_primaries().size());
 
         auto result = step();
         EXPECT_EQ(num_primaries, result.active);
@@ -114,6 +119,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
 
         counters = step.state().sync_get_counters();
         EXPECT_EQ(0, counters.num_pending);
+        EXPECT_EQ(0, step.staged_primaries().size());
     }
 
     template<MemSpace M>
@@ -144,7 +150,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         auto const* first_data = step.staged_primaries().data();
 
         step.async();
-        EXPECT_TRUE(step.valid());
+        EXPECT_TRUE(step.has_outstanding_result());
         EXPECT_TRUE(step.staged_primaries().empty());
 
         for (auto primary : second)
@@ -158,7 +164,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         step.wait();
         EXPECT_TRUE(step.ready());
         expect_stepper_eq(expected_first, step.get());
-        EXPECT_FALSE(step.valid());
+        EXPECT_FALSE(step.has_outstanding_result());
         EXPECT_EQ(num_primaries, step.staged_primaries().size());
 
         step.async();
@@ -202,6 +208,32 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         step.async();
         result = step.get();
         EXPECT_EQ(num_primaries, result.generated);
+    }
+
+    template<MemSpace M>
+    void run_initializer_growth()
+    {
+        size_type const init_capacity = this->init()->capacity();
+        auto input = this->make_stepper_input(64);
+        input.primary_capacity = 4 * init_capacity;
+        Stepper<M> step(std::move(input));
+        EXPECT_EQ(init_capacity, step.initializer_capacity());
+
+        // More primaries than the initial capacity: grow an empty buffer
+        auto primaries = this->make_primaries(init_capacity + 1);
+        step.async(make_span(primaries));
+        auto result = step.get();
+        EXPECT_EQ(init_capacity + 1, result.generated);
+        ASSERT_GT(result.queued, 0);
+        size_type const capacity = step.initializer_capacity();
+        EXPECT_GE(capacity, 2 * init_capacity);
+
+        // Fill the remaining space: grow while preserving queued initializers
+        primaries = this->make_primaries(capacity);
+        step.async(make_span(primaries));
+        result = step.get();
+        EXPECT_EQ(capacity, result.generated);
+        EXPECT_GE(step.initializer_capacity(), 2 * capacity);
     }
 
     size_type max_steps_{0};
@@ -259,6 +291,7 @@ class BadGeometryTest : public InvalidOrangeTestBase
         CELER_ASSERT(p.particle_id);
         p.energy = units::MevEnergy{100};
         p.event_id = EventId{0};
+        p.primary_id = PrimaryId{0};
         p.position = pos;
         p.direction = {1, 0, 0};
         p.time = 0;
@@ -325,7 +358,7 @@ TEST_F(SimpleComptonTest, fail_initialize)
         {
             std::vector<std::string> expected_log_messages = {
                 "Track 31 started outside the geometry",
-                R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[1001.,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":null,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":15},"thread_id":31,"track_slot_id":31}: depositing 100 MeV)",
+                R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[1001.,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"generation":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":15,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":15},"thread_id":31,"track_slot_id":31}: depositing 100 MeV)",
             };
             if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
             {
@@ -353,7 +386,7 @@ TEST_F(SimpleComptonTest, host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
 
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(919, result.num_step_iters());
         EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());
@@ -369,7 +402,7 @@ TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(device))
 
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto result = this->run(step, num_primaries);
-    if (this->is_default_build())
+    if (Test::is_reference_rng && Test::is_reference_geo)
     {
         EXPECT_EQ(919, result.num_step_iters());
         EXPECT_SOFT_EQ(53.8125, result.calc_avg_steps_per_primary());
@@ -411,23 +444,14 @@ TEST_F(SimpleComptonTest, recover_from_invalid_external_primaries)
     static_cast<void>(step());
 }
 
-TEST_F(SimpleComptonTest, recover_from_initializer_capacity_failure)
+TEST_F(SimpleComptonTest, initializer_growth_host)
 {
-    size_type const init_capacity = this->init()->capacity();
-    auto input = this->make_stepper_input(64);
-    input.primary_capacity = init_capacity + 1;
-    Stepper<MemSpace::host> step(std::move(input));
-    auto primaries = this->make_primaries(init_capacity + 1);
+    this->run_initializer_growth<MemSpace::host>();
+}
 
-    EXPECT_THROW(step.stage_primaries(make_span(primaries)), RuntimeError);
-    EXPECT_EQ(0, step.num_buffered_primaries());
-    EXPECT_TRUE(step.staged_primaries().empty());
-    EXPECT_EQ(0, step.state().sync_get_counters().num_pending);
-
-    EXPECT_NO_THROW(step.stage_primaries(make_span(primaries).first(1)));
-    EXPECT_EQ(1, step.staged_primaries().size());
-    EXPECT_EQ(1, step.state().sync_get_counters().num_pending);
-    static_cast<void>(step());
+TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(initializer_growth_device))
+{
+    this->run_initializer_growth<MemSpace::device>();
 }
 
 TEST_F(SimpleComptonTest, primary_capacity_override)
@@ -481,6 +505,7 @@ TEST_F(SimpleComptonTest, fail_queued_primary_operations)
     EXPECT_THROW(step.warm_up(), RuntimeError);
     EXPECT_THROW(step.reset_state(), RuntimeError);
     EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.reset_track_ids(), RuntimeError);
     EXPECT_NO_THROW(step.kill_active());
 
     step.stage_primaries();
@@ -489,6 +514,7 @@ TEST_F(SimpleComptonTest, fail_queued_primary_operations)
     EXPECT_THROW(step.warm_up(), RuntimeError);
     EXPECT_THROW(step.reset_state(), RuntimeError);
     EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.reset_track_ids(), RuntimeError);
     EXPECT_THROW(step.kill_active(), RuntimeError);
 
     step.async();
@@ -504,38 +530,39 @@ TEST_F(SimpleComptonTest, async_lifecycle_host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto primaries = this->make_primaries(num_primaries);
 
-    EXPECT_FALSE(step.valid());
+    EXPECT_FALSE(step.has_outstanding_result());
     EXPECT_THROW(step.ready(), RuntimeError);
     EXPECT_THROW(step.wait(), RuntimeError);
     EXPECT_THROW(step.get(), RuntimeError);
 
     auto expected_result = expected_step(make_span(primaries));
     step.async(make_span(primaries));
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     EXPECT_TRUE(step.ready());
     step.wait();
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     auto result = step.get();
     expect_stepper_eq(expected_result, result);
-    EXPECT_FALSE(step.valid());
+    EXPECT_FALSE(step.has_outstanding_result());
 
     expected_result = expected_step();
     step.async();
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     EXPECT_TRUE(step.ready());
     EXPECT_NO_THROW(step.wait());
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     EXPECT_THROW(step.async(), RuntimeError);
     EXPECT_THROW(step.async(make_span(primaries)), RuntimeError);
     EXPECT_THROW(step.warm_up(), RuntimeError);
     EXPECT_THROW(step.reset_state(), RuntimeError);
     EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.reset_track_ids(), RuntimeError);
     EXPECT_THROW(step.kill_active(), RuntimeError);
     EXPECT_THROW(step(make_span(primaries)), RuntimeError);
 
     result = step.get();
     expect_stepper_eq(expected_result, result);
-    EXPECT_FALSE(step.valid());
+    EXPECT_FALSE(step.has_outstanding_result());
     EXPECT_THROW(step.ready(), RuntimeError);
     EXPECT_THROW(step.wait(), RuntimeError);
     EXPECT_THROW(step.get(), RuntimeError);
@@ -552,25 +579,25 @@ TEST_F(AsyncStepperTest, TEST_IF_CELER_DEVICE(async_lifecycle_device))
     auto primaries = this->make_primaries(num_primaries);
     auto expected_result = expected_step(make_span(primaries));
     step.async(make_span(primaries));
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     step.wait();
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     auto result = step.get();
     expect_stepper_eq(expected_result, result);
-    EXPECT_FALSE(step.valid());
+    EXPECT_FALSE(step.has_outstanding_result());
 
     for (int i = 0; i < 2; ++i)
     {
         expected_result = expected_step();
         step.async();
-        EXPECT_TRUE(step.valid());
+        EXPECT_TRUE(step.has_outstanding_result());
         EXPECT_NO_THROW(static_cast<void>(step.ready()));
         step.wait();
-        EXPECT_TRUE(step.valid());
+        EXPECT_TRUE(step.has_outstanding_result());
 
         result = step.get();
         expect_stepper_eq(expected_result, result);
-        EXPECT_FALSE(step.valid());
+        EXPECT_FALSE(step.has_outstanding_result());
     }
 }
 
@@ -581,16 +608,25 @@ TEST_F(SimpleComptonTest, reseed)
     size_type num_tracks = 1;
 
     Stepper<M> step(this->make_stepper_input(num_tracks));
-    auto const primaries = this->make_primaries(num_primaries);
+    auto primaries = this->make_primaries(num_primaries);
     auto const& params_ref = this->core()->ref<M>();
     auto const& state_ref
         = dynamic_cast<CoreState<M> const&>(step.state()).ref();
     SimTrackView sim{params_ref.sim, state_ref.sim, TrackSlotId{0}};
     RngEngine engine{params_ref.rng, state_ref.rng, TrackSlotId{0}};
 
+    // FIXME: primary event id and reseed are duplicated :'(
+    auto reseed_and_step = [&](UniqueEventId event_uid) {
+        step.reseed(event_uid);
+        for (auto& p : primaries)
+        {
+            p.unique_event_id = event_uid;
+        }
+        step(make_span(primaries));
+    };
+
     // First step: save next random number
-    step.reseed(UniqueEventId{123});
-    step(make_span(primaries));
+    reseed_and_step(UniqueEventId{123});
     EXPECT_EQ(TrackStatus::alive, sim.status());
     EXPECT_EQ(TrackId{0}, sim.track_id());
     auto orig_next_random = engine();
@@ -598,8 +634,7 @@ TEST_F(SimpleComptonTest, reseed)
     step();
 
     // Next event should be a different random number and zero track ID
-    step.reseed(UniqueEventId{3456});
-    step(make_span(primaries));
+    reseed_and_step(UniqueEventId{3456});
     EXPECT_EQ(TrackStatus::alive, sim.status());
     EXPECT_EQ(TrackId{0}, sim.track_id());
     EXPECT_NE(orig_next_random, engine());
@@ -607,11 +642,37 @@ TEST_F(SimpleComptonTest, reseed)
     step();
 
     // Original event should have the same RNG sequence
-    step.reseed(UniqueEventId{123});
-    step(make_span(primaries));
+    reseed_and_step(UniqueEventId{123});
     EXPECT_EQ(TrackStatus::alive, sim.status());
     EXPECT_EQ(TrackId{0}, sim.track_id());
     EXPECT_EQ(orig_next_random, engine());
+}
+
+TEST_F(SimpleComptonTest, reset_track_ids)
+{
+    constexpr auto M = MemSpace::host;
+
+    Stepper<M> step(this->make_stepper_input(1));
+    auto const primaries = this->make_primaries(1);
+    auto const& params_ref = this->core()->ref<M>();
+    auto const& state_ref
+        = dynamic_cast<CoreState<M> const&>(step.state()).ref();
+    SimTrackView sim{params_ref.sim, state_ref.sim, TrackSlotId{0}};
+
+    // Without a reset, track IDs keep increasing
+    step(make_span(primaries));
+    EXPECT_EQ(TrackId{0}, sim.track_id());
+    sim.status(TrackStatus::inactive);
+    step();
+    step(make_span(primaries));
+    EXPECT_LT(TrackId{0}, sim.track_id());
+    sim.status(TrackStatus::inactive);
+    step();
+
+    // Resetting restarts the numbering without reseeding
+    step.reset_track_ids();
+    step(make_span(primaries));
+    EXPECT_EQ(TrackId{0}, sim.track_id());
 }
 
 TEST_F(SimpleComptonTest, kill_active)
@@ -639,8 +700,8 @@ TEST_F(SimpleComptonTest, kill_active)
     EXPECT_EQ(0, counters.alive);
     static char const* const expected_log_messages[] = {
         "Killing 2 active tracks",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner"},"mat":"Al","particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":null,"post_step_action":"tracking-cut","primary_id":null,"status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":0},"thread_id":6,"track_slot_id":6}: lost 100 MeV)",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner"},"mat":"Al","particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":null,"post_step_action":"tracking-cut","primary_id":null,"status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":1},"thread_id":7,"track_slot_id":7}: lost 100 MeV)",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner"},"mat":"Al","particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"generation":0,"num_steps":1,"parent_id":null,"post_step_action":"tracking-cut","primary_id":0,"status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":0},"thread_id":6,"track_slot_id":6}: lost 100 MeV)",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":false,"pos":[[-5.0,0.0,0.0],"cm"],"volume_id":"inner"},"mat":"Al","particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"generation":0,"num_steps":1,"parent_id":null,"post_step_action":"tracking-cut","primary_id":1,"status":"errored","step_length":[17.0,"cm"],"time":[0.25,"s"],"track_id":1},"thread_id":7,"track_slot_id":7}: lost 100 MeV)",
     };
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS && CELERITAS_USE_GEANT4)
     {
@@ -745,7 +806,7 @@ TEST_F(BadGeometryTest, no_volume_host)
 
     static char const* const expected_log_messages[] = {
         R"(Failed to initialize geometry state: could not find associated volume in universe 0 at local position {-5, 0, 0})",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[-5.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":null,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[-5.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"generation":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":0,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
     };
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS
         && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -763,7 +824,7 @@ TEST_F(BadGeometryTest, no_material_host)
 
     static char const* const expected_log_messages[] = {
         "Track 0 started in an unknown material",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":false,"pos":[[5.0,0.0,0.0],"cm"],"volume_id":"[missing material]@world"},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":null,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: lost 100 MeV)",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":false,"pos":[[5.0,0.0,0.0],"cm"],"volume_id":"[missing material]@world"},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"generation":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":0,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: lost 100 MeV)",
     };
 
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
@@ -779,7 +840,7 @@ TEST_F(BadGeometryTest, no_new_volume_host)
 
     static char const* const expected_log_messages[] = {
         R"(track failed to cross local surface 2 in universe 0 at local position {-6, 0, 0} along local direction {1, 0, 0})",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":true,"pos":[[-6.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":1,"parent_id":null,"post_step_action":"tracking-cut","primary_id":null,"status":"errored","step_length":[0.001000,"cm"],"time":[3.336e-14,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":true,"is_outside":true,"pos":[[-6.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"generation":0,"num_steps":1,"parent_id":null,"post_step_action":"tracking-cut","primary_id":0,"status":"errored","step_length":[0.001000,"cm"],"time":[3.336e-14,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
     };
 
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS
@@ -798,12 +859,13 @@ TEST_F(BadGeometryTest, start_outside_host)
 
     static char const* const expected_log_messages[] = {
         "Track 0 started outside the geometry",
-        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[20.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":null,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
+        R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[20.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"generation":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":0,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":0},"thread_id":0,"track_slot_id":0}: depositing 100 MeV)",
     };
 
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages())
+            << scoped_log;
     }
     EXPECT_EQ(2, scoped_log.levels().size());
 }

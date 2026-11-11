@@ -65,7 +65,7 @@ Note that running as the `root` user requires the `MPIEXEC_PREFLAGS=--allow-run-
 Pull requests install their Spack dependencies only from the
 `ghcr.io/celeritas-project/spack-buildcache` binary cache, so new dependency
 combinations in the CI matrix must be pushed there first by
-`scripts/ci/update-spack-buildcache-local.sh`. The `buildcache` image
+`scripts/ci/update-spack-buildcache.sh`. The `buildcache` image
 reproduces the toolchain of the GitHub `ubuntu-24.04` runners (the externals
 in `scripts/spack/ext-ubuntu24.yaml`) so that script can run on any x86_64
 Linux host. Build it with:

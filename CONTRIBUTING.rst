@@ -52,14 +52,15 @@ this reason, and for ethical considerations, we make three requirements:
 - Pull requests with substantial code additions/changes performed by AI agents
   *must* clearly note this in the description, and/or tagged with the
   ``ai-assisted`` label.
-- AI-assisted code commits *must* be tagged with an ``Assisted-by`` trailer
+- AI-assisted code commits *must* be tagged with a trailer such as ``Assisted-by``
   (see `AGENTS file`_)
 - Every pull request to Celeritas *must* be submitted in draft mode with a
   human in the loop.
 - The submitting person *must* perform a review of the submitted code before
   marking the PR as "ready."
 
-.. _AGENTS file: ./AGENTS.md#Commit
+.. _AGENTS file: ./AGENTS.md#Contributions
+
 
 Attribution
 -----------
@@ -203,7 +204,7 @@ are copied directly into the release notes. For example:
  - Refactor code in preparation for new tracker type
  - Add CI support for multiple Geant4 versions
 
-Do not add textual or emoji tags to the title (e.g., no ``CI:`` or ``🐛``).
+Do not add textual or emoji tags to the title (e.g., no ``CI:`` or ``:bug:``).
 
 Description
 ^^^^^^^^^^^

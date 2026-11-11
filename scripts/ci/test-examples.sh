@@ -39,10 +39,10 @@ build_local() {
 }
 export CELER_LOG=debug CELER_LOG_LOCAL=debug
 
-echo "::group::Build and run minimal example"
-cd "${CELER_SOURCE_DIR}/example/minimal"
+echo "::group::Build and run data model example"
+cd "${CELER_SOURCE_DIR}/example/data-model"
 build_local
-./minimal
+./data-model
 echo "::endgroup::"
 
 # Run Geant4 app examples unless G4VERSION_NUMBER is set to zero
@@ -97,5 +97,12 @@ fi
 # Run offload-template only on Geant4 v11
 echo "::group::Run offload template"
 G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT \
+  ./run-offload
+echo "::endgroup::"
+
+echo "::group::Run offload template without offloading"
+G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT CELER_DISABLE=1 \
+  ./run-offload
+G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT CELER_KILL_OFFLOAD=1 \
   ./run-offload
 echo "::endgroup::"

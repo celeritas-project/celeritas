@@ -16,6 +16,9 @@ concurrency:
   group: merge-${{github.event.merge_group.head_ref}}
   cancel-in-progress: true
 
+permissions:
+  actions: write # for clearing cache
+
 jobs:
   build-docs:
     uses: ./.github/workflows/build-docs.yml
@@ -24,6 +27,8 @@ jobs:
   build-ultralite:
     uses: ./.github/workflows/build-ultralite.yml
 
+  build-fast-extra:
+    uses: ./.github/workflows/build-fast-extra.yml
   build-spack:
     uses: ./.github/workflows/build-spack.yml
   build-spack-extra:
@@ -43,6 +48,7 @@ jobs:
       - build-fast
       - build-ultralite
       - build-docs
+      - build-fast-extra
       - build-spack
       - build-spack-extra
       - build-codecov
@@ -68,5 +74,34 @@ jobs:
             if (unsuccessful.length) {
               core.setFailed(`Jobs did not succeed: ${unsuccessful.join(', ')}`);
             }
+
+  # On success, delete branch-specific caches
+  process-pr-number:
+    runs-on: ubuntu-24.04
+    outputs:
+      number: ${{ steps.extract.outputs.number }}
+    steps:
+      - name: Extract PR number
+        id: extract
+        uses: actions/github-script@v9
+        env:
+          HEAD_REF: ${{ github.event.merge_group.head_ref }}
+        with:
+          script: |
+            // branch name format: gh-readonly-queue/{base_branch}/pr-{pr_number}-{head_sha}
+            const match = process.env.HEAD_REF.match(/\/pr-(\d+)-/);
+            if (!match) {
+              core.setFailed(`Could not extract PR number from ${process.env.HEAD_REF}`);
+              return;
+            }
+            core.setOutput('number', match[1]);
+
+  clear-branch-cache:
+    uses: ./.github/workflows/clear-cache.yml
+    needs: ["all", "process-pr-number"]
+    if: ${{ needs.all.result == 'success' && needs.process-pr-number.result == 'success' }}
+    with:
+      key: ".*"
+      ref: "(refs/pull/|gh-readonly-queue/.*/pr-)${{ needs.process-pr-number.outputs.number }}"
 
 # vim: set nowrap tw=100:

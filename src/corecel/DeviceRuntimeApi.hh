@@ -10,6 +10,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
+
 #if CELERITAS_USE_CUDA
 #    include <cuda_runtime_api.h>
 #elif CELERITAS_USE_HIP
@@ -67,13 +69,103 @@
  * This macro informs downstream Celeritas code (namely, Stream and
  * DeviceEvent) that it's safe to use types from the device APIs.
  */
-#define CELER_DEVICE_RUNTIME_INCLUDED
+#define CELER_DEVICE_RUNTIME_INCLUDED 1
+
+#if defined(CELER_DEVICE_RUNTIME_NEEDED) \
+    && defined(CELER_DEVICE_RUNTIME_INCLUDE_ERROR)
+static_assert(false,
+              "A file that requires DeviceRuntimeApi.hh was included before "
+              "this: " CELER_DEVICE_RUNTIME_NEEDED);
+#endif
 
 /*!
- * Declare a dummy variable for disabled \c CELER_DEVICE_API_CALL calls.
+ * \def CELER_DEVICE_API_CALL
  *
- * With this declaration, the build will fail if this include is missing.
- * (Unfortunately, since the use of this symbol is embedded in a macro, IWYU
- * won't include this file automatically.)
+ * Safely and portably dispatch a CUDA/HIP API call.
+ *
+ * When CUDA or HIP support is enabled, execute the wrapped statement
+ * prepend the argument with "cuda" or "hip" and throw a
+ * RuntimeError if it fails. If no device platform is enabled, throw an
+ * unconfigured assertion.
+ *
+ * \par Example:
+ * \code
+   CELER_DEVICE_API_CALL(Malloc(&ptr_gpu, 100 * sizeof(float)));
+   CELER_DEVICE_API_CALL(DeviceSynchronize());
+ * \endcode
  */
-extern int const CorecelDeviceRuntimeApiHh;
+#if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
+#    define CELER_DEVICE_API_CALL(STMT) \
+        do \
+        { \
+            using ErrT_ = CELER_DEVICE_API_SYMBOL(Error_t); \
+            ErrT_ result_ = CELER_DEVICE_API_SYMBOL(STMT); \
+            if (CELER_UNLIKELY(result_ != CELER_DEVICE_API_SYMBOL(Success))) \
+            { \
+                result_ = CELER_DEVICE_API_SYMBOL(GetLastError)(); \
+                CELER_RUNTIME_FAIL_( \
+                    CELER_DEVICE_PLATFORM_UPPER_STR, \
+                    CELER_DEVICE_API_SYMBOL(GetErrorString)(result_), \
+                    #STMT); \
+            } \
+        } while (0)
+#else
+#    define CELER_DEVICE_API_CALL(STMT) \
+        do \
+        { \
+            CELER_NOT_CONFIGURED("CUDA or HIP"); \
+        } while (0)
+#endif
+
+// DEPRECATED: remove in v1.0
+#define CELER_DEVICE_PREFIX(STMT) CELER_DEVICE_API_SYMBOL(STMT)
+#define CELER_DEVICE_CALL_PREFIX(STMT) CELER_DEVICE_API_CALL(STMT)
+#define CELER_DEVICE_CHECK_ERROR() CELER_DEVICE_API_CALL(PeekAtLastError())
+
+/*!
+ * \def CELER_USE_THRUST
+ * \def CELER_CUB_HAS_TRANSFORM
+ * \def CELER_CUB_HAS_FLAGGEDIF
+ * \def CELER_HIPCUB_HAS_TRANSFORM
+ *
+ * Determine if CUB or hipCUB is available, and if so, check the version.
+ *
+ * CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
+ * default, so test for the availability of hipCUB and use thrust instead if
+ * it's unavailable.
+ *
+ * DeviceTransform::Transform is unavailable in earlier versions of CUB/hipCUB,
+ * so the code uses thrust::transform in that case.
+ *
+ * DeviceSelect::FlaggedIf is unavailable in earlier versions of CUB and
+ * doesn't work with hipCUB versions 3.4.0 through 4.1.0 when using celeritas
+ * OpaqueId data types, so use a transform and DeviceSelect::Flagged instead.
+ *
+ * \note These are unneeded and undefined if this isn't a HIP or CUDA source
+ * file. This check is necessary because the version header file needs to be
+ * included.
+ */
+#if CELER_DEVICE_SOURCE
+#    if CELERITAS_USE_CUDA
+#        include <cub/version.cuh>
+#    elif CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
+#        include <hipcub/hipcub_version.hpp>
+#    elif CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
+#        define HIPCUB_VERSION 0
+#    endif
+#    if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
+#        define CELER_CUB_HAS_TRANSFORM 1
+#        define CELER_CUB_HAS_FLAGGEDIF 1
+#    elif CELERITAS_USE_CUDA && CUB_VERSION >= 200500
+#        define CELER_CUB_HAS_FLAGGEDIF 1
+#    elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
+#        define CELER_HIPCUB_HAS_TRANSFORM 1
+#    else
+#        define CELER_USE_THRUST 1
+#    endif
+#else
+#    define CELER_USE_THRUST 0
+#    define CELER_CUB_HAS_TRANSFORM 0
+#    define CELER_CUB_HAS_FLAGGEDIF 0
+#    define CELER_HIPCUB_HAS_TRANSFORM 0
+#endif

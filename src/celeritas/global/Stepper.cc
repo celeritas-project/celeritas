@@ -9,11 +9,11 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopeExit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "orange/OrangeData.hh"
@@ -22,6 +22,7 @@
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "ActionLauncher.hh"
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
@@ -30,29 +31,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Call a function when this object is destroyed (at end of scope).
- */
-template<class F>
-class ScopeExit
-{
-  public:
-    //! Construct with functor
-    ScopeExit(F func) : func_{std::forward<F>(func)} {}
-
-    //! Call functor on destruction
-    ~ScopeExit() { func_(); }
-
-    CELER_DELETE_COPY_MOVE(ScopeExit);
-
-  private:
-    F func_;
-};
-
-template<class F>
-ScopeExit(F&& func) -> ScopeExit<F>;
-
 //---------------------------------------------------------------------------//
 //! Convert internal state counters to a public step result
 StepperResult make_stepper_result(CoreStateCounters const& counters)
@@ -118,15 +96,12 @@ Stepper<M>::Stepper(Input input)
     if constexpr (M == MemSpace::device)
     {
         // Allocate reusable asynchronous state before stepping begins
-        result_counters_.resize(1);
         primary_copy_done_ = DeviceEvent{celeritas::device()};
-        step_done_ = DeviceEvent{celeritas::device()};
     }
 
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
     actions_->begin_run(*params_, *state_);
-    CELER_ENSURE(result_counters_.size() == 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -147,7 +122,8 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 void Stepper<M>::warm_up()
 {
-    CELER_VALIDATE(!valid_, << "cannot warm up with a pending step");
+    CELER_VALIDATE(!has_outstanding_result_,
+                   << "cannot warm up with an outstanding step result");
     CELER_VALIDATE(!this->has_queued_primaries(),
                    << "cannot warm up with queued primaries");
     CELER_VALIDATE(state_->sync_get_counters().num_active == 0,
@@ -171,24 +147,42 @@ void Stepper<M>::warm_up()
  * Primaries in the producer buffer remain there unless they have first been
  * staged.
  *
- * Existing synchronization within the action sequence can still block this
- * call. Removing those counter-dependent synchronization points is handled
- * separately.
+ * The actions in the sequence do not synchronize by default. On a device,
+ * these are the exceptions that can block this call:
+ * - Action timers (\c inp::Timers::action or \c inp::DeviceDebug::sync_stream
+ *   ) synchronize the stream after \em every action, and step timers (\c
+ *   inp::Timers::step ) synchronize it at the end of the step. Timing results
+ *   therefore do not reflect the overlap of asynchronous execution.
+ * - Sorting tracks (a \c TrackOrder that reindexes the track slots) uses
+ *   Thrust algorithms, which synchronize.
+ * - Builds without CUB or hipCUB (\c CELER_USE_THRUST ) fall back to Thrust
+ *   for the device algorithms, so compacting and scanning data synchronizes.
+ * - Debugging and output actions: \c StatusChecker copies state data to the
+ *   host after every action, \c SlotDiagnostic copies its data to the host
+ *   every step, and a \c StepInterface callback may do its own host work.
+ * - Launching the optical stepping loop: the host waits for each optical step,
+ *   and the loop runs to completion inside this step once enough optical
+ *   photons are pending.
  */
 template<MemSpace M>
 void Stepper<M>::async()
 {
     CELER_VALIDATE(
-        !valid_,
-        << "cannot start a step before the current step has been consumed");
+        !has_outstanding_result_,
+        << R"(cannot start a step before the previous result has been retrieved)");
 
     ScopedProfiling profile_this{"step"};
-    auto counters = state_->sync_get_counters();
-    counters.num_generated = 0;
-    counters.num_cut = 0;
-    counters.num_errored = 0;
-    state_->sync_put_counters(counters);
+
+    // Grow the initializer buffer if there might not be space for all the
+    // primaries and secondaries
+    state_->reserve_initializers(this->calc_max_initializers());
+
+    // Initialize the generated, error, and cut counters to zero and set the
+    // number of pending primaries
+    state_->initialize_counters(this->staged_primaries().size());
+
     actions_->step(*params_, *state_);
+
     if (primary_phase_ == PrimaryPhase::staged)
     {
         // The action sequence has enqueued work that consumes the staged input,
@@ -196,20 +190,12 @@ void Stepper<M>::async()
         primary_phase_ = PrimaryPhase::submitted;
     }
 
-    if constexpr (M == MemSpace::device)
-    {
-        auto const* counters_ptr = static_cast<CoreStateCounters const*>(
-            state_->ref().init.counters.data());
-        Copier<CoreStateCounters, MemSpace::host> copy_counters{
-            make_span(result_counters_), state_->stream_id()};
-        copy_counters(MemSpace::device, {counters_ptr, 1});
-        step_done_.record(celeritas::device().stream(state_->stream_id()));
-    }
-    else
-    {
-        result_counters_.front() = state_->sync_get_counters();
-    }
-    valid_ = true;
+    // Queue an asynchronous copy of the counters after the step actions.
+    // This must be the last work enqueued for the step: its completion is
+    // what ready() and wait() report as the completion of the step.
+    state_->async_copy_counters();
+
+    has_outstanding_result_ = true;
     CELER_ENSURE(primary_phase_ != PrimaryPhase::staged);
 }
 
@@ -224,15 +210,15 @@ template<MemSpace M>
 void Stepper<M>::async(SpanConstPrimary primaries)
 {
     CELER_VALIDATE(
-        !valid_,
-        << "cannot start a step before the current step has been consumed");
+        !has_outstanding_result_,
+        << R"(cannot start a step before the previous result has been retrieved)");
     this->stage_primaries(primaries);
     this->async();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the fixed capacity of the track initializer queue.
+ * Return the current capacity of the track initializer queue.
  *
  * After consuming a step result, callers can compare this with the result's
  * queued initializers and the producer buffer size before staging primaries.
@@ -240,7 +226,7 @@ void Stepper<M>::async(SpanConstPrimary primaries)
 template<MemSpace M>
 size_type Stepper<M>::initializer_capacity() const noexcept
 {
-    return params_->init()->capacity();
+    return state_->initializer_capacity();
 }
 
 //---------------------------------------------------------------------------//
@@ -264,10 +250,9 @@ void Stepper<M>::push_primary(Primary const& primary)
  * Stage the producer buffer for transport.
  *
  * This validates and inserts primaries into the stepper state but does not
- * execute transport actions. This separation does not by itself make staging
- * nonblocking: in device mode the current counter updates may still
- * synchronize internally. Reusing the source of a previously submitted batch
- * waits only for its copy event, not for completion of the previous step.
+ * execute transport actions or update core state counters.  Reusing the source
+ * of a previously submitted batch waits only for its copy event, not for
+ * completion of the previous step.
  *
  * \pre No primaries are currently staged.
  */
@@ -296,25 +281,8 @@ void Stepper<M>::stage_primaries()
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    auto counters = state_->sync_get_counters();
-    CELER_VALIDATE(counters.num_pending == 0,
-                   << "cannot stage " << primaries.size()
-                   << " primaries while " << counters.num_pending
-                   << " primaries are already pending");
-    counters.num_pending = primaries.size();
-    state_->sync_put_counters(counters);
-    try
-    {
-        primaries_action_->insert(*params_, *state_, primaries);
-    }
-    catch (...)
-    {
-        // Insertion can fail when the batch plus queued initializers exceeds
-        // initializer capacity. Allow retrying with a smaller batch.
-        counters.num_pending = 0;
-        state_->sync_put_counters(counters);
-        throw;
-    }
+    primaries_action_->insert(*state_, primaries);
+
     if constexpr (M == MemSpace::device)
     {
         primary_copy_done_.record(
@@ -383,8 +351,10 @@ auto Stepper<M>::staged_primaries() const noexcept -> SpanConstPrimary
 template<MemSpace M>
 bool Stepper<M>::ready() const
 {
-    CELER_VALIDATE(valid_, << "cannot query readiness without a pending step");
-    return step_done_.ready();
+    CELER_VALIDATE(
+        has_outstanding_result_,
+        << R"(cannot query whether step has completed without an outstanding step result)");
+    return state_->host_counters().ready();
 }
 
 //---------------------------------------------------------------------------//
@@ -394,8 +364,10 @@ bool Stepper<M>::ready() const
 template<MemSpace M>
 void Stepper<M>::wait() const
 {
-    CELER_VALIDATE(valid_, << "cannot wait without a pending step");
-    step_done_.sync();
+    CELER_VALIDATE(
+        has_outstanding_result_,
+        << R"(cannot wait for step to complete without an outstanding step result)");
+    state_->host_counters().sync();
 }
 
 //---------------------------------------------------------------------------//
@@ -408,11 +380,13 @@ void Stepper<M>::wait() const
 template<MemSpace M>
 auto Stepper<M>::get() -> result_type
 {
-    CELER_VALIDATE(valid_, << "cannot get without a pending step");
+    CELER_VALIDATE(
+        has_outstanding_result_,
+        << "cannot get the result without an outstanding step result");
 
     this->wait();
-    auto result = make_stepper_result(result_counters_.front());
-    valid_ = false;
+    auto result = make_stepper_result(state_->host_counters().value());
+    has_outstanding_result_ = false;
     this->reclaim_submitted_primaries();
     return result;
 }
@@ -456,13 +430,35 @@ template<MemSpace M>
 void Stepper<M>::kill_active()
 {
     CELER_VALIDATE(
-        !valid_, << "cannot kill active tracks while an asynchronous step is executing");
+        !has_outstanding_result_,
+        << "cannot kill active tracks with an outstanding step result");
     CELER_VALIDATE(primary_phase_ != PrimaryPhase::staged,
                    << "cannot kill active tracks with staged primaries");
     CELER_LOG_LOCAL(error) << "Killing "
                            << state_->sync_get_counters().num_active
                            << " active tracks";
     detail::kill_active(*params_, *state_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Complete buffered work once all tracks have been transported.
+ *
+ * Some actions defer work across steps using asynchronously copied counters,
+ * so they cannot detect the final step of the stepping loop. This executes
+ * the end-of-transport actions (for example, transporting the remaining
+ * buffered optical photons) and should be called after the last step result
+ * has been retrieved, before the next event is started.
+ */
+template<MemSpace M>
+void Stepper<M>::end_transport()
+{
+    CELER_VALIDATE(!has_outstanding_result_,
+                   << "cannot end transport with an outstanding step result");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot end transport with queued primaries");
+    ScopedProfiling profile_this{"end-transport"};
+    actions_->end_transport(*params_, *state_);
 }
 
 //---------------------------------------------------------------------------//
@@ -477,8 +473,8 @@ void Stepper<M>::kill_active()
 template<MemSpace M>
 void Stepper<M>::reseed(UniqueEventId event_id)
 {
-    CELER_VALIDATE(!valid_,
-                   << "cannot reseed while an asynchronous step is executing");
+    CELER_VALIDATE(!has_outstanding_result_,
+                   << "cannot reseed with an outstanding step result");
     CELER_VALIDATE(!this->has_queued_primaries(),
                    << "cannot reseed with queued primaries");
     ScopedProfiling profile_this{"reseed"};
@@ -486,6 +482,25 @@ void Stepper<M>::reseed(UniqueEventId event_id)
                state_->ref().rng,
                state_->stream_id(),
                event_id);
+    this->reset_track_ids();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restart track ID numbering at the start of an event.
+ *
+ * Track IDs are unique within an event. Resetting them at each event keeps
+ * them small, which lets integrations map them to other ID spaces (e.g.,
+ * Geant4 track IDs) without overflow.
+ */
+template<MemSpace M>
+void Stepper<M>::reset_track_ids()
+{
+    CELER_VALIDATE(
+        !has_outstanding_result_,
+        << "cannot reset track IDs while an asynchronous step is executing");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot reset track IDs with queued primaries");
     params_->init()->reset_track_ids(state_->stream_id(), &state_->ref().init);
 }
 
@@ -496,9 +511,8 @@ void Stepper<M>::reseed(UniqueEventId event_id)
 template<MemSpace M>
 void Stepper<M>::reset_state()
 {
-    CELER_VALIDATE(
-        !valid_,
-        << "cannot reset state while an asynchronous step is executing");
+    CELER_VALIDATE(!has_outstanding_result_,
+                   << "cannot reset state with an outstanding step result");
     CELER_VALIDATE(!this->has_queued_primaries(),
                    << "cannot reset state with queued primaries");
     state_->reset();
@@ -512,7 +526,7 @@ template<MemSpace M>
 bool Stepper<M>::has_queued_primaries() const noexcept
 {
     // A submitted copy source is owned by the pending result lifecycle, which
-    // callers validate separately through valid_.
+    // callers validate separately through has_outstanding_result_.
     return !primary_buffer_.empty() || primary_phase_ == PrimaryPhase::staged;
 }
 
@@ -530,6 +544,35 @@ void Stepper<M>::reclaim_submitted_primaries()
         staged_primaries_.clear();
         primary_phase_ = PrimaryPhase::empty;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate an upper bound on the number of initializers required in the step.
+ *
+ * This is a conservative initializer capacity requirement that accounts for
+ * current initializers, new primaries, available track slots, and maximum
+ * possible secondary production. This should be called after the step result
+ * has been retrieved with \c get.
+ */
+template<MemSpace M>
+size_type Stepper<M>::calc_max_initializers() const
+{
+    CELER_EXPECT(!has_outstanding_result_);
+
+    auto const& counters = state_->host_counters().value();
+
+    // Number of initializers before initializing new tracks
+    size_type pre_init_size = counters.num_initializers
+                              + this->staged_primaries().size();
+
+    // Number remaining after filling vacant track slots
+    size_type post_init_size
+        = pre_init_size - std::min(pre_init_size, counters.num_vacancies);
+
+    // Maximum buffer size is either before track initialization or after
+    // adding the maximum possible number of secondaries
+    return std::max(pre_init_size, post_init_size + this->secondary_capacity());
 }
 
 //---------------------------------------------------------------------------//

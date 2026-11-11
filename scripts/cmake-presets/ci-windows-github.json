@@ -23,7 +23,6 @@
         "CELERITAS_USE_PNG": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_HOSTNAME": "windows-github",
         "CELERITAS_TEST_XML": "$env{GITHUB_WORKSPACE}/test-output/google/",
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
@@ -47,7 +46,7 @@
       "inherits": ["base"],
       "displayName": "ultralite build with no externals",
       "cacheVariables": {
-        "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_ENABLE_TESTING": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" }
       }
     }

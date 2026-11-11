@@ -58,12 +58,12 @@ class GeantGeoTest : public GeantGeoTestBase
     {
         // Print version number for verification on CI systems etc.
         static bool const have_printed_ = [] {
-            using namespace celeritas::cmake;
             cout << color_code('x') << "Using Geant4 v" << geant4_version
-                 << " (" << geant4_options << ")";
+                 << " (" << ::celeritas::config::geant4_options << ")";
             if (CELERITAS_GEANT4_USOLIDS)
             {
-                cout << " with VecGeom " << cmake::vecgeom_version << " solids";
+                cout << " with VecGeom " << Version::from_package("VecGeom")
+                     << " solids";
             }
 
             cout << color_code(' ') << endl;
@@ -477,6 +477,11 @@ TEST_F(MultiLevelTest, trace)
     this->impl().test_trace();
 }
 
+TEST_F(MultiLevelTest, unique_instance)
+{
+    this->impl().test_unique_instance();
+}
+
 TEST_F(MultiLevelTest, volume_level)
 {
     this->impl().test_volume_level();
@@ -591,6 +596,9 @@ class ReplicaTest
         result.distance = 1e-11;
         return result;
     }
+
+    //! Use multiple track slots to test shared replica state
+    size_type num_track_slots() const override { return 2; }
 };
 
 TEST_F(ReplicaTest, volumes)
@@ -617,6 +625,51 @@ TEST_F(ReplicaTest, trace)
 TEST_F(ReplicaTest, volume_stack)
 {
     this->impl().test_volume_stack();
+}
+
+//! Navigating one track must not change another track's replica instances
+TEST_F(ReplicaTest, multiple_tracks)
+{
+    auto geo_a = this->make_geo_track_view(TrackSlotId{0});
+    auto geo_b = this->make_geo_track_view(TrackSlotId{1});
+    geo_a = this->make_initializer({-400, 0.1, 650}, {0, 0, 1});
+    geo_b = this->make_initializer({-458.7, 0.1, 644.5}, {0, 0, 1});
+
+    auto const& labels = this->volumes()->volume_instance_labels();
+    auto get_stack = [&labels](auto const& geo) {
+        std::vector<VolumeInstanceId> inst_ids(geo.volume_level().get() + 1);
+        geo.volume_instance_id(make_span(inst_ids));
+        return GenericGeoVolumeStackResult::from_span(labels,
+                                                      make_span(inst_ids));
+    };
+    auto get_inst = [&labels](auto const& geo) {
+        return to_string(labels.at(geo.volume_instance_id()));
+    };
+
+    GenericGeoVolumeStackResult ref_a;
+    ref_a.volume_instances = {
+        "world_PV",
+        "fSecondArmPhys",
+        "HadCalorimeter",
+        "HadCalColumn_PV@4",
+        "HadCalCell_PV@1",
+        "HadCalLayer_PV@2",
+    };
+    GenericGeoVolumeStackResult ref_b;
+    ref_b.volume_instances = {
+        "world_PV",
+        "fSecondArmPhys",
+        "HadCalorimeter",
+        "HadCalColumn_PV@2",
+        "HadCalCell_PV@1",
+        "HadCalLayer_PV@7",
+    };
+
+    // Track B was initialized last so the replica PVs reflect its state
+    EXPECT_REF_EQ(ref_b, get_stack(geo_b));
+    EXPECT_REF_EQ(ref_a, get_stack(geo_a));
+    EXPECT_EQ("HadCalLayer_PV@2", get_inst(geo_a));
+    EXPECT_EQ("HadCalLayer_PV@7", get_inst(geo_b));
 }
 
 //---------------------------------------------------------------------------//

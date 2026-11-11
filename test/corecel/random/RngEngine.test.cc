@@ -219,7 +219,7 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
             4033624067u,
         };
     }
-    else if constexpr (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    else if constexpr (Test::is_reference_rng)
     {
         expected_test_values = {
             492039014u,
@@ -271,7 +271,7 @@ void check_expected_float_samples(std::vector<float> const& v)
     {
         expected = {0.51032054f, 0.22727294f};
     }
-    else if constexpr (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    else if constexpr (Test::is_reference_rng)
     {
         expected = {0.11456176f, 0.71564859f};
     }
@@ -299,7 +299,7 @@ void check_expected_float_samples(std::vector<double> const& v)
     {
         expected = {0.22503638759639666, 0.73006306995055248};
     }
-    else if constexpr (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    else if constexpr (Test::is_reference_rng)
     {
         expected = {0.11456196141430341, 0.71564819382390976};
     }

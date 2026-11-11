@@ -8,7 +8,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/Utils.hh"
 
@@ -35,15 +37,12 @@ struct PrimaryGeneratorExecutor
     RefPtr<CoreStateData, MemSpace::native> state;
     PrimaryDistributionData data;
     NativeCRef<DistributionParamsData> distributions;
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 
     //// FUNCTIONS ////
 
     // Generate optical photons
-    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
-    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
-    {
-        return (*this)(TrackSlotId{tid.unchecked_get()});
-    }
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -52,26 +51,35 @@ struct PrimaryGeneratorExecutor
 /*!
  * Generate photons from optical distribution data.
  */
-CELER_FUNCTION void PrimaryGeneratorExecutor::operator()(TrackSlotId tid) const
+CELER_FUNCTION void PrimaryGeneratorExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);
     CELER_EXPECT(data);
     CELER_EXPECT(distributions);
+    CELER_EXPECT(gen_counters);
 
-    CoreTrackView track(*params, *state, tid);
-    auto const& counters = track.counters();
+    auto* counters = state->init.counters.data().get();
 
+    // The kernel is launched over all track slots to avoid copying the
+    // counters to the host: skip threads beyond the number of vacancies or
+    // the number of photons left to generate
+    if (!(tid
+          < min(counters->num_vacancies, gen_counters->current.num_pending)))
+    {
+        return;
+    }
     // Create the view to the new track to be initialized
     CoreTrackView vacancy{*params, *state, [&] {
                               // Get the vacancy from the back in case there
                               // are more vacancies than photons to generate
-                              TrackSlotId idx{index_before(
-                                  counters.num_vacancies, ThreadId(tid.get()))};
+                              TrackSlotId idx{
+                                  index_before(counters->num_vacancies, tid)};
                               return state->init.vacancies[idx];
                           }()};
 
     // Generate one primary from the distribution
+    CoreTrackView track(*params, *state, TrackSlotId{tid.get()});
     auto rng = track.rng();
     vacancy = PrimaryGenerator(distributions, data)(rng);
 }

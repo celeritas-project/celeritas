@@ -2,6 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
+// Keep standard-library-compatible signatures, including const-reference
+// returns from clamp, min, and max.
+// NOLINTBEGIN(bugprone-return-const-ref-from-parameter)
 //! \file corecel/math/Algorithms.hh
 //---------------------------------------------------------------------------//
 #pragma once
@@ -856,3 +859,4 @@ CELER_FORCEINLINE_FUNCTION bool logical_any(Args const&... args)
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+// NOLINTEND(bugprone-return-const-ref-from-parameter)

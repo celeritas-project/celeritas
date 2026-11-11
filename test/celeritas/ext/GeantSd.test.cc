@@ -159,11 +159,17 @@ void SimpleCmsTest::test_step_lifecycle()
         device().create_streams(1);
     }
     Stepper<M> step(input);
+    if constexpr (M == MemSpace::device)
+    {
+        // Allocate the pinned hit output before stepping
+        processor_->reserve(
+            collector->step_state<MemSpace::device>(step.state()));
+    }
 
     for (int i = 0; i < 2; ++i)
     {
         step.warm_up();
-        EXPECT_FALSE(step.valid());
+        EXPECT_FALSE(step.has_outstanding_result());
         ASSERT_FALSE(processor_->has_pending_steps());
         EXPECT_EQ(0, this->num_hits());
         EXPECT_EQ(0, processor_->exchange_hits());
@@ -182,18 +188,20 @@ void SimpleCmsTest::test_step_lifecycle()
 
         auto const hits_before_get = this->num_hits();
         auto result = step.get();
-        EXPECT_FALSE(step.valid());
+        EXPECT_FALSE(step.has_outstanding_result());
         EXPECT_EQ(M == MemSpace::device, processor_->has_pending_steps());
         EXPECT_EQ(hits_before_get, this->num_hits());
 
-        processor_->process_pending_steps();
+        processor_->copy_pending_steps();
+        processor_->process_copied_steps();
         EXPECT_FALSE(processor_->has_pending_steps());
         EXPECT_EQ(this->num_hits() - consumed_hits,
                   processor_->exchange_hits());
         consumed_hits = this->num_hits();
 
         // Processing again must not deliver the same batch twice.
-        processor_->process_pending_steps();
+        processor_->copy_pending_steps();
+        processor_->process_copied_steps();
         EXPECT_EQ(consumed_hits, this->num_hits());
         EXPECT_EQ(0, processor_->exchange_hits());
         return result;

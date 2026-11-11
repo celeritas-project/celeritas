@@ -14,8 +14,6 @@
 #include <lardataobj/Simulation/SimPhotons.h>
 #include <lardataobj/Simulation/sim.h>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
@@ -25,6 +23,7 @@
 #include "corecel/sys/KernelRegistryIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/DetectorParams.hh"  // IWYU pragma: keep
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
 #include "geocel/detail/LengthUnits.hh"
@@ -91,7 +90,7 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
     Stopwatch get_setup_time;
     CELER_LOG(info) << "Setting up Celeritas optical standalone runner built "
                        "against LArSoft v"
-                    << cmake::larsoft_version << " components";
+                    << Version::from_package("LArSoft") << " components";
 
     i.problem.detectors.callback
         = [this](SpanCelerHits h) { return this->hit(h); };

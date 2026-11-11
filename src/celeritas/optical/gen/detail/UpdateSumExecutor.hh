@@ -8,6 +8,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 #include "../GeneratorData.hh"
 
@@ -27,8 +30,9 @@ struct UpdateSumExecutor
 {
     //// DATA ////
 
+    RefPtr<CoreStateData, MemSpace::native> state;
     NativeRef<GeneratorStateData> const offload;
-    size_type num_gen{};
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 
     //// FUNCTIONS ////
 
@@ -48,18 +52,31 @@ struct UpdateSumExecutor
  */
 CELER_FUNCTION void UpdateSumExecutor::operator()(TrackSlotId tid) const
 {
+    CELER_EXPECT(state);
     CELER_EXPECT(offload);
-    CELER_EXPECT(num_gen > 0);
+    CELER_EXPECT(gen_counters);
     CELER_EXPECT(tid < offload.offsets.size());
 
+    auto const& current = gen_counters->current;
+    if (!(tid.get() < current.buffer_size))
+    {
+        // Launched over an upper bound of the buffer size
+        return;
+    }
+
+    // The number of photons generated in this step was capped at the number
+    // of vacancies in the GeneratorExecutor functor
+    auto counters = state->init.counters.data();
+    size_type num_generated = min(current.num_pending, counters->num_vacancies);
+
     auto& offset = offload.offsets[ItemId<size_type>(tid.get())];
-    if (offset < num_gen)
+    if (offset < num_generated)
     {
         offset = 0;
     }
     else
     {
-        offset -= num_gen;
+        offset -= num_generated;
     }
 }
 

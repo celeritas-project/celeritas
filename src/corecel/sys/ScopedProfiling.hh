@@ -11,7 +11,7 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Macros.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {
@@ -147,11 +147,11 @@ ScopedProfiling::~ScopedProfiling()
 #if !CELER_USE_DEVICE && !CELERITAS_USE_PERFETTO
 inline void ScopedProfiling::activate(Input const&) noexcept
 {
-    CELER_UNREACHABLE;
+    ::celeritas::unreachable();
 }
 inline void ScopedProfiling::deactivate() noexcept
 {
-    CELER_UNREACHABLE;
+    ::celeritas::unreachable();
 }
 #endif
 #if !CELERITAS_USE_CUDA

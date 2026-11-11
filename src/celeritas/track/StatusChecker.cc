@@ -33,7 +33,7 @@ void copy_in_memspace(Collection<T, W, M, I> const& src,
                       Collection<T, W, M, I>* dst)
 {
     CELER_EXPECT(src.size() == dst->size());
-    Copier<T, M> copy_to_result{(*dst)[AllItems<T, M>{}]};
+    Copier<T, M> copy_to_result{(*dst)[AllItems<T, M>{}], StreamId{}};
     copy_to_result(M, src[AllItems<T, M>{}]);
 }
 

@@ -106,7 +106,7 @@ print(f"Results written to {out_file}", file=stderr)
 expected_generators = {
     "buffer_size": 0,
     "num_generated": 32768,
-    "num_pending": 0,
+    "num_pending": 32768,
 }
 counters = j["result"]["counters"].copy()
 assert counters["flushes"] == 1

@@ -33,7 +33,7 @@ class VolumeParams;
  * Persistent model data for an ORANGE geometry.
  *
  * This class initializes and manages the data used by ORANGE (surfaces,
- * volumes) and provides a host-based interface for them.
+ * volumes) and provides a host-based interface for accessing metadata.
  */
 class OrangeParams final : public GeoParamsInterface,
                            public ParamsDataInterface<OrangeParamsData>
@@ -49,8 +49,6 @@ class OrangeParams final : public GeoParamsInterface,
   public:
     //!@{
     //! \name Static constructor helpers
-    //! \todo Move these to a "model" abstraction that loads/emits geometry,
-    //! materials, volumes?
 
     // Build by loading a GDML file
     static std::shared_ptr<OrangeParams> from_gdml(std::string const& filename);
@@ -66,6 +64,10 @@ class OrangeParams final : public GeoParamsInterface,
 
     // Build from a JSON input
     static std::shared_ptr<OrangeParams> from_json(std::string const& filename);
+
+    // Build from a JSON input, matching volume names to canonical volumes
+    static std::shared_ptr<OrangeParams> from_json(std::string const& filename,
+                                                   SPConstVolumes volumes);
 
     //!@}
 

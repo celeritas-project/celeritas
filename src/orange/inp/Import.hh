@@ -7,6 +7,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <map>
 #include <string>
 
 #include "corecel/Config.hh"
@@ -102,6 +103,10 @@ struct OrangeGeoFromGeant : public OrangeGeoFromCsg
     //! Forcibly copy child volumes that have union boundaries
     bool inline_unions{true};
 
+    //! Rotation matrices that makes the daughters within LVs axis-aligned,
+    //! to improve acceleration. Keys are LV names.
+    std::map<std::string, SquareMatrixReal3> universe_alignment;
+
     //!@}
     //!@{
     //! \name Debug output
@@ -112,17 +117,19 @@ struct OrangeGeoFromGeant : public OrangeGeoFromCsg
     bool verbose_structure{false};
 
     //!@}
+
+    // NOTE: these are implemented in OptionsIO.json.cc
+    // Helper to read from a file or stream
+    friend std::istream& operator>>(std::istream& is, OrangeGeoFromGeant&);
+    // Helper to write to a file or stream
+    friend std::ostream& operator<<(std::ostream& os,
+                                    OrangeGeoFromGeant const&);
 };
 
 //---------------------------------------------------------------------------//
 // NOTE: these are implemented in OptionsIO.json.cc
 
 char const* to_cstring(InlineSingletons value);
-
-// Helper to read from a file or stream
-std::istream& operator>>(std::istream& is, OrangeGeoFromGeant&);
-// Helper to write to a file or stream
-std::ostream& operator<<(std::ostream& os, OrangeGeoFromGeant const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace inp

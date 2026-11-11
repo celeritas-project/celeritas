@@ -62,7 +62,8 @@ using FastBBoxId = OpaqueId<FastBBox>;
 using FastReal3 = Array<float, 3>;
 
 //! Local identifier for a surface within a universe
-using LocalSurfaceId = OpaqueId<struct LocalSurface_, ImplSurfaceId::size_type>;
+using LocalSurfaceId
+    = OpaqueId<struct OrangeLocalSurface_, ImplSurfaceId::size_type>;
 
 //! Local identifier for an ImplVolume within a universe
 using LocalVolumeId = OpaqueId<struct LocalVolume_, ImplVolumeId::size_type>;

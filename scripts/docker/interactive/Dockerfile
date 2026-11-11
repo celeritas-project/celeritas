@@ -25,13 +25,13 @@ RUN git clone -b${PERFETTO_VERSION_TAG} ${PERFETTO_REP} ${PERFETTO_ROOT} \
     && tools/ninja -C ${PERFETTO_TOOLS} tracebox traced traced_probes perfetto
 
 # setup spack
-ARG SPACK_REP=https://github.com/spack/spack.git
+ARG SPACK_REPO=https://github.com/spack/spack.git
 ARG SPACK_VERSION_TAG=develop
 ARG SPACK_ENV_SPEC=${DEVEL_ROOT}/spack.yaml
 ENV SPACK_ROOT=${DEVEL_ROOT}/spack
 ENV SPACK_EXE=${SPACK_ROOT}/bin/spack
 
-RUN git clone -c feature.manyFiles=true -b${SPACK_VERSION_TAG} ${SPACK_REP} ${SPACK_ROOT}
+RUN git clone -c feature.manyFiles=true -b${SPACK_VERSION_TAG} ${SPACK_REPO} ${SPACK_ROOT}
 
 COPY spack.yaml ${SPACK_ENV_SPEC}
 

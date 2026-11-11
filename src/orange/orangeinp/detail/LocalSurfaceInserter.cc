@@ -209,14 +209,14 @@ LSI_INSTANTIATE(CylAligned<Axis::x>);
 LSI_INSTANTIATE(CylAligned<Axis::y>);
 LSI_INSTANTIATE(CylAligned<Axis::z>);
 LSI_INSTANTIATE(Plane);
-LSI_INSTANTIATE(Sphere);
+LSI_INSTANTIATE(celeritas::Sphere);
 LSI_INSTANTIATE(ConeAligned<Axis::x>);
 LSI_INSTANTIATE(ConeAligned<Axis::y>);
 LSI_INSTANTIATE(ConeAligned<Axis::z>);
 LSI_INSTANTIATE(SimpleQuadric);
 LSI_INSTANTIATE(GeneralQuadric);
 LSI_INSTANTIATE(Toroid);
-LSI_INSTANTIATE(Involute);
+LSI_INSTANTIATE(celeritas::Involute);
 
 #undef LSI_INSTANTIATE
 //! \endcond

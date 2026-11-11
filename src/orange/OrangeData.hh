@@ -52,9 +52,8 @@ inline constexpr auto orange_tracking_logic{LogicNotation::infix};
  */
 struct OrangeParamsScalars
 {
-    size_type num_univ_levels{};
-    size_type max_faces{};
-    size_type max_intersections{};
+    UnivLevelId::size_type num_univ_levels{};
+    FaceId::size_type max_intersections{};
     size_type max_csg_levels{};
 
     // Canonical volume depth: maximum stacked volume instances
@@ -70,8 +69,7 @@ struct OrangeParamsScalars
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return num_univ_levels > 0 && max_faces > 0 && max_intersections > 0
-               && tol;
+        return num_univ_levels > 0 && max_intersections > 0 && tol;
     }
 };
 

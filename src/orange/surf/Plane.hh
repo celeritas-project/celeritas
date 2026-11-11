@@ -162,8 +162,8 @@ CELER_FUNCTION auto Plane::calc_intersections(
     real_type const n_dir = this->dot_normal(dir);
     real_type const dist = (this->displacement() - n_pos) / n_dir;
 
-    bool valid = celeritas::logical_all(
-        (on_surface == SurfaceState::off), (n_dir != 0), (dist > 0));
+    bool valid = celeritas::logical_all((on_surface == SurfaceState::off),
+                                        (dist > 0));
 
     return {valid ? dist : no_intersection()};
 }

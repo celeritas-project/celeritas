@@ -132,6 +132,7 @@ CELER_FUNCTION void StepGatherExecutor<P>::fill(
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
             SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
+            SGL_SET_IF_SELECTED(generation, sim.generation());
             SGL_SET_IF_SELECTED(primary_id, sim.primary_id());
             SGL_SET_IF_SELECTED(post_step_action_id, sim.post_step_action());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());

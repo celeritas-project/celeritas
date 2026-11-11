@@ -15,14 +15,6 @@ on:
     branches:
       - develop
       - backports/**
-    paths-ignore:
-      - "**.rst"
-      - "**.md"
-      - "scripts"
-      - ".jenkins"
-      - "!scripts/cmake-presets/ci*"
-      - "!scripts/ci"
-      - "!scripts/build.sh"
 
 # Only allow one PR action per PR, and cancel old ones when a new one (e.g. new commit)
 # is triggered
@@ -66,6 +58,10 @@ jobs:
         run: "true"
 
   ## MAIN JOBS ##
+
+  build-fast-extra:
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-fast-extra.yml
   build-spack:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
@@ -94,9 +90,10 @@ jobs:
   all:
     if: ${{ always() && github.event.pull_request.draft == false }}
     needs:
+      - build-docs
       - build-fast
       - build-ultralite
-      - build-docs
+      - build-fast-extra
       - build-spack
       - build-spack-extra
       - build-codecov

@@ -12,7 +12,7 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Macros.hh"
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
 namespace celeritas
@@ -94,7 +94,7 @@ inline void TracingSession::flush() noexcept {}
 
 inline void TracingSession::ImplDeleter::operator()(Impl*) noexcept
 {
-    CELER_UNREACHABLE;
+    ::celeritas::unreachable();
 }
 #endif
 

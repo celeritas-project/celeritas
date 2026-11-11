@@ -40,7 +40,7 @@ namespace test
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
        && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM)
-       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
+       && Test::is_reference_rng);
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
@@ -159,6 +159,7 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
 
     for (auto i : range(count))
     {
+        result[i].primary_id = id_cast<PrimaryId>(i);
         result[i].direction = sample_dir(rng);
         result[i].particle_id = particles[i % particles.size()];
     }
@@ -201,6 +202,11 @@ auto LArSphereOffloadTest::run(
     {
         CELER_TRY_HANDLE(count = step(), log_context);
     }
+    if (!count)
+    {
+        // Transport the remaining optical photons after the core loop ends
+        CELER_TRY_HANDLE(step.end_transport(), log_context);
+    }
 
     auto const& gen_reg = collector_->gen_reg();
     auto gen_id = gen_reg.find("generate");
@@ -210,8 +216,10 @@ auto LArSphereOffloadTest::run(
     auto const* aux
         = dynamic_cast<AuxParamsInterface const*>(gen_reg.at(gen_id).get());
     CELER_ASSERT(aux);
+    auto& aux_state = step.sp_state()->aux();
+    gen_reg.at(gen_id)->counters(aux_state).sync_counters();
     auto const& state
-        = get<optical::GeneratorState<M>>(step.state().aux(), aux->aux_id());
+        = get<optical::GeneratorState<M>>(aux_state, aux->aux_id());
     auto buffer = copy_to_host(state.store.ref().distributions);
 
     for (auto const& dist :
@@ -259,6 +267,8 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 {
     input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 4;
+    // Start with a small distribution buffer so that it must grow
+    input_.buffer_capacity = 4;
     this->build_optical_collector();
 
     size_type primaries = 4;
@@ -281,8 +291,7 @@ TEST_F(LArSphereOffloadTest, host_distributions)
     static real_type const expected_scintillation_charge[] = {-1, 0, 1};
     EXPECT_VEC_EQ(expected_scintillation_charge, result.scintillation.charge);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-        && (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW))
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(228154,
                   result.cherenkov.total_num_photons
@@ -326,6 +335,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 {
     input_.auto_flush = std::numeric_limits<size_type>::max();
     input_.num_track_slots = 8;
+    // Start with a small distribution buffer so that it must grow
+    input_.buffer_capacity = 8;
     this->build_optical_collector();
 
     size_type primaries = 8;
@@ -346,8 +357,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
     static real_type const expected_scintillation_charge[] = {-1, 0, 1};
     EXPECT_VEC_EQ(expected_scintillation_charge, result.scintillation.charge);
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(416523,
                   result.cherenkov.total_num_photons
@@ -416,8 +426,7 @@ TEST_F(LArSphereOffloadTest, cherenkov_distributiona)
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.scintillation.num_photons.size());
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(19970, result.cherenkov.total_num_photons);
         EXPECT_EQ(38, result.cherenkov.num_photons.size());
@@ -439,8 +448,7 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
     EXPECT_EQ(0, result.cherenkov.total_num_photons);
     EXPECT_EQ(0, result.cherenkov.num_photons.size());
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    if (Test::is_reference_rng)
     {
         EXPECT_EQ(167469, result.scintillation.total_num_photons);
         EXPECT_EQ(48, result.scintillation.num_photons.size());
@@ -483,7 +491,7 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
         auto const& generator = result.accum.generators[0];
         EXPECT_EQ(2, generator.buffer_size);
-        EXPECT_EQ(0, generator.num_pending);
+        EXPECT_EQ(generator.num_generated, generator.num_pending);
         EXPECT_EQ(109, generator.num_generated);
     }
 }
@@ -502,7 +510,7 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (reference_configuration)
     {
-        unsigned int expected_steps = 19311;
+        unsigned int expected_steps = 21737;
         unsigned int expected_step_iters = 2;
         EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
@@ -510,19 +518,21 @@ TEST_F(LArSphereOffloadTest, host_generate)
         ASSERT_EQ(1, result.accum.generators.size());
 
         auto const& generator = result.accum.generators[0];
-        EXPECT_EQ(7, generator.buffer_size);
-        EXPECT_EQ(0, generator.num_pending);
-        EXPECT_EQ(18214, generator.num_generated);
+        EXPECT_EQ(11, generator.buffer_size);
+        EXPECT_EQ(generator.num_generated, generator.num_pending);
+        EXPECT_EQ(20520, generator.num_generated);
 
-        EXPECT_EQ(2033, result.scintillation.total_num_photons);
-        EXPECT_EQ(273, result.cherenkov.total_num_photons);
+        // The flush is triggered in the last step by the photons pending
+        // after the previous step, so no distributions remain
+        EXPECT_EQ(0, result.scintillation.total_num_photons);
+        EXPECT_EQ(0, result.cherenkov.total_num_photons);
     }
     else if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_GT(result.accum.step_iters, 0);
         EXPECT_GT(result.accum.flushes, 0);
-        EXPECT_GT(result.scintillation.total_num_photons, 0);
-        EXPECT_GT(result.cherenkov.total_num_photons, 0);
+        ASSERT_EQ(1, result.accum.generators.size());
+        EXPECT_GT(result.accum.generators[0].num_generated, 0);
     }
 }
 
@@ -548,7 +558,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
         auto const& generator = result.accum.generators[0];
         EXPECT_EQ(50, generator.buffer_size);
-        EXPECT_EQ(0, generator.num_pending);
+        EXPECT_EQ(generator.num_generated, generator.num_pending);
         EXPECT_EQ(55684, generator.num_generated);
     }
     EXPECT_EQ(0, result.scintillation.total_num_photons);
