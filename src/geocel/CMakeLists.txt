@@ -106,7 +106,19 @@ if(CELERITAS_USE_VecGeom)
   elseif(VecGeom_CUDA_FOUND)
     # VecGeom is built with CUDA but Celeritas is not: need to fill missing
     # symbols with the VecGeom "final" library
-    list(APPEND PUBLIC_DEPS VecGeom::vecgeomcuda)
+    if(TARGET VecGeom::vecgeom_final
+        AND CMAKE_CXX_LINK_LIBRARY_USING_rdc_no_as_needed_SUPPORTED)
+      # Nothing references the final library directly, so prevent
+      # `--as-needed` linkers from dropping it (see CudaRdcUtils)
+      list(APPEND PUBLIC_DEPS
+        "$<LINK_LIBRARY:rdc_no_as_needed,VecGeom::vecgeom_final>"
+      )
+    elseif(TARGET VecGeom::vecgeom_final)
+      list(APPEND PUBLIC_DEPS VecGeom::vecgeom_final)
+    else()
+      # TODO: remove in v0.8 (require VecGeom 2)
+      list(APPEND PUBLIC_DEPS VecGeom::vecgeomcuda)
+    endif()
   endif()
   list(APPEND PRIVATE_DEPS VecGeom::vecgeom)
 endif()
