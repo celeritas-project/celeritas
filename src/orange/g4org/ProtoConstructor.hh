@@ -7,8 +7,8 @@
 #pragma once
 
 #include <memory>
-#include <optional>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
@@ -94,14 +94,17 @@ class ProtoConstructor
 
     VolumeParams const& volumes_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
-    std::unordered_map<VolumeId, std::optional<Alignment>> alignment_;
+    //! Volumes that have been checked and are not aligned
+    std::unordered_set<VolumeId> not_aligned_;
+    //! Explicit or automatically detected alignments
+    std::unordered_map<VolumeId, Alignment> alignment_;
     int depth_{0};
     Input const& opts_;
 
     //// HELPER FUNCTIONS ////
 
-    // Get the alignment for an LV, if applicable
-    Alignment const* find_alignment(LogicalVolume const&);
+    // Get the alignment for an LV (if applicable), calculating it on first use
+    Alignment const* cached_alignment(LogicalVolume const&);
 
     // Find a rotation shared by the majority of an LV's daughters
     std::optional<SquareMatrixReal3> find_common_rotation(

@@ -100,6 +100,9 @@ ProtoConstructor::ProtoConstructor(VolumeParams const& vols,
         align.inverse = align.rotation.calc_inverse();
         alignment_.insert({vol_id, std::move(align)});
     }
+
+    // The world volume is never aligned
+    not_aligned_.insert(volumes_.world());
 }
 
 //---------------------------------------------------------------------------//
@@ -119,7 +122,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 
     // Rotation applied to the boundary and daughters of an aligned volume
     VariantTransform rotation{NoTransformation{}};
-    if (Alignment const* align = this->find_alignment(lv))
+    if (Alignment const* align = this->cached_alignment(lv))
     {
         rotation = align->rotation;
     }
@@ -190,37 +193,46 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the alignment for an LV, if applicable.
+ * Get the alignment for an LV (if applicable), calculating it on first use.
  *
  * The alignment is either 1) explicitly defined by the user, 2) calculated
- * automatically is a sufficient number of daughters share a non-axis-aligned
- * rotation, or 3) not aligned. Results are cached per LV. An entry with an
- * empty alignment means the volume has been checked and is not aligned. If the
- * volume is not aligned, a nullptr is returned.
+ * automatically if a sufficient number of daughters share a non-axis-aligned
+ * rotation, or 3) not aligned. The result is cached so that the daughters of
+ * each LV are searched only once. If the volume is not aligned, a nullptr
+ * is returned.
  */
-auto ProtoConstructor::find_alignment(LogicalVolume const& lv)
+auto ProtoConstructor::cached_alignment(LogicalVolume const& lv)
     -> Alignment const*
 {
-    auto [iter, inserted] = alignment_.try_emplace(lv.id);
-    if (inserted && lv.id != volumes_.world())
-    {
-        if (auto rot = this->find_common_rotation(lv))
-        {
-            Real3 origin{0, 0, 0};
-
-            Alignment align;
-            align.rotation = Transformation{make_transpose(*rot), origin};
-            align.inverse = Transformation{*rot, origin};
-            iter->second = std::move(align);
-        }
-    }
-
-    auto const& align = iter->second;
-    if (!align.has_value())
+    // If LV has already been determined to be not aligned, return nullptr
+    if (not_aligned_.count(lv.id))
     {
         return nullptr;
     }
-    return &align.value();
+
+    // If the LV has already been determined to be aligned, return the
+    // alignment
+    if (auto iter = alignment_.find(lv.id); iter != alignment_.end())
+    {
+        return &iter->second;
+    }
+
+    // First encounter: search the daughters for a common rotation. If one is
+    // found, return an alignment
+    if (auto rot = this->find_common_rotation(lv))
+    {
+        Real3 origin{0, 0, 0};
+
+        Alignment align;
+        align.rotation = Transformation{make_transpose(*rot), origin};
+        align.inverse = Transformation{*rot, origin};
+        auto iter = alignment_.emplace(lv.id, std::move(align)).first;
+        return &iter->second;
+    }
+
+    // A common rotation not found, cache this result and return a nullptr
+    not_aligned_.insert(lv.id);
+    return nullptr;
 }
 
 //---------------------------------------------------------------------------//
@@ -317,7 +329,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     auto transform = apply_transform(parent_transform, pv.transform);
 
     // Get alignment and check that it is applicable
-    Alignment const* align = this->find_alignment(*pv.lv);
+    Alignment const* align = this->cached_alignment(*pv.lv);
     if (align)
     {
         auto const& label = volumes_.volume_labels().at(pv.lv->id);
