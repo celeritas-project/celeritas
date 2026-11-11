@@ -26,12 +26,7 @@ env:
 jobs:
   docs:
     name: ${{matrix.target}}
-    # NOTE: Doxygen 1.15.0 on ubuntu-26.04 fails to match out-of-line
-    # definitions with trailing return types to overloaded members ("no
-    # matching class member found"), which aborts the build with
-    # WARN_AS_ERROR. Stay on the 24.04 runner (Doxygen 1.9.8) until the docs
-    # build can use a fixed Doxygen.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix:
         target: ["user", "dev"]
@@ -51,7 +46,13 @@ jobs:
         run: |
           sudo apt-get -y update
           sudo apt-get -y install \
-              cmake graphviz ninja-build doxygen nlohmann-json3-dev
+              cmake graphviz ninja-build nlohmann-json3-dev
+      - name: Set up Spack environment
+        # Install a pinned Doxygen: see scripts/spack/env-ci-doc.yaml
+        uses: ./.github/actions/setup-spack
+        with:
+          cxxstd: 20
+          env-file: env-ci-doc.yaml
       - name: Setup Python
         if: ${{ matrix.target == 'user' }}
         uses: actions/setup-python@v7

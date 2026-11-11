@@ -43,3 +43,6 @@ CXXSTD=20 ENV_CI=base build_spack_env vecgeom@2.2.0 geant4@11.3+vecgeom
 
 # build-spack-extra.ancient
 CXXSTD=17 ENV_CI=ancient build_spack_env
+
+# build-docs
+CXXSTD=20 ENV_CI=doc build_spack_env
