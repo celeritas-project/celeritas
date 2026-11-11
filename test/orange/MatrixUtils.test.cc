@@ -210,8 +210,12 @@ TEST_F(MatrixUtilsTest, is_signed_permutation)
     // Outside of tolerance
     EXPECT_FALSE(is_signed_permutation(bumped, tol / 20));
 
-    // Unit entries but repeated column
+    // Repeated row (multiple entries in a column)
     Mat3 repeated{Real3{1, 0, 0}, Real3{1, 0, 0}, Real3{0, 0, 1}};
+    EXPECT_FALSE(is_signed_permutation(repeated, tol));
+
+    // Multiple entries in a row
+    Mat3 multiple{Real3{1, 0, 0}, Real3{1, 1, 0}, Real3{0, 0, 1}};
     EXPECT_FALSE(is_signed_permutation(repeated, tol));
 }
 
