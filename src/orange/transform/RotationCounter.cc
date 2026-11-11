@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "RotationCounter.hh"
 
-#include <algorithm>
 #include <variant>
 
 #include "corecel/Assert.hh"
@@ -30,33 +29,45 @@ std::size_t RotationCounter::RotationMatrixHasher::operator()(
 /*!
  * Count a single transform's rotation.
  *
- * A transform without a rotation counts as the identity.
+ * Transforms without a rotation are tallied separately rather than hashing an
+ * identity matrix for each one, since they are typically the most common.
  */
 void RotationCounter::count(VariantTransform const& transform)
 {
+    static SquareMatrixReal3 const identity = make_identity();
+
     auto const* tr = std::get_if<Transformation>(&transform);
-    ++counts_[tr ? tr->rotation() : make_identity()];
+    if (!tr || tr->rotation() == identity)
+    {
+        ++num_identity_;
+        return;
+    }
+    ++counts_[tr->rotation()];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the most common rotation and the number of transforms sharing it.
  *
- * If there is a tie, the rotation returned is whichever \c std::max_element
- * encounters first in the hash map's iteration order, which is not
- * guaranteed to be consistent across multiple platforms. Therefore, client
- * code should only use rotations when the constitute of a majority, i.e.,
- * > 0.5 of all transforms.
+ * The identity wins any tie. If there is a tie between other rotations, the
+ * one returned is whichever is encountered first in the hash map's iteration
+ * order, which is not guaranteed to be consistent across multiple platforms.
+ * Therefore, client code should only use rotations when they constitute a
+ * majority, i.e., > 50% of all transforms.
  */
 auto RotationCounter::calc_most_common() const -> Results
 {
-    CELER_EXPECT(!counts_.empty());
+    CELER_EXPECT(num_identity_ > 0 || !counts_.empty());
 
-    auto result = std::max_element(
-        counts_.begin(), counts_.end(), [](auto const& a, auto const& b) {
-            return a.second < b.second;
-        });
-    return {result->first, result->second};
+    Results result{make_identity(), num_identity_};
+    for (auto const& [rot, count] : counts_)
+    {
+        if (count > result.count)
+        {
+            result = {rot, count};
+        }
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

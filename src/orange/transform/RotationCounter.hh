@@ -1,7 +1,7 @@
 //------------------------------- -*- C++ -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
-//----------------------------------G-----------------------------------------//
+//---------------------------------------------------------------------------//
 //! \file orange/transform/RotationCounter.hh
 //---------------------------------------------------------------------------//
 #pragma once
@@ -50,8 +50,11 @@ class RotationCounter
 
     //// ACCESSORS ////
 
-    //! Get the number of distinct rotations
-    size_type num_rotations() const { return counts_.size(); }
+    //! Get the number of distinct rotations (including the identity)
+    size_type num_rotations() const
+    {
+        return counts_.size() + (num_identity_ > 0 ? 1 : 0);
+    }
 
   private:
     //// TYPES ////
@@ -64,6 +67,9 @@ class RotationCounter
 
     //// DATA ////
 
+    //! Number of transforms without a rotation
+    size_type num_identity_{0};
+    //! Number of transforms with each (non-identity) rotation
     std::unordered_map<SquareMatrixReal3, size_type, RotationMatrixHasher>
         counts_;
 };
