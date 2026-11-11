@@ -79,7 +79,7 @@ class WlsGeneratorAction final : public GeneratorBase
         size_type capacity{};
     };
 
-    // Construct with IDs, WLS model, and buffer capacity
+    // Construct with IDs, WLS model, and initial buffer capacity
     explicit WlsGeneratorAction(Input&&);
 
     //!@{
@@ -88,6 +88,9 @@ class WlsGeneratorAction final : public GeneratorBase
     // Build state data for a stream
     UPState create_state(MemSpace, StreamId, size_type) const final;
     //!@}
+
+    // Count and discard buffered distributions after an aborted loop
+    void reset(AuxStateVec&) const final;
 
     //!@{
     //! \name StepAction interface

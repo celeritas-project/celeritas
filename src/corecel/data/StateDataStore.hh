@@ -96,6 +96,9 @@ class StateDataStore
     // Get a reference to the mutable state data
     inline Ref const& ref() const;
 
+    // Access the owned data for reallocation (update reference afterward)
+    inline Value& value();
+
   private:
     Value val_;
     Ref ref_;
@@ -246,6 +249,19 @@ template<template<Ownership, MemSpace> class S, MemSpace M>
 auto StateDataStore<S, M>::ref() const -> Ref const&
 {
     return ref_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the owned state data so that it can be reallocated in place.
+ *
+ * Reallocating any collection invalidates the stored reference, so the
+ * reference must be updated before \c ref is used again.
+ */
+template<template<Ownership, MemSpace> class S, MemSpace M>
+auto StateDataStore<S, M>::value() -> Value&
+{
+    return val_;
 }
 
 //---------------------------------------------------------------------------//

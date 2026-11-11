@@ -53,14 +53,14 @@ struct StateCapacity
  * increases, but it also means higher memory usage because of the larger
  * number of full states. More \c initializers are necessary for more (and
  * higher-energy) tracks when lots of particles are in flight and producing new
- * child particles. More \c secondaries may be necessary if physical processes
- * that produce many daughters (e.g., atomic relaxation or Bertini cascade) are
- * active. The number of \c events in flight primarily increases the number of
- * active tracks, possible initializers, and produced secondaries (NOTE: see
- * [#1233](https://github.com/celeritas-project/celeritas/issues/1233) ).
+ * child particles; this is the initial size of the buffer, which grows as
+ * needed during transport. More \c secondaries may be necessary if physical
+ * processes that produce many daughters (e.g., atomic relaxation or Bertini
+ * cascade) are active. The number of \c events in flight primarily increases
+ * the number of active tracks, possible initializers, and produced secondaries
  * Finally, the number of \c primaries is the maximum number of pending tracks
  * from an external application before running a kernel to construct \c
- * initializers and execute the stpeping loop.
+ * initializers and execute the stepping loop.
  *
  * \note The \c primaries was previously named \c auto_flush .
  * \note Previously, \c SetupOptions and \c celer-g4 treated these quantities
@@ -82,7 +82,7 @@ struct CoreStateCapacity : StateCapacity
     static constexpr size_type initializers_per_track = 8;
     static constexpr size_type secondaries_per_track = 2;
 
-    //! Maximum number of queued primaries+secondaries
+    //! Initial number of queued primaries+secondaries (grows as needed)
     std::optional<size_type> initializers;
     //! Maximum number of secondaries created per step
     std::optional<size_type> secondaries;
@@ -110,7 +110,7 @@ struct OpticalStateCapacity : StateCapacity
     static constexpr size_type primaries_per_track = 128;
     static constexpr size_type generators_per_track = 2;
 
-    //! Maximum number of queued photon-generating steps
+    //! Initial number of queued photon-generating steps (grows as needed)
     std::optional<size_type> generators{};
 };
 

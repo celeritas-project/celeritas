@@ -28,12 +28,30 @@ TEST(CopierTest, host)
     std::vector<int> src_vec(128, 1234);
     std::vector<int> dst_vec(src_vec.size() + 1);
 
-    Copier<int, MemSpace::host> copy{
-        {dst_vec.data() + 1, dst_vec.data() + dst_vec.size()}};
+    Copier copy{ObserverPtr<int, MemSpace::host>{dst_vec.data() + 1},
+                src_vec.size(),
+                StreamId{}};
     copy(MemSpace::host, make_span(src_vec));
     EXPECT_EQ(0, dst_vec.front());
     EXPECT_EQ(1234, dst_vec[1]);
     EXPECT_EQ(1234, dst_vec.back());
+}
+
+TEST(CopierTest, host_single_el)
+{
+    int temp_dst{-1};
+    int temp_src{123};
+    {
+        Copier copy{make_observer(&temp_dst), 1, {}};
+        copy(make_observer(&temp_src));
+        EXPECT_EQ(123, temp_dst);
+        temp_src = 4;
+    }
+    {
+        Copier copy{make_observer(&temp_dst), StreamId{}};
+        copy(make_observer<int const>(&temp_src));
+        EXPECT_EQ(4, temp_dst);
+    }
 }
 
 TEST(CopierTest, TEST_IF_CELER_DEVICE(device))
@@ -44,21 +62,22 @@ TEST(CopierTest, TEST_IF_CELER_DEVICE(device))
     host_vec.back() = 1234;
     DeviceVector<int> device_vec(host_vec.size());
     {
-        Copier<int, MemSpace::device> copy{device_vec.device_ref()};
+        Copier<int, MemSpace::device> copy{device_vec.device_ref(), StreamId{}};
         copy(MemSpace::host, make_span(host_vec));
     }
 
     // Copy device --> device
     DeviceVector<int> new_device_vec(host_vec.size());
     {
-        Copier<int, MemSpace::device> copy{new_device_vec.device_ref()};
+        Copier<int, MemSpace::device> copy{new_device_vec.device_ref(),
+                                           StreamId{}};
         copy(MemSpace::device, device_vec.device_ref());
     }
 
     // Copy device --> host
     std::vector<int> new_host_vec(host_vec.size());
     {
-        Copier<int, MemSpace::host> copy{make_span(new_host_vec)};
+        Copier<int, MemSpace::host> copy{make_span(new_host_vec), StreamId{}};
         copy(MemSpace::device, new_device_vec.device_ref());
     }
     EXPECT_EQ(1, new_host_vec.front());
@@ -87,20 +106,50 @@ TEST(CopyBytesTest, TEST_IF_CELER_DEVICE(device_memcpy_stream))
     EXPECT_VEC_EQ(host_vec, std::vector<int>(result.begin(), result.end()));
 }
 
-TEST(ItemCopierTest, TEST_IF_CELER_DEVICE(device))
+TEST(CopierTest, TEST_IF_CELER_DEVICE(device_single_el))
+{
+    device().create_streams(1);
+    DeviceVector<int> device_vec(1);
+    {
+        int src{1234};
+        device_vec.copy_to_device({&src, 1});
+    }
+
+    int dst{-1};
+    Copier copy{make_observer(&dst), StreamId{0}};
+    copy(ObserverPtr<int const, MemSpace::device>{device_vec.data()});
+    EXPECT_EQ(1234, dst);
+}
+
+TEST(LoadSyncTest, TEST_IF_CELER_DEVICE(device))
 {
     // Initialize data on device
     std::vector<int> host_vec{0, 1, 2, 3, 4};
     DeviceVector<int> device_vec(host_vec.size());
     device_vec.copy_to_device(make_span(host_vec));
 
-    // Copy elements to host
-    ItemCopier<int> copy{};
+    // Copy elements to host on a stream
+    device().create_streams(1);
+    StreamId stream{0};
     for (int i : range(host_vec.size()))
     {
-        int result = copy(device_vec.data() + i);
-        EXPECT_EQ(i, result);
+        ObserverPtr<int, MemSpace::device> p{device_vec.data() + i};
+        EXPECT_EQ(i, load_sync(p, stream));
     }
+    {
+        // Test const overload
+        ObserverPtr<int const, MemSpace::device> p{device_vec.data() + 2};
+        EXPECT_EQ(2, load_sync(p, stream));
+
+        // Test without stream
+        EXPECT_EQ(2, load_sync(p));
+    }
+}
+
+TEST(LoadSyncTest, host)
+{
+    int value = 1234;
+    EXPECT_EQ(1234, load_sync(ObserverPtr<int, MemSpace::host>{&value}, {}));
 }
 
 //---------------------------------------------------------------------------//

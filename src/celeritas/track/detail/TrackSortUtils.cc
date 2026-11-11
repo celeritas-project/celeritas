@@ -53,7 +53,7 @@ struct IdLess
 
     bool operator()(size_type a, size_type b) const
     {
-        return ids_.get()[a] < ids_.get()[b];
+        return ids_[a] < ids_[b];
     }
 };
 

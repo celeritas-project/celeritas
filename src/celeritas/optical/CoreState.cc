@@ -9,6 +9,7 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/random/params/RngParams.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/random/RngReseed.hh"
 #include "celeritas/track/CounterAlgorithms.hh"
@@ -49,6 +50,7 @@ CoreState<M>::CoreState(
     auto counters = CoreStateCounters{};
     counters.num_vacancies = num_track_slots;
     this->sync_put_counters(counters);
+    host_counters_.assign(counters);
 
     if constexpr (M == MemSpace::device)
     {
@@ -111,17 +113,10 @@ void CoreState<M>::insert_primaries(Span<TrackInitializer const>)
 template<MemSpace M>
 CoreStateCounters CoreState<M>::sync_get_counters() const
 {
-    auto* counters
-        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
+    ScopedProfiling profile_this{"sync-get-counters"};
+    auto counters = this->ref().init.counters.data();
     CELER_ASSERT(counters);
-    if constexpr (M == MemSpace::device)
-    {
-        auto result
-            = ItemCopier<CoreStateCounters>{this->stream_id()}(counters);
-        device().stream(this->stream_id()).sync();
-        return result;
-    }
-    return *counters;
+    return load_sync(counters, this->stream_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -134,11 +129,9 @@ CoreStateCounters CoreState<M>::sync_get_counters() const
 template<MemSpace M>
 void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 {
-    auto* counters
-        = static_cast<CoreStateCounters*>(this->ref().init.counters.data());
-    CELER_ASSERT(counters);
-    Copier<CoreStateCounters, M> copy{{counters, 1}, this->stream_id()};
-    copy(MemSpace::host, {&host_counters, 1});
+    ScopedProfiling profile_this{"sync-put-counters"};
+    Copier copy{this->ref().init.counters.data(), this->stream_id()};
+    copy(make_observer(&host_counters));
     if constexpr (M == MemSpace::device)
     {
         device().stream(this->stream_id()).sync();
@@ -156,6 +149,22 @@ template<MemSpace M>
 void CoreState<M>::clear_tallies()
 {
     celeritas::clear_tallies(this->ref().init.counters, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy the counters to host-accessible storage without synchronizing.
+ *
+ * For a device state, the copy is enqueued on the state's stream and completes
+ * asynchronously: the \c host_counters snapshot tracks its completion. Unlike
+ * \c sync_get_counters , waiting for the copy does not block work enqueued on
+ * the stream after it.
+ */
+template<MemSpace M>
+void CoreState<M>::async_copy_counters()
+{
+    host_counters_.load_async(this->ref().init.counters.data(),
+                              this->stream_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -188,6 +197,7 @@ void CoreState<M>::reset()
     auto counters = CoreStateCounters{};
     counters.num_vacancies = this->size();
     this->sync_put_counters(counters);
+    host_counters_.assign(counters);
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);

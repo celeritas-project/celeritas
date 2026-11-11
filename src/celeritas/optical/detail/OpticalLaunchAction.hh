@@ -39,10 +39,17 @@ namespace detail
  *
  * This stores the optical tracking loop's core params, initializing them at
  * the beginning of the run, and stores the optical core state as "aux" data.
+ *
+ * To avoid synchronizing every core step, the number of pending optical
+ * photons is copied asynchronously at the end of each step, and the optical
+ * loop is launched during a later step once that number reaches the
+ * auto-flush threshold. The remaining photons are transported when the core
+ * stepping loop ends (see \c Stepper::end_transport ).
  */
 class OpticalLaunchAction : public AuxParamsInterface,
                             public CoreStepActionInterface,
-                            public CoreBeginRunActionInterface
+                            public CoreBeginRunActionInterface,
+                            public CoreEndTransportActionInterface
 {
   public:
     //!@{
@@ -113,7 +120,14 @@ class OpticalLaunchAction : public AuxParamsInterface,
     void step(CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
-    // TODO: local end event to flush initializers??
+    //!@{
+    //! \name EndTransportAction interface
+
+    // Transport the remaining optical photons with host data
+    void end_transport(CoreParams const&, CoreStateHost&) const final;
+    // Transport the remaining optical photons with device data
+    void end_transport(CoreParams const&, CoreStateDevice&) const final;
+    //!@}
 
     //!@{
     //! \name Accessors
@@ -141,6 +155,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
     template<MemSpace M>
     void execute_impl(CoreParams const&, CoreState<M>&) const;
+    template<MemSpace M>
+    void end_transport_impl(CoreState<M>&) const;
     template<MemSpace M>
     void begin_run_impl(CoreState<M>&);
 };
