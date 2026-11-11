@@ -310,15 +310,13 @@ struct RectArrayRecord
  * Each collection should be of length num_universes + 1. The first entry is
  * zero and the last item should be the total number of surfaces or volumes.
  *
- * \todo These should be indexed into by UnivId, not the default
- * OpaqueId<size_type>.
  * \todo move to detail/UniverseIndexerData
  */
 template<Ownership W, MemSpace M>
 struct UniverseIndexerData
 {
-    Collection<size_type, W, M> surfaces;
-    Collection<size_type, W, M> volumes;
+    Collection<ImplSurfaceId, W, M, UnivId> surfaces;
+    Collection<ImplVolumeId, W, M, UnivId> volumes;
 
     template<Ownership W2, MemSpace M2>
     UniverseIndexerData& operator=(UniverseIndexerData<W2, M2> const& other)
