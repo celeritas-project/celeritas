@@ -29,7 +29,7 @@ CELER_SOURCE_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 # and the image tags in .github/workflows/build-{docker,codecov}.yml
 case ${CONFIG} in
   cuda)
-    BASE_IMAGE=docker.io/nvidia/cuda:13.4.1-devel-ubuntu24.04
+    BASE_IMAGE=docker.io/nvidia/cuda:13.5.0-devel-ubuntu24.04
     ;;
   rocm)
     BASE_IMAGE=docker.io/rocm/dev-ubuntu-24.04:7.2.3

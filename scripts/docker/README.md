@@ -12,7 +12,7 @@ configuration in `scripts/spack`. The multi-stage `gpu/Dockerfile` has two targe
   `/opt/view`) onto the base image, so CI downloads less.
 
 There are two image configurations, both based on Ubuntu 24.04:
-- `cuda`: CUDA 13.4 (`sm_80`), including VecGeom 2 with CUDA.
+- `cuda`: CUDA 13.5 (`sm_80`), including VecGeom 2 with CUDA.
 - `rocm`: ROCm 7.2 (`gfx90a`), without VecGeom.
 
 The Spack environments are `scripts/spack/env-docker-<config>.yaml`, which
