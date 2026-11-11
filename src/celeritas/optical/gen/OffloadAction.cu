@@ -43,7 +43,7 @@ void OffloadAction<G>::offload(CoreParams const& core_params,
                  (G == GeneratorType::scintillation)
                      ? this->get_post_step_data(core_state)
                      : NativeRef<PostTraitsT::template Data>{},
-                 gen_state.counters.buffer_size}};
+                 gen_state.device_counters()}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }

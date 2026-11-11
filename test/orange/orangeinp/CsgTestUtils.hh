@@ -53,9 +53,9 @@ void stream_logic_int(std::ostream& os, logic_int value);
 struct ReprLogic
 {
     std::vector<logic_int> const& logic;
-};
 
-std::ostream& operator<<(std::ostream& os, ReprLogic const& rl);
+    friend std::ostream& operator<<(std::ostream& os, ReprLogic const& rl);
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace test

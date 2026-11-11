@@ -241,14 +241,20 @@ struct GeantPhysicsOptions
         opt.mucf_physics = false;
         return opt;
     }
-};
 
-//! Equality operator, mainly for test harness
-// TODO: when we require C++20, use `friend bool operator==(...) = default;`
-constexpr bool operator==(GeantPhysicsOptions const& a,
-                          GeantPhysicsOptions const& b)
-{
-    // clang-format off
+    // Helper to write the options to a file or stream.
+    friend std::ostream& operator<<(std::ostream& os,
+                                    GeantPhysicsOptions const&);
+
+    // Helper to read the options from a file or stream.
+    friend std::istream& operator>>(std::istream& is, GeantPhysicsOptions&);
+
+    //! Equality operator, mainly for test harness
+    // TODO: when we require C++20, use `friend bool operator==(...) = default;`
+    friend constexpr bool operator==(GeantPhysicsOptions const& a,
+                                     GeantPhysicsOptions const& b)
+    {
+        // clang-format off
     return a.compton_scattering == b.compton_scattering
         && a.photoelectric == b.photoelectric
         && a.rayleigh_scattering == b.rayleigh_scattering
@@ -295,8 +301,9 @@ constexpr bool operator==(GeantPhysicsOptions const& a,
         && a.form_factor == b.form_factor
         && a.verbose == b.verbose
         && a.optical == b.optical;
-    // clang-format on
-}
+        // clang-format on
+    }
+};
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -305,14 +312,6 @@ constexpr bool operator==(GeantPhysicsOptions const& a,
 char const* to_cstring(BremsModelSelection value);
 char const* to_cstring(MscModelSelection value);
 char const* to_cstring(RelaxationSelection value);
-
-//---------------------------------------------------------------------------//
-// Helper to read the options from a file or stream.
-std::istream& operator>>(std::istream& is, GeantPhysicsOptions&);
-
-//---------------------------------------------------------------------------//
-// Helper to write the options to a file or stream.
-std::ostream& operator<<(std::ostream& os, GeantPhysicsOptions const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

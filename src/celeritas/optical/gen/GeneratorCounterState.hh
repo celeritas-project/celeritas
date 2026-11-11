@@ -24,7 +24,8 @@ namespace optical
  * The counters are modified by kernels during stepping so that the host never
  * has to wait on the device to update them. The host copy in
  * \c GeneratorStateBase::counters is only refreshed by \c sync_counters ,
- * which is called by the optical transporter once the loop has completed.
+ * which is called by the optical transporter once the loop has completed and
+ * by \c OpticalCollector before reporting the buffer sizes or statistics.
  *
  * For buffers that are filled during stepping, this class also tracks a
  * conservative upper bound on the buffer size so that capacity can be

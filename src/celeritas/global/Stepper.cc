@@ -160,8 +160,6 @@ void Stepper<M>::warm_up()
  * - Debugging and output actions: \c StatusChecker copies state data to the
  *   host after every action, \c SlotDiagnostic copies its data to the host
  *   every step, and a \c StepInterface callback may do its own host work.
- * - Optical photon offloading compacts the distributions and counts their
- *   photons with Thrust every step.
  * - Launching the optical stepping loop: the host waits for each optical step,
  *   and the loop runs to completion inside this step once enough optical
  *   photons are pending.
