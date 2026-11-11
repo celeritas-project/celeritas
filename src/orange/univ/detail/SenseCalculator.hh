@@ -105,7 +105,7 @@ class SenseCalculator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 
-SenseCalculator(
+CELER_CTAD_FUNCTION SenseCalculator(
     LocalSurfaceVisitor const&, LocalVolumeView const&, Real3 const&, OnFace&)
     -> SenseCalculator<std::nullptr_t>;
 
