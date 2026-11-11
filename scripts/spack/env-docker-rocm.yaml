@@ -40,7 +40,7 @@ spack:
   packages:
     all:
       prefer:
-        - "cxxstd=17"
+        - "cxxstd=20"
     # Keep in sync with the HIP architecture of scripts/cmake-presets/ci-ubuntu-rocm.json
     covfie:
       require:
