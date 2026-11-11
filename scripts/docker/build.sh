@@ -37,11 +37,11 @@ esac
 # and the image tags in .github/workflows/build-{docker,codecov}.yml
 case ${CONFIG} in
   ubuntu-cuda13)
-    BASE_IMAGE=nvidia/cuda:13.4.1-devel-ubuntu24.04
+    BASE_IMAGE=docker.io/nvidia/cuda:13.4.1-devel-ubuntu24.04
     ;;
   ubuntu-rocm7)
     # The "complete" image provides the rocrand/rocthrust/hipcub libraries
-    BASE_IMAGE=rocm/dev-ubuntu-24.04:7.2.3-complete
+    BASE_IMAGE=docker.io/rocm/dev-ubuntu-24.04:7.2.3-complete
     ;;
   *)
     log error "invalid configuration: ${CONFIG}"
