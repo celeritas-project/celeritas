@@ -17,6 +17,10 @@ Requirements:
   identity (the issue workflow adds the `ai-generated` label from the form field).
 - Pull requests: open as **draft**, add the `ai-assisted` label, and leave
   marking it "ready" to the human submitter.
+- History: you may rebase or force push a draft PR branch, but once it is marked
+  ready for review (or you are asked to address review comments) *never* rebase,
+  squash, amend, or force push it. Push new commits instead, and incorporate
+  upstream changes by *merging* `upstream/develop` (see `CONTRIBUTING.rst`).
 
 ## File Organization
 
