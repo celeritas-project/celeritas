@@ -83,8 +83,7 @@ CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
     // third vertices if not
     if (edge1[0] * edge2[1] - edge1[1] * edge2[0] < real_type{0})
     {
-        verts_[1] = verts[2];
-        verts_[2] = verts[1];
+        trivial_swap(verts[1], verts[2]);
     }
 }
 
