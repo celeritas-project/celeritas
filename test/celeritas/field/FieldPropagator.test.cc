@@ -375,6 +375,102 @@ TEST_F(TwoBoxesTest, safety_sphere_on_boundary)
     EXPECT_EQ(1, geo.intersect_count());
 }
 
+TEST_F(TwoBoxesTest, positron_safety_field_propagator)
+{
+    // Curved track (radius 1) centered on the origin, moving clockwise from
+    // the right: the inner box boundary is 4 cm from the start
+    real_type const radius{1.0};
+    Real3 const start_pos{radius, 0, 0};
+    Real3 const start_dir{0, -1, 0};
+    auto particle = this->make_particle_view(pdg::positron(), MevEnergy{10});
+    UniformZField field(unit_radius_field_strength);
+    auto integrate = make_mag_field_integrator<DormandPrinceIntegrator>(
+        field, particle.charge());
+
+    struct Result
+    {
+        Propagation prop;
+        Real3 pos;
+        Real3 dir;
+        size_type intersects{};
+    };
+
+    // Propagate a fresh track from the start point, optionally in the sphere
+    auto run = [&](real_type step,
+                   FieldDriverOptions const& opts,
+                   SafetySphere const* sphere) {
+        auto geo = this->make_geo_track_view(start_pos, start_dir);
+        Result r;
+        if (sphere)
+        {
+            auto propagate = make_safety_field_propagator(
+                integrate, opts, particle, geo, *sphere);
+            r.prop = propagate(step);
+        }
+        else
+        {
+            auto propagate
+                = make_field_propagator(integrate, opts, particle, geo);
+            r.prop = propagate(step);
+        }
+        r.pos = geo.pos();
+        r.dir = geo.dir();
+        r.intersects = geo.intersect_count();
+        return r;
+    };
+
+    // The results with and without the sphere must be identical
+    auto expect_same = [](Result const& expected, Result const& actual) {
+        EXPECT_EQ(expected.prop.distance, actual.prop.distance);
+        EXPECT_EQ(expected.prop.boundary, actual.prop.boundary);
+        EXPECT_EQ(expected.prop.looping, actual.prop.looping);
+        EXPECT_VEC_EQ(expected.pos, actual.pos);
+        EXPECT_VEC_EQ(expected.dir, actual.dir);
+    };
+
+    SafetySphere sphere;
+    {
+        auto geo = this->make_geo_track_view(start_pos, start_dir);
+        sphere.center = geo.pos();
+        sphere.radius = geo.find_safety();
+    }
+    EXPECT_SOFT_EQ(5 - radius, sphere.radius);
+
+    FieldDriverOptions driver_options;
+    {
+        SCOPED_TRACE("Short step");
+        auto expected = run(0.1, driver_options, nullptr);
+        auto actual = run(0.1, driver_options, &sphere);
+        expect_same(expected, actual);
+        EXPECT_EQ(1, expected.intersects);
+        EXPECT_EQ(0, actual.intersects);
+    }
+    {
+        SCOPED_TRACE("Half turn with several substeps");
+        auto expected = run(pi * radius, driver_options, nullptr);
+        auto actual = run(pi * radius, driver_options, &sphere);
+        expect_same(expected, actual);
+        EXPECT_FALSE(actual.prop.looping);
+        EXPECT_LT(1, expected.intersects);
+        EXPECT_EQ(0, actual.intersects);
+    }
+    {
+        SCOPED_TRACE("Reaching the substep limit");
+        FieldDriverOptions few_substeps = driver_options;
+        few_substeps.max_substeps = 2;
+        auto expected = run(pi * radius, few_substeps, nullptr);
+        auto actual = run(pi * radius, few_substeps, &sphere);
+        expect_same(expected, actual);
+        EXPECT_TRUE(actual.prop.looping);
+        EXPECT_EQ(0, actual.intersects);
+    }
+    if (CELERITAS_DEBUG)
+    {
+        SCOPED_TRACE("Step that doesn't fit inside the sphere");
+        EXPECT_THROW(run(sphere.radius, driver_options, &sphere), DebugError);
+    }
+}
+
 TEST_F(TwoBoxesTest, positron_interior)
 {
     // Initialize position and direction so its curved track (radius 1) is
