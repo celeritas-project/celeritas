@@ -115,7 +115,7 @@ CELER_FUNCTION void GeneratorExecutor::operator()(ThreadId tid) const
         {
             // Initialize a temporary geometry state at the step midpoint and
             // use it to find the optical material ID
-            auto geo = vacancy.geometry();
+            auto&& geo = vacancy.geometry();
             Real3 avg_pos;
             for (auto i : range(3))
             {

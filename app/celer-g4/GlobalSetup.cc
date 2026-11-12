@@ -121,7 +121,8 @@ void GlobalSetup::ReadInput(std::string const& filename)
     }
     celeritas::environment().merge(input_.environ);
 
-    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+                  || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC)
     {
         static char const fi_hack_envname[] = "ORANGE_FORCE_INPUT";
         auto const& filename = celeritas::getenv(fi_hack_envname);

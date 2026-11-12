@@ -98,7 +98,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         CoreTrackView track{core_params, core_states, tid};
         auto sim = track.sim();
         auto particle = track.particle();
-        auto geo = track.geometry();
+        auto&& geo = track.geometry();
         auto phys = track.physics();
 
         result.eloss += value_as<MevEnergy>(inp.energy)

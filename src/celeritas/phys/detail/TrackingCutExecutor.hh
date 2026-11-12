@@ -66,7 +66,7 @@ CELER_FUNCTION void TrackingCutExecutor::operator()(
     {
         // Print a debug message if track is just being cut; error message if
         // an error occurred
-        auto const geo = track.geometry();
+        auto const& geo = track.geometry();
         auto msg = self_logger()(CELER_CODE_PROVENANCE,
                                  sim.status() == TrackStatus::errored
                                      ? LogLevel::error

@@ -9,7 +9,8 @@
 #include "corecel/Config.hh"
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 #    include "geocel/vg/VecgeomTestBase.hh"
-#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
+    || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
 #    include "orange/OrangeTestBase.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
 #    include "geocel/g4/GeantGeoTestBase.hh"
@@ -24,7 +25,8 @@ namespace test
 class CoreGeoTestBase : public
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
                         VecgeomTestBase
-#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
+    || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
                         OrangeTestBase
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
                         GeantGeoTestBase

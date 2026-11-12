@@ -49,7 +49,7 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
     if (traverse.in_pre_volume())
     {
         // Re-entrant into the pre-volume
-        auto geo = track.geometry();
+        auto&& geo = track.geometry();
         geo.cross_boundary();
         if (CELER_UNLIKELY(geo.failed()))
         {

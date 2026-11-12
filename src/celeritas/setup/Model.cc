@@ -39,10 +39,12 @@ struct GeoBuilder
             CELER_LOG(debug) << "Skipping geometry setup";
             return nullptr;
         }
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+        if ((CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+             || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC)
             && ends_with(filename, ".json"))
         {
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
+    || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
             // Match the JSON volume names to the canonical volumes (e.g.,
             // from Geant4) so that volume-based data such as materials is
             // consistent
@@ -58,7 +60,8 @@ struct GeoBuilder
     //! Build from Geant4
     result_type operator()(G4VPhysicalVolume const* world)
     {
-        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+                      || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC)
         {
             // NOTE: this is used to allow a custom "ideal" TestEM3 definition
             // in our regression suite

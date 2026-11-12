@@ -41,6 +41,13 @@ class CoreTrackView
     //! \name Type aliases
     using ParamsRef = NativeCRef<CoreParamsData>;
     using StateRef = NativeRef<CoreStateData>;
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
+    //! Geometry is a reference to the state's reusable virtual implementation
+    using GeoTrackResult = GeoTrackView&;
+#else
+    //! Geometry is a lightweight view constructed on demand
+    using GeoTrackResult = GeoTrackView;
+#endif
     //!@}
 
   public:
@@ -52,7 +59,7 @@ class CoreTrackView
     inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
 
     // Return a geometry view
-    inline CELER_FUNCTION GeoTrackView geometry() const;
+    inline CELER_FUNCTION GeoTrackResult geometry() const;
 
     // Return a material view
     inline CELER_FUNCTION MaterialView material_record() const;
@@ -136,7 +143,7 @@ CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
     this->sim() = SimTrackView::Initializer{init.primary, init.time};
 
     // Initialize the geometry state
-    auto geo = this->geometry();
+    auto&& geo = this->geometry();
     geo = GeoTrackInitializer{init.position, init.direction, {}};
     if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
     {
@@ -168,11 +175,24 @@ CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
 //---------------------------------------------------------------------------//
 /*!
  * Return a geometry view.
+ *
+ * With the \c dynamic core geometry, this rebinds the state's single
+ * geometry implementation to this track slot and returns a reference to it:
+ * the result is invalidated by a subsequent call to \c geometry() from a view
+ * of another track slot in the same state.
  */
-CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackView
+CELER_FUNCTION auto CoreTrackView::geometry() const -> GeoTrackResult
 {
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
+    // Rebind the state's reusable implementation to this track slot
+    CELER_ASSERT(states_.geo_track);
+    GeoTrackView& geo = *states_.geo_track;
+    geo.set_track_slot(this->track_slot_id());
+    return geo;
+#else
     return GeoTrackView{
         params_.geometry, states_.geometry, this->track_slot_id()};
+#endif
 }
 
 //---------------------------------------------------------------------------//

@@ -20,8 +20,10 @@ namespace celeritas
 {
 namespace test
 {
+// NOTE: dynamic geometry currently always uses ORANGE
 constexpr bool using_orange_geo
-    = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
+    = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+       || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC);
 constexpr bool using_vg = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
@@ -259,7 +261,8 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 
 //---------------------------------------------------------------------------//
 
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
+    || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
 #    define CmseTest DISABLED_CmseTest
 #endif
 class CmseTest : public HeuristicGeoTestBase
@@ -310,7 +313,7 @@ auto CmseTest::reference_avg_path() const -> SpanConstReal
 
 TEST_F(TestEm3Test, run)
 {
-    if (CELERITAS_USE_GEANT4 || CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
+    if (CELERITAS_USE_GEANT4 || !using_orange_geo)
     {
         EXPECT_TRUE(this->geometry()->supports_safety());
     }
@@ -351,7 +354,7 @@ TEST_F(SimpleCmsTest, output)
     StringSimplifier simplify_str(1);
     auto s = simplify_str(to_string(out));
 
-    if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE && CELERITAS_USE_GEANT4)
+    if (!using_orange_geo && CELERITAS_USE_GEANT4)
     {
         EXPECT_JSON_EQ(
             R"json({"_category":"internal","_label":"geometry","bbox":[[-1e3,-1e3,-2e3],[1e3,1e3,2e3]],"num_impl_volumes":7,"supports_safety":true})json",

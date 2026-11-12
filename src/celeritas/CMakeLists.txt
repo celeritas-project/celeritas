@@ -24,10 +24,16 @@ if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_deps VecGeom::vecgeom)
 elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_core_geo_deps Celeritas::orange)
+elseif(CELERITAS_CORE_GEO STREQUAL "dynamic")
+  # TODO: hide engine-specific data and make orange a private dependency
+  set(_core_geo_deps Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
   set(_core_geo_deps Celeritas::ExtGeant4Geo)
 endif()
 list(APPEND PUBLIC_DEPS ${_core_geo_deps})
+if(CELERITAS_CORE_GEO STREQUAL "dynamic")
+  list(APPEND SOURCES geo/DynamicGeoData.cc)
+endif()
 
 #-----------------------------------------------------------------------------#
 # Main code

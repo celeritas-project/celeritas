@@ -290,7 +290,10 @@ CMake variables
   Select the geometry package used by the Celeritas stepping loop. Valid
   options include VecGeom, Geant4, and ORANGE. There are limits on
   compatibility: Geant4 is not compatible with GPU-enabled or OpenMP builds,
-  and VecGeom is not compatible with HIP.
+  and VecGeom is not compatible with HIP. The experimental ``dynamic`` option
+  (CPU-only, and incompatible with ``CELERITAS_OPENMP=track``) hides the
+  navigation implementation behind a virtual interface; it currently always
+  uses ORANGE.
 
 ``CELERITAS_CORE_RNG``
   Select the pseudorandom number generator. Current options are

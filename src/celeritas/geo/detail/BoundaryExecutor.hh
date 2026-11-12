@@ -46,7 +46,7 @@ CELER_FUNCTION void BoundaryExecutor::operator()(
                && sim.status() == TrackStatus::alive;
     }());
 
-    auto geo = track.geometry();
+    auto&& geo = track.geometry();
     CELER_EXPECT(geo.is_on_boundary());
 
     // Particle entered a new volume before reaching the interaction point

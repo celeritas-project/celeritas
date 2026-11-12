@@ -129,7 +129,8 @@ void BuildOutput::output(JsonPimpl* j) const
             cfg["vecgeom"] = std::string(config::vecgeom_options);
         }
 
-        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+                      || CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC)
         {
             cfg["orange_torus"] = static_cast<bool>(CELERITAS_ORANGE_TORUS);
         }

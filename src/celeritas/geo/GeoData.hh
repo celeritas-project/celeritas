@@ -12,6 +12,10 @@
 #    include "geocel/vg/VecgeomData.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeData.hh"
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
+#    include "orange/OrangeData.hh"
+
+#    include "DynamicGeoData.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
 #    include "geocel/g4/GeantGeoData.hh"
 #endif

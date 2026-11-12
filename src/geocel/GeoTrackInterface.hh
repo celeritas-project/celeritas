@@ -24,11 +24,11 @@ namespace celeritas
  * Standard interface to geometry navigation for a track for testing on CPU.
  * \tparam RealType Floating point precision
  *
- * \note This class is for illustrative and testing purposes \b only
- *   (see celeritas::test::WrappedGeoTrackView) and is
- *   \b not used during the main Celeritas execution. The geometry there is
- *   determined by the \c CELERITAS_CORE_GEO configuration variable and defined
- *   as a type alias \c celeritas::CoreGeoTrackView .
+ * \note This class is used for testing (see \c WrappedGeoTrackView ) and, on
+ *   CPU only, as the \c celeritas::CoreGeoTrackView when the
+ *   \c CELERITAS_CORE_GEO configuration variable is \c dynamic . Otherwise
+ *   the main Celeritas execution uses the concrete track view selected by
+ *   \c CELERITAS_CORE_GEO , with no virtual dispatch.
  *
  * Initialization is performed via the assignment operator using a \c
  * GeoTrackInitializer.
@@ -103,6 +103,18 @@ class GeoTrackInterface
      *   error (volume not found).
      */
     virtual GeoTrackInterface& operator=(Initializer_t const& init) = 0;
+
+    /*!
+     * Change the track slot that this view accesses.
+     *
+     * This rebinds the view to a different track slot in the same state data
+     * without reallocating, so that a single instance can be reused for
+     * many tracks. Only the slot index changes: the geometry state of the new
+     * slot is unmodified.
+     *
+     * \pre \c tid is less than the number of track slots in the state
+     */
+    virtual void set_track_slot(TrackSlotId tid) = 0;
 
     //!@{
     //! \name Physical state

@@ -104,6 +104,10 @@ struct CoreStateData
     using Items = StateCollection<T, W, M>;
 
     GeoStateData<W, M> geometry;
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
+    //! Reusable host-only geometry implementation shared by all track slots
+    DynamicGeoTrackPtr<W> geo_track;
+#endif
     ParticleStateData<W, M> particle;
     PhysicsStateData<W, M> physics;
     SurfacePhysicsStateData<W, M> surface_physics;
@@ -122,7 +126,11 @@ struct CoreStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && particle && physics && rng && detectors && sim
-               && surface_physics && init && stream_id;
+               && surface_physics && init && stream_id
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
+               && (M != MemSpace::host || geo_track)
+#endif
+            ;
     }
 
     //! Assign from another set of data
@@ -131,6 +139,12 @@ struct CoreStateData
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
+        if constexpr (W == Ownership::reference)
+        {
+            geo_track = get_pointer(other.geo_track);
+        }
+#endif
         particle = other.particle;
         physics = other.physics;
         surface_physics = other.surface_physics;

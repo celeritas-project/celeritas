@@ -75,7 +75,7 @@ CELER_FUNCTION void StepGatherExecutor<P>::operator()(
         // stepping)
         if (P == StepPoint::pre)
         {
-            auto const geo = track.geometry();
+            auto const& geo = track.geometry();
             CELER_ASSERT(!geo.is_outside());
             ImplVolumeId vol = geo.impl_volume_id();
             CELER_ASSERT(vol);
@@ -142,7 +142,7 @@ CELER_FUNCTION void StepGatherExecutor<P>::fill(
     }
 
     {
-        auto const geo = track.geometry();
+        auto const& geo = track.geometry();
 
         SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());

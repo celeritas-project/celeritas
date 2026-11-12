@@ -68,7 +68,7 @@ CELER_FUNCTION void DetectorExecutor::operator()(
         return;
     }
 
-    auto geometry = track.geometry();
+    auto&& geometry = track.geometry();
     if (geometry.is_outside())
     {
         // Killed by leaving geometry; no detection

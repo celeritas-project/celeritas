@@ -16,6 +16,7 @@
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
+#include "celeritas/geo/StandaloneGeoTrackView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
 #include "celeritas_test.hh"
@@ -50,7 +51,7 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
     StateDataStore<GeoStateData, MemSpace::host> host_state{
         this->geometry()->host_ref(), 1};
     // Geometry track view and mat view
-    GeoTrackView geo(
+    StandaloneGeoTrackView geo(
         this->geometry()->host_ref(), host_state.ref(), TrackSlotId{0});
     GeoMaterialView geo_mat_view(this->geomaterial()->host_ref());
 

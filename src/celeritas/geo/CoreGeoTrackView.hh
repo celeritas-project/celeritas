@@ -14,6 +14,8 @@
 #    include "orange/OrangeTrackView.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
 #    include "geocel/g4/GeantGeoTrackView.hh"
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_DYNAMIC
+#    include "DynamicGeoData.hh"
 #endif
 
 // Include type alias for Geo track view

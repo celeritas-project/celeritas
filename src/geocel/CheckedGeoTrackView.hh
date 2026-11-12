@@ -132,6 +132,9 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     // Initialize the state
     CheckedGeoTrackView& operator=(GeoTrackInitializer const& init) final;
 
+    // Rebind to another track slot
+    void set_track_slot(TrackSlotId tid) final;
+
     // Physical state
     Real3 const& pos() const final { return t_->pos(); }
     Real3 const& dir() const final { return t_->dir(); }
