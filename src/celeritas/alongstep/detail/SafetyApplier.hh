@@ -32,7 +32,9 @@ namespace detail
  * is conservative for field propagation since it is the physical step, and the
  * geometric path after MSC is never longer.
  *
- * Tracks that start on a boundary keep their previous sphere.
+ * Every live track gets a sphere centered on its current position, so no
+ * stale sphere from an earlier step is left behind. Tracks that start on a
+ * boundary, where the safety is zero, get an empty sphere.
  */
 struct SafetyApplier
 {
@@ -69,24 +71,27 @@ inline UrbanMscData<Ownership::const_reference, M> get_msc_ref(
 CELER_FUNCTION void SafetyApplier::operator()(CoreTrackView const& track)
 {
     auto sim = track.sim();
-    auto geo = track.geometry();
-    if (sim.status() != TrackStatus::alive || geo.is_on_boundary())
+    if (sim.status() != TrackStatus::alive)
     {
         return;
     }
 
-    real_type max_safety = sim.step_length();
-    if (msc)
+    auto geo = track.geometry();
+    SafetySphere sphere{geo.pos(), 0};
+    if (!geo.is_on_boundary())
     {
-        max_safety
-            = celeritas::max(max_safety, UrbanMsc{msc}.max_safety(track));
+        real_type max_safety = sim.step_length();
+        if (msc)
+        {
+            max_safety
+                = celeritas::max(max_safety, UrbanMsc{msc}.max_safety(track));
+        }
+        if (max_safety > 0)
+        {
+            sphere.radius = geo.find_safety(max_safety);
+        }
     }
-
-    if (max_safety > 0)
-    {
-        track.physics_step().safety_sphere(
-            {geo.pos(), geo.find_safety(max_safety)});
-    }
+    track.physics_step().safety_sphere(sphere);
 }
 
 //---------------------------------------------------------------------------//
