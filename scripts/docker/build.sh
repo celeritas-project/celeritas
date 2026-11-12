@@ -24,9 +24,9 @@ CELER_SOURCE_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 
 . "${SCRIPT_DIR}/_container.sh"
 
-# Use the newest toolkit versions known to the pinned spack-packages.
-# When updating a base image, also update the versions listed in README.md
-# and the image tags in .github/workflows/build-{docker,codecov}.yml
+# The base image sets the CUDA or ROCm version. When updating it, also update
+# the versions listed in README.md and the image tags in
+# .github/workflows/build-docker.yml
 case ${CONFIG} in
   cuda)
     BASE_IMAGE=docker.io/nvidia/cuda:13.5.0-devel-ubuntu24.04
