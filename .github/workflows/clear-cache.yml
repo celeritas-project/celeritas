@@ -30,6 +30,11 @@ on:
         required: false
         default: ".*"
         type: string
+      age:
+        description: "Minimum cache age in days"
+        required: false
+        default: 0
+        type: number
   workflow_call:
     inputs:
       initial_delay:
@@ -52,6 +57,11 @@ on:
         required: false
         default: ".*"
         type: string
+      age:
+        description: "Minimum cache age in days"
+        required: false
+        default: 0
+        type: number
 
 permissions:
   actions: write
@@ -67,11 +77,13 @@ jobs:
           MAX_RETRIES: ${{ inputs.max_retries }}
           KEY: ${{ inputs.key }}
           REF: ${{ inputs.ref }}
+          AGE: ${{ inputs.age }}
         with:
           script: |
             // Get configuration from inputs
             const delayMs = parseInt(process.env.INITIAL_DELAY) * 1000; // seconds to milliseconds
             const maxRetries = parseInt(process.env.MAX_RETRIES);
+            const ageDays = Number(process.env.AGE);
             const keyFilter = new RegExp(process.env.KEY);
             const refFilter = new RegExp(process.env.REF);
 
@@ -81,8 +93,11 @@ jobs:
             if (!Number.isInteger(maxRetries) || maxRetries <= 0) {
               throw new Error(`MAX_RETRIES must be a positive integer, got: ${process.env.MAX_RETRIES ?? 'undefined'}`);
             }
+            if (!Number.isInteger(ageDays) || ageDays < 0) {
+              throw new Error(`AGE must be a nonnegative integer, got: ${process.env.AGE ?? 'undefined'}`);
+            }
 
-            console.log(`Configuration: initial delay ${delayMs / 1000}s, max retries ${maxRetries}`);
+            console.log(`Configuration: initial delay ${delayMs / 1000}s, max retries ${maxRetries}, minimum age ${ageDays}d`);
             core.debug(`Cache filters: key ${keyFilter}, ref ${refFilter}`);
 
             class CacheDeleter {
@@ -158,9 +173,10 @@ jobs:
               parameters,
               (response) => response.data,
             )
+            const cutoff = Date.now() - ageDays * 24 * 60 * 60 * 1000;
             const counters = { total: 0, matched: 0 };
             for (const cache of caches) {
-              if (keyFilter.test(cache.key) && refFilter.test(cache.ref)) {
+              if (keyFilter.test(cache.key) && refFilter.test(cache.ref) && Date.parse(cache.created_at) <= cutoff) {
                 const result = await deleter.delete(cache);
                 ++counters.matched;
                 counters[result] = (counters[result] ?? 0) + 1;
