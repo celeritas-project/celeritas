@@ -166,8 +166,15 @@ void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
     save_units(j);
 }
 
-//---------------------------------------------------------------------------//
-// Helper to read the field from a file or stream.
+/*!
+ * Helper to read the field from a file or stream.
+ *
+ * Example to read from a file:
+ * \code
+   RZMapFieldInput inp;
+   std::ifstream("foo.json") >> inp;
+ * \endcode
+ */
 std::istream& operator>>(std::istream& is, RZMapFieldInput& inp)
 {
     auto j = nlohmann::json::parse(is);
@@ -175,8 +182,9 @@ std::istream& operator>>(std::istream& is, RZMapFieldInput& inp)
     return is;
 }
 
-//---------------------------------------------------------------------------//
-// Helper to write the field to a file or stream.
+/*!
+ * Helper to write the field to a file or stream.
+ */
 std::ostream& operator<<(std::ostream& os, RZMapFieldInput const& inp)
 {
     nlohmann::json j = inp;

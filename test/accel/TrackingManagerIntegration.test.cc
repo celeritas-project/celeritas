@@ -760,7 +760,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(detector_x_positions_.size(), 0);
             EXPECT_GT(step_lengths_.size(), 0);
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
@@ -874,7 +874,7 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(accum_stats.flushes, 0);
 
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
@@ -1031,7 +1031,7 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
             }
 
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
@@ -1159,7 +1159,7 @@ class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
 };
 
 /*!
- * Check that the test runs.
+ * Test that we can safely flush and restore primaries multiple times per event.
  */
 TEST_F(WaterSphere, run_small_flush)
 {
@@ -1215,7 +1215,7 @@ TEST_F(WaterSphere, run_small_flush)
 }
 
 /*!
- * Check that a primary batch can exceed the initial initializer capacity.
+ * Test that primary batches can exceed the initial initializer capacity.
  */
 TEST_F(WaterSphere, run_small_initializers)
 {

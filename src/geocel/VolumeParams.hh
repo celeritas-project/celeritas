@@ -138,17 +138,15 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
     //!@}
 
+    // Write volume hierarchy to a stream (defined in IO.json.cc)
+    // see scripts/user/volumes-to-dot.py
+    friend std::ostream& operator<<(std::ostream& os, VolumeParams const& vp);
+
   private:
     VolumeMap v_labels_;
     VolInstMap vi_labels_;
     ParamsDataStore<VolumeParamsData> data_;
 };
-
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-// Write volume hierarchy to a stream (defined in IO.json.cc)
-// see scripts/user/volumes-to-dot.py
-std::ostream& operator<<(std::ostream& os, VolumeParams const& vp);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

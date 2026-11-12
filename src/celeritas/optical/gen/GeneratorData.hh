@@ -81,7 +81,7 @@ struct GeneratorDistributionData
                    && continuous_edep_fraction <= 1)
                && ((points[StepPoint::pre].speed > zero_quantity()
                     && (points[StepPoint::pre].speed
-                        > points[StepPoint::post].speed))
+                        >= points[StepPoint::post].speed))
                    || (type == GeneratorType::scintillation
                        && points[StepPoint::post].time
                               > points[StepPoint::pre].time));
@@ -138,23 +138,6 @@ struct GeneratorStateData
         distributions = other.distributions;
         offsets = other.offsets;
         return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the number of photons from a distribution.
- *
- * This is a functor rather than a function because it's used for the thrust
- * reduction and scan.
- */
-template<class T>
-struct GetNumPhotons
-{
-    // Return the number of photons to generate
-    CELER_FUNCTION size_type operator()(T const& data) const
-    {
-        return data.num_photons;
     }
 };
 

@@ -22,6 +22,9 @@
 
 ## Patterns
 
+`CELER_FUNCTION` for host/device function decorators.
+An old bug in ROCm requires `CELER_CTAD_FUNCTION` for template deduction.
+
 ### Params/States
 Celeritas separates immutable setup from mutable runtime data:
 - **Params**: Shared problem data (physics tables, geometry) - build once

@@ -27,19 +27,6 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Whether a buffered distribution is valid.
- */
-struct IsValid
-{
-    template<class T>
-    CELER_FUNCTION bool operator()(T const& data) const
-    {
-        return static_cast<bool>(data);
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate the inclusive prefix sum of the number of optical photons.
  *
  * The sum is calculated over a fixed upper bound of the buffer size. The

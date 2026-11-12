@@ -4,8 +4,8 @@
   "configurePresets": [
     {
       "name": "base",
-      "displayName": "Ubuntu/nvidia-docker default options for GCC",
-      "inherits": [".cuda-volta", "default"],
+      "displayName": "Ubuntu 24/nvidia-docker default options for GCC",
+      "inherits": [".cuda-ampere", "default"],
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
@@ -22,7 +22,9 @@
         "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_TEST_VERBOSE": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_EXTENSIONS": { "type": "BOOL", "value": "OFF" },
+        "CMAKE_CUDA_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
@@ -72,15 +74,6 @@
         "CELERITAS_ENABLE_TESTING": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" }
       }
-    },
-    {
-      "name": "vecgeom-codecov",
-      "description": "Build with code coverage with vecgeom (no CUDA, no assertions)",
-      "inherits": [".gcov", ".release", ".vecgeom", "base"],
-      "cacheVariables": {
-        "CELERITAS_USE_CUDA": { "type": "BOOL", "value": "OFF" },
-        "CMAKE_CXX_FLAGS": null
-      }
     }
   ],
   "buildPresets": [
@@ -90,6 +83,21 @@
       "nativeToolOptions": ["-k0"],
       "verbose": true,
       "jobs": 4
+    },
+    {
+      "name": "debug-orange",
+      "configurePreset": "debug-orange",
+      "inherits": "base"
+    },
+    {
+      "name": "release-orange",
+      "configurePreset": "release-orange",
+      "inherits": "base"
+    },
+    {
+      "name": "release-vecgeom",
+      "configurePreset": "release-vecgeom",
+      "inherits": "base"
     }
   ],
   "testPresets": [
