@@ -34,7 +34,7 @@ inputs:
     required: false
     default: "${{runner.temp}}/ccache-debug"
   no-save:
-    description: "Disable saving the ccache after the build (for ephemeral jobs)"
+    description: "Disable saving the ccache after the build (for ephemeral or expensive jobs)"
     required: false
     default: "${{ github.event.merge_group && true || false }}"
 

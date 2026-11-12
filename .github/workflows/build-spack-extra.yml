@@ -44,6 +44,7 @@ jobs:
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack
+          no-save: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
           ccache-max-size: 512Mi
       - name: Run tests
         id: test
