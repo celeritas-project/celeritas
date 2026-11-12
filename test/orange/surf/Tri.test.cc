@@ -58,7 +58,7 @@ TEST_F(TriTest, calc_intersections)
     auto t = tri.calc_intersections(pos, dir, SurfaceState::off);
     EXPECT_SOFT_EQ(0.4f, t);
 
-    // Starting on the intersection point pointing away yields no intersection
+    // Starting on the intersection yields no intersection
     pos = {0.4f, 0.4f, t};
     t = tri.calc_intersections(pos, dir, SurfaceState::on);
     EXPECT_SOFT_EQ(real_type(no_intersection()), t);
