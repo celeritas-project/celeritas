@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <string>
@@ -76,12 +77,24 @@ struct FailedValue
     second_type actual;
 };
 
+template<class Container>
+struct TestContainerTraits
+{
+    using value_type = std::decay_t<typename Container::value_type>;
+};
+
+template<class T, std::size_t N>
+struct TestContainerTraits<T[N]>
+{
+    using value_type = std::decay_t<T>;
+};
+
 // Two Container Traits
 template<class C1, class C2>
 struct TCT
 {
     template<class C>
-    using value_type_ = typename ContTraits<C>::value_type;
+    using value_type_ = typename TestContainerTraits<C>::value_type;
     template<class C>
     using nc_value_type_ = std::remove_const_t<value_type_<C>>;
 
@@ -144,20 +157,7 @@ template<class Container>
 std::enable_if_t<IsContainer_v<Container>, void> print_expected(
     Container const& data)
 {
-    using RT = ReprTraits<Container>;
-    using VRT = ReprTraits<typename RT::value_type>;
-
-    std::cout << "static ";
-    VRT::print_type(std::cout, "const ref");
-    std::cout << "[] = ";
-
-    std::ios orig_state(nullptr);
-    orig_state.copyfmt(std::cout);
-    VRT::init(std::cout);
-    RT::print_value(std::cout, data);
-    std::cout.copyfmt(orig_state);
-
-    std::cout << ";\n";
+    std::cout << repr(data) << ";\n";
 }
 
 //! Print expected values for a reference result with header/footer (deprecated)
@@ -279,8 +279,6 @@ std::string failure_msg(char const* expected_expr,
                         char const* actual_expr,
                         std::vector<FailedValue<T1, T2>> const& failures)
 {
-    using RT1 = ReprTraits<T1>;
-    using RT2 = ReprTraits<T2>;
     using std::setw;
 
     // Calculate how many digits we need to space out
@@ -289,8 +287,6 @@ std::string failure_msg(char const* expected_expr,
 
     // Construct our own stringstream because google test ignores setw
     std::ostringstream os;
-    RT2::init(os);
-    RT1::init(os);
 
     // Print column headers (unless expected/actual is too long)
     os << setw(idig) << 'i' << ' ' << setw(vdig)
@@ -301,10 +297,7 @@ std::string failure_msg(char const* expected_expr,
     for (auto const& f : failures)
     {
         os << setw(idig) << f.index << ' ' << setw(vdig);
-        RT1::print_value(os, f.expected);
-        os << ' ' << setw(vdig);
-        RT2::print_value(os, f.actual);
-        os << '\n';
+        os << repr(f.expected) << ' ' << setw(vdig) << repr(f.actual) << '\n';
     }
     return os.str();
 }

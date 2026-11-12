@@ -6,85 +6,62 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
 #include <ostream>
-#include <string>
+#include <string_view>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/ScopedStreamFormat.hh"
-#include "corecel/io/StreamUtils.hh"
+#include "corecel/io/ReprFormatter.hh"
+
+#include "ReprFwd.hh"
 
 namespace celeritas
 {
-template<class T>
-struct ReprTraits;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
 // STREAMABLE
 //---------------------------------------------------------------------------//
-/*!
- * Thin temporary wrapper for printing a complex class to a stream.
- */
+
+//! Implementation of repr that forwards to ReprFormatter policy
 template<class T>
-struct Repr
+struct DefaultRepr
 {
     T const& obj;
-    char const* name = nullptr;
 
-    //! Write a streamable object to a stream.
-    friend std::ostream& operator<<(std::ostream& os, Repr const& s)
+    friend std::ostream& operator<<(std::ostream& os, DefaultRepr const& s)
     {
-        ScopedStreamFormat save_fmt(&os);
-        ReprTraits<T>::init(os);
-        if (s.name)
-        {
-            ReprTraits<T>::print_type(os, s.name);
-            os << '{';
-        }
-        ReprTraits<T>::print_value(os, s.obj);
-        if (s.name)
-        {
-            os << '}';
-        }
-        return os;
+        return celeritas::ReprFormatter<T>{}(os, s.obj);
     }
 };
 
-//---------------------------------------------------------------------------//
-/*!
- * Convert a streamable object to a string.
- */
-template<class T>
-inline std::string to_string(Repr<T> const& s)
+//! Stream a string using repr-specific escaping and formatting.
+struct ReprString
 {
-    return stream_to_string(s);
-}
+    char const* s;
+    std::size_t size;
+
+    static ReprString from_cstring(char const* s);
+    friend std::ostream& operator<<(std::ostream& os, ReprString value);
+};
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTION DECLARATIONS
 //---------------------------------------------------------------------------//
-bool all_printable(std::string_view s);
-
 void repr_char(std::ostream& os, char value);
 
-std::string char_to_hex_string(unsigned char value);
+void write_hex_char(std::ostream& os, unsigned char value);
 
-void print_simple_type(std::ostream& os, char const* type, char const* name);
-
-template<class T>
-inline void print_container_type(
-    std::ostream& os, char const* type, char const* name)
-{
-    os << type << '<';
-    ReprTraits<T>::print_type(os);
-    os << '>';
-    if (name)
-    {
-        os << ' ' << name;
-    }
-}
+void write_string_repr(std::ostream& os, std::string_view value);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+
+//! Default "repr" dispatches to the ReprFormatter policy class.
+template<class T>
+detail::DefaultRepr<T> repr(T const& obj)
+{
+    return {obj};
+}
+
 }  // namespace celeritas
