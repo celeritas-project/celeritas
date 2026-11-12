@@ -1,4 +1,4 @@
-test/accel/UserActionIntegration --gtest_filter=LarSphereGammaScintOffload.emission_point
+test/accel/UserActionIntegration --gtest_filter=LarSphereGammaScintOffload.run
 Device.cc: debug: Disabling GPU support since CUDA and HIP are disabled
 PersistentSP.hh: debug: Registering persistent run manager cleanup
 PersistentSP.hh: debug: Building persistent run manager for key 'lar-sphere'
@@ -173,7 +173,7 @@ G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel
 [M] error@SharedParams.cc: Problem contains Celeritas-specific scintillation representation: results will *not* match Geant4
 [M] debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
 [M] debug@SharedParams.cc: Setting number of streams to 1
-[M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larspheregammascintoffload-emission-point-cpu-mt.out.json"
+[M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larspheregammascintoffload-run-cpu-mt.out.json"
 [M] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -315,7 +315,7 @@ G4WT0 > [1/1] info@LocalOpticalGenOffload.cc: Finalizing Celeritas after 15727 o
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M] info@DistOffloadMixin.cc: Total Geant4 steps: 0 optical, 170 other
 [M] status@IntegrationSingleton.cc: Finalizing Celeritas
-[M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larspheregammascintoffload-emission-point-cpu-mt.out.json"
+[M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larspheregammascintoffload-run-cpu-mt.out.json"
 [M] debug@SharedParams.cc: Resetting shared parameters
 [M] debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
 G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)

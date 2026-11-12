@@ -1,4 +1,4 @@
-test/accel/UserActionIntegration --gtest_filter=LarSphereGammaScintOffload.emission_point
+test/accel/UserActionIntegration --gtest_filter=LarSphereGammaScintOffload.run
 Device.cc: debug: Disabling GPU support since CUDA and HIP are disabled
 PersistentSP.hh: debug: Registering persistent run manager cleanup
 PersistentSP.hh: debug: Building persistent run manager for key 'lar-sphere'
@@ -135,7 +135,7 @@ status@CoreParams.cc: Celeritas optical setup complete
 error@SharedParams.cc: Problem contains Celeritas-specific scintillation representation: results will *not* match Geant4
 debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
 debug@SharedParams.cc: Setting number of streams to 1
-info@SharedParams.cc: Wrote Geant4 diagnostic output to "larspheregammascintoffload-emission-point-cpu-serial.out.json"
+info@SharedParams.cc: Wrote Geant4 diagnostic output to "larspheregammascintoffload-run-cpu-serial.out.json"
 debug@IntegrationSingleton.cc: Constructing local state
 info@CoreState.cc: Initialized Celeritas optical state with 32768 track slots
 debug@AuxStateVec.cc: Allocating 1 aux state classes for host on stream {0} with state size 32768
@@ -234,7 +234,7 @@ info@DistOffloadMixin.cc: Total Geant4 steps: 0 optical, 125 other
 debug@IntegrationSingleton.cc: Destroying local state
 info@LocalOpticalGenOffload.cc: Finalizing Celeritas after 15632 optical steps (over 24 step iterations) from 10155 optical photons generated from 60 distributions
 status@IntegrationSingleton.cc: Finalizing Celeritas
-info@SharedParams.cc: Wrote Geant4 diagnostic output to "larspheregammascintoffload-emission-point-cpu-serial.out.json"
+info@SharedParams.cc: Wrote Geant4 diagnostic output to "larspheregammascintoffload-run-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
 debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
 debug@IntegrationTestBase.cc: Tearing down action initialization
