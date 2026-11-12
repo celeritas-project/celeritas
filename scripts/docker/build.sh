@@ -32,7 +32,7 @@ case ${CONFIG} in
     BASE_IMAGE=docker.io/nvidia/cuda:13.5.0-devel-ubuntu24.04
     ;;
   rocm)
-    BASE_IMAGE=docker.io/rocm/dev-ubuntu-24.04:7.2.3
+    BASE_IMAGE=docker.io/rocm/dev-ubuntu-24.04:7.2.4
     # Only the libraries Celeritas uses: the "complete" image is 6 GB larger
     GPU_APT_PACKAGES="hipcub-dev hiprand-dev rocprim-dev rocrand-dev rocthrust-dev roctracer-dev"
     ;;
