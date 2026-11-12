@@ -209,7 +209,7 @@ TEST_F(DecayProcessTest, params)
 
     // Decay is added after the interaction processes
     ASSERT_TRUE(physics.decay_process());
-    EXPECT_EQ("decay", physics.decay_process()->label());
+    EXPECT_EQ("Decay", physics.decay_process()->label());
     EXPECT_EQ(2, physics.num_processes());
     ProcessId const decay_id{2};
     EXPECT_EQ(decay_id, physics.host_ref().scalars.decay);
