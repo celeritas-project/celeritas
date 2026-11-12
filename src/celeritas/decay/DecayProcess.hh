@@ -63,7 +63,7 @@ class DecayProcess final : public Process
     //! Whether the process applies when the particle is stopped
     bool applies_at_rest() const final { return true; }
     //! Name of the process
-    std::string_view label() const final { return "decay"; }
+    std::string_view label() const final { return "Decay"; }
     //!@}
 
   private:

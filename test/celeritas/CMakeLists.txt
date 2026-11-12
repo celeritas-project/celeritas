@@ -350,6 +350,7 @@ if(CELERITAS_USE_Geant4)
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
     "TestEm3MscNoIntegral.*"
+    "TestEm3MuDecay.*"
     "TestEm15FieldMsc.*"
   )
   if(Geant4_VERSION VERSION_LESS 11.0)

@@ -249,6 +249,49 @@ class TestEm3MscNoIntegral : public TestEm3Msc
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Low-energy muons that stop and decay at rest.
+ *
+ * The mean decay length of a 10 MeV muon is hundreds of meters, but its range
+ * in the calorimeter is a few millimeters, so (nearly) all decays are at rest.
+ */
+#define TestEm3MuDecay TEST_IF_CELERITAS_GEANT(TestEm3MuDecay)
+class TestEm3MuDecay : public TestEm3StepperTestBase
+{
+  public:
+    //! Make alternating 10 MeV mu- and mu+ along +x
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        auto result = this->make_primaries_with_energy(
+            pdg::mu_minus(), count, MevEnergy{10});
+        auto mu_plus = this->particle()->find(pdg::mu_plus());
+        CELER_ASSERT(mu_plus);
+        for (auto i : range(count))
+        {
+            if (i % 2 == 1)
+            {
+                result[i].particle_id = mu_plus;
+            }
+        }
+        return result;
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        auto opts = TestEm3Base::build_geant_options();
+        opts.muon = [] {
+            GeantMuonPhysicsOptions m;
+            m.msc = MscModelSelection::none;
+            m.decay = true;
+            return m;
+        }();
+        return opts;
+    }
+
+    size_type max_average_steps() const override { return 1000; }
+};
+
+//---------------------------------------------------------------------------//
 #define OneSteelSphere TEST_IF_CELERITAS_GEANT(OneSteelSphere)
 class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
 {
@@ -681,6 +724,82 @@ TEST_F(TestEm3MscNoIntegral, host)
         EXPECT_GE(54.75, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({6, 15}), result.calc_queue_hwm());
+    }
+    else
+    {
+        cout << "No output saved for combination of "
+             << test::StreamableBuildConf{} << std::endl;
+        print_expected(result);
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated stepper results are required for CI tests";
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+// TESTEM3_MU_DECAY
+//---------------------------------------------------------------------------//
+
+TEST_F(TestEm3MuDecay, setup)
+{
+    auto result = this->check_setup();
+    auto ref = result;
+    ref.processes = {
+        "Compton scattering",
+        "Photoelectric effect",
+        "Photon annihiliation",
+        "Positron annihiliation",
+        "Electron/positron ionization",
+        "Bremsstrahlung",
+        "Muon ionization",
+        "Muon bremsstrahlung",
+        "Muon electron-positron pair production",
+        "Decay",
+    };
+    ref.actions = {
+        "extend-from-primaries",
+        "initialize-tracks",
+        "pre-step",
+        "along-step-general-linear",
+        "along-step-neutral",
+        "physics-discrete-select",
+        "scat-klein-nishina",
+        "photoel-livermore",
+        "conv-bethe-heitler",
+        "annihil-2-gamma",
+        "ioni-moller-bhabha",
+        "brems-sb",
+        "brems-rel",
+        "ioni-icru73qo",
+        "ioni-bragg",
+        "ioni-bethe-bloch",
+        "ioni-mu-bethe-bloch",
+        "brems-muon",
+        "pair-prod-muon",
+        "decay-muon",
+        "geo-boundary",
+        "tracking-cut",
+        "extend-from-secondaries",
+    };
+    EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(TestEm3MuDecay, host)
+{
+    size_type num_primaries = 8;
+    size_type num_tracks = 256;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+
+    if (Test::strict_testing())
+    {
+        EXPECT_EQ(71, result.num_step_iters());
+        EXPECT_SOFT_EQ(124.5, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(19, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({10, 8}), result.calc_queue_hwm());
     }
     else
     {
