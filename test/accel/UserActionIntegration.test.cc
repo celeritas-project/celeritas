@@ -224,7 +224,7 @@ class LarSphereGammaScintOffload : public DistOffloadMixin, public LarSphere
 };
 
 //---------------------------------------------------------------------------//
-TEST_F(LarSphereGammaScintOffload, emission_point)
+TEST_F(LarSphereGammaScintOffload, run)
 {
     if (this->test_offload() == TestOffload::g4)
     {

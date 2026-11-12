@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Ionization process for electrons and positrons.
  */
-class EIonizationProcess : public Process
+class EIonizationProcess : public InteractionProcess
 {
   public:
     //!@{

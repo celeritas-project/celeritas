@@ -20,7 +20,7 @@ class ParticleParams;
  *
  * \note This is an at-rest process.
  */
-class MucfProcess final : public Process
+class MucfProcess final : public InteractionProcess
 {
   public:
     //!@{

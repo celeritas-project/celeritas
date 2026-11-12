@@ -77,8 +77,8 @@ class ImportedProcessAdapter
     //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
-    using XsGrid = Process::XsGrid;
-    using EnergyLossGrid = Process::EnergyLossGrid;
+    using XsGrid = InteractionProcess::XsGrid;
+    using EnergyLossGrid = InteractionProcess::EnergyLossGrid;
     using SpanConstPDG = Span<PDGNumber const>;
     //!@}
 

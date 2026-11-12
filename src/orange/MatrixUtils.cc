@@ -197,6 +197,50 @@ bool is_orthonormal(SquareMatrix<T, N> const& mat, T tol)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether a small, dense matrix is a signed permutation within a tolerance.
+ *
+ * A signed permutation matrix has exactly one entry of \f$ \pm 1 \f$ in each
+ * row and each column and zeros elsewhere.
+ */
+template<class T, std::size_t N>
+bool is_signed_permutation(SquareMatrix<T, N> const& mat, T tol)
+{
+    CELER_EXPECT(tol > 0);
+    SoftClose<T> const soft_close{tol};
+
+    Array<int, N> col_count{};
+    for (std::size_t i = 0; i != N; ++i)
+    {
+        int row_count = 0;
+        for (std::size_t j = 0; j != N; ++j)
+        {
+            if (soft_close(T{1}, std::fabs(mat[i][j])))
+            {
+                ++row_count;
+                ++col_count[j];
+            }
+            else if (!soft_close(T{0}, mat[i][j]))
+            {
+                return false;
+            }
+        }
+        if (row_count != 1)
+        {
+            return false;
+        }
+    }
+    for (std::size_t j = 0; j != N; ++j)
+    {
+        if (col_count[j] != 1)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create a C-ordered rotation matrix from an arbitrary rotation.
  *
  * This is equation (38) in "Rotation Matrices in Two, Three, and Many
@@ -435,11 +479,13 @@ template SquareMatrix<real_type, 4> gemm(matrix::TransposePolicy,
                                          SquareMatrix<real_type, 4> const&,
                                          SquareMatrix<real_type, 4> const&);
 
-// Identity and orthonormality checks
+// Identity, orthonormality, and permutation checks
 template bool is_identity(SquareMatrix<float, 3> const&, float);
 template bool is_identity(SquareMatrix<double, 3> const&, double);
 template bool is_orthonormal(SquareMatrix<float, 3> const&, float);
 template bool is_orthonormal(SquareMatrix<double, 3> const&, double);
+template bool is_signed_permutation(SquareMatrix<float, 3> const&, float);
+template bool is_signed_permutation(SquareMatrix<double, 3> const&, double);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
