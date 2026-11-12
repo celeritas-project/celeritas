@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/StepperGeant.test.cc
 //---------------------------------------------------------------------------//
+#include <algorithm>
 #include <random>
 
 #include "corecel/Types.hh"
@@ -11,6 +12,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/LeadBoxTestBase.hh"
 #include "celeritas/OneSteelSphereBase.hh"
@@ -39,6 +41,8 @@ namespace celeritas
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+auto const geant4_version = Version::from_package("Geant4");
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -774,7 +778,6 @@ TEST_F(TestEm3MuDecay, setup)
         "brems-rel",
         "ioni-icru73qo",
         "ioni-bragg",
-        "ioni-bethe-bloch",
         "ioni-mu-bethe-bloch",
         "brems-muon",
         "pair-prod-muon",
@@ -783,6 +786,14 @@ TEST_F(TestEm3MuDecay, setup)
         "tracking-cut",
         "extend-from-secondaries",
     };
+    if (geant4_version < Version(11, 1, 0))
+    {
+        // Older versions of Geant4 use the Bethe-Bloch model for muon
+        // ionization at intermediate energies
+        auto iter = std::find(
+            ref.actions.begin(), ref.actions.end(), "ioni-mu-bethe-bloch");
+        ref.actions.insert(iter, "ioni-bethe-bloch");
+    }
     EXPECT_REF_EQ(ref, result);
 }
 
