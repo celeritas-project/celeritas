@@ -49,22 +49,28 @@ jobs:
               authorship[answer('Authorship')],
             ].filter(Boolean);
 
-            if (labels.length === 0) {
-              core.info('No labels to add');
-              return;
-            }
-            core.info(`Adding labels: ${labels.join(', ')}`);
             const params = {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
             };
-            await github.rest.issues.addLabels({...params, labels});
+            if (labels.length > 0) {
+              core.info(`Adding labels: ${labels.join(', ')}`);
+              await github.rest.issues.addLabels({...params, labels});
+            } else {
+              core.info('No labels to add');
+            }
 
-            // Labels were added: remove form metadata sections (now
-            // represented by labels) and the description heading
-            const cleaned = body
+            // Always remove form metadata sections and the description
+            // heading; keep the authorship as a hidden comment
+            let cleaned = body
               .replace(/^### (Issue type|Authorship)\s*\n+[^\n]*\n*/gm, '')
               .replace(/^### Description\s*\n+/m, '')
               .trim();
-            await github.rest.issues.update({...params, body: cleaned});
+            const author = answer('Authorship');
+            if (author) {
+              cleaned = `<!-- Authorship: ${author} -->\n${cleaned}`;
+            }
+            if (cleaned !== body) {
+              await github.rest.issues.update({...params, body: cleaned});
+            }
