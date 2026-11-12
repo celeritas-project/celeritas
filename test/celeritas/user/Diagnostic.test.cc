@@ -113,23 +113,19 @@ TEST_F(SimpleComptonDiagnosticTest, host)
 {
     auto result = this->run<MemSpace::host>(256, 32);
 
-    static char const* const expected_nonzero_action_keys[]
-        = {"geo-boundary electron",
-           "geo-boundary gamma",
-           "scat-klein-nishina gamma"};
-    EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
+    auto expected = result;
+    expected.nonzero_action_keys = {"geo-boundary electron",
+                                    "geo-boundary gamma",
+                                    "scat-klein-nishina gamma"};
     if (Test::is_reference_rng)
     {
-        static size_type const expected_nonzero_action_counts[]
-            = {3780u, 525u, 3887u};
-        EXPECT_VEC_EQ(expected_nonzero_action_counts,
-                      result.nonzero_action_counts);
-        static size_type const expected_steps[] = {
-            0u, 0u, 0u, 87u, 30u, 10u, 2u, 0u, 1u, 0u,    0u, 3u, 0u, 0u, 0u,
-            0u, 0u, 0u, 0u,  0u,  0u,  1u, 0u, 0u, 1840u, 0u, 0u, 0u, 0u, 0u,
-            0u, 0u, 0u, 0u,  0u,  0u,  0u, 0u, 0u, 0u,    0u, 0u, 0u, 0u};
-        EXPECT_VEC_EQ(expected_steps, result.steps);
+        expected.nonzero_action_counts = {3780u, 525u, 3887u};
+        expected.steps = {0u, 0u, 0u,    87u, 30u, 10u, 2u, 0u, 1u, 0u, 0u,
+                          3u, 0u, 0u,    0u,  0u,  0u,  0u, 0u, 0u, 0u, 1u,
+                          0u, 0u, 1840u, 0u,  0u,  0u,  0u, 0u, 0u, 0u, 0u,
+                          0u, 0u, 0u,    0u,  0u,  0u,  0u, 0u, 0u, 0u, 0u};
     }
+    EXPECT_REF_EQ(expected, result);
 }
 
 //---------------------------------------------------------------------------//
@@ -154,7 +150,8 @@ TEST_F(TestEm3DiagnosticTest, host)
 
     if (Test::strict_testing())
     {
-        static char const* const expected_nonzero_action_keys[] = {
+        auto expected = result;
+        expected.nonzero_action_keys = {
             "annihil-2-gamma e+",
             "brems-sb e+",
             "brems-sb e-",
@@ -175,14 +172,11 @@ TEST_F(TestEm3DiagnosticTest, host)
             "physics-integral-rejected e-",
             "scat-klein-nishina gamma",
         };
-        EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
-        static unsigned int const expected_nonzero_action_counts[] = {
+        expected.nonzero_action_counts = {
             124u, 402u, 441u, 12u,   66u,   986u, 288u, 286u, 1749u, 16u,
             13u,  18u,  25u,  1195u, 1683u, 534u, 29u,  28u,  297u,
         };
-        EXPECT_VEC_EQ(expected_nonzero_action_counts,
-                      result.nonzero_action_counts);
-        static unsigned int const expected_steps[] = {
+        expected.steps = {
             0u, 298u, 226u, 86u, 42u, 27u, 26u, 12u, 8u, 7u, 6u,
             2u, 0u,   3u,   1u,  2u,  3u,  0u,  1u,  0u, 0u, 2u,
             0u, 717u, 40u,  7u,  10u, 14u, 3u,  9u,  8u, 4u, 8u,
@@ -190,13 +184,13 @@ TEST_F(TestEm3DiagnosticTest, host)
             0u, 3u,   1u,   0u,  2u,  4u,  5u,  4u,  6u, 6u, 11u,
             5u, 8u,   7u,   12u, 4u,  6u,  6u,  1u,  2u, 3u, 32u,
         };
-        EXPECT_VEC_EQ(expected_steps, result.steps);
+        EXPECT_REF_EQ(expected, result);
     }
     else
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
     }
 }
 
@@ -207,7 +201,8 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
     if (Test::strict_testing())
     {
         // Check action diagnostic results
-        static char const* const expected_nonzero_action_keys[] = {
+        auto expected = result;
+        expected.nonzero_action_keys = {
             "annihil-2-gamma e+",
             "brems-sb e+",
             "brems-sb e-",
@@ -222,20 +217,17 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
             "physics-integral-rejected e-",
             "scat-klein-nishina gamma",
         };
-        EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
-        static unsigned int const expected_nonzero_action_counts[] = {
+        expected.nonzero_action_counts = {
             11u, 568u, 509u, 519u, 521u, 10u, 21u, 20u, 908u, 996u, 9u, 2u, 2u};
-        EXPECT_VEC_EQ(expected_nonzero_action_counts,
-                      result.nonzero_action_counts);
 
-        static unsigned int const expected_steps[] = {
+        expected.steps = {
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 1u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 4u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
         };
-        EXPECT_VEC_EQ(expected_steps, result.steps);
+        EXPECT_REF_EQ(expected, result);
 
         EXPECT_JSON_EQ(
             R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0],[0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,0,521,0,0,0,0],[0,908,0,0,9,0,0,0,11,21,568,0,0,0,0,0,0,0,0,519,0,0,0,0]]})json",
@@ -248,7 +240,7 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
     {
         cout << "No output saved for combination of "
              << test::StreamableBuildConf{} << std::endl;
-        result.print_expected();
+        print_expected(result);
     }
 }
 

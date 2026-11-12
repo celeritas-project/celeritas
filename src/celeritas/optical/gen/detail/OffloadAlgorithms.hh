@@ -13,11 +13,12 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/WavelengthShiftData.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 
 #include "../GeneratorData.hh"
 
@@ -27,33 +28,40 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 using celeritas::optical::GeneratorDistributionData;
-using celeritas::optical::WlsDistributionData;
 
 template<class T, MemSpace M>
 using ItemsRef = Collection<T, Ownership::reference, M>;
 
 //---------------------------------------------------------------------------//
-// Remove all invalid distributions from the buffer.
-template<class T>
-size_type remove_if_invalid(
-    ItemsRef<T, MemSpace::host> const&, size_type, size_type, StreamId);
-template<class T>
-size_type remove_if_invalid(
-    ItemsRef<T, MemSpace::device> const&, size_type, size_type, StreamId);
+/*!
+ * Get the distribution created by a track slot in the current step.
+ *
+ * The distributions created in a step are stored in the track slots past the
+ * buffered distributions, whose number is read from the state's memory.
+ */
+struct OffloadedDistribution
+{
+    ObserverPtr<GeneratorDistributionData const, MemSpace::native> data;
+    ObserverPtr<size_type const, MemSpace::native> buffer_size;
+
+    CELER_FUNCTION GeneratorDistributionData operator()(size_type i) const
+    {
+        return data[*buffer_size + i];
+    }
+};
 
 //---------------------------------------------------------------------------//
-// Count the number of optical photons in the distributions and add these to
-// the number of pending  tracks.
-void add_pending_photon_count(
+// Append the valid distributions created in this step to the buffer
+void append_distributions(
     optical::CoreState<MemSpace::host>&,
     ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
-    size_type,
+    ObserverPtr<GeneratorStateCounters, MemSpace::host>,
     size_type,
     StreamId);
-void add_pending_photon_count(
+void append_distributions(
     optical::CoreState<MemSpace::device>&,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-    size_type,
+    ObserverPtr<GeneratorStateCounters, MemSpace::device>,
     size_type,
     StreamId);
 
@@ -113,17 +121,10 @@ void reserve_distributions(StateDataStore<S, M>* store,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-template<class T>
-inline size_type remove_if_invalid(
-    ItemsRef<T, MemSpace::device> const&, size_type, size_type, StreamId)
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-inline void add_pending_photon_count(
+inline void append_distributions(
     optical::CoreState<MemSpace::device>&,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-    size_type,
+    ObserverPtr<GeneratorStateCounters, MemSpace::device>,
     size_type,
     StreamId)
 {

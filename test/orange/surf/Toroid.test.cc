@@ -171,7 +171,7 @@ TEST(ToroidTest, intersect)
         {1.1022820700552722, 11.093380864669665, 9.1154137268987121}));
     EXPECT_VEC_NEAR(expected,
                     sorted(tor.calc_intersections(s, u, off)),
-                    1e-4);  // Not a precision test, that comes later
+                    1e-4_r);  // Not a precision test, that comes later
 
     // Ray above torus shouldn't hit torus below it
     s = origin + Real3{0.2, 5.1, 2.1};

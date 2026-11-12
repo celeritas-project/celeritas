@@ -160,6 +160,10 @@ struct AppliesValidVolumetric
  *
  * For the interaction surface physics step, it should only be executed when
  * the surface reflectivity action is set to interact.
+ *
+ * Tracks absorbed on the surface are killed but keep the surface stepping
+ * action, so they must be excluded explicitly when the surface physics loop
+ * runs more than one iteration per step.
  */
 struct IsSurfaceModelEqual
 {
@@ -170,7 +174,8 @@ struct IsSurfaceModelEqual
     CELER_FUNCTION bool operator()(CoreTrackView const& track) const
     {
         auto s_phys = track.surface_physics();
-        return IsStepActionEqual{s_phys.scalars().surface_stepping_action}(
+        return track.sim().status() == TrackStatus::alive
+               && IsStepActionEqual{s_phys.scalars().surface_stepping_action}(
                    track)
                && s_phys.interface(step).surface_model_id() == model
                && (step != SurfacePhysicsOrder::interaction

@@ -299,6 +299,17 @@ class Span
     }
     //!@}
 
+    //// FRIENDS ////
+
+#if !CELER_DEVICE_COMPILE
+    //! Write to a stream
+    friend std::ostream& operator<<(std::ostream& os, Span const& s)
+    {
+        os << StreamableContainer{s.data(), s.size()};
+        return os;
+    }
+#endif
+
   private:
     //// DATA ////
     detail::SpanImpl<T, Extent> s_;
@@ -371,20 +382,6 @@ CELER_CONSTEXPR_FUNCTION Span<typename T::value_type const> make_span(
 {
     return {cont.data(), cont.size()};
 }
-
-#if !CELER_DEVICE_COMPILE
-//---------------------------------------------------------------------------//
-/*!
- * Write the elements of array \a a to stream \a os.
- */
-template<class T, std::size_t N>
-CELER_FORCEINLINE std::ostream& operator<<(std::ostream& os,
-                                           Span<T, N> const& s)
-{
-    os << StreamableContainer{s.data(), s.size()};
-    return os;
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

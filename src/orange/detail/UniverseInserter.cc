@@ -85,8 +85,8 @@ UniverseInserter::UniverseInserter(SPConstVolumes volume_params,
     std::fill(num_univ_types_.begin(), num_univ_types_.end(), 0u);
 
     // Add initial zero offset for universe indexer
-    surfaces_.push_back(accum_surface_);
-    volumes_.push_back(accum_volume_);
+    surfaces_.push_back(SurfId{accum_surface_});
+    volumes_.push_back(VolId{accum_volume_});
 }
 
 //---------------------------------------------------------------------------//
@@ -192,8 +192,8 @@ UnivId UniverseInserter::update_counters(
     // Accumulate and append surface/volumes to universe indexer
     accum_surface_ += num_surfaces;
     accum_volume_ += num_volumes;
-    surfaces_.push_back(accum_surface_);
-    volumes_.push_back(accum_volume_);
+    surfaces_.push_back(SurfId{accum_surface_});
+    volumes_.push_back(VolId{accum_volume_});
 
     CELER_ENSURE(
         std::accumulate(num_univ_types_.begin(), num_univ_types_.end(), 0_sz)

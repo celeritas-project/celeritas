@@ -16,6 +16,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
+#include "GeneratorCounterState.hh"
 #include "../Types.hh"
 
 #if !CELER_DEVICE_COMPILE
@@ -80,7 +81,7 @@ struct GeneratorDistributionData
                    && continuous_edep_fraction <= 1)
                && ((points[StepPoint::pre].speed > zero_quantity()
                     && (points[StepPoint::pre].speed
-                        > points[StepPoint::post].speed))
+                        >= points[StepPoint::post].speed))
                    || (type == GeneratorType::scintillation
                        && points[StepPoint::post].time
                               > points[StepPoint::pre].time));
@@ -142,31 +143,23 @@ struct GeneratorStateData
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the number of photons from a distribution.
- *
- * This is a functor rather than a function because it's used for the thrust
- * reduction and scan.
- */
-template<class T>
-struct GetNumPhotons
-{
-    // Return the number of photons to generate
-    CELER_FUNCTION size_type operator()(T const& data) const
-    {
-        return data.num_photons;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Store optical generation states in aux data.
  */
 template<MemSpace M>
-struct GeneratorState : public GeneratorStateBase
+struct GeneratorState : public GeneratorCounterState<M>
 {
     StateDataStore<GeneratorStateData, M> store;
 
-    //! Access valid range of distributions
+    //! Whether distributions were added since the photon counts were summed
+    bool needs_scan{false};
+
+    //! Construct with stream and buffer capacity
+    GeneratorState(StreamId stream, size_type capacity)
+        : GeneratorCounterState<M>{stream}, store{stream, capacity}
+    {
+    }
+
+    //! Access the distributions counted by the host copy of the counters
     auto distributions()
     {
         return this->store.ref().distributions[ItemRange<GeneratorDistributionData>(

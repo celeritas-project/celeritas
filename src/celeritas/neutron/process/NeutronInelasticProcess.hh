@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Inelastic interaction process for neutrons.
  */
-class NeutronInelasticProcess : public Process
+class NeutronInelasticProcess : public InteractionProcess
 {
   public:
     //!@{

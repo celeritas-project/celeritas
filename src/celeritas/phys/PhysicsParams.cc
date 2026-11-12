@@ -553,7 +553,8 @@ void PhysicsParams::build_tables(
             applic.upper = Energy{energy_grid.back()};
             CELER_ASSERT(applic.lower < applic.upper);
 
-            Process const& proc = *this->process(process_ids[pp_idx]);
+            InteractionProcess const& proc
+                = *this->process(process_ids[pp_idx]);
 
             // Grid IDs for each grid type, each material
             std::vector<XsGridId> macro_xs_ids(mats.size());

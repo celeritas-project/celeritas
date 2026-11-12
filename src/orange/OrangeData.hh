@@ -52,9 +52,8 @@ inline constexpr auto orange_tracking_logic{LogicNotation::infix};
  */
 struct OrangeParamsScalars
 {
-    size_type num_univ_levels{};
-    size_type max_faces{};
-    size_type max_intersections{};
+    UnivLevelId::size_type num_univ_levels{};
+    FaceId::size_type max_intersections{};
     size_type max_csg_levels{};
 
     // Canonical volume depth: maximum stacked volume instances
@@ -70,8 +69,7 @@ struct OrangeParamsScalars
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return num_univ_levels > 0 && max_faces > 0 && max_intersections > 0
-               && tol;
+        return num_univ_levels > 0 && max_intersections > 0 && tol;
     }
 };
 
@@ -312,15 +310,13 @@ struct RectArrayRecord
  * Each collection should be of length num_universes + 1. The first entry is
  * zero and the last item should be the total number of surfaces or volumes.
  *
- * \todo These should be indexed into by UnivId, not the default
- * OpaqueId<size_type>.
  * \todo move to detail/UniverseIndexerData
  */
 template<Ownership W, MemSpace M>
 struct UniverseIndexerData
 {
-    Collection<size_type, W, M> surfaces;
-    Collection<size_type, W, M> volumes;
+    Collection<ImplSurfaceId, W, M, UnivId> surfaces;
+    Collection<ImplVolumeId, W, M, UnivId> volumes;
 
     template<Ownership W2, MemSpace M2>
     UniverseIndexerData& operator=(UniverseIndexerData<W2, M2> const& other)

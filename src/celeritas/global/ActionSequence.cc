@@ -156,6 +156,21 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Complete buffered work once all tracks have been transported.
+ */
+template<MemSpace M>
+void ActionSequence::end_transport(CoreParams const& params,
+                                   CoreState<M>& state)
+{
+    for (auto const& sp_action : actions_.end_transport())
+    {
+        ScopedProfiling profile_this{sp_action->label()};
+        sp_action->end_transport(params, state);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the accumulated action times.
  */
 auto ActionSequence::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
@@ -191,6 +206,11 @@ template void ActionSequence::step(CoreParams const&,
                                    CoreState<MemSpace::host>&);
 template void ActionSequence::step(CoreParams const&,
                                    CoreState<MemSpace::device>&);
+
+template void ActionSequence::end_transport(CoreParams const&,
+                                            CoreState<MemSpace::host>&);
+template void ActionSequence::end_transport(CoreParams const&,
+                                            CoreState<MemSpace::device>&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

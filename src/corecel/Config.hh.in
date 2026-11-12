@@ -56,6 +56,8 @@
 // Device-only options
 #cmakedefine01 CELERITAS_HAVE_HIPCUB
 #cmakedefine01 CELERITAS_HAVE_ROCTX
+//! HIP deduction guides need host/device annotations (see CELER_CTAD_FUNCTION)
+#cmakedefine01 CELERITAS_HIP_ANNOTATE_CTAD
 #cmakedefine CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
 
 // Experimental capabilities

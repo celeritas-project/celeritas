@@ -57,7 +57,7 @@ using MevPerCmLoss = RealQuantity<MevPerCm>;
  * The given applicability vector has one element per model that it will
  * create. Each model can have a different particle type and/or energy range.
  */
-class MockProcess : public Process
+class MockProcess : public InteractionProcess
 {
   public:
     //!@{

@@ -1,0 +1,17 @@
+{
+  "attribution": {
+    "sessionUrl": false
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/dev/claude-cloud-session.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

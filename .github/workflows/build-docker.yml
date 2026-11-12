@@ -30,7 +30,7 @@ jobs:
       matrix:
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "release"]
-        image: ["rocky-cuda", "ubuntu-rocm"]
+        image: ["ubuntu-cuda", "ubuntu-rocm"]
         exclude:
           - geometry: "vecgeom"
             buildtype: "debug" # Build is too large
@@ -49,8 +49,8 @@ jobs:
     container:
       image: >-
         docker.io/celeritas/${{
-             matrix.image == 'rocky-cuda' && 'ci-rocky-cuda12:2024-12-29'
-          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm7:2025-11-04'
+             matrix.image == 'ubuntu-cuda' && 'ci-ubuntu-cuda13:2026-11-11'
+          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm7:2026-11-11'
         }}
     steps:
       - name: Set up environment
@@ -62,13 +62,6 @@ jobs:
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true
-
-      # TODO: fix when we update docker images
-      - name: Update git config to allow running as root
-        run: |
-          git config --global --add safe.directory ${PWD}
 
       - name: Configure Celeritas
         uses: ./.github/actions/configure

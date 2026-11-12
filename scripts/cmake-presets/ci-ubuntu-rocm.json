@@ -4,7 +4,7 @@
   "configurePresets": [
     {
       "name": "base",
-      "displayName": "Ubuntu 22/rocm-docker default options",
+      "displayName": "Ubuntu 24/rocm-docker default options",
       "inherits": [".hip-mi250", "default"],
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",

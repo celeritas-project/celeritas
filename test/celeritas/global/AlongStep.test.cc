@@ -282,7 +282,7 @@ TEST_F(MockAlongStepTest, basic)
         EXPECT_SOFT_EQ(1e-06, result.eloss);
         EXPECT_SOFT_EQ(0.00010540925533894604, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_NEAR(2.4862418371306933e-12, result.time, 1e-11);
+        EXPECT_SOFT_NEAR(2.4862418371306933e-12, result.time, 1e-11_r);
         EXPECT_SOFT_EQ(0.00010540925533894604, result.step);
         EXPECT_EQ("eloss-range", result.action);
     }
@@ -336,8 +336,9 @@ TEST_F(MockAlongStepFieldTest, basic)
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             EXPECT_SOFT_EQ(0.001, result.eloss);
-            EXPECT_SOFT_NEAR(0.0036768333578785931, result.displacement, 1e-10);
-            EXPECT_SOFT_NEAR(0.65590801657964626, result.angle, 1e-10);
+            EXPECT_SOFT_NEAR(
+                0.0036768333578785931, result.displacement, 1e-10_r);
+            EXPECT_SOFT_NEAR(0.65590801657964626, result.angle, 1e-10_r);
             EXPECT_SOFT_EQ(6.9431339225049422e-10, result.time);
             EXPECT_SOFT_EQ(0.930177246841563, result.step);
         }
@@ -364,11 +365,11 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             inp.position = {0.0 - 0.25};
             inp.direction = {0, 1, 0};
             auto result = this->run(inp, num_tracks);
-            EXPECT_SOFT_NEAR(0.44074534601915, result.eloss, 5e-4);
-            EXPECT_SOFT_NEAR(0.22820529792233, result.displacement, 5e-4);
+            EXPECT_SOFT_NEAR(0.44074534601915, result.eloss, 5e-4_r);
+            EXPECT_SOFT_NEAR(0.22820529792233, result.displacement, 5e-4_r);
             EXPECT_SOFT_EQ(1, result.angle);
-            EXPECT_SOFT_NEAR(8.0887018802006e-12, result.time, 5e-4);
-            EXPECT_SOFT_NEAR(0.22820529792233, result.step, 5e-4);
+            EXPECT_SOFT_NEAR(8.0887018802006e-12, result.time, 5e-4_r);
+            EXPECT_SOFT_NEAR(0.22820529792233, result.step, 5e-4_r);
             EXPECT_EQ("eloss-range", result.action);
         }
         {
@@ -376,10 +377,10 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             inp.position = {0.0 - 1e-4};
             inp.direction = {1, 0, 0};
             auto result = this->run(inp, num_tracks);
-            EXPECT_SOFT_NEAR(0.00018631642554801, result.eloss, 5e-4);
+            EXPECT_SOFT_NEAR(0.00018631642554801, result.eloss, 5e-4_r);
             EXPECT_SOFT_EQ(0.0001, result.displacement);
             EXPECT_SOFT_EQ(1, result.angle);
-            EXPECT_SOFT_NEAR(3.5444847047126e-15, result.time, 5e-4);
+            EXPECT_SOFT_NEAR(3.5444847047126e-15, result.time, 5e-4_r);
             EXPECT_SOFT_EQ(0.0001, result.step);
             EXPECT_EQ("geo-boundary", result.action);
         }
@@ -426,7 +427,7 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             else
             {
                 // Changed in Geant4 11.2
-                EXPECT_SOFT_NEAR(0.0099999989996113689, result.eloss, 1e-7);
+                EXPECT_SOFT_NEAR(0.0099999989996113689, result.eloss, 1e-7_r);
             }
             EXPECT_SOFT_EQ(0.00028363764374689, result.displacement);
             EXPECT_SOFT_EQ(1, result.angle);
@@ -451,11 +452,11 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         inp.direction = {0, 1, 0};
         inp.phys_mfp = 100;
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_NEAR(2.2870403276278, result.eloss, 5e-4);
-        EXPECT_SOFT_NEAR(1.1622519442871, result.displacement, 5e-4);
-        EXPECT_SOFT_NEAR(0.85325942256503251, result.angle, 5e-2);
-        EXPECT_SOFT_NEAR(4.083585865972e-11, result.time, 1e-5);
-        EXPECT_SOFT_NEAR(1.222780668781, result.step, 5e-4);
+        EXPECT_SOFT_NEAR(2.2870403276278, result.eloss, 5e-4_r);
+        EXPECT_SOFT_NEAR(1.1622519442871, result.displacement, 5e-4_r);
+        EXPECT_SOFT_NEAR(0.85325942256503251, result.angle, 5e-2_r);
+        EXPECT_SOFT_NEAR(4.083585865972e-11, result.time, 1e-5_r);
+        EXPECT_SOFT_NEAR(1.222780668781, result.step, 5e-4_r);
         EXPECT_EQ("eloss-range", result.action);
     }
     {
@@ -465,11 +466,11 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         inp.position = {0.0 - 0.25};
         inp.direction = {1, 0, 0};
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_NEAR(0.28579817262705, result.eloss, 5e-2);
-        EXPECT_SOFT_NEAR(0.13028709259427, result.displacement, 1e-2);
-        EXPECT_SOFT_NEAR(0.42060290539404, result.angle, 5e-2);
-        EXPECT_SOFT_NEAR(5.3240431819014e-12, result.time, 5e-2);
-        EXPECT_SOFT_NEAR(0.1502064087009, result.step, 5e-2);
+        EXPECT_SOFT_NEAR(0.28579817262705, result.eloss, 5e-2_r);
+        EXPECT_SOFT_NEAR(0.13028709259427, result.displacement, 1e-2_r);
+        EXPECT_SOFT_NEAR(0.42060290539404, result.angle, 5e-2_r);
+        EXPECT_SOFT_NEAR(5.3240431819014e-12, result.time, 5e-2_r);
+        EXPECT_SOFT_NEAR(0.1502064087009, result.step, 5e-2_r);
         EXPECT_EQ("msc-range", result.action);
     }
     {
@@ -479,11 +480,11 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         inp.position = {0.0 - 1e-4};
         inp.direction = {1, 0, 0};
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_NEAR(0.00018784630366397, result.eloss, 5e-4);
+        EXPECT_SOFT_NEAR(0.00018784630366397, result.eloss, 5e-4_r);
         EXPECT_SOFT_EQ(0.0001, result.displacement);
-        EXPECT_SOFT_NEAR(0.9999807140391257, result.angle, 1e-3);
+        EXPECT_SOFT_NEAR(0.9999807140391257, result.angle, 1e-3_r);
         EXPECT_SOFT_EQ(3.3396076266578e-15, result.time);
-        EXPECT_SOFT_NEAR(0.00010000053338476, result.step, 1e-8);
+        EXPECT_SOFT_NEAR(0.00010000053338476, result.step, 1e-8_r);
         EXPECT_EQ("geo-boundary", result.action);
     }
 }
@@ -513,7 +514,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct_finegrid)
         // Distance to interaction = 0.0499189990540797
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_NEAR(0.049721747266950993, result.step, 1e-8);
+            EXPECT_SOFT_NEAR(0.049721747266950993, result.step, 1e-8_r);
         }
         EXPECT_EQ("geo-boundary", result.action);
     }
@@ -534,11 +535,11 @@ TEST_F(Em3AlongStepTest, fluct_nomsc)
         inp.direction = {0, 1, 0};
         auto result = this->run(inp, num_tracks);
 
-        EXPECT_SOFT_NEAR(2.0631083076865, result.eloss, 1e-2);
-        EXPECT_SOFT_NEAR(1.1026770872455, result.displacement, 1e-2);
+        EXPECT_SOFT_NEAR(2.0631083076865, result.eloss, 1e-2_r);
+        EXPECT_SOFT_NEAR(1.1026770872455, result.displacement, 1e-2_r);
         EXPECT_SOFT_EQ(1, result.angle);
-        EXPECT_SOFT_NEAR(3.6824891684752e-11, result.time, 1e-2);
-        EXPECT_SOFT_NEAR(1.1026770872455, result.step, 1e-2);
+        EXPECT_SOFT_NEAR(3.6824891684752e-11, result.time, 1e-2_r);
+        EXPECT_SOFT_NEAR(1.1026770872455, result.step, 1e-2_r);
         EXPECT_EQ("physics-discrete-select", result.action);
     }
     {
@@ -548,7 +549,7 @@ TEST_F(Em3AlongStepTest, fluct_nomsc)
         inp.position = {0.0 - 1e-4};
         inp.direction = {1, 0, 0};
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_NEAR(0.00019264335626186, result.eloss, 0.1);
+        EXPECT_SOFT_NEAR(0.00019264335626186, result.eloss, 0.1_r);
         EXPECT_SOFT_EQ(9.9999999999993e-05, result.displacement);
         EXPECT_SOFT_EQ(1, result.angle);
         EXPECT_SOFT_EQ(3.3395898137995e-15, result.time);
@@ -795,8 +796,8 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_NEAR(0.49482548031266, result.displacement, 1e-7);
-            EXPECT_SOFT_NEAR(-0.92717558224434, result.angle, 1e-7);
+            EXPECT_SOFT_NEAR(0.49482548031266, result.displacement, 1e-7_r);
+            EXPECT_SOFT_NEAR(-0.92717558224434, result.angle, 1e-7_r);
             EXPECT_EQ("geo-propagation-limit", result.action);
         }
     }
@@ -834,14 +835,14 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
         {
             EXPECT_TRUE(scoped_log.empty()) << scoped_log;
         }
-        EXPECT_SOFT_NEAR(6.1133e-07, result.displacement, 1e-4);
+        EXPECT_SOFT_NEAR(6.1133e-07, result.displacement, 1e-4_r);
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_NEAR(0.99999999288499986, result.angle, 1e-11);
+            EXPECT_SOFT_NEAR(0.99999999288499986, result.angle, 1e-11_r);
         }
         else
         {
-            EXPECT_SOFT_NEAR(0.99999999288499986, result.angle, 1e-6);
+            EXPECT_SOFT_NEAR(0.99999999288499986, result.angle, 1e-6_r);
         }
     }
 }
@@ -880,7 +881,7 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         EXPECT_TRUE(result.action == "tracking-cut"
                     || result.action == "eloss-range")
             << result.action;
-        EXPECT_SOFT_NEAR(5.38228e-8, result.step, 1e-5);
+        EXPECT_SOFT_NEAR(5.38228e-8, result.step, 1e-5_r);
         EXPECT_EQ(0, result.displacement);
     }
     {
@@ -890,8 +891,8 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
         EXPECT_TRUE(scoped_log.empty()) << scoped_log;
-        EXPECT_SOFT_NEAR(0.07297048, result.step, 1e-6);
-        EXPECT_SOFT_NEAR(0.0056608379, result.displacement, 1e-8);
+        EXPECT_SOFT_NEAR(0.07297048, result.step, 1e-6_r);
+        EXPECT_SOFT_NEAR(0.0056608379, result.displacement, 1e-8_r);
         EXPECT_EQ("eloss-range", result.action);
     }
 }
