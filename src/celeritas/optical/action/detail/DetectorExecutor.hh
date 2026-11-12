@@ -69,9 +69,10 @@ CELER_FUNCTION void DetectorExecutor::operator()(
     }
 
     auto geometry = track.geometry();
-    if (geometry.is_outside())
+    if (geometry.is_outside() || geometry.failed())
     {
-        // Killed by leaving geometry; no detection
+        // Killed by leaving geometry, or by a geometry error that left no
+        // valid volume; no detection
         return;
     }
 
