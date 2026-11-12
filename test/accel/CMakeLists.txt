@@ -235,6 +235,14 @@ endforeach()
 #-------------------------------------#
 # UserActionIntegration
 
+# Test without g4 baseline (requires offload)
+add_integration_tests(
+  UserActionIntegration LarSphereGammaScintOffload run
+  OFFLOAD cpu gpu
+  ${_optical_args}
+)
+
+# Test with optical physics offloading distributions
 foreach(_test_suite IN ITEMS LarSphereOpticalOffload LarSphereOpticalTrackOffload)
   add_integration_tests(
     UserActionIntegration ${_test_suite} run

@@ -445,10 +445,34 @@ TEST_F(TwoVolumeTest, initialize)
     }
     {
         // Test rejection
-        SCOPED_TRACE("On the boundary but not crossing a surface");
+        SCOPED_TRACE("On the boundary and moving tangent to it");
         auto init
             = tracker.initialize(this->make_state({1.5, 0, 0}, {0, 0, 1}));
         EXPECT_FALSE(init);
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+    }
+    {
+        SCOPED_TRACE("On the boundary heading in");
+        auto init
+            = tracker.initialize(this->make_state({1.5, 0, 0}, {-1, 0, 0}));
+        EXPECT_EQ("inside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::inside, init.surface.sense());
+
+        // Next intersection is the far side of the sphere
+        auto state = this->make_state(
+            {1.5, 0, 0}, {-1, 0, 0}, "inside", "sphere", '-');
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("sphere", this->id_to_label(isect.surface.id()));
+        EXPECT_SOFT_EQ(3.0, isect.distance);
+    }
+    {
+        SCOPED_TRACE("On the boundary heading out");
+        auto init
+            = tracker.initialize(this->make_state({0, 1.5, 0}, {0, 0.6, 0.8}));
+        EXPECT_EQ("outside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
         SCOPED_TRACE("Outside the sphere");
@@ -804,11 +828,26 @@ TEST_F(FiveVolumesTest, initialize)
         EXPECT_FALSE(init.surface);
     }
     {
-        // Triple point between a, c, d
-        SCOPED_TRACE("On the boundary but not crossing a surface");
-        auto init
-            = tracker.initialize(this->make_state({0, 0.75, 0}, {1, 1, 0}));
-        EXPECT_FALSE(init);
+        // Triple point between a, c, d: on the alpha.px plane (x = 0) and
+        // the gamma sphere (r = 0.75); both "on" tests and normals are exact
+        // since 0.75 and 0.75^2 are exactly representable. The direction is
+        // outward from both, which selects 'd'. The stored surface is the
+        // first face of 'd' that the point is on.
+        SCOPED_TRACE("On the boundary heading into d");
+        auto state = this->make_state({0, 0.75, 0}, {1, 1, 0});
+        auto init = tracker.initialize(state);
+        EXPECT_EQ("d", this->id_to_label(init.volume));
+        EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
+
+        // The next intersection must be the outer sphere, a nonzero distance
+        // away: neither surface the point is on can be hit at zero distance
+        state.volume = init.volume;
+        state.surface = init.surface;
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(99.46826365422226, isect.distance);
     }
 }
 
