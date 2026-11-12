@@ -44,6 +44,22 @@ struct SafetyApplier
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Calculate the safety sphere for MSC scattering after propagation.
+ *
+ * Tracks that MSC will displace need the safety at the position reached after
+ * propagation, up to their maximum displacement (see \c
+ * UrbanMsc::max_scatter_safety ). This must run after propagation and before
+ * scattering. Other tracks keep their sphere, which scattering doesn't use.
+ */
+struct ScatterSafetyApplier
+{
+    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+
+    NativeCRef<UrbanMscData> msc;  //!< MSC data
+};
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -92,6 +108,21 @@ CELER_FUNCTION void SafetyApplier::operator()(CoreTrackView const& track)
         }
     }
     track.physics_step().safety_sphere(sphere);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate and save the safety sphere for a track that will be displaced.
+ */
+CELER_FUNCTION void ScatterSafetyApplier::operator()(CoreTrackView const& track)
+{
+    real_type max_safety = UrbanMsc{msc}.max_scatter_safety(track);
+    if (max_safety > 0)
+    {
+        auto geo = track.geometry();
+        track.physics_step().safety_sphere(
+            {geo.pos(), geo.find_safety(max_safety)});
+    }
 }
 
 //---------------------------------------------------------------------------//

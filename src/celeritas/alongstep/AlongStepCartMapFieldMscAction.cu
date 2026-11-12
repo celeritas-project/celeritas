@@ -54,6 +54,8 @@ void AlongStepCartMapFieldMscAction::step(CoreParams const& params,
     }
     if (this->has_msc())
     {
+        detail::launch_scatter_safety(
+            *this, msc_->ref<MemSpace::native>(), params, state);
         detail::launch_apply_msc(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }

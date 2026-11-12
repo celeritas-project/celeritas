@@ -100,6 +100,7 @@ void AlongStepGeneralLinearAction::step(CoreParams const& params,
         PropagationApplier{LinearTrackPropagator{}}(track);
         if (this->has_msc())
         {
+            ScatterSafetyApplier{msc_->ref<MemSpace::native>()}(track);
             MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
         TimeUpdater{}(track);

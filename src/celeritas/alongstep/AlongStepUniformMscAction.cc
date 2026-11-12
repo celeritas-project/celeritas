@@ -114,6 +114,7 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
         }
         if (this->has_msc())
         {
+            ScatterSafetyApplier{msc_->ref<MemSpace::native>()}(track);
             MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
         TimeUpdater{}(track);

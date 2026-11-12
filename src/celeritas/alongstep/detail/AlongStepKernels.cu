@@ -49,6 +49,24 @@ void launch_safety(CoreStepActionInterface const& action,
 }
 
 //---------------------------------------------------------------------------//
+//! Calculate the safety for MSC scattering after propagation
+void launch_scatter_safety(CoreStepActionInterface const& action,
+                           DeviceCRef<UrbanMscData> const& msc_data,
+                           CoreParams const& params,
+                           CoreState<MemSpace::device>& state)
+{
+    ScopedProfiling profile_this{"safety-scatter"};
+    auto execute_thread = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        action.action_id(),
+        detail::ScatterSafetyApplier{msc_data});
+    static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+        action, "safety-scatter");
+    launch_kernel(action, params, state, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
 //! Apply MSC step limiter (UrbanMsc)
 void launch_limit_msc_step(CoreStepActionInterface const& action,
                            DeviceCRef<UrbanMscData> const& msc_data,
