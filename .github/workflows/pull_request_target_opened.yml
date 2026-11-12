@@ -1,0 +1,71 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Label AI-generated or AI-assisted pull requests on creation
+#-----------------------------------------------------------------------------#
+
+name: pull_request_target_opened
+run-name: >-
+  #${{github.event.number}}: ${{github.event.pull_request.title}}
+
+# Use pull_request_target so the token can write labels on PRs from forks.
+# This workflow never checks out or executes code from the PR.
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  label-ai:
+    name: "Add AI labels"
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Label AI-generated and AI-assisted pull requests
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const params = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            };
+            const addLabel = async (label) => {
+              core.info(`Adding label ${label}`);
+              await github.rest.issues.addLabels({
+                ...params,
+                issue_number: pr.number,
+                labels: [label],
+              });
+            };
+
+            // Robot emoji in the description means the PR was generated
+            if ((pr.body || '').includes('🤖')) {
+              await addLabel('ai-generated');
+              return;
+            }
+
+            // Submitter may have already applied the label
+            if (pr.labels.some((l) => l.name === 'ai-generated')) {
+              core.info('PR already labeled ai-generated');
+              return;
+            }
+
+            // Otherwise inspect commit trailers
+            const commits = await github.paginate(
+              github.rest.pulls.listCommits,
+              {...params, pull_number: pr.number, per_page: 100}
+            );
+            const trailer = /^Assisted-by:/im;
+            const num_assisted = commits.filter(
+              (c) => trailer.test(c.commit.message)
+            ).length;
+            core.info(`${num_assisted} of ${commits.length} commits have Assisted-by`);
+            if (num_assisted === 0) {
+              return;
+            }
+            await addLabel(
+              num_assisted === commits.length ? 'ai-generated' : 'ai-assisted'
+            );
