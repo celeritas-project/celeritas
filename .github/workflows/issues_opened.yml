@@ -35,9 +35,10 @@ jobs:
               return m ? m[1].trim() : '';
             };
 
+            // The "external" label is applied by the integration form itself
             const kinds = {
               'Bug': 'bug',
-              'Enhancement': 'enhancement',
+              'Feature request': 'enhancement',
             };
             const authorship = {
               'Assisted by AI': 'ai-assisted',
@@ -53,9 +54,17 @@ jobs:
               return;
             }
             core.info(`Adding labels: ${labels.join(', ')}`);
-            await github.rest.issues.addLabels({
+            const params = {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issue.number,
-              labels,
-            });
+            };
+            await github.rest.issues.addLabels({...params, labels});
+
+            // Labels were added: remove form metadata sections (now
+            // represented by labels) and the description heading
+            const cleaned = body
+              .replace(/^### (Issue type|Authorship)\s*\n+[^\n]*\n*/gm, '')
+              .replace(/^### Description\s*\n+/m, '')
+              .trim();
+            await github.rest.issues.update({...params, body: cleaned});

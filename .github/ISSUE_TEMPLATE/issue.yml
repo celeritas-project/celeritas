@@ -6,7 +6,7 @@
 #-----------------------------------------------------------------------------#
 
 name: Issue
-description: Report a bug, request an enhancement, or ask something else
+description: Report a bug, request a feature, or ask something else
 body:
   - type: dropdown
     id: kind
@@ -15,7 +15,7 @@ body:
       description: What kind of issue is this?
       options:
         - Bug
-        - Enhancement
+        - Feature request
         - Other
     validations:
       required: true
@@ -23,7 +23,7 @@ body:
     id: authorship
     attributes:
       label: Authorship
-      description: How was this issue written?
+      description: How was this issue developed and/or written up?
       options:
         - Entirely human-written
         - Assisted by AI
@@ -34,6 +34,6 @@ body:
     id: description
     attributes:
       label: Description
-      description: Describe the bug, enhancement, or question in detail.
+      description: Describe the bug, feature request, or question in detail.
     validations:
       required: true
