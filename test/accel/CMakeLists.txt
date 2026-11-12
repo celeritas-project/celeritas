@@ -236,7 +236,7 @@ endforeach()
 # UserActionIntegration
 
 # Test without g4 baseline (requires offload)
-celeritas_add_integration_tests(
+add_integration_tests(
   UserActionIntegration LarSphereGammaScintOffload run
   OFFLOAD cpu gpu
   ${_optical_args}
