@@ -259,8 +259,8 @@ See the configure output from the [GitHub runners][runners] for the full list of
     - GCC 8.5, 12, 14, 15
     - Clang 15, 18, 22
     - MSVC 19
-    - GCC 11.5 + NVCC 12.6
-    - ROCm Clang 18
+    - GCC 13.3 + NVCC 13.4
+    - ROCm 7.2 Clang 22
 - Platforms
     - Linux x86_64, ARM
     - macOS Apple Silicon

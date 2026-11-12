@@ -4,8 +4,8 @@
   "configurePresets": [
     {
       "name": "base",
-      "displayName": "Ubuntu/nvidia-docker default options for GCC",
-      "inherits": [".cuda-volta", "default"],
+      "displayName": "Ubuntu 24/nvidia-docker default options for GCC",
+      "inherits": [".cuda-ampere", "default"],
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {
