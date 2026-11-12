@@ -109,11 +109,11 @@ CELER_CTAD_FUNCTION SenseCalculator(
     LocalSurfaceVisitor const&, LocalVolumeView const&, Real3 const&, OnFace&)
     -> SenseCalculator<std::nullptr_t>;
 
-SenseCalculator(LocalSurfaceVisitor const&,
-                LocalVolumeView const&,
-                Real3 const&,
-                Real3 const&,
-                OnFace&) -> SenseCalculator<Real3 const*>;
+CELER_CTAD_FUNCTION SenseCalculator(LocalSurfaceVisitor const&,
+                                    LocalVolumeView const&,
+                                    Real3 const&,
+                                    Real3 const&,
+                                    OnFace&) -> SenseCalculator<Real3 const*>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
