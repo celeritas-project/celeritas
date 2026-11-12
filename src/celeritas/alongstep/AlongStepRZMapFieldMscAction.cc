@@ -114,8 +114,8 @@ void AlongStepRZMapFieldMscAction::step(CoreParams const& params,
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{FieldTrackPropagator<RZMapField>{
-            field_->ref<MemSpace::native>()}}(track);
+        apply_field_propagation<RZMapField>(track,
+                                            field_->ref<MemSpace::native>());
         if (this->has_msc())
         {
             MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);

@@ -105,8 +105,8 @@ void AlongStepCartMapFieldMscAction::step(CoreParams const& params,
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{detail::FieldTrackPropagator<CartMapField>{
-            field_->ref<MemSpace::native>()}}(track);
+        apply_field_propagation<CartMapField>(track,
+                                              field_->ref<MemSpace::native>());
         if (this->has_msc())
         {
             MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);

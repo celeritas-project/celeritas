@@ -109,8 +109,8 @@ void AlongStepCylMapFieldMscAction::step(CoreParams const& params,
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{FieldTrackPropagator<CylMapField>{
-            field_->ref<MemSpace::native>()}}(track);
+        apply_field_propagation<CylMapField>(track,
+                                             field_->ref<MemSpace::native>());
         if (this->has_msc())
         {
             MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);

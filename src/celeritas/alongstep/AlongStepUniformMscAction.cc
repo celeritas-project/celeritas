@@ -105,8 +105,8 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
         }
         if (IsInUniformField{field_->ref<MemSpace::native>()}(track))
         {
-            PropagationApplier{FieldTrackPropagator<UniformField>{
-                field_->ref<MemSpace::native>()}}(track);
+            apply_field_propagation<UniformField>(
+                track, field_->ref<MemSpace::native>());
         }
         else
         {
