@@ -18,6 +18,7 @@ permissions:
 
 jobs:
   clear-pr-cache:
+    # Delete PR caches older than 48 hours
     if: ${{ vars.CELER_CI || github.event_name == 'workflow_dispatch' }}
     permissions:
       actions: write

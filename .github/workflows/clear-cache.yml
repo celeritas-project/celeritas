@@ -31,7 +31,7 @@ on:
         default: ".*"
         type: string
       age:
-        description: "Minimum cache age in days"
+        description: "Minimum cache age in days (1 prevents deletion of anything in last 24h)"
         required: false
         default: 0
         type: number
@@ -81,20 +81,21 @@ jobs:
         with:
           script: |
             // Get configuration from inputs
-            const delayMs = parseInt(process.env.INITIAL_DELAY) * 1000; // seconds to milliseconds
-            const maxRetries = parseInt(process.env.MAX_RETRIES);
+            const delaySeconds = Number(process.env.INITIAL_DELAY);
+            const delayMs = delaySeconds * 1000;
+            const maxRetries = Number(process.env.MAX_RETRIES);
             const ageDays = Number(process.env.AGE);
             const keyFilter = new RegExp(process.env.KEY);
             const refFilter = new RegExp(process.env.REF);
 
-            if (!Number.isInteger(delayMs) || delayMs <= 0) {
-              throw new Error(`INITIAL_DELAY must be a positive integer, got: ${process.env.INITIAL_DELAY ?? 'undefined'}`);
+            if (!Number.isFinite(delayMs) || delaySeconds <= 0) {
+              throw new Error(`'initial_delay' must be a positive number, got: ${process.env.INITIAL_DELAY ?? 'undefined'}`);
             }
             if (!Number.isInteger(maxRetries) || maxRetries <= 0) {
-              throw new Error(`MAX_RETRIES must be a positive integer, got: ${process.env.MAX_RETRIES ?? 'undefined'}`);
+              throw new Error(`'max_retries' must be a positive integer, got: ${process.env.MAX_RETRIES ?? 'undefined'}`);
             }
-            if (!Number.isInteger(ageDays) || ageDays < 0) {
-              throw new Error(`AGE must be a nonnegative integer, got: ${process.env.AGE ?? 'undefined'}`);
+            if (!Number.isFinite(ageDays) || ageDays < 0) {
+              throw new Error(`'age' must be a nonnegative number, got: ${process.env.AGE ?? 'undefined'}`);
             }
 
             console.log(`Configuration: initial delay ${delayMs / 1000}s, max retries ${maxRetries}, minimum age ${ageDays}d`);
