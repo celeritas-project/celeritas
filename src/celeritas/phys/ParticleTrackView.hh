@@ -402,8 +402,9 @@ CELER_FUNCTION real_type ParticleTrackView::decay_length() const
     CELER_EXPECT(this->mass() > zero_quantity());
     CELER_EXPECT(!this->is_stable());
 
-    return value_as<Momentum>(this->momentum()) / value_as<Mass>(this->mass())
-           * constants::c_light / this->decay_constant();
+    return native_value_from(Speed{value_as<Momentum>(this->momentum())
+                                   / value_as<Mass>(this->mass())})
+           / this->decay_constant();
 }
 
 //---------------------------------------------------------------------------//
