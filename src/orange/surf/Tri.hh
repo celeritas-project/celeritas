@@ -8,6 +8,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -38,7 +39,6 @@ class Tri
     using real_type = T;
     using Real3 = Array<real_type, 3>;
     using Vertices = Array<Real3, 3>;
-    using Intersections = Array<real_type, 1>;
     //!@}
 
   public:
@@ -49,7 +49,7 @@ class Tri
     inline CELER_FUNCTION Vertices const& verts() const { return verts_; }
 
     // Calculate straight-line intersections with this triangle
-    inline CELER_FUNCTION Intersections calc_intersections(
+    inline CELER_FUNCTION real_type calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
   private:
@@ -83,7 +83,7 @@ CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
     // third vertices if not
     if (edge1[0] * edge2[1] - edge1[1] * edge2[0] < real_type{0})
     {
-        trivial_swap(verts[1], verts[2]);
+        trivial_swap(verts_[1], verts_[2]);
     }
 }
 
@@ -96,13 +96,13 @@ CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
 template<typename T>
 CELER_FUNCTION auto Tri<T>::calc_intersections(
     Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
-    -> Intersections
+    -> real_type
 {
     // Early return if particle is on surface to prevent re-entry
     // TODO: Revisit as triangle mesh tracker progresses
     if (on_surface == SurfaceState::on)
     {
-        return {real_type(no_intersection())};
+        return real_type(no_intersection());
     }
 
     // Edge 1 and Edge 2
@@ -115,7 +115,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     // Ray is parallel to triangle
     if (soft_zero(det))
     {
-        return {real_type(no_intersection())};
+        return real_type(no_intersection());
     }
 
     real_type inv_det = 1.0 / det;
@@ -125,7 +125,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     // Ray intersects edge2 outside the triangle
     if (u < real_type{0} || u > real_type{1})
     {
-        return {real_type(no_intersection())};
+        return real_type(no_intersection());
     }
 
     auto s_cross_edge1 = cross_product(s, edge1);
@@ -134,7 +134,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     // Ray intersects edge1 outside the triangle
     if (v < real_type{0} || u + v > real_type{1})
     {
-        return {real_type(no_intersection())};
+        return real_type(no_intersection());
     }
 
     // Compute distance to intersection
@@ -142,11 +142,11 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
 
     if (t > real_type{0})
     {
-        return {t};
+        return t;
     }
     else
     {
-        return {real_type(no_intersection())};
+        return real_type(no_intersection());
     }
 }
 

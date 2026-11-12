@@ -23,7 +23,6 @@ class TriTest : public ::celeritas::test::Test
 {
   protected:
     using real_type = float;
-    using Intersections = Tri<real_type>::Intersections;
     using Real3 = Tri<real_type>::Real3;
 
     // Triangle vertex values
@@ -57,36 +56,36 @@ TEST_F(TriTest, calc_intersections)
     Real3 pos = {0.4f, 0.4f, 0};
     Real3 dir = {0, 0, 1};
     auto t = tri.calc_intersections(pos, dir, SurfaceState::off);
-    EXPECT_SOFT_EQ(0.4f, t[0]);
+    EXPECT_SOFT_EQ(0.4f, t);
 
     // Starting on the intersection point pointing away yields no intersection
-    pos = {0.4f, 0.4f, real_type(t[0])};
+    pos = {0.4f, 0.4f, t};
     t = tri.calc_intersections(pos, dir, SurfaceState::on);
-    EXPECT_SOFT_EQ(real_type(no_intersection()), t[0]);
+    EXPECT_SOFT_EQ(real_type(no_intersection()), t);
 
     // Ray is parallel to the tri
     pos = {0.4f, 0.4f, 0.2f};
     dir = {0.0f, -cos45, -cos45};
     t = tri.calc_intersections(pos, dir, SurfaceState::off);
-    EXPECT_SOFT_EQ(real_type(no_intersection()), t[0]);
+    EXPECT_SOFT_EQ(real_type(no_intersection()), t);
 
     // No intersection with the triangle
     pos = {0.4f, 0.4f, 0.2f};
     dir = {0.0, -0.3846153846153846, -0.923076923076923};
     t = tri.calc_intersections(pos, dir, SurfaceState::off);
-    EXPECT_SOFT_EQ(real_type(no_intersection()), t[0]);
+    EXPECT_SOFT_EQ(real_type(no_intersection()), t);
 
     // Ray intersects edge 2 outside of the triangle
     pos = {0.4f, 0.4f, 0.0f};
     dir = {-0.8320502943378437f, -0.5547001962252291f, 0.0};
     t = tri.calc_intersections(pos, dir, SurfaceState::off);
-    EXPECT_SOFT_EQ(real_type(no_intersection()), t[0]);
+    EXPECT_SOFT_EQ(real_type(no_intersection()), t);
 
     // Ray intersects edge 1 outside of triangle
     pos = {0.4f, -0.4f, 0.0f};
     dir = {0, -1, 0};
     t = tri.calc_intersections(pos, dir, SurfaceState::off);
-    EXPECT_SOFT_EQ(real_type(no_intersection()), t[0]);
+    EXPECT_SOFT_EQ(real_type(no_intersection()), t);
 }
 
 //---------------------------------------------------------------------------//
