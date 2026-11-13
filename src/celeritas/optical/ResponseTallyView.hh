@@ -95,11 +95,11 @@ CELER_FUNCTION ResponseBinId ResponseTallyView::start_bin(
     for (size_type i : range(size_type{3}))
     {
         UniformGrid grid(*grids[i]);
-        if (!(pos[i] >= grid.front() && pos[i] < grid.back()))
+        if (!grid.contains(pos[i]))
         {
             return nullid;
         }
-        coords[i + 1] = grid.find(pos[i]);
+        coords[i] = grid.find(pos[i]);
     }
 
     HyperslabIndexer<5> index(params_.dims);
@@ -118,19 +118,20 @@ CELER_FUNCTION ResponseBinId ResponseTallyView::end_bin(
 {
     CELER_EXPECT(detector);
     CELER_EXPECT(detector.unchecked_get() < params_.dims[0]);
+
     if (!start)
     {
         return nullid;
     }
 
     UniformGrid time_grid(params_.time_grid);
-    if (!(time >= time_grid.front() && time < time_grid.back()))
+    if (!time_grid.contains(time))
     {
         return nullid;
     }
 
     Array<size_type, 5> coords{};
-    coords[0] = detector.unchecked_get();
+    coords[3] = detector.unchecked_get();
     coords[4] = time_grid.find(time);
 
     HyperslabIndexer<5> index(params_.dims);

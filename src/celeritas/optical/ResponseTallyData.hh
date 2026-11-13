@@ -41,7 +41,7 @@ struct ResponseTallyParamsData
     UniformGridData y_grid;
     UniformGridData z_grid;
     UniformGridData time_grid;
-    Array<size_type, 5> dims{};  //!< {detector, x, y, z, time}
+    Array<size_type, 5> dims{};  //!< {x, y, z, detector, time}
 
     //// METHODS ////
 
@@ -59,9 +59,10 @@ struct ResponseTallyParamsData
     //! Whether the data are assigned and consistent
     explicit CELER_FUNCTION operator bool() const
     {
-        return x_grid && y_grid && z_grid && time_grid && dims[0] > 0
-               && dims[1] + 1 == x_grid.size && dims[2] + 1 == y_grid.size
-               && dims[3] + 1 == z_grid.size && dims[4] + 1 == time_grid.size;
+        return x_grid && y_grid && z_grid && time_grid
+               && dims[0] + 1 == x_grid.size && dims[1] + 1 == y_grid.size
+               && dims[2] + 1 == z_grid.size && dims[3] > 0
+               && dims[4] + 1 == time_grid.size;
     }
 
     //! Assign from another set of data
