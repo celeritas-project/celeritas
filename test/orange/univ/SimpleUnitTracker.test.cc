@@ -23,8 +23,12 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "orange/OrangeGeoTestBase.hh"
+#include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
+#include "orange/surf/SimpleQuadric.hh"
+#include "orange/surf/Sphere.hh"
+#include "orange/univ/detail/LocalVolumeView.hh"
 
 #include "AssertionHelper.hh"
 #include "SimpleUnitTracker.test.hh"
@@ -143,6 +147,42 @@ class FieldLayersTest : public SimpleUnitTrackerTest
 class FiveVolumesTest : public SimpleUnitTrackerTest
 {
     void SetUp() override { this->build_geometry("five-volumes.org.json"); }
+};
+
+//! Ellipsoid (not a "simple safety" surface) in a background-filled sphere
+class BackgroundQuadricTest : public SimpleUnitTrackerTest
+{
+    void SetUp() override
+    {
+        UnitInput input;
+        input.label = "background quadric";
+        input.bbox = {{-4, -4, -4}, {4, 4, 4}};
+        input.surfaces = {Sphere({0, 0, 0}, 4),
+                          SimpleQuadric({1, 1, 0.25}, {0, 0, 0}, -1)};
+        input.surface_labels = {Label("world"), Label("ellipsoid")};
+
+        VolumeInput exterior;
+        exterior.label = "exterior";
+        exterior.faces = {LocalSurfaceId{0}};
+        exterior.logic = {0};
+        exterior.bbox = BBox::from_infinite();
+        exterior.zorder = ZOrder::exterior;
+
+        VolumeInput ellipsoid;
+        ellipsoid.label = "ellipsoid";
+        ellipsoid.faces = {LocalSurfaceId{1}};
+        ellipsoid.logic = {1, logic::lnot};
+        ellipsoid.bbox = {{-1, -1, -2}, {1, 1, 2}};
+        ellipsoid.zorder = ZOrder::media;
+
+        VolumeInput background;
+        background.label = "background";
+        background.flags = VolumeInput::Flags::implicit_vol;
+        background.zorder = ZOrder::background;
+
+        input.volumes = {exterior, ellipsoid, background};
+        this->build_geometry(std::move(input));
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -760,6 +800,24 @@ TEST_F(FieldLayersTest, intersect)
     }
 }
 
+TEST_F(FieldLayersTest, safety)
+{
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
+    LocalVolumeId bg = ui.local_volume(this->find_volume("world.bg")).volume;
+
+    // All surfaces in the unit are planes
+    detail::LocalVolumeView vol{this->host_params(), tracker.unit_record(), bg};
+    EXPECT_TRUE(vol.implicit_vol());
+    EXPECT_TRUE(vol.simple_safety());
+
+    // Halfway between two layers
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, -3, 0}, bg));
+    // Note: distance is conservatively to the nearest surface in the unit
+    // (the extension of the layers' +z face), not the world boundary
+    EXPECT_SOFT_EQ(0.25, tracker.safety({0, 10, 9.25}, bg));
+}
+
 TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 8192;
@@ -991,6 +1049,23 @@ TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
         auto result = this->run_heuristic_init_device(num_tracks);
         EXPECT_REF_EQ(expected, result);
     }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(BackgroundQuadricTest, safety)
+{
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
+    LocalVolumeId bg = ui.local_volume(this->find_volume("background")).volume;
+
+    // A unit with a non-simple surface cannot give a background safety, so
+    // the volume must not claim it
+    detail::LocalVolumeView vol{this->host_params(), tracker.unit_record(), bg};
+    EXPECT_TRUE(vol.implicit_vol());
+    EXPECT_FALSE(vol.simple_safety());
+
+    EXPECT_SOFT_EQ(0.0, tracker.safety({0, 3, 0}, bg));
 }
 
 //---------------------------------------------------------------------------//
