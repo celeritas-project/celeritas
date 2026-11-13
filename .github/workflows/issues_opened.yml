@@ -11,7 +11,7 @@
 # - `ai-assisted`: only some commits have `Assisted-by`; also set by issue form
 #   "Assisted by AI". Agents add this to their PRs.
 # - Issue types (Bug, Enhancement, Task) and `external` come from the forms, or from
-#   body commands `@github-actions task <type>` / `label <label>` (API issues).
+#   body commands `@github-actions type <type>` / `label <label>` (API issues).
 # - A label already added by the submitter is respected.
 #
 #-----------------------------------------------------------------------------#

@@ -24,7 +24,6 @@ there before filing.
 - Commands are one per line, alone on the line:
   `@github-actions label <label>` (zero or more allowed labels). Processed
   commands become HTML comments; unrecognized ones get a reply comment.
-  There is no `task` command for PRs.
 - Title: imperative, capitalized, no trailing period, no emoji.
 - `gh pr create --draft --repo celeritas-project/celeritas --title ... --body-file ...`
 

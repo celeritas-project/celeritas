@@ -18,8 +18,8 @@
 #   if the description contains `marker` (or the submitter added it), else
 #   inspect commit trailers: all commits -> `generated_label`, some ->
 #   `assisted_label`.
-# - Commands are lines `@github-actions <command> <arg>` (`task <type>` only for
-#   issues, `label <label>` for both). Processed lines become `<!-- ✔️ ... -->`;
+# - Commands are lines `@github-actions <command> <arg>`
+#   (`type <type>`and/ or `label <label>`). Processed lines become `<!-- ✔️ ... -->`;
 #   unrecognized ones get a reply comment.
 #
 # Permissions come from the caller: `issues: write` for issues,
@@ -110,7 +110,7 @@ jobs:
               (line, cmd, arg) => {
                 cmd = cmd.toLowerCase();
                 arg = arg.toLowerCase();
-                if (!isPR && cmd === 'task' && arg in types) {
+                if (cmd === 'type' && arg in types) {
                   type = types[arg];
                 } else if (cmd === 'label' && allowed.includes(arg)) {
                   labels.push(arg);
@@ -178,8 +178,8 @@ jobs:
               core.notice(
                 `Adding a comment to #${item.number} about `
                 + `${errors.length} unrecognized command(s)`);
-              const supported = Object.keys(types).length > 0 && !isPR
-                ? `\`task\` (${Object.keys(types).join(', ')}), ` : '';
+              const supported = Object.keys(types).length > 0
+                ? `\`type\` (${Object.keys(types).join(', ')}), ` : '';
               await github.rest.issues.createComment({
                 ...params,
                 body: '❌ Unrecognized commands:\n\n'
