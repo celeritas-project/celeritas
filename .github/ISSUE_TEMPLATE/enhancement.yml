@@ -7,7 +7,7 @@
 
 name: Enhancement
 description: Request a feature or improvement ✨
-type: Feature
+type: Enhancement
 body:
   - type: dropdown
     id: authorship
