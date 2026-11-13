@@ -4,7 +4,7 @@
 #-----------------------------------------------------------------------------#
 # Label AI-generated or AI-assisted pull requests on creation, and add allow-listed
 # labels from `@github-actions label <label>` commands in the description.
-# See @../../.claude/skills/file-pr/SKILL.md
+# See @../../.claude/skills/pull-request/SKILL.md
 #-----------------------------------------------------------------------------#
 
 name: pull_request_target_opened

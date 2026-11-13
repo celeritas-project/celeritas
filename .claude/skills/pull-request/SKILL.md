@@ -1,5 +1,5 @@
 ---
-name: file-pr
+name: pull-request
 description: Open a Celeritas pull request through the API or gh CLI with the required disclosure, draft status, and labels. Use whenever an agent opens or comments on a PR.
 ---
 

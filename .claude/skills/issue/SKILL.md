@@ -1,5 +1,5 @@
 ---
-name: file-issue
+name: issue
 description: Submit a GitHub issue to Celeritas through the API or gh CLI with the required authorship, type, and labels. Use whenever an agent files an issue.
 ---
 
