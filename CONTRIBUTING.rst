@@ -47,21 +47,24 @@ refactors. However, because the underpinning Large Language Models (LLMs) are
 essentially optimized for generating *plausible* output in *large quantities*,
 they can generate code that is *(1)* incorrect or superfluous while
 superficially seeming necessary and *(2)* unnecessarily complex/verbose. For
-this reason, and for ethical considerations, we require:
+this reason, and for ethical considerations, we make three requirements:
 
-- Pull requests or issues submitted by agents and/or authored without direct
-  human-written changes *must* be labeled as ``ai-generated`` (see `AGENTS
-  file`_ and the ``pull -request`` Claude skill).
 - Pull requests with substantial code additions/changes performed by AI agents
-  *must* clearly note this in the description and/or be labeled ``ai-assisted``.
-- AI-assisted code commits *must* be tagged with a trailer such as
-  ``Assisted-by``.
+  *must* clearly note this in the description, and/or tagged with the
+  ``ai-assisted`` label.
+- AI-assisted code commits *must* be tagged with a trailer such as ``Assisted-by``
+  (see `AGENTS file`_)
 - Every pull request to Celeritas *must* be submitted in draft mode with a
   human in the loop.
-- The submitting human *must* perform a review of the submitted code before
+- The submitting person *must* perform a review of the submitted code before
   marking the PR as "ready."
 - Every comment an agent posts on an issue or pull request *must* disclose the
   agent harness and include a 🤖 emoji in clear text.
+
+Work labeled ``ai-generated`` (written essentially entirely by an agent) is
+*not* eligible for credit in :file:`scripts/release/contributors.jsonl`.
+Work labeled ``ai-assisted``, where a human substantially authored and
+reviewed the change, is eligible.
 
 .. _AGENTS file: ./AGENTS.md#Contributions
 
@@ -74,8 +77,6 @@ be listed in the release notes, *and* you will receive official co-authorship on
 the Zenodo code object for the next major (and minor, if your fix is
 backported) releases that incorporate your contribution. By contributing, you
 acknowledge the attribution and authorship policy laid out in :ref:`authorship`.
-
-.. `authorship`: see doc/development/administration.rst
 
 .. note:: To uniquely link your contribution for the next release, you must add
    your GitHub username and ORCID to :file:`scripts/release/contributors.jsonl`
