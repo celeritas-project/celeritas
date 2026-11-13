@@ -1,0 +1,201 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Reusable workflow: label new issues and pull requests.
+#
+# Called from `issues_opened.yml` and `pull_request_target_opened.yml`; other
+# repositories can use it with
+#   uses: <owner>/<repo>/.github/workflows/label-submission.yml@<sha>
+# A local `uses: ./.github/workflows/...` call needs no repository checkout, and
+# this workflow never checks out or executes code from the submission.
+#
+# Behavior
+# - Issues: add the authorship label from the form's "Authorship" answer, set the
+#   issue type and labels from body commands, wrap fenced sections, and comment
+#   out processed form content.
+# - Pull requests: add allow-listed labels from commands, then `generated_label`
+#   if the description contains `marker` (or the submitter added it), else
+#   inspect commit trailers: all commits -> `generated_label`, some ->
+#   `assisted_label`.
+# - Commands are lines `@github-actions <command> <arg>` (`task <type>` only for
+#   issues, `label <label>` for both). Processed lines become `<!-- ✔️ ... -->`;
+#   unrecognized ones get a reply comment.
+#
+# Permissions come from the caller: `issues: write` for issues,
+# `pull-requests: write` for pull requests.
+#
+# The `config` input is a JSON object (all keys optional):
+#   types:           {command arg: GitHub issue type name}, e.g. {"bug": "Bug"}
+#   labels:          allow-list of labels settable by `label` commands
+#   authorship:      {heading: "Authorship", labels: {form answer: label}}
+#   fence:           {form heading: code fence language} (always fenced)
+#   hide_headings:   form headings to comment out (heading line only)
+#   generated_label: label for generated PRs (default "ai-generated")
+#   assisted_label:  label for assisted PRs (default "ai-assisted")
+#   marker:          description text that marks a PR generated
+#   trailer:         commit trailer name marking assistance
+#-----------------------------------------------------------------------------#
+
+name: label-submission
+
+on:
+  workflow_call:
+    inputs:
+      config:
+        description: "JSON configuration (see header)"
+        type: string
+        required: true
+
+jobs:
+  label:
+    name: "Label submission"
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Process commands and labels
+        uses: actions/github-script@v9
+        env:
+          # Passed through the environment, never interpolated into the script
+          CONFIG: ${{ inputs.config }}
+        with:
+          script: |
+            const cfg = JSON.parse(process.env.CONFIG);
+            const types = cfg.types || {};
+            const allowed = cfg.labels || [];
+            const generated = cfg.generated_label || 'ai-generated';
+            const assisted = cfg.assisted_label || 'ai-assisted';
+            const isPR = context.eventName === 'pull_request_target';
+            if (!isPR && context.eventName !== 'issues') {
+              core.setFailed(`Unsupported event ${context.eventName}`);
+              return;
+            }
+            const item = isPR ? context.payload.pull_request
+                              : context.payload.issue;
+            const body = item.body || '';
+            const params = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: item.number,
+            };
+            const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const labels = [];
+            let type;
+            const errors = [];
+
+            // Authorship from the issue form: "### Heading\n\nanswer"
+            let cleaned = body;
+            const auth = cfg.authorship;
+            if (!isPR && auth) {
+              const re = new RegExp(
+                `^### ${esc(auth.heading)}\\s*\\n+([^\\n]*)\\n*`, 'gm');
+              cleaned = cleaned.replace(re, (m, answer) => {
+                const label = (auth.labels || {})[answer.trim()];
+                if (label) labels.push(label);
+                return `<!-- ✔️\n${m.trim()}\n-->\n\n`;
+              });
+            }
+
+            // Commands: `@github-actions <command> <arg>`
+            cleaned = cleaned.replace(
+              /^@github-actions[ \t]+(\w+)[ \t]+(\S+)[ \t]*$/gim,
+              (line, cmd, arg) => {
+                cmd = cmd.toLowerCase();
+                arg = arg.toLowerCase();
+                if (!isPR && cmd === 'task' && arg in types) {
+                  type = types[arg];
+                } else if (cmd === 'label' && allowed.includes(arg)) {
+                  labels.push(arg);
+                } else {
+                  errors.push(line.trim());
+                  return line;
+                }
+                return `<!-- ✔️ ${cmd} ${arg} -->`;
+              });
+
+            if (!isPR) {
+              // Always wrap configured sections in a code fence
+              for (const [heading, lang] of Object.entries(cfg.fence || {})) {
+                const re = new RegExp(
+                  `^### ${esc(heading)}[ \\t]*\\n+([\\s\\S]*?)`
+                  + '(?=^### |^<!-- |(?![\\s\\S]))', 'm');
+                cleaned = cleaned.replace(re, (m, content) => {
+                  const inner = content
+                    .replace(/^\s*```[a-z]*[ \t]*\n/i, '')
+                    .replace(/\n?```[ \t]*\s*$/, '')
+                    .trim();
+                  return `### ${heading}\n\n\`\`\`${lang}\n${inner}\n\`\`\`\n\n`;
+                });
+              }
+              // Comment out headings of processed sections
+              for (const heading of cfg.hide_headings || []) {
+                const re = new RegExp(`^### ${esc(heading)}\\s*\\n+`, 'm');
+                cleaned = cleaned.replace(
+                  re, (m) => `<!-- ✔️\n${m.trim()}\n-->\n\n`);
+              }
+              cleaned = cleaned.trim();
+            }
+
+            const addLabels = async (list) => {
+              if (list.length === 0) return;
+              core.info(`Adding labels: ${list.join(', ')}`);
+              await github.rest.issues.addLabels({...params, labels: list});
+            };
+            await addLabels(labels);
+
+            if (cleaned !== body) {
+              if (isPR) {
+                await github.rest.pulls.update({
+                  owner: params.owner,
+                  repo: params.repo,
+                  pull_number: item.number,
+                  body: cleaned,
+                });
+              } else {
+                await github.rest.issues.update({...params, body: cleaned});
+              }
+            }
+            if (type) {
+              core.info(`Setting type: ${type}`);
+              try {
+                await github.rest.issues.update({...params, type});
+              } catch (e) {
+                core.warning(`Could not set type ${type}: ${e.message}`);
+              }
+            }
+            if (errors.length > 0) {
+              const supported = Object.keys(types).length > 0 && !isPR
+                ? `\`task\` (${Object.keys(types).join(', ')}), ` : '';
+              await github.rest.issues.createComment({
+                ...params,
+                body: '❌ Unrecognized commands:\n\n'
+                  + errors.map((e) => `- \`${e}\``).join('\n')
+                  + `\n\nSupported: ${supported}\`label\` (`
+                  + allowed.join(', ') + ').',
+              });
+            }
+
+            if (!isPR) return;
+
+            // Pull requests: marker or commit trailers decide the AI label
+            if (cfg.marker && body.includes(cfg.marker)) {
+              await addLabels([generated]);
+              return;
+            }
+            if (item.labels.some((l) => l.name === generated)) {
+              core.info(`PR already labeled ${generated}`);
+              return;
+            }
+            const commits = await github.paginate(
+              github.rest.pulls.listCommits,
+              {
+                owner: params.owner,
+                repo: params.repo,
+                pull_number: item.number,
+                per_page: 100,
+              });
+            const trailer = new RegExp(`^${esc(cfg.trailer || 'Assisted-by')}:`, 'im');
+            const num = commits.filter((c) => trailer.test(c.commit.message)).length;
+            core.info(`${num} of ${commits.length} commits have a trailer`);
+            if (num > 0) {
+              await addLabels([num === commits.length ? generated : assisted]);
+            }

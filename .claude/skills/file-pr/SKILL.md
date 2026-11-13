@@ -5,7 +5,7 @@ description: Open a Celeritas pull request through the API or gh CLI with the re
 
 Open PRs from your fork's branch as a **draft**; never mark ready for review.
 Valid label keywords are defined in
-`.github/workflows/pull_request_target_opened.yml` (`allowedLabels`): check them
+`.github/workflows/pull_request_target_opened.yml` (`labels` in `config`): check them
 there before filing.
 
 ## Description format

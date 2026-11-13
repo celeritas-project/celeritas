@@ -5,7 +5,7 @@ description: Submit a GitHub issue to Celeritas through the API or gh CLI with t
 
 Issue forms are not enforced for API requests, so mimic the form body and use
 the `issues_opened` workflow's commands to set the type and labels. The valid
-types and labels are defined in `.github/workflows/issues_opened.yml`
+types and labels are defined in `.github/workflows/issues_opened.yml` (`config`)
 (`kinds`, `allowedLabels`): check them there before filing.
 
 ## Body format

@@ -17,102 +17,19 @@ on:
   pull_request_target:
     types: [opened]
 
-permissions:
-  pull-requests: write
+permissions: {}
 
 jobs:
   label-ai:
     name: "Add AI labels"
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Label AI-generated and AI-assisted pull requests
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const pr = context.payload.pull_request;
-            const params = {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            };
-            const addLabel = async (label) => {
-              core.info(`Adding label ${label}`);
-              await github.rest.issues.addLabels({
-                ...params,
-                issue_number: pr.number,
-                labels: [label],
-              });
-            };
-
-            // Commands in the description: `@github-actions label <label>`
-            // Keep this list in sync with .claude/skills/file-pr/SKILL.md
-            const allowedLabels = [
-              'physics', 'geometry', 'field', 'app', 'external', 'scoring',
-            ];
-            const errors = [];
-            const requested = [];
-            const body = pr.body || '';
-            const cleaned = body.replace(
-              /^@github-actions[ \t]+(\w+)[ \t]+(\S+)[ \t]*$/gim,
-              (line, cmd, arg) => {
-                cmd = cmd.toLowerCase();
-                arg = arg.toLowerCase();
-                if (cmd === 'label' && allowedLabels.includes(arg)) {
-                  requested.push(arg);
-                  return `<!-- ✔️ ${cmd} ${arg} -->`;
-                }
-                errors.push(line.trim());
-                return line;
-              });
-            if (requested.length > 0) {
-              core.info(`Adding labels: ${requested.join(', ')}`);
-              await github.rest.issues.addLabels({
-                ...params,
-                issue_number: pr.number,
-                labels: requested,
-              });
-            }
-            if (cleaned !== body) {
-              await github.rest.pulls.update({
-                ...params,
-                pull_number: pr.number,
-                body: cleaned,
-              });
-            }
-            if (errors.length > 0) {
-              await github.rest.issues.createComment({
-                ...params,
-                issue_number: pr.number,
-                body: '❌ Unrecognized commands:\n\n'
-                  + errors.map((e) => `- \`${e}\``).join('\n')
-                  + '\n\nSupported: `label` (' + allowedLabels.join(', ') + ').',
-              });
-            }
-
-            // Robot emoji in the description means the PR was generated
-            if (body.includes('🤖')) {
-              await addLabel('ai-generated');
-              return;
-            }
-
-            // Submitter may have already applied the label
-            if (pr.labels.some((l) => l.name === 'ai-generated')) {
-              core.info('PR already labeled ai-generated');
-              return;
-            }
-
-            // Otherwise inspect commit trailers
-            const commits = await github.paginate(
-              github.rest.pulls.listCommits,
-              {...params, pull_number: pr.number, per_page: 100}
-            );
-            const trailer = /^Assisted-by:/im;
-            const num_assisted = commits.filter(
-              (c) => trailer.test(c.commit.message)
-            ).length;
-            core.info(`${num_assisted} of ${commits.length} commits have Assisted-by`);
-            if (num_assisted === 0) {
-              return;
-            }
-            await addLabel(
-              num_assisted === commits.length ? 'ai-generated' : 'ai-assisted'
-            );
+    # Keep the allow-lists in sync with the agent skills in .claude/skills/
+    permissions:
+      pull-requests: write
+    uses: ./.github/workflows/label-submission.yml
+    with:
+      config: |
+        {
+          "labels": ["physics", "geometry", "field", "app", "external", "scoring"],
+          "marker": "🤖",
+          "trailer": "Assisted-by"
+        }
