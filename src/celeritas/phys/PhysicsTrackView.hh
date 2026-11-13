@@ -140,6 +140,9 @@ class PhysicsTrackView
     // ID of the particle's at-rest process
     inline CELER_FUNCTION ParticleProcessId at_rest_process() const;
 
+    // Action of the decay channel for this particle, if it decays
+    inline CELER_FUNCTION ActionId decay_action() const;
+
     //// PARAMETER DATA ////
 
     // Convert an action to a model ID for diagnostics, empty if not a model
@@ -622,6 +625,15 @@ CELER_FUNCTION TabulatedElementSelector PhysicsTrackView::make_element_selector(
 CELER_FUNCTION ParticleProcessId PhysicsTrackView::at_rest_process() const
 {
     return this->process_group().at_rest;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Action of the decay channel for this particle, null if it doesn't decay.
+ */
+CELER_FUNCTION ActionId PhysicsTrackView::decay_action() const
+{
+    return this->process_group().decay_action;
 }
 
 //---------------------------------------------------------------------------//

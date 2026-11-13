@@ -6,7 +6,8 @@
  "bremsstrahlung": true,
  "pair_production": true,
  "coulomb": false,
- "msc": "none"
+ "msc": "none",
+ "decay": false
 },
 "optical": null,
 "eloss_fluctuation": true,

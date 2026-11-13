@@ -242,6 +242,13 @@ add_integration_tests(
   ${_optical_args}
 )
 
+# Test muon offloading with decay
+add_integration_tests(
+  UserActionIntegration TestEm3MuDecay run
+  OFFLOAD cpu gpu
+  RMTYPE serial
+)
+
 # Test with optical physics offloading distributions
 foreach(_test_suite IN ITEMS LarSphereOpticalOffload LarSphereOpticalTrackOffload)
   add_integration_tests(

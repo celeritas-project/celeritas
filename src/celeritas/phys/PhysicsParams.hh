@@ -17,6 +17,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/decay/DecayProcess.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 #include "Model.hh"
@@ -51,6 +52,11 @@ class ParticleParams;
  *   due to integral cross sectionl
  * - "integral-rejected": do not apply a discrete interaction
  * - "failure": interactor failed to allocate secondaries
+ *
+ * If a \c DecayProcess is given, it is added after all interaction processes
+ * (its ID is \c num_processes() ) for each particle type that one of its
+ * channels applies to, and the channel actions are registered after the
+ * "failure" action.
  */
 class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
 {
@@ -60,10 +66,12 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstProcess = std::shared_ptr<InteractionProcess const>;
+    using SPConstDecay = std::shared_ptr<DecayProcess const>;
     using SPConstModel = std::shared_ptr<Model const>;
     using SPConstRelaxation = std::shared_ptr<AtomicRelaxationParams const>;
 
     using VecProcess = std::vector<SPConstProcess>;
+    using VecChannel = DecayProcess::VecChannel;
     using SpanConstProcessId = Span<ProcessId const>;
     using ActionIdRange = Range<ActionId>;
     using Options = PhysicsOptions;
@@ -75,6 +83,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
         SPConstParticles particles;
         SPConstMaterials materials;
         VecProcess processes;
+        SPConstDecay decay;  //!< Optional decay process
         SPConstRelaxation relaxation;  //!< Optional atomic relaxation
         ActionRegistry* action_registry = nullptr;
 
@@ -111,6 +120,12 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     // Get the action IDs for all models
     inline ActionIdRange model_actions() const;
 
+    //! Decay process (may be null)
+    SPConstDecay const& decay_process() const { return decay_; }
+
+    //! Decay channels
+    VecChannel const& decay_channels() const { return channels_; }
+
     // Get the processes that apply to a particular particle
     SpanConstProcessId processes(ParticleId) const;
 
@@ -139,6 +154,8 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     // Host metadata/access
     VecProcess processes_;
     VecModel models_;
+    SPConstDecay decay_;
+    VecChannel channels_;
     SPConstRelaxation relaxation_;
 
     // Host/device storage and reference
@@ -149,6 +166,7 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
 
   private:
     VecModel build_models(ActionRegistry*) const;
+    VecChannel build_channels(ActionRegistry*) const;
     void build_options(Options const&, HostValue*) const;
     void build_particle_options(ParticleOptions const&, ParticleScalars*) const;
     void build_ids(ParticleParams const&, HostValue*) const;

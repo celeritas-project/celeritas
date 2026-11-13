@@ -362,7 +362,7 @@ TEST(Inp, setup_geant_muon)
 
     EXPECT_JSON_ROUND_TRIP(
         input,
-        R"json({"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"urban","pair_production":true})json");
+        R"json({"bremsstrahlung":true,"coulomb":false,"decay":true,"ionization":true,"msc":"urban","pair_production":true})json");
 
     // Null muon physics is represented as std::nullopt in GeantPhysicsOptions
 }

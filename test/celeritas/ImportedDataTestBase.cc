@@ -7,6 +7,7 @@
 #include "ImportedDataTestBase.hh"
 
 #include "geocel/SurfaceParams.hh"
+#include "celeritas/decay/DecayProcess.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -126,6 +127,12 @@ auto ImportedDataTestBase::build_physics() -> SPConstPhysics
     {
         input.processes.push_back(build_process(p));
         CELER_ASSERT(input.processes.back());
+    }
+
+    if (imported.decay_physics)
+    {
+        input.decay = std::make_shared<DecayProcess>(input.particles,
+                                                     imported.decay_physics);
     }
 
     return std::make_shared<PhysicsParams>(std::move(input));

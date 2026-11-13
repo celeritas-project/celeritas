@@ -8,7 +8,12 @@
 
 #include <memory>
 #include <mutex>
+#include <G4Electron.hh>
+#include <G4Gamma.hh>
+#include <G4MuonMinus.hh>
+#include <G4MuonPlus.hh>
 #include <G4OpticalPhoton.hh>
+#include <G4Positron.hh>
 #include <G4RunManager.hh>
 #include <G4Step.hh>
 #include <G4StepPoint.hh>
@@ -16,7 +21,9 @@
 
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/PhysicsParams.hh"
 #include "accel/LocalOpticalGenOffload.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/detail/IntegrationSingleton.hh"
@@ -273,6 +280,77 @@ TEST_F(TestEm3, run)
 
     rm.Initialize();
     rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+// TEST EM3 MUON DECAY
+//---------------------------------------------------------------------------//
+/*!
+ * Offload low-energy muons that stop and decay at rest.
+ */
+class TestEm3MuDecay : public TestEm3
+{
+    using Base = TestEm3;
+
+  protected:
+    PhysicsInput make_physics_input() const override
+    {
+        auto result = Base::make_physics_input();
+        result.muon.emplace();
+        return result;
+    }
+
+    PrimaryInput make_primary_input() const override
+    {
+        auto result = Base::make_primary_input();
+        result.pdg = {pdg::mu_plus(), pdg::mu_minus()};
+        result.energy = inp::MonoenergeticDistribution{10};  // [MeV]
+        result.primaries_per_event = 2;
+        return result;
+    }
+
+    SetupOptions make_setup_options() override
+    {
+        auto result = Base::make_setup_options();
+        // Offload muons in addition to EM particles
+        result.offload_particles = SetupOptions::VecG4PD{
+            G4Electron::Definition(),
+            G4Positron::Definition(),
+            G4Gamma::Definition(),
+            G4MuonMinus::Definition(),
+            G4MuonPlus::Definition(),
+        };
+        return result;
+    }
+
+    void EndOfRunAction(G4Run const* run) override
+    {
+        if (UAI::Instance().GetMode() == OffloadMode::enabled)
+        {
+            // Problem setup built the decay process from the imported data
+            auto const& physics = *detail::IntegrationSingleton::instance()
+                                       .shared_params()
+                                       .Params()
+                                       ->physics();
+            EXPECT_TRUE(physics.decay_process());
+            EXPECT_EQ(1, physics.decay_channels().size());
+            ++num_checked_;
+        }
+        Base::EndOfRunAction(run);
+    }
+
+    int num_checked_{0};
+};
+
+//---------------------------------------------------------------------------//
+TEST_F(TestEm3MuDecay, run)
+{
+    auto& rm = this->run_manager();
+    UAI::Instance().SetOptions(this->make_setup_options());
+
+    rm.Initialize();
+    rm.BeamOn(2);
+    EXPECT_EQ(1, num_checked_);
 }
 
 //---------------------------------------------------------------------------//
