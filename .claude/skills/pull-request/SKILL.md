@@ -36,3 +36,8 @@ and contain a clear-text 🤖, e.g. `🤖 (Claude Code, Sonnet 5.5)`.
 ## Credit
 
 `ai-generated` work is not eligible for `scripts/release/contributors.jsonl`.
+
+## After submission
+
+Tell the user that the PR is a draft and that *they* must manually review the
+code and mark it "ready for review" to certify it. Never mark it ready yourself.

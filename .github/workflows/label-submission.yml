@@ -59,7 +59,16 @@ jobs:
           CONFIG: ${{ inputs.config }}
         with:
           script: |
-            const cfg = JSON.parse(process.env.CONFIG);
+            let cfg;
+            try {
+              cfg = JSON.parse(process.env.CONFIG);
+              if (cfg === null || typeof cfg !== 'object' || Array.isArray(cfg)) {
+                throw new Error('config must be a JSON object');
+              }
+            } catch (e) {
+              core.setFailed(`Invalid label-submission config: ${e.message}`);
+              return;
+            }
             const types = cfg.types || {};
             const allowed = cfg.labels || [];
             const generated = cfg.generated_label || 'ai-generated';
@@ -143,6 +152,9 @@ jobs:
             await addLabels(labels);
 
             if (cleaned !== body) {
+              core.notice(
+                `Editing the description of #${item.number} to comment out `
+                + 'processed commands and form content');
               if (isPR) {
                 await github.rest.pulls.update({
                   owner: params.owner,
@@ -163,6 +175,9 @@ jobs:
               }
             }
             if (errors.length > 0) {
+              core.notice(
+                `Adding a comment to #${item.number} about `
+                + `${errors.length} unrecognized command(s)`);
               const supported = Object.keys(types).length > 0 && !isPR
                 ? `\`task\` (${Object.keys(types).join(', ')}), ` : '';
               await github.rest.issues.createComment({
