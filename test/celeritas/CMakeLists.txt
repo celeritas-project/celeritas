@@ -40,7 +40,7 @@ if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
 
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2)
   set(_needs_surf_norm DISABLE)
 endif()
 
