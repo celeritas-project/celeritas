@@ -50,7 +50,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up the simulated H100 and CUDA toolkit
-        uses: pantheongpu/setup-pantheonsim@68edfd58c091361dd6baf060b63de412e544d858 # v0.1.7
+        uses: pantheongpu/setup-pantheonsim@656f502ef4782d94d34d8ddd368e333960609639 # v0.1.8
         with:
           gpu: nvidia/h100
           cuda-toolkit: "13.0"
@@ -107,23 +107,15 @@ jobs:
 
       # Without a device the test harness prints "Disabling tests with
       # 'device' in the name" and skips them, so fail if that happens.
-      # AsyncSnapshot runs on its own below: its device_pending case blocks
-      # the stream with a host function that waits for the calling thread,
-      # which the simulator does not support yet (it hangs).
       - name: Test Celeritas on the simulated H100
         run: |
           vgpu run --gpu nvidia/h100 \
-            ctest --test-dir build -L gpu -E "^corecel/data/AsyncSnapshot$" \
+            ctest --test-dir build -L gpu \
               -j2 --timeout 600 --output-on-failure --no-tests=error
           if grep -q "Disabling tests with 'device'" \
               build/Testing/Temporary/LastTest.log; then
             echo "::error::device tests were skipped (no device seen)"
             exit 1
           fi
-          timeout 600 vgpu run --gpu nvidia/h100 \
-            build/test/corecel/data_AsyncSnapshot \
-              --gtest_filter=-*device_pending | tee snapshot.log
-          grep -q "tests PASSED" snapshot.log
-          ! grep -q "Disabling tests with 'device'" snapshot.log
 
 # vim: set nowrap tw=100:
