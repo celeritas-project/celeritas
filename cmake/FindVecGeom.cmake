@@ -11,14 +11,7 @@ Celeritas.
 
 #]=======================================================================]
 
-# VecCore before 0.8.2 (allowed by VecGeom 1.2 with CUDA) uses FindCUDA
-# TODO: remove in v0.8 (require VecGeom 2)
-cmake_policy(PUSH)
-if(POLICY CMP0146)
-  cmake_policy(SET CMP0146 OLD)
-endif()
 find_package(VecGeom QUIET CONFIG)
-cmake_policy(POP)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
