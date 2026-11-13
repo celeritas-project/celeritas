@@ -483,6 +483,7 @@ celeritas_add_test(optical/OpticalCollector.test.cc
   GPU ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
 celeritas_add_test(optical/Rayleigh.test.cc)
+celeritas_add_test(optical/ResponseTally.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/RoughnessCalculator.test.cc)
 celeritas_add_test(optical/Scintillation.test.cc)

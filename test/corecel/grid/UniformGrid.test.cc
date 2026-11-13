@@ -94,6 +94,18 @@ TEST_F(UniformGridTest, TEST_IF_CELERITAS_DOUBLE(from_logbounds))
 #endif
 }
 
+TEST_F(UniformGridTest, contains)
+{
+    input = UniformGridData::from_bounds({-1, 5}, 7);
+    ASSERT_TRUE(input);
+
+    UniformGrid grid(input);
+    EXPECT_TRUE(grid.contains(-1));
+    EXPECT_TRUE(grid.contains(4.9));
+    EXPECT_FALSE(grid.contains(-2));
+    EXPECT_FALSE(grid.contains(5));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
