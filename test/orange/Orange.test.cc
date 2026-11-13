@@ -179,25 +179,59 @@ TEST_F(TwoVolumeTest, params)
     EXPECT_VEC_SOFT_EQ((Real3{1.5, 1.5, 1.5}), bbox.upper());
 }
 
-//! Initializing on a boundary is currently an error
+//! Initializing on a boundary uses the direction to choose the volume
 TEST_F(TwoVolumeTest, init_on_boundary)
 {
     auto geo = this->make_geo_track_view();
 
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::error};
+        SCOPED_TRACE("Heading out");
         geo = Initializer_t{{0, 0, 1.5}, {0, 0, 1}};
+        EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
+        EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+        EXPECT_TRUE(geo.is_on_boundary());
+        auto next = geo.find_next_step(this->max_step());
+        EXPECT_FALSE(next.boundary);
+    }
+    {
+        SCOPED_TRACE("Heading in");
+        geo = Initializer_t{{0, 0, 1.5}, {0, 0, -1}};
+        EXPECT_EQ(ImplVolumeId{1}, geo.impl_volume_id());
+        EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+        auto next = geo.find_next_step(this->max_step());
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(3.0, next.distance);
+        geo.move_to_boundary();
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, -1.5}), geo.pos());
+        geo.cross_boundary();
+        EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
+    }
+    {
+        SCOPED_TRACE("Heading in, then reversing direction on the boundary");
+        geo = Initializer_t{{0, 0, 1.5}, {0, 0, -1}};
+        geo.set_dir({0, 0, 1});
+        EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+        geo.cross_boundary();
+        EXPECT_EQ(ImplVolumeId{0}, geo.impl_volume_id());
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+    }
+    {
+        SCOPED_TRACE("Tangent");
+        ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::error};
+        geo = Initializer_t{{0, 0, 1.5}, {1, 0, 0}};
 
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             static char const* const expected_log_messages[] = {
-                R"(Failed to initialize geometry state: could not find associated volume in universe 0 at local position {0, 0, 1.5})"};
+                R"(Failed to initialize geometry state: started on and moving tangent to a surface (0) in universe 0 at local position {0, 0, 1.5})"};
             EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
         }
         static char const* const expected_log_levels[] = {"error"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+        EXPECT_EQ(GeoStatus::error, geo.geo_status());
     }
-    EXPECT_EQ(GeoStatus::error, geo.geo_status());
 }
 
 TEST_F(TwoVolumeTest, simple_track)

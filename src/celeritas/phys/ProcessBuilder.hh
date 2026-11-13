@@ -58,7 +58,7 @@ class ProcessBuilder
     //!@{
     //! \name Type aliases
     using IPC = ImportProcessClass;
-    using SPProcess = std::shared_ptr<Process>;
+    using SPProcess = std::shared_ptr<InteractionProcess>;
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
     using SPConstMaterial = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;

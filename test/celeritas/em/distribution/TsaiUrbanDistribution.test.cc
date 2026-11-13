@@ -34,7 +34,6 @@ TEST(TsaiUrbanDistributionTest, bin)
         actual.push_back(calc_histogram(sample_mu));
     }
 
-    // PRINT_EXPECTED(actual);
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         SampledHistogram const expected[] = {

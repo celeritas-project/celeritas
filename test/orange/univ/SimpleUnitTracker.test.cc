@@ -7,6 +7,7 @@
 #include "orange/univ/SimpleUnitTracker.hh"
 
 #include <algorithm>
+#include <cstddef>
 #include <random>
 
 #include "corecel/Config.hh"
@@ -25,6 +26,7 @@
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
 
+#include "AssertionHelper.hh"
 #include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"
 
@@ -51,11 +53,31 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
 
     struct HeuristicInitResult
     {
+        static constexpr char class_str[] = "HeuristicInitResult";
+
         std::vector<double> vol_fractions;  //!< Fraction per volume ID
         double failed{0};  //!< Fraction that couldn't initialize
         double walltime_per_track_ns{0};  //!< Kernel time
 
-        void print_expected() const;
+        friend std::ostream& operator<<(std::ostream& os,
+                                        HeuristicInitResult const& result)
+        {
+            return os << '{' << CELER_REPR_ATTR(result, vol_fractions) << ", "
+                      << result.failed << '}';
+        }
+
+        friend bool is_ref_eq(AssertionHelper& helper,
+                              HeuristicInitResult const& val1,
+                              HeuristicInitResult const& val2)
+        {
+            using namespace ::celeritas::test;
+            RefComparer<HeuristicInitResult> compare{helper, val1, val2};
+            CELER_INVOKE_TYPE_ATTR(
+                compare.is_soft_eq, HeuristicInitResult, vol_fractions);
+            compare.record_result(is_soft_eq(
+                helper, val1.failed, val2.failed, SoftComparator_t<double>()));
+            return static_cast<bool>(compare);
+        }
     };
 
   protected:
@@ -334,22 +356,6 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Output copy-pasteable "gold" comparison unit testing code.
- */
-void SimpleUnitTrackerTest::HeuristicInitResult::print_expected() const
-{
-    cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-         << "static const double expected_vol_fractions[] = "
-         << repr(this->vol_fractions) << ";\n"
-         << "EXPECT_VEC_SOFT_EQ(expected_vol_fractions, "
-            "result.vol_fractions);\n"
-         << "EXPECT_SOFT_EQ(" << this->failed << ", result.failed);\n"
-         << "// Wall time (ns): " << this->walltime_per_track_ns << "\n"
-         << "/*** END CODE ***/\n";
-}
-
-//---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
@@ -407,22 +413,20 @@ TEST_F(OneVolumeTest, safety)
 TEST_F(OneVolumeTest, heuristic_init)
 {
     size_type num_tracks = 1024;
-    static double const expected_vol_fractions[] = {1.0};
+    HeuristicInitResult const expected{{1.0}, 0};
 
     {
         SCOPED_TRACE("Host heuristic");
         auto result = this->run_heuristic_init_host(num_tracks);
 
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 
     if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 }
 
@@ -441,10 +445,34 @@ TEST_F(TwoVolumeTest, initialize)
     }
     {
         // Test rejection
-        SCOPED_TRACE("On the boundary but not crossing a surface");
+        SCOPED_TRACE("On the boundary and moving tangent to it");
         auto init
             = tracker.initialize(this->make_state({1.5, 0, 0}, {0, 0, 1}));
         EXPECT_FALSE(init);
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+    }
+    {
+        SCOPED_TRACE("On the boundary heading in");
+        auto init
+            = tracker.initialize(this->make_state({1.5, 0, 0}, {-1, 0, 0}));
+        EXPECT_EQ("inside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::inside, init.surface.sense());
+
+        // Next intersection is the far side of the sphere
+        auto state = this->make_state(
+            {1.5, 0, 0}, {-1, 0, 0}, "inside", "sphere", '-');
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("sphere", this->id_to_label(isect.surface.id()));
+        EXPECT_SOFT_EQ(3.0, isect.distance);
+    }
+    {
+        SCOPED_TRACE("On the boundary heading out");
+        auto init
+            = tracker.initialize(this->make_state({0, 1.5, 0}, {0, 0.6, 0.8}));
+        EXPECT_EQ("outside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
         SCOPED_TRACE("Outside the sphere");
@@ -634,21 +662,19 @@ TEST_F(TwoVolumeTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 1024;
 
-    static double const expected_vol_fractions[] = {0.4765625, 0.5234375};
+    HeuristicInitResult const expected{{0.4765625, 0.5234375}, 0};
 
     {
         SCOPED_TRACE("Host heuristic");
         auto result = this->run_heuristic_init_host(num_tracks);
 
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
     if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 }
 
@@ -737,27 +763,26 @@ TEST_F(FieldLayersTest, intersect)
 TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 8192;
-    static double const expected_vol_fractions[] = {0,
-                                                    0.018310546875,
-                                                    0.019775390625,
-                                                    0.020263671875,
-                                                    0.0189208984375,
-                                                    0.021484375,
-                                                    0.9012451171875};
+    HeuristicInitResult const expected{{0,
+                                        0.018310546875,
+                                        0.019775390625,
+                                        0.020263671875,
+                                        0.0189208984375,
+                                        0.021484375,
+                                        0.9012451171875},
+                                       0};
 
     {
         SCOPED_TRACE("Host heuristic");
         auto result = this->run_heuristic_init_host(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 
     if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 }
 
@@ -803,11 +828,26 @@ TEST_F(FiveVolumesTest, initialize)
         EXPECT_FALSE(init.surface);
     }
     {
-        // Triple point between a, c, d
-        SCOPED_TRACE("On the boundary but not crossing a surface");
-        auto init
-            = tracker.initialize(this->make_state({0, 0.75, 0}, {1, 1, 0}));
-        EXPECT_FALSE(init);
+        // Triple point between a, c, d: on the alpha.px plane (x = 0) and
+        // the gamma sphere (r = 0.75); both "on" tests and normals are exact
+        // since 0.75 and 0.75^2 are exactly representable. The direction is
+        // outward from both, which selects 'd'. The stored surface is the
+        // first face of 'd' that the point is on.
+        SCOPED_TRACE("On the boundary heading into d");
+        auto state = this->make_state({0, 0.75, 0}, {1, 1, 0});
+        auto init = tracker.initialize(state);
+        EXPECT_EQ("d", this->id_to_label(init.volume));
+        EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
+
+        // The next intersection must be the outer sphere, a nonzero distance
+        // away: neither surface the point is on can be hit at zero distance
+        state.volume = init.volume;
+        state.surface = init.surface;
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(99.46826365422226, isect.distance);
     }
 }
 
@@ -937,21 +977,19 @@ TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 10000;
 
-    static double const expected_vol_fractions[]
-        = {0, 0.0701, 0.106, 0.1621, 0.6555, 0.0063};
+    HeuristicInitResult const expected{
+        {0, 0.0701, 0.106, 0.1621, 0.6555, 0.0063}, 0};
 
     {
         SCOPED_TRACE("Host heuristic");
         auto result = this->run_heuristic_init_host(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
     if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
-        EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
-        EXPECT_SOFT_EQ(0, result.failed);
+        EXPECT_REF_EQ(expected, result);
     }
 }
 

@@ -16,10 +16,6 @@
 
 #include "Quantity.hh"
 
-#if !CELER_DEVICE_COMPILE
-#    include <ostream>
-#endif
-
 namespace celeritas
 {
 
@@ -117,23 +113,6 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
     }
     return result;
 }
-
-#if !CELER_DEVICE_COMPILE
-//---------------------------------------------------------------------------//
-/*!
- * Output a quantity array with its label.
- *
- * This overload is more specialized than the generic Array operator<< and is
- * therefore preferred by partial ordering for Quantity element types.
- */
-template<class UnitT, class ValueT, std::size_t N>
-std::ostream& operator<<(std::ostream& os,
-                         Array<Quantity<UnitT, ValueT>, N> const& q)
-{
-    os << value_as<Quantity<UnitT, ValueT>>(q) << " [" << UnitT::label() << ']';
-    return os;
-}
-#endif
 
 //! \endcond
 //---------------------------------------------------------------------------//

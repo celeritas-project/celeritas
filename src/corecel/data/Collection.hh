@@ -17,97 +17,97 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
 /*!
  * \page collections Collection: a data portability class
- *
- * The \c Collection manages data allocation and transfer between CPU and GPU.
- * Its primary design goal is facilitating construction of deeply hierarchical
- * data on host at setup time and seamlessly copying to device.
- * The templated \c T must be trivially copyable and destructable: either a
- * fundamental data type or a struct of such types.  (Some classes in external
- * libraries, such as rocrand's state types and VecGeom's NavTuple types, are
- * \em essentially trivial, but implement null-op destructors or optimized copy
- * constructors, so we allow specialization through the
- * \c celeritas::IsTriviallyCopyable class (used in the \c
- * is_trivially_copyable_v static assertion below).
- *
- * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
- * a contiguous subset of items are accessed with \c ItemRange<T>, and the
- * entirety of the data are accessed with \c all_items. All three of these
- * classes are trivially copyable, so they can be embedded in structs that can
- * be managed by a Collection. A group of Collections, one for each data type,
- * can therefore be trivially copied to the GPU to enable arbitrarily deep and
- * complex data hierarchies.
- *
- * By convention, groups of Collections comprising the data for a single class
- * or subsystem (such as RayleighInteractor or Physics) are stored in a helper
- * struct suffixed with \c Data . For cases where there is both persistent data
- * (problem-specific parameters) and transient data (track-specific states),
- * the collections must be grouped into two separate classes. \c StateData are
- * meant to be mutable and never directly copied between host and device; its
- * data collections are typically accessed by thread ID. \c ParamsData are
- * immutable and always "mirrored" on both host and device. Sometimes it's
- * sensible to partition \c ParamsData into discrete helper structs (stored by
- * value), each with a group of collections, and perhaps another struct that
- * has non-templated scalars (since the default assignment operator is less
- * work than manually copying scalars in a templated assignment operator.
- *
- * A <em>collection group</em> has the following requirements to be compatible
- * with the \c ParamsDataStore (for "params" collection groups), \c
- * StateDataStore (for "state" collection groups), and other such helper
- * classes:
- * - Be a struct templated with <code>template<Ownership W, MemSpace M></code>
- * - Contain only Collection objects and trivially copyable structs
- * - Define an operator bool that is true if and only if the class data is
- *   assigned and consistent
- * - Define a \em templated assignment operator on "other" Ownership and
- *   MemSpace which assigns every member to the right-hand-side's member
- *
- * Additionally, a \c StateData collection group must define
- * - A member function \c size() returning the number of entries (i.e. number
- *   of threads)
- * - A free function \c resize with one of three signatures:
- * \code
-   void resize(
-       StateData<Ownership::value, M>* data,
-       HostCRef<ParamsData> const&     params,
-       StreamId                        stream,
-       size_type                       size);
-   // or...
-   void resize(
-       StateData<Ownership::value, M>* data,
-       const HostCRef<ParamsData>&     params,
-       size_type                       size);
-   // or...
-   void resize(
-       StateData<Ownership::value, M>* data,
-       size_type                       size);
- * \endcode
- *
- * By convention, related groups of collections are stored in a header file
- * named \c *Data.hh .
- *
- * See \c ParticleParamsData and \c ParticleStateData for minimal examples of
- * using collections. The \c MaterialParamsData demonstrates additional
- * complexity by having a multi-level data hierarchy, and \c MaterialStateData
- * has a resize function that uses params data. \c PhysicsParamsData is a very
- * complex example, and \c VecgeomParamsData demonstrates how to use template
- * specialization to adapt Collections to another codebase with a different
- * convention for host-device portability.
- *
- * A common paradigm for managing host-device data is to have a small
- * fixed-size POD struct called a \em record that contains attributes about an
- * item. These often need to reference a variable-sized range of data and do so
- * by storing an \c ItemRange or \c ItemMap . These two types are offsets into
- * "backend" data stored by a collection group.
- *
- * Finally, note that the templated type aliases \c HostVal, \c HostCRef,
- * \c DeviceRef, etc. are useful for functions that are specialized on
- * \c MemSpace.
- */
+
+The \c Collection manages data allocation and transfer between CPU and GPU.
+Its primary design goal is facilitating construction of deeply hierarchical
+data on host at setup time and seamlessly copying to device.
+The templated \c T must be trivially copyable and destructable: either a
+fundamental data type or a struct of such types.  (Some classes in external
+libraries, such as rocrand's state types and VecGeom's NavTuple types, are
+\em essentially trivial, but implement null-op destructors or optimized copy
+constructors, so we allow specialization through the
+\c celeritas::IsTriviallyCopyable class (used in the \c
+is_trivially_copyable_v static assertion below).
+
+An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
+a contiguous subset of items are accessed with \c ItemRange<T>, and the
+entirety of the data are accessed with \c all_items. All three of these
+classes are trivially copyable, so they can be embedded in structs that can
+be managed by a Collection. A group of Collections, one for each data type,
+can therefore be trivially copied to the GPU to enable arbitrarily deep and
+complex data hierarchies.
+
+By convention, groups of Collections comprising the data for a single class
+or subsystem (such as RayleighInteractor or Physics) are stored in a helper
+struct suffixed with \c Data . For cases where there is both persistent data
+(problem-specific parameters) and transient data (track-specific states),
+the collections must be grouped into two separate classes. \c StateData are
+meant to be mutable and never directly copied between host and device; its
+data collections are typically accessed by thread ID. \c ParamsData are
+immutable and always "mirrored" on both host and device. Sometimes it's
+sensible to partition \c ParamsData into discrete helper structs (stored by
+value), each with a group of collections, and perhaps another struct that
+has non-templated scalars (since the default assignment operator is less
+work than manually copying scalars in a templated assignment operator.
+
+A <em>collection group</em> has the following requirements to be compatible
+with the \c ParamsDataStore (for "params" collection groups), \c
+StateDataStore (for "state" collection groups), and other such helper
+classes:
+- Be a struct templated with <code>template<Ownership W, MemSpace M></code>
+- Contain only Collection objects and trivially copyable structs
+- Define an operator bool that is true if and only if the class data is
+  assigned and consistent
+- Define a \em templated assignment operator on "other" Ownership and
+  MemSpace which assigns every member to the right-hand-side's member
+
+Additionally, a \c StateData collection group must define
+- A member function \c size() returning the number of entries (i.e. number
+  of threads)
+- A free function \c resize with one of three signatures:
+\code
+void resize(
+    StateData<Ownership::value, M>* data,
+    HostCRef<ParamsData> const&     params,
+    StreamId                        stream,
+    size_type                       size);
+// or...
+void resize(
+    StateData<Ownership::value, M>* data,
+    const HostCRef<ParamsData>&     params,
+    size_type                       size);
+// or...
+void resize(
+    StateData<Ownership::value, M>* data,
+    size_type                       size);
+\endcode
+
+By convention, related groups of collections are stored in a header file
+named \c *Data.hh .
+
+See \c ParticleParamsData and \c ParticleStateData for minimal examples of
+using collections. The \c MaterialParamsData demonstrates additional
+complexity by having a multi-level data hierarchy, and \c MaterialStateData
+has a resize function that uses params data. \c PhysicsParamsData is a very
+complex example, and \c VecgeomParamsData demonstrates how to use template
+specialization to adapt Collections to another codebase with a different
+convention for host-device portability.
+
+A common paradigm for managing host-device data is to have a small
+fixed-size POD struct called a \em record that contains attributes about an
+item. These often need to reference a variable-sized range of data and do so
+by storing an \c ItemRange or \c ItemMap . These two types are offsets into
+"backend" data stored by a collection group.
+
+Finally, note that the templated type aliases \c HostVal, \c HostCRef,
+\c DeviceRef, etc. are useful for functions that are specialized on
+\c MemSpace.
+*/
 
 //---------------------------------------------------------------------------//
+
 // Forward declarations
 template<class T, class Id>
 class DedupeCollectionBuilder;

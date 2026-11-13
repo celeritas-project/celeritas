@@ -119,7 +119,7 @@ TEST_F(GroupVelocityCalculatorTest, host)
     }
 
     EXPECT_VEC_NEAR(
-        expected_group_velocity_over_c, actual_group_velocity_over_c, 1e-3);
+        expected_group_velocity_over_c, actual_group_velocity_over_c, 1e-3_r);
 }
 
 //---------------------------------------------------------------------------//

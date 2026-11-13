@@ -37,6 +37,7 @@ set(SOURCES
   GenericGeoResults.cc
   GenericGeoTestInterface.cc
   GeoTests.cc
+  RefUtils.cc
   SurfaceTestBase.cc
   VolumeTestBase.cc
 )
@@ -74,6 +75,7 @@ celeritas_setup_tests(SERIAL
 celeritas_add_test(BoundingBox.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
+celeritas_add_test(BumpPosition.test.cc)
 
 # These tests verify both Params and View
 celeritas_add_test(Detector.test.cc)

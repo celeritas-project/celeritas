@@ -16,12 +16,6 @@ concurrency:
 
 env:
   CELER_CMAKE_PRESET: fast
-  CELER_VERSION_STRING: >-
-    ${{
-       github.event.pull_request
-       && format('-pr.{0}', github.event.pull_request.number)
-       || format('-{0}', github.ref_name)
-     }}
 
 jobs:
   linux:
@@ -69,7 +63,6 @@ jobs:
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-ubuntu-github.json
-          version-string: ${{env.CELER_VERSION_STRING}}
           args: ${{matrix.cmake-args}}
 
       - name: Build

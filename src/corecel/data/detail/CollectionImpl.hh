@@ -40,10 +40,21 @@ struct AllItems_t
 };
 
 //---------------------------------------------------------------------------//
+//! Pointed-to type of a raw pointer
+// (Not std::remove_pointer: GCC 14 implements it with a builtin that nvcc
+// writes into host stub signatures, which GCC then rejects.)
+template<class P>
+struct PointeeType;
+template<class T>
+struct PointeeType<T*>
+{
+    using type = T;
+};
+
 //! Memspace-safe pointer based on a container type
 template<class Container, MemSpace M>
 using ContainerObserverPtr
-    = ObserverPtr<std::remove_pointer_t<typename Container::pointer>, M>;
+    = ObserverPtr<typename PointeeType<typename Container::pointer>::type, M>;
 
 //---------------------------------------------------------------------------//
 //! Common traits for collections (unusual ones override these inherited types)
