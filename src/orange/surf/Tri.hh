@@ -8,6 +8,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -39,11 +40,16 @@ class Tri
     using real_type = T;
     using Real3 = Array<real_type, 3>;
     using Vertices = Array<Real3, 3>;
+    using StorageSpan = Span<real_type const, 3>;
     //!@}
 
   public:
     // Construct from 3 vertices
     inline explicit CELER_FUNCTION Tri(Vertices const& verts);
+
+    // Construct from raw data
+    template<class R>
+    explicit inline CELER_FUNCTION Tri(Span<R, StorageSpan::extent>);
 
     //! The vertices defining the triangle
     inline CELER_FUNCTION Vertices const& verts() const { return verts_; }
@@ -89,6 +95,17 @@ CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct from raw data.
+ */
+template<typename T>
+template<class R>
+CELER_FUNCTION Tri<T>::Tri(Span<R, StorageSpan::extent> data)
+    : verts_{data[0], data[1], data[2]}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the intersection point.
  *
  * This is an implementation of the Moller-Trumbore intersection algorithm.
@@ -118,7 +135,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
         return real_type(no_intersection());
     }
 
-    real_type inv_det = 1.0 / det;
+    real_type inv_det = 1 / det;
     auto s = pos - verts_[0];
     real_type u = inv_det * dot_product(s, ray_cross_edge2);
 
