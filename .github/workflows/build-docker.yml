@@ -48,9 +48,9 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: >-
-        docker.io/celeritas/${{
-             matrix.image == 'ubuntu-cuda' && 'ci-ubuntu-cuda13:2026-11-11'
-          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm7:2026-11-11'
+        ghcr.io/celeritas-project/${{
+             matrix.image == 'ubuntu-cuda' && 'ci-cuda:2026-11-12'
+          || matrix.image == 'ubuntu-rocm' && 'ci-rocm:2026-11-12'
         }}
     steps:
       - name: Set up environment
@@ -71,9 +71,12 @@ jobs:
 
       - name: Build Celeritas
         id: build
-        working-directory: build
-        run: |
-          ninja -v -k0
+        uses: ./.github/actions/build-cached
+        with:
+          name: docker-${{matrix.image}}-${{env.CELER_CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          targets: all
+          ccache-max-size: 512Mi
 
       - name: Test Celeritas
         id: test

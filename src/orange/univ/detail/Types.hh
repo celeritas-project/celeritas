@@ -106,9 +106,9 @@ struct Intersection
  *  Vol   | Surface | Description
  * :----: | :-----: | :-------------------------------
  *        |         | Failed to find new volume
- *        |   X     | Initialized on a surface (reject)
+ *        |   X     | Initialized tangent to a surface (reject)
  *   X    |         | Initialized
- *   X    |   X     | Crossed surface into new volume
+ *   X    |   X     | Initialized on, or crossed, a surface into a volume
  */
 struct Initialization
 {
