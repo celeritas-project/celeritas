@@ -536,13 +536,16 @@ class SolidsTest
     : public GenericGeoParameterizedTest<GeantVecgeomTest, SolidsGeoTest>
 {
   public:
-    // VecGeom volume 1.2.10 boolean tracking disagrees ~1e-7 from Geant4
     GenericGeoTrackingTolerance tracking_tol() const override
     {
         auto result = VecgeomTestBase::tracking_tol();
-
-        result.distance = 1e-7;
-        result.safety = 1e-7;
+        if (vecgeom_version < Version{2})
+        {
+            // VecGeom 1.x boolean tracking disagrees ~1e-7 from Geant4
+            // TODO: remove in v0.8.0
+            result.distance = 1e-7;
+            result.safety = 1e-7;
+        }
         return result;
     }
 };
