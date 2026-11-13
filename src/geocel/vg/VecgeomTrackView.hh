@@ -551,7 +551,7 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     }
     vgstate_.SetBoundaryState(true);
 
-    if (CELERITAS_VECGEOM_VERSION >= 0x020200 && !is_push_)
+    if (CELERITAS_VECGEOM_VERSION >= 0x020000 && !is_push_)
     {
         // Don't recalculate normal if bumping on a reentrant surface
         VgReal3 normal;

@@ -47,7 +47,7 @@ auto VecgeomTestBase::build_geometry() const -> SPConstGeo
 CheckedGeoTrackView VecgeomTestBase::make_checked_track_view()
 {
     auto result = GenericGeoTestBase<VecgeomParams>::make_checked_track_view();
-    result.check_normal(CELERITAS_VECGEOM_VERSION >= 0x020200);
+    result.check_normal(CELERITAS_VECGEOM_VERSION >= 0x020000);
     return result;
 }
 
