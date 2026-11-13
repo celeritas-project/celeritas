@@ -85,7 +85,7 @@ jobs:
                   errors.push(line.trim());
                   return line;
                 }
-                return `<!-- processed: ${cmd} ${arg} -->`;
+                return `<!-- ✔️ ${cmd} ${arg} -->`;
               });
 
             // Always wrap the celer-config output in a json code block
@@ -99,16 +99,12 @@ jobs:
                 return `### Celeritas configuration\n\n\`\`\`json\n${inner}\n\`\`\`\n\n`;
               });
 
-            // Replace form metadata with a hidden comment; drop the
-            // description heading
-            const author = answer('Authorship');
+            // Comment out processed form sections (kept for reference)
+            const hide = (text) => `<!-- ✔️\n${text.trim()}\n-->\n\n`;
             cleaned = cleaned
-              .replace(/^### Authorship\s*\n+[^\n]*\n*/gm, '')
-              .replace(/^### Description\s*\n+/m, '')
+              .replace(/^### Authorship\s*\n+[^\n]*\n*/gm, hide)
+              .replace(/^### Description\s*\n+/m, hide)
               .trim();
-            if (author) {
-              cleaned = `<!-- Authorship: ${author} -->\n${cleaned}`;
-            }
 
             if (labels.length > 0) {
               core.info(`Adding labels: ${labels.join(', ')}`);
@@ -128,7 +124,7 @@ jobs:
             if (errors.length > 0) {
               await github.rest.issues.createComment({
                 ...params,
-                body: 'Unrecognized commands:\n\n'
+                body: '❌ Unrecognized commands:\n\n'
                   + errors.map((e) => `- \`${e}\``).join('\n')
                   + '\n\nSupported: `task` ('
                   + Object.keys(kinds).join(', ') + '), `label` ('
