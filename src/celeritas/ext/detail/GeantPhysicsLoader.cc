@@ -230,16 +230,18 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     }
     if (name == nullptr)
     {
-        // Not the correct type *or* name: let other importer code handle it
+        // The loader does not handle the process (neither its type nor its
+        // name matched): let other importer code handle it
         return false;
     }
 
+    // From here on, the process is one this loader handles. Only handled
+    // processes are marked as visited, so that a process not handled by this
+    // loader but which is shared by several particles (e.g., decay) is still
+    // passed to the other loaders for each particle.
     if (!visited_.insert(&p).second)
     {
-        // Already loaded (a process may be shared by several particles). Only
-        // recognized processes are tracked so that a shared unrecognized
-        // process, such as decay, is passed to the other loaders for each
-        // particle.
+        // Already loaded: a process may be shared by several particles
         CELER_LOG(debug) << "Already loaded process \"" << p.GetProcessName()
                          << "\"";
         return true;
@@ -631,13 +633,7 @@ size_type GeantPhysicsLoader::decay(GeantParticleView const& particle,
         return 0;
     }
 
-    auto& parents = imported_.decay_physics.muon.parents;
-    if (std::find(parents.begin(), parents.end(), pdg) != parents.end())
-    {
-        // Already loaded
-        return 0;
-    }
-    parents.push_back(pdg);
+    imported_.decay_physics.muon.parents.insert(pdg);
     return 1;
 }
 

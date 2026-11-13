@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "MuDecayChannel.hh"
 
-#include <algorithm>
-
 #include "corecel/Assert.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/decay/executor/MuDecayExecutor.hh"
@@ -49,10 +47,6 @@ MuDecayChannel::MuDecayChannel(
                        << "invalid parent particle PDG " << pdg.get()
                        << " for muon decay (must be mu- or mu+)");
         ParticleId pid = particles.find(pdg);
-        CELER_VALIDATE(
-            std::find(parents_.begin(), parents_.end(), pid) == parents_.end(),
-            << "duplicate parent particle PDG " << pdg.get()
-            << " for muon decay");
         CELER_VALIDATE(particles.get(pid).decay_constant()
                            != constants::stable_decay_constant,
                        << "muon decay is enabled but particle PDG "

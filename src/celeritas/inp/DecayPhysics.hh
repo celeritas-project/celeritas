@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
+#include <set>
 
 #include "celeritas/phys/PDGNumber.hh"
 
@@ -26,7 +26,7 @@ namespace inp
 struct MuonDecay
 {
     //! Particles that decay through this channel: \c mu- and/or \c mu+
-    std::vector<PDGNumber> parents;
+    std::set<PDGNumber> parents;
 
     //! Whether muon decay is enabled
     explicit operator bool() const { return !parents.empty(); }

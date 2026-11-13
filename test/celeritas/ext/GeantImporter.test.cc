@@ -1180,7 +1180,6 @@ TEST_F(MuDecaySlabs, decay)
     {
         parents.push_back(pdg.get());
     }
-    std::sort(parents.begin(), parents.end());
     static int const expected_parents[] = {-13, 13};
     EXPECT_VEC_EQ(expected_parents, parents);
 }

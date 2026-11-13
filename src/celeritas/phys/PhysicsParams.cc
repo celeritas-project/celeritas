@@ -642,9 +642,10 @@ void PhysicsParams::build_tables(
                  * interaction, so only one per particle is allowed and it
                  * takes priority over decay at rest.
                  *
-                 * \todo If processes with a nonzero time to interaction at
-                 * rest are added, sample each one's time and choose the
-                 * shortest in \c select_discrete_interaction.
+                 * \todo If at-rest processes with exponentially distributed
+                 * time to interaction are added, sample one with probability
+                 * proportional to its rate (1 / mean time) in \c
+                 * select_discrete_interaction
                  */
                 CELER_VALIDATE(!process_group.at_rest,
                                << "particle ID " << particle_id.get()

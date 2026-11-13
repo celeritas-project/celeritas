@@ -220,7 +220,8 @@ TEST_F(DecayProcessTest, params)
     EXPECT_EQ("decay-muon", channel.label());
     auto mu_minus = particles.find(pdg::mu_minus());
     auto mu_plus = particles.find(pdg::mu_plus());
-    EXPECT_EQ((std::vector<ParticleId>{mu_minus, mu_plus}), channel.parents());
+    // Parents are ordered by PDG number
+    EXPECT_EQ((std::vector<ParticleId>{mu_plus, mu_minus}), channel.parents());
 
     // Channel actions are registered after the failure action
     EXPECT_LT(physics.host_ref().scalars.failure_action(), channel.action_id());
@@ -351,10 +352,6 @@ TEST_F(DecayProcessTest, invalid_input)
 
     // Not a muon
     muon.parents = {pdg::electron()};
-    EXPECT_THROW(MuDecayChannel(ActionId{0}, particles, muon), RuntimeError);
-
-    // Duplicate
-    muon.parents = {pdg::mu_plus(), pdg::mu_plus()};
     EXPECT_THROW(MuDecayChannel(ActionId{0}, particles, muon), RuntimeError);
 }
 

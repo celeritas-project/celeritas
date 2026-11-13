@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "SupportedDecayPhysics.hh"
 
+#include <G4BuilderType.hh>
 #include <G4Decay.hh>
 #include <G4LeptonConstructor.hh>
 #include <G4MuonMinus.hh>
@@ -23,7 +24,7 @@ namespace celeritas
  * Construct with physics options.
  */
 SupportedDecayPhysics::SupportedDecayPhysics(Options const& options)
-    : G4VPhysicsConstructor("decay")
+    : G4VPhysicsConstructor("decay", bDecay)
 {
     CELER_VALIDATE(options.muon && options.muon->decay,
                    << "cannot construct SupportedDecayPhysics when muon decay "
@@ -49,6 +50,9 @@ void SupportedDecayPhysics::ConstructParticle()
 void SupportedDecayPhysics::ConstructProcess()
 {
     auto* ph = G4PhysicsListHelper::GetPhysicsListHelper();
+
+    // Geant4 takes ownership of the process (shared by mu- and mu+) when it is
+    // registered
     auto* decay = new G4Decay();
     for (G4ParticleDefinition* p :
          {static_cast<G4ParticleDefinition*>(G4MuonMinus::Definition()),

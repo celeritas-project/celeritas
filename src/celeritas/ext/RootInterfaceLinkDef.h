@@ -81,6 +81,7 @@
 // Other type-safe integers
 #pragma link C++ class celeritas::AtomicNumber+;
 #pragma link C++ class celeritas::PDGNumber+;
+#pragma link C++ class std::set<celeritas::PDGNumber>+;
 
 // clang-format on
 
