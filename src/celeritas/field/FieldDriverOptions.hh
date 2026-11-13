@@ -65,7 +65,7 @@ struct FieldDriverOptions
     short int max_substeps = 10;
 
     //! Propagate steps inside the start-of-step safety without searches
-    bool use_safety_sphere = true;
+    bool use_safety_sphere = false;
 
     //! Initial step tolerance
     static constexpr real_type initial_step_tol = 1e-6;
