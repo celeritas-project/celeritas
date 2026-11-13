@@ -50,7 +50,7 @@ function(celer_optical_add_test ext gdml backend)
     list(APPEND _props DISABLED TRUE)
   endif()
   if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2)
-     # VecGeom 1.x does not provide surface normals: required for optical
+     # VecGeom < 2.2 does not provide surface normals: required for optical
     list(APPEND _props DISABLED true)
   endif()
 

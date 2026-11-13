@@ -45,7 +45,7 @@ if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
   list(APPEND _optical_args "mt")
 endif()
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2)
-  # VecGeom 1.x does not provide surface normals: required for optical
+  # VecGeom < 2.2 does not provide surface normals: required for optical
   # (hack the run manager
   list(APPEND _optical_args "DISABLE")
 endif()
