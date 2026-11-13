@@ -2,7 +2,9 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# Label AI-generated or AI-assisted pull requests on creation
+# Label AI-generated or AI-assisted pull requests on creation, and add allow-listed
+# labels from `@github-actions label <label>` commands in the description.
+# See @../../.claude/skills/file-pr/SKILL.md
 #-----------------------------------------------------------------------------#
 
 name: pull_request_target_opened
@@ -41,8 +43,53 @@ jobs:
               });
             };
 
+            // Commands in the description: `@github-actions label <label>`
+            // Keep this list in sync with .claude/skills/file-pr/SKILL.md
+            const allowedLabels = [
+              'physics', 'geometry', 'field', 'app', 'external', 'scoring',
+            ];
+            const errors = [];
+            const requested = [];
+            const body = pr.body || '';
+            const cleaned = body.replace(
+              /^@github-actions[ \t]+(\w+)[ \t]+(\S+)[ \t]*$/gim,
+              (line, cmd, arg) => {
+                cmd = cmd.toLowerCase();
+                arg = arg.toLowerCase();
+                if (cmd === 'label' && allowedLabels.includes(arg)) {
+                  requested.push(arg);
+                  return `<!-- ✔️ ${cmd} ${arg} -->`;
+                }
+                errors.push(line.trim());
+                return line;
+              });
+            if (requested.length > 0) {
+              core.info(`Adding labels: ${requested.join(', ')}`);
+              await github.rest.issues.addLabels({
+                ...params,
+                issue_number: pr.number,
+                labels: requested,
+              });
+            }
+            if (cleaned !== body) {
+              await github.rest.pulls.update({
+                ...params,
+                pull_number: pr.number,
+                body: cleaned,
+              });
+            }
+            if (errors.length > 0) {
+              await github.rest.issues.createComment({
+                ...params,
+                issue_number: pr.number,
+                body: '❌ Unrecognized commands:\n\n'
+                  + errors.map((e) => `- \`${e}\``).join('\n')
+                  + '\n\nSupported: `label` (' + allowedLabels.join(', ') + ').',
+              });
+            }
+
             // Robot emoji in the description means the PR was generated
-            if ((pr.body || '').includes('🤖')) {
+            if (body.includes('🤖')) {
               await addLabel('ai-generated');
               return;
             }

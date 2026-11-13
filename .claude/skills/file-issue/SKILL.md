@@ -40,3 +40,6 @@ Generated with <agent identity: driver, agent, model>
 - End with a "Generated with" statement naming the agent identity.
 - Use `gh issue create --repo celeritas-project/celeritas --title ... --body-file ...`
   and never invent labels outside the allow-list.
+
+Every comment you later post on the issue must disclose the harness/model and
+contain a clear-text 🤖, e.g. `🤖 (Claude Code, Sonnet 5.5)`.
