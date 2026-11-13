@@ -274,7 +274,8 @@ void AtlasHgtdGeoTest::test_trace() const
         if (test_->geometry_type() == "VecGeom"
             && vecgeom_version() < Version{2, 0})
         {
-            GTEST_SKIP() << "VecGeom fails the tangent trace";
+            // TODO: remove in v0.8.0
+            GTEST_SKIP() << "VecGeom 1.x fails the tangent trace";
         }
 
         // With single precision, the ~1e-6 offset above the SPlate's lower
