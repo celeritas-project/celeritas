@@ -44,8 +44,9 @@ jobs:
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack
-          no-save: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
+          # Only save ccache on develop to reduce PR-related cache churn
           ccache-max-size: 512Mi
+          save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
       - name: Run tests
         id: test
         uses: ./.github/actions/run-ctest

@@ -49,8 +49,9 @@ jobs:
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack
+          # Only save ccache on develop to reduce PR-related cache churn
           ccache-max-size: 512Mi
-          no-save: ${{ !(github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
+          save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
       - name: Check debug is disabled
         working-directory: build
         run: |
