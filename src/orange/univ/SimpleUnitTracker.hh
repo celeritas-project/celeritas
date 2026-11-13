@@ -426,7 +426,9 @@ CELER_FUNCTION auto SimpleUnitTracker::normal(
     CELER_EXPECT(surf);
 
     LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
-    return visit_surface(detail::CalcNormal{pos}, surf);
+    auto gradient = visit_surface(
+        [&pos](auto&& s) { return s.calc_gradient(pos); }, surf);
+    return make_unit_vector(gradient);
 }
 
 //---------------------------------------------------------------------------//
