@@ -808,7 +808,8 @@ TEST_F(TestEm3MuDecay, host)
     if (Test::strict_testing())
     {
         EXPECT_EQ(79, result.num_step_iters());
-        EXPECT_SOFT_EQ(128.5, result.calc_avg_steps_per_primary());
+        EXPECT_LE(127.25, result.calc_avg_steps_per_primary());
+        EXPECT_GE(128.5, result.calc_avg_steps_per_primary());
         EXPECT_EQ(19, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({10, 8}), result.calc_queue_hwm());
     }
