@@ -8,6 +8,7 @@
 
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
+#include <G4Version.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -35,7 +36,14 @@ std::vector<G4ParticleDefinition const*> make_geant_particles(
     for (auto pid : range(ParticleId{par.size()}))
     {
         int pdg = par.id_to_pdg(pid).get();
-        if (G4ParticleDefinition* particle = g4particles.FindParticle(pdg))
+        G4ParticleDefinition* particle = g4particles.FindParticle(pdg);
+        if (!particle && G4VERSION_NUMBER < 1070 && pdg == -22)
+        {
+            // Before 10.7, Geant4 uses PDG 0 plus a unique name for optical
+            // photons
+            particle = g4particles.FindParticle("opticalphoton");
+        }
+        if (particle)
         {
             result[pid.get()] = particle;
         }
