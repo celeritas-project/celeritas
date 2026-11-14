@@ -1,7 +1,7 @@
 FROM almalinux:latest
 
 ARG PERFETTO_REP=https://android.googlesource.com/platform/external/perfetto
-ARG PERFETTO_VERSION_TAG=v49.0
+ARG PERFETTO_VERSION_TAG=v59.1
 ENV DEVEL_ROOT=/opt/devel
 ENV PERFETTO_ROOT=${DEVEL_ROOT}/perfetto
 ENV PERFETTO_TOOLS=${PERFETTO_ROOT}/out/linux

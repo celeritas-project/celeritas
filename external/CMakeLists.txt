@@ -39,15 +39,18 @@ set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 
 if(CELERITAS_BUILTIN_CLI11)
   celer_fetch_external(
-    CLI11 2.5.0
+    CLI11 2.7.1
     "https://github.com/CLIUtils/CLI11/archive/refs/tags/v@VERSION@.tar.gz"
-    17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55
+    c02abe5c5fed9b9c9192bff3c74d2c0d19755253f9ca9e3c44484c1cf5ce6568
   )
 
   set(CLI11_BUILD_EXAMPLES OFF)
   set(CLI11_BUILD_DOCS OFF)
   set(CLI11_BUILD_TESTS OFF)
-  set(CLI11_PRECOMPILED ON)
+  # As a subproject, CLI11 doesn't install its precompiled library, which is
+  # shared (since 2.7) when BUILD_SHARED_LIBS is on. Installed apps would
+  # then fail to load it
+  set(CLI11_PRECOMPILED OFF)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -56,9 +59,9 @@ endif()
 
 if(CELERITAS_BUILTIN_covfie)
   celer_fetch_external(
-    covfie 0.15.3
+    covfie 0.16.0
     "https://github.com/acts-project/covfie/archive/refs/tags/v@VERSION@.tar.gz"
-    72da1147c44731caf9163f3931de78d7605a44f056f22a2f6ea024ad02a1ba71
+    f1491b85c5e8ed9535e4b99adb85661512964132baf6dc9b9a9af10e4b625cb3
   )
 
   set(COVFIE_PLATFORM_CPU ON)
@@ -77,9 +80,9 @@ endif()
 
 if(CELERITAS_BUILTIN_GTest)
   celer_fetch_external(
-    GTest 1.17.0
+    GTest 1.18.0
     "https://github.com/google/googletest/archive/refs/tags/v@VERSION@.tar.gz"
-    65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c
+    6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5
   )
 
   set(BUILD_GMOCK OFF) # For compatibility
@@ -107,13 +110,10 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_Perfetto)
-  if(PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
-    set(FETCHCONTENT_SOURCE_DIR_PERFETTO "${PERFETTO_ROOT}")
-  endif()
   celer_fetch_external(
-    Perfetto 49.0
-    "https://github.com/google/perfetto/archive/refs/tags/v@VERSION@.tar.gz"
-    0871a92a162ac5655b7d724f9359b15a75c4e92472716edbc4227a64a4680be4
+    Perfetto 59.1
+    "https://github.com/google/perfetto/releases/download/v@VERSION@/perfetto-cpp-sdk-src.zip"
+    79951246078ea0406eb4c7c6bb71dbbc31849d5dc13de2c0697995c7acfd0b04
   )
 endif()
 
@@ -123,13 +123,19 @@ endif()
 
 if(CELERITAS_BUILTIN_G4VG)
   celer_fetch_external(
-    G4VG 1.0.5
+    G4VG 1.0.7
     "https://github.com/celeritas-project/g4vg/releases/download/v@VERSION@/g4vg-@VERSION@.tar.gz"
-    fa44d071aaf95de596f7b22d2062830acd7e154a3bc9d67ad5a306eff64630d2
+    fb70f509cc85b0d5311b70246e141ffdd47abf9b175cf95aa0fd1b75edae616e
   )
   foreach(_var BUILD_TESTS DEBUG)
     set(G4VG_${_var} ${CELERITAS_${_var}})
   endforeach()
+  if(CELERITAS_BUILTIN_GTest)
+    # Prevent G4VG from finding an installed GTest that conflicts with the
+    # builtin targets
+    # TODO: Delete once a release includes https://github.com/celeritas-project/g4vg/pull/50
+    set(GTest_FOUND TRUE)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -168,8 +174,11 @@ endforeach()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
-  set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}/sdk")
+  set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}")
   add_library(perfetto STATIC "${Perfetto_INCLUDE_DIR}/perfetto.cc")
+  target_compile_options(perfetto PRIVATE
+    $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>
+  )
   target_include_directories(perfetto
     INTERFACE "$<BUILD_INTERFACE:${Perfetto_INCLUDE_DIR}>"
   )
@@ -180,12 +189,18 @@ if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
   )
 endif()
 
+if(CELERITAS_BUILTIN_GTest AND NOT TARGET GTest::GTest)
+  # Provide the target name created by CMake's FindGTest (used by G4VG)
+  # TODO: Delete once a release includes https://github.com/celeritas-project/g4vg/pull/50
+  add_library(GTest::GTest ALIAS gtest)
+endif()
+
 if(CELERITAS_BUILTIN_CLI11)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # __cplusplus: use standard-compliant C++ version macro
     # preprocessor: use standard-compliant preprocessor
     # EHsc: enable standard C++ exception handling
-    target_compile_options(CLI11 PUBLIC
+    target_compile_options(CLI11 INTERFACE
       $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
     )
   endif()
