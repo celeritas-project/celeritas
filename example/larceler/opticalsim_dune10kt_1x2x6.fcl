@@ -1,5 +1,6 @@
 //---------------------------------------------------------------------------//
 // Job execution for optical fast simulation on DUNE 1x2x6 geometry
+// - PDFastSim_dune is part of `duneopdet`
 //---------------------------------------------------------------------------//
 #include "services_dune.fcl"
 #include "PDFastSim_dune.fcl"

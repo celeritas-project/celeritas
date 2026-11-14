@@ -1,5 +1,7 @@
 //---------------------------------------------------------------------------//
 // Job execution for Geant4 and IonAndScint on DUNE 1x2x6 geometry
+// - LArG4_dune, IonAndScint_dune are from `dunesim` package
+// - services_dune and the GDML are from `dunecore`
 //---------------------------------------------------------------------------//
 #include "LArG4_dune.fcl"
 #include "IonAndScint_dune.fcl"
