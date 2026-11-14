@@ -29,7 +29,6 @@ jobs:
     with:
       config: |
         {
-          "types": {"enhancement": "Enhancement", "bug": "Bug"},
           "labels": ["physics", "geometry", "field", "app", "external", "scoring"],
           "marker": "🤖",
           "trailer": "Assisted-by"
