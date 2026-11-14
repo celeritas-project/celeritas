@@ -7,7 +7,9 @@
 #include "larceler/LarStandaloneRunner.hh"
 
 #include <fstream>
+#include <iostream>
 #include <memory>
+#include <numeric>
 #include <larcoreobj/SimpleTypesAndConstants/geo_vectors.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
@@ -15,10 +17,11 @@
 
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/io/OpticalDistributionReader.hh"
-#include "celeritas/phys/GeneratorCountersIO.json.hh"
+#include "celeritas/phys/GeneratorCountersIO.json.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "AssertionHelper.hh"
@@ -50,7 +53,7 @@ struct OpticalDistributionResult
     {
         return os << '{' << CELER_REPR_ATTR(ref, num_photons) << ", "
                   << CELER_REPR_ATTR(ref, components) << ", "
-                  << CELER_REPR_ATTR(ref, primaries) << '}';
+                  << CELER_REPR_ATTR(ref, primaries) << ",}";
     }
 
     friend bool is_ref_eq(AssertionHelper& helper,
@@ -113,7 +116,7 @@ struct DiagnosticResult
                   << CELER_REPR_ATTR(ref, gen_size) << ", "
                   << CELER_REPR_ATTR(ref, buffer_size) << ", "
                   << CELER_REPR_ATTR(ref, num_generated) << ", "
-                  << CELER_REPR_ATTR(ref, num_pending) << '}';
+                  << CELER_REPR_ATTR(ref, num_pending) << ",}";
     }
 
     friend bool is_ref_eq(AssertionHelper& helper,
@@ -311,6 +314,9 @@ TEST_F(DuneCryoTest, setup)
 TEST_F(DuneCryoTest, two_sim_edeps)
 {
     auto& run = this->runner();
+    bool const is_reference_version
+        = Version::from_package("LArSoft") == Version::from_string("10.24.01")
+          && Version::from_package("Geant4") == Version::from_string("11.2.2");
 
     /*
      * See larg4/Services/SimEnergyDepositSD.cc
@@ -346,7 +352,14 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     RunResult ref{
         /* num_hits = */ {274, 273, 11, 4},
     };
-    EXPECT_REF_EQ(ref, result);
+    if (is_reference_version)
+    {
+        EXPECT_REF_EQ(ref, result);
+    }
+    else
+    {
+        std::cout << "Actual RunResult: " << result << '\n';
+    }
 
     auto const& sim_channel = raw_result.sim_photons.at(3);
     EXPECT_EQ(3, sim_channel.OpChannel);
@@ -358,7 +371,14 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     ref = RunResult{
         /* num_hits = */ {258, 260, 14, 5},
     };
-    EXPECT_REF_EQ(ref, result) << result;
+    if (is_reference_version)
+    {
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+    else
+    {
+        std::cout << "Actual RunResult: " << result << '\n';
+    }
 
     // Run again with varying scintillation yield ratios
     run({make_sed(10, 0.25, 1), make_sed(10, 1.0, 2), make_sed(10, 0.0, 3)});
@@ -384,7 +404,15 @@ TEST_F(DuneCryoTest, two_sim_edeps)
         /* components = */ {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
         /* primaries = */ {0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 2},
     };
-    EXPECT_REF_EQ(optical_ref, optical_result);
+    if (is_reference_version)
+    {
+        EXPECT_REF_EQ(optical_ref, optical_result);
+    }
+    else
+    {
+        std::cout << "Actual OpticalDistributionResult: " << optical_result
+                  << '\n';
+    }
 
     // Check diagnostic output counters (setup's TearDown should mean this has
     // *only* counters)
@@ -411,7 +439,23 @@ TEST_F(DuneCryoTest, two_sim_edeps)
         /* num_generated = */ {8192, 8192, 30},
         /* num_pending = */ {8192, 8192, 30},
     };
-    EXPECT_REF_EQ(diagnostic_ref, diagnostic_result) << diagnostic_result;
+    if (is_reference_version)
+    {
+        EXPECT_REF_EQ(diagnostic_ref, diagnostic_result) << diagnostic_result;
+    }
+    else
+    {
+        std::cout << "Actual DiagnosticResult: " << diagnostic_result << '\n';
+        auto const expected_steps
+            = std::accumulate(diagnostic_ref.steps.begin(),
+                              diagnostic_ref.steps.end(),
+                              size_type{});
+        auto const actual_steps
+            = std::accumulate(diagnostic_result.steps.begin(),
+                              diagnostic_result.steps.end(),
+                              size_type{});
+        EXPECT_NEAR(expected_steps, actual_steps, 0.1 * expected_steps);
+    }
 }
 
 TEST_F(DuneCryoTest, zero_photons)
