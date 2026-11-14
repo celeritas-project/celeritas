@@ -47,7 +47,7 @@ if(CELERITAS_BUILTIN_CLI11)
   set(CLI11_BUILD_EXAMPLES OFF)
   set(CLI11_BUILD_DOCS OFF)
   set(CLI11_BUILD_TESTS OFF)
-  set(CLI11_PRECOMPILED ON)
+  set(CLI11_PRECOMPILED OFF)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -130,6 +130,7 @@ if(CELERITAS_BUILTIN_G4VG)
   if(CELERITAS_BUILTIN_GTest)
     # Prevent G4VG from finding an installed GTest that conflicts with the
     # builtin targets
+  # TODO: remove after https://github.com/celeritas-project/g4vg/pull/50
     set(GTest_FOUND TRUE)
   endif()
 endif()
@@ -187,6 +188,7 @@ endif()
 
 if(CELERITAS_BUILTIN_GTest AND NOT TARGET GTest::GTest)
   # Provide the target name created by CMake's FindGTest (used by G4VG)
+  # TODO: remove after https://github.com/celeritas-project/g4vg/pull/50
   add_library(GTest::GTest ALIAS gtest)
 endif()
 
