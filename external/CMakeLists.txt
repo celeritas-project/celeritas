@@ -127,6 +127,11 @@ if(CELERITAS_BUILTIN_G4VG)
   foreach(_var BUILD_TESTS DEBUG)
     set(G4VG_${_var} ${CELERITAS_${_var}})
   endforeach()
+  if(CELERITAS_BUILTIN_GTest)
+    # Prevent G4VG from finding an installed GTest that conflicts with the
+    # builtin targets
+    set(GTest_FOUND TRUE)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -178,6 +183,11 @@ if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
     EXPORT celeritas-targets
     COMPONENT runtime
   )
+endif()
+
+if(CELERITAS_BUILTIN_GTest AND NOT TARGET GTest::GTest)
+  # Provide the target name created by CMake's FindGTest (used by G4VG)
+  add_library(GTest::GTest ALIAS gtest)
 endif()
 
 if(CELERITAS_BUILTIN_CLI11)
