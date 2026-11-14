@@ -64,7 +64,7 @@ fi
 # BEGIN_DOC_FNALSPACK
 # Latest release of FNAL-Spack and DUNESW spack environment
 export SPACK_ROOT="/cvmfs/dune.opensciencegrid.org/spack/v1.2.2"
-CELER_SPACK_ENV="dunesw-10_26_00d05-justin-01_06_05-prototype"
+CELER_SPACK_ENV="dunesw-10_31_00d00-justin-01_06_05-prototype"
 CELER_SPACK_PACKAGES="gcc@12 cmake larsim googletest cuda"
 # END_DOC_FNALSPACK
 
@@ -138,6 +138,7 @@ if [ -z "${CELER_SPACK_ENV_LOADED}" ]; then
     return ${_errcode}
   fi
 fi
+  celerlog info "Loaded spack environment: '${CELER_SPACK_ENV_LOADED}'"
 
 if [ ! command -v lar >/dev/null 2>&1 ]; then
   celerlog error "Incorrect spack environment: see ${_spack_src_file}.old"
