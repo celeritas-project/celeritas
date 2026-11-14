@@ -173,14 +173,17 @@ CELER_FUNCTION SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the local volume from a position.
+ * Find the local volume from a position and direction.
  *
- * To avoid edge cases and inconsistent logical/physical states, it is
- * prohibited to initialize from an arbitrary point directly onto a surface.
+ * If the position is exactly on one of a volume's faces, the sense of that
+ * face is taken to be the side of the surface the track is moving toward,
+ * determined by the sign of the dot product of the local direction with the
+ * local outward surface normal. The resulting state is logically on that
+ * surface, as though it had just crossed into the volume.
  *
- * \todo This prohibition currently also extends to *internal* surfaces, even
- * if both sides of that surface are "in" the current cell. We may need to
- * relax that.
+ * To avoid inconsistent logical/physical states, initialization is still
+ * prohibited if the track is on a surface \em and moving exactly tangent to
+ * it, since the side of the surface is undefined.
  */
 CELER_FUNCTION auto SimpleUnitTracker::initialize(
     LocalState const& state) const -> Initialization
@@ -190,28 +193,33 @@ CELER_FUNCTION auto SimpleUnitTracker::initialize(
 
     // Use the BVH to locate a position that's inside, and save whether it's on
     // a surface in the found volume
-    detail::OnFace on_surface;
+    detail::OnLocalSurface on_surface;
     auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
-        on_surface = {};
+        detail::OnFace face;
         VolumeView vol = this->make_local_volume(id);
         auto calc_senses = detail::SenseCalculator(
-            this->make_surface_visitor(), vol, state.pos, on_surface);
-        return LogicEvaluator(vol.logic())(calc_senses);
+            this->make_surface_visitor(), vol, state.pos, state.dir, face);
+        bool inside = LogicEvaluator(vol.logic())(calc_senses);
+        on_surface = detail::get_surface(vol, face);
+        return inside;
     };
     LocalVolumeId id = this->find_volume_where(state.pos, is_inside);
 
-    if (on_surface)
-    {
-        // Prohibit initialization on a surface
-        id = {};
-    }
-    else if (!id)
+    if (!id)
     {
         // Not found: replace with background volume (if any)
-        id = unit_record_.background;
+        return Initialization{unit_record_.background, {}};
     }
 
-    return Initialization{id, {}};
+    if (on_surface
+        && dot_product(this->normal(state.pos, on_surface.id()), state.dir)
+               == 0)
+    {
+        // Prohibit initialization on a surface when moving along it
+        return Initialization{{}, on_surface};
+    }
+
+    return Initialization{id, on_surface};
 }
 
 //---------------------------------------------------------------------------//

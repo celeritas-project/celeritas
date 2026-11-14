@@ -1,0 +1,23 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build tool preferences for the large CMake packages in the CI and docker
+# environments.
+#-----------------------------------------------------------------------------#
+packages:
+  covfie:
+    variants:
+      - generator=ninja
+  geant4:
+    variants:
+      - generator=ninja
+  g4vg:
+    variants:
+      - generator=ninja
+  root:
+    variants:
+      - generator=ninja
+  vecgeom:
+    variants:
+      - generator=ninja

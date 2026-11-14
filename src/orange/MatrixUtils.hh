@@ -102,6 +102,10 @@ bool is_identity(SquareMatrix<T, N> const& mat, T tol);
 template<class T, std::size_t N>
 bool is_orthonormal(SquareMatrix<T, N> const& mat, T tol);
 
+// Whether a small, dense matrix is a signed permutation within a tolerance
+template<class T, std::size_t N>
+bool is_signed_permutation(SquareMatrix<T, N> const& mat, T tol);
+
 // Create an identity 3x3 matrix
 SquareMatrixReal3 make_identity();
 

@@ -149,7 +149,7 @@ ORANGE supports nested universes. The `univ_level` counter (0 = global/world) tr
 
 ### Initialization and boundary crossing
 
-**`operator=(Initializer_t)`** (fresh start): recurses top-down through daughter universes, filling LSA at each level. Sets `geo_status = interior` on success, `geo_status = error` on failure.
+**`operator=(Initializer_t)`** (fresh start): recurses top-down through daughter universes, filling LSA at each level. Sets `geo_status = interior` on success, `geo_status = error` on failure. A start exactly on a surface is resolved by the direction (`SenseCalculator<Real3 const*>`): the track is placed in the volume it is heading into, on that surface, with `geo_status = boundary_out`; a start exactly tangent to the surface is an error.
 
 **`operator=(DetailedInitializer)`** (secondary/copy): copies all per-track and 2D state from the parent slot, then re-rotates the direction down through all universe levels.
 

@@ -41,6 +41,12 @@ namespace celeritas
  * track is currently in. On the boundary this is determined by the sense
  * of the track rather than its direction.
  *
+ * Initialization may start exactly on a surface: the track is placed in the
+ * volume on the side of the surface that its direction points toward, and its
+ * status is \c GeoStatus::boundary_out as though it had just crossed into
+ * that volume. Starting on a surface while moving exactly tangent to it is an
+ * error, since neither side is preferred.
+ *
  * \todo \c move_internal with a position \em should depend on the safety
  * distance, but that check is not yet implemented.
  */
@@ -244,6 +250,12 @@ CELER_FUNCTION OrangeTrackView::OrangeTrackView(
  * Expensive. This function should only be called to initialize an event from a
  * starting location and direction. Secondaries will initialize their states
  * from a copy of the parent.
+ *
+ * If the starting point is exactly on a surface, the track is placed in the
+ * volume it is heading into and marked as being on the boundary
+ * (\c GeoStatus::boundary_out). Only the outermost universe level with such
+ * a surface stores it. Starting on a surface while moving tangent to it is an
+ * error.
  */
 CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
     Initializer_t const& init)
@@ -287,18 +299,18 @@ CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
         auto tinit = visit_tracker(
             [&local](auto&& t) { return t.initialize(local); }, univ_id);
 
-        if (CELER_UNLIKELY(!tinit.volume || tinit.surface))
+        if (CELER_UNLIKELY(!tinit.volume))
         {
 #if !CELER_DEVICE_COMPILE
             auto msg = CELER_LOG_LOCAL(error);
             msg << "Failed to initialize geometry state: ";
-            if (!tinit.volume)
+            if (!tinit.surface)
             {
                 msg << "could not find associated volume";
             }
             else
             {
-                msg << "started on a surface ("
+                msg << "started on and moving tangent to a surface ("
                     << tinit.surface.id().unchecked_get() << ")";
             }
             msg << " in universe " << univ_id.unchecked_get()
@@ -308,6 +320,14 @@ CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
             // and preserve diagnostic state
             this->geo_status(GeoStatus::error);
             tinit.volume = orange_exterior_volume;
+        }
+        else if (tinit.surface && !this->is_on_boundary())
+        {
+            // Started exactly on a surface, logically on the side that the
+            // track is heading toward: the state is as though it just
+            // crossed the surface into the new volume
+            this->surface(ulev_id, tinit.surface);
+            this->geo_status(GeoStatus::boundary_out);
         }
 
         auto lsa = this->make_lsa(ulev_id);

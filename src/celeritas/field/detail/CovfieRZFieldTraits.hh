@@ -15,6 +15,7 @@
 #include <covfie/core/vector.hpp>
 
 #include "corecel/Config.hh"
+#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"

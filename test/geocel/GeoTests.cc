@@ -17,7 +17,6 @@
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "corecel/math/Turn.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/BoundingBox.hh"
@@ -274,16 +273,23 @@ void AtlasHgtdGeoTest::test_trace() const
         if (test_->geometry_type() == "VecGeom"
             && vecgeom_version() < Version{2, 0})
         {
-            GTEST_SKIP() << "VecGeom fails the tangent trace";
+            // TODO: remove in v0.8.0
+            GTEST_SKIP() << "VecGeom 1.x fails the tangent trace";
         }
-        else if (test_->geometry_type() == "ORANGE"
-                 && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+
+        // With single precision, the ~1e-6 offset above the SPlate's lower
+        // face (z=344.45) is lost, so ORANGE initializes exactly on that face
+        // heading downward (out of SPlate)
+        bool const starts_on_face = test_->geometry_type() == "ORANGE"
+                                    && CELERITAS_REAL_TYPE
+                                           == CELERITAS_REAL_TYPE_FLOAT;
+        if (starts_on_face)
         {
-            // Initialization is exactly on a surface with single precision
             auto up_view = test_->make_geo_track_view_interface();
             *up_view = test_->make_initializer(pos, dir);
-            EXPECT_EQ(GeoStatus::error, up_view->geo_status());
-            GTEST_SKIP() << "ORANGE single precision starts on a boundary";
+            EXPECT_EQ(GeoStatus::boundary_out, up_view->geo_status());
+            // Distances are only accurate to a few float ULP
+            tol = test_->tracking_tol();
         }
 
         auto result = test_->track(pos, dir, tol, /* max steps = */ 10);
@@ -302,6 +308,14 @@ void AtlasHgtdGeoTest::test_trace() const
         ref.dot_normal
             = {9.2903580992121e-07, 0.99644211932289, 0.99673389979137};
         ref.bumps = {};
+        if (starts_on_face)
+        {
+            // Track never enters SPlate: first distance is SPlate + HGTD
+            ref.volumes = {"HGTD", "ITK", "Atlas"};
+            ref.volume_instances = {"HGTD", "ITK", "Atlas_PV"};
+            ref.distances = {82.021892648925, 4.8164185705351, 1305.6446868933};
+            ref.dot_normal = {0.99644211932289, 0.99673389979137};
+        }
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -310,12 +324,6 @@ void AtlasHgtdGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void AtlasHgtdGeoTest::test_volume_stack() const
 {
-    if (test_->geometry_type() == "ORANGE"
-        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-    {
-        GTEST_SKIP() << "Track starts on a boundary with single precision";
-    }
-
     std::vector<std::string> all_stacks;
 
     Real3 const dir{
@@ -353,6 +361,15 @@ void AtlasHgtdGeoTest::test_volume_stack() const
         expected_all_stacks[3] = expected_all_stacks.front();
         expected_all_stacks[4] = expected_all_stacks.front();
     }
+    if (test_->geometry_type() == "ORANGE"
+        && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    {
+        // With single precision, every point rounds to exactly z=344.45, the
+        // lower face of SPlate; heading +z puts each one inside SPlate
+        std::fill(expected_all_stacks.begin(),
+                  expected_all_stacks.end(),
+                  expected_all_stacks.front());
+    }
 
     EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
 }
@@ -362,7 +379,8 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
     if (test_->geometry_type() == "ORANGE"
         && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
     {
-        GTEST_SKIP() << "Track starts on a boundary with single precision";
+        GTEST_SKIP() << "Starting point inside SPlate rounds onto its lower "
+                        "face with single precision";
     }
 
     {
@@ -2344,7 +2362,6 @@ void SolidsGeoTest::test_trace() const
                 ref.halfway_safeties[7] = 33.070197064425;
             }
         }
-        auto tol = test_->tracking_tol();
         if (test_->geometry_type() == "VecGeom"
             || (CELERITAS_GEANT4_USOLIDS && test_->geometry_type() == "Geant4"))
         {
@@ -2354,17 +2371,11 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[8] = 29.1115376091067;
             ref.halfway_safeties[15] = 0.5;
 
-            // VecGeom 2.2.0 and older use the infinite extension of the
-            // lower genPocone1 section, underestimating its safety. Upstream
-            // master (VecGeom@39d29437) returns the exact safety but still
-            // reports version 2.2.0, so accept either value.
-            constexpr real_type old_genpoly_safety = 19.0382940808067;
-            if (vecgeom_version() <= Version{2, 2, 0}
-                && result.halfway_safeties.size() > 14
-                && SoftEqual{tol.safety, tol.safety}(
-                    old_genpoly_safety, result.halfway_safeties[14]))
+            if (vecgeom_version() < Version{2, 2, 1})
             {
-                ref.halfway_safeties[14] = old_genpoly_safety;
+                // VecGeom before 2.2.1 uses the infinite extension of the
+                // lower genPocone1 section, underestimating its safety
+                ref.halfway_safeties[14] = 19.0382940808067;
             }
 
             if (vecgeom_version() < Version{2, 0})
@@ -2381,6 +2392,7 @@ void SolidsGeoTest::test_trace() const
         }
         delete_orange_safety(*test_, ref, result);
 
+        auto tol = test_->tracking_tol();
         EXPECT_REF_NEAR(ref, result, tol);
     }
     {

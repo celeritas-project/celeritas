@@ -40,7 +40,7 @@ if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
 
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2)
   set(_needs_surf_norm DISABLE)
 endif()
 
@@ -407,7 +407,7 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 #-----------------------------------------------------------------------------#
 # Optical
 
-function(add_standalone_test_ basename suite test backend)
+function(add_g4_optical_test basename suite test backend)
   string(REPLACE "/" "_" _output_name "${basename}")
   set(_target "${CELERITASTEST_DIR}_${_output_name}")
 
@@ -424,75 +424,56 @@ function(add_standalone_test_ basename suite test backend)
     )
   endif()
 
-  set(_env ${CELER_G4ENV})
-  set(_disabled FALSE)
-
-  if(NOT CELERITAS_USE_Geant4)
-    # Optical tests require G4 to run
-    set(_disabled TRUE)
-  elseif(_needs_surf_norm STREQUAL "DISABLE")
-    # No support for surface normals
-    set(_disabled TRUE)
-  elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
-    # FIXME: GeantSetup teardown destroys g4 geo
-    set(_disabled TRUE)
-  endif()
-
   set(_test_name "celeritas/${basename}:${suite}.${test}:${backend}")
   add_test(
     NAME "${_test_name}"
     COMMAND "$<TARGET_FILE:${_target}>" "--gtest_filter=${suite}.${test}"
   )
 
-  set(_labels "unit")
-
-  if(backend STREQUAL "cpu")
-    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-      list(APPEND _env "CELER_DISABLE_DEVICE=1")
-    endif()
-  elseif(backend STREQUAL "gpu")
-    # Set option to disable GPU environment
-    celeritas_get_disable_device(CELER_DISABLE_DEVICE)
-
-    list(APPEND _test_props RESOURCE_LOCK gpu)
-    list(APPEND _labels gpu)
-    if(CELER_DISABLE_DEVICE)
-      set(_disabled TRUE)
-    endif()
-  else()
-    message(SEND_ERROR "Invalid backend type ${backend}")
+  if(NOT CELERITAS_USE_Geant4)
+    # No Geant4: mark disabled and return early
+    set_tests_properties("${_test_name}" PROPERTIES
+      LABELS unit
+      DISABLED TRUE
+    )
+    return()
   endif()
 
-  if(_disabled)
-    list(APPEND _test_props DISABLED TRUE)
+  set(_disabled "")
+  # FIXME for 1.0: ctest property is "DISABLED",
+  # but celeritas_add_test spelling is "DISABLE"
+  if(_needs_surf_norm STREQUAL "DISABLE")
+    # No support for surface normals: most will fail
+    set(_disabled "DISABLED")
+  elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+    # FIXME: GeantSetup teardown destroys g4 geo
+    set(_disabled "DISABLED")
   endif()
 
-  set_tests_properties("${_test_name}" PROPERTIES
-    ENVIRONMENT "${_env}"
-    LABELS "${_labels}"
-    ${_test_props}
+  celeritas_g4_set_tests_properties(
+    "${_test_name}" unit "${backend}" "serial" "${_disabled}"
   )
 endfunction()
 
-function(celeritas_add_standalone_tests basename suite test)
+function(add_g4_optical_tests basename suite test)
   foreach(_backend IN ITEMS cpu gpu)
-    add_standalone_test_(${basename} ${suite} ${test} ${_backend})
+    add_g4_optical_test(${basename} ${suite} ${test} ${_backend})
   endforeach()
 endfunction()
 
-celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
-celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest cut_multiple_flushes)
-celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
-celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
-celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)
-celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest primary)
-celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest abort_early)
-celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
-celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
-celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest offload)
-celeritas_add_standalone_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest direct)
-celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary)
-celeritas_add_standalone_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary_grow_wls)
+add_g4_optical_tests(optical/Generator LArSphereGeneratorTest primary)
+add_g4_optical_tests(optical/Generator LArSphereGeneratorTest cut_multiple_flushes)
+add_g4_optical_tests(optical/Generator LArSphereGeneratorTest direct)
+add_g4_optical_tests(optical/Generator LArSphereGeneratorTest offload)
+add_g4_optical_tests(optical/Generator DuneGeneratorTest offload)
+add_g4_optical_tests(optical/Generator WlsGeneratorTest primary)
+add_g4_optical_tests(optical/Generator WlsGeneratorTest abort_early)
+add_g4_optical_tests(optical/Detector DetectorTest simple)
+add_g4_optical_tests(optical/Detector DetectorTest stress)
+add_g4_optical_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest offload)
+add_g4_optical_tests(optical/GeneratorCounters LarSphereGeneratorCountersTest direct)
+add_g4_optical_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary)
+add_g4_optical_tests(optical/GeneratorCounters WlsSlabGeneratorCountersTest primary_grow_wls)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)

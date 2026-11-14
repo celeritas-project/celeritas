@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Electro-nuclear process.
  */
-class ElectroNuclearProcess : public Process
+class ElectroNuclearProcess : public InteractionProcess
 {
   public:
     //!@{
