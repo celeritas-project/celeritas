@@ -167,8 +167,6 @@ endforeach()
 if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
   set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}")
   add_library(perfetto STATIC "${Perfetto_INCLUDE_DIR}/perfetto.cc")
-  # Don't apply developer warning flags (e.g. -pedantic -Werror) to the
-  # third-party amalgamated source
   target_compile_options(perfetto PRIVATE
     $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>
   )
