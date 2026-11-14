@@ -63,7 +63,7 @@ class MockGeoTrackView
     inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
     // Move to the boundary in preparation for crossing it
-    inline CELER_FUNCTION void move_to_boundary();
+    inline CELER_FUNCTION void move_to_boundary(real_type dist);
 
     // Move within the volume
     inline CELER_FUNCTION void move_internal(real_type step);
@@ -161,10 +161,12 @@ CELER_FUNCTION Propagation MockGeoTrackView::find_next_step(real_type max_step)
 /*!
  * Move to the next boundary but don't cross yet.
  */
-CELER_FUNCTION void MockGeoTrackView::move_to_boundary()
+CELER_FUNCTION void MockGeoTrackView::move_to_boundary(real_type dist)
 {
-    // Move next step
-    this->move_internal(next_step_);
+    CELER_EXPECT(soft_equal(next_step_, dist));
+
+    // Move the caller-provided distance to the next boundary
+    this->move_internal(dist);
     on_boundary_ = true;
     next_step_ = 0;
 

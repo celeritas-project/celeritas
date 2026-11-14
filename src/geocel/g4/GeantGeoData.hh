@@ -86,7 +86,6 @@ struct GeantGeoStateData
     StateItems<Real3> pos;
     StateItems<Real3> dir;
     StateItems<Real3> normal;
-    StateItems<real_type> next_step;  //!< Negative if no step is cached
     StateItems<real_type> safety_radius;
     StateItems<GeoStatus> status;
 
@@ -100,7 +99,6 @@ struct GeantGeoStateData
     {
         return this->size() > 0 && dir.size() == this->size()
                && normal.size() == this->size()
-               && next_step.size() == this->size()
                && safety_radius.size() == this->size()
                && status.size() == this->size()
                && nav_state.size() == this->size();
@@ -120,7 +118,6 @@ struct GeantGeoStateData
         pos = other.pos;
         dir = other.dir;
         normal = other.normal;
-        next_step = other.next_step;
         safety_radius = other.safety_radius;
         status = other.status;
         nav_state = other.nav_state;
@@ -145,7 +142,6 @@ inline void resize(GeantGeoStateData<Ownership::value, MemSpace::host>* data,
     resize(&data->pos, size);
     resize(&data->dir, size);
     resize(&data->normal, size);
-    resize(&data->next_step, size);
     resize(&data->safety_radius, size);
     resize(&data->status, size);
     data->nav_state.resize(params, stream_id, size);

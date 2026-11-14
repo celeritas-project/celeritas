@@ -66,6 +66,8 @@ class FieldPropagator
         real_type remaining;  //!< Maximum length of the next substep
         short int remaining_substeps;  //!< Allowed substeps left
         result_type result;  //!< Accumulated result
+        //! Straight-line distance to the boundary along the final chord
+        real_type boundary_distance;
     };
 
     //// HELPER FUNCTIONS ////
@@ -191,6 +193,7 @@ CELER_FORCEINLINE_FUNCTION auto FieldPropagator<SubstepperT, GTV>::start_step(
     p.remaining_substeps = this->max_substeps();
     p.result.boundary = geo_.is_on_boundary();
     p.result.distance = 0;
+    p.boundary_distance = 0;
     return p;
 }
 
@@ -285,7 +288,11 @@ FieldPropagator<SubstepperT, GTV>::search_substep(Substep const& substep,
                    || p->result.distance + update_length <= p->step
                    || chord.length == 0);
 
-            if (!p->result.boundary)
+            if (p->result.boundary)
+            {
+                p->boundary_distance = linear_step.distance;
+            }
+            else
             {
                 // Don't move to the boundary, but instead move to the end of
                 // the substep. This should result in basically the same effect
@@ -366,7 +373,7 @@ CELER_FORCEINLINE_FUNCTION auto FieldPropagator<SubstepperT, GTV>::finish_step(
             // We moved to a new boundary. Update the position to reflect the
             // geometry's state (and possibly "bump" the ODE state's position
             // because of the tolerance in the intercept checks above).
-            geo_.move_to_boundary();
+            geo_.move_to_boundary(p.boundary_distance);
             state_.pos = geo_.pos();
         }
         else if (CELER_UNLIKELY(result.distance < p.step))

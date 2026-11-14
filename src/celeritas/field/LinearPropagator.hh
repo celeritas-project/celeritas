@@ -58,7 +58,7 @@ CELER_FUNCTION auto LinearPropagator<GTV>::operator()(real_type dist)
 
     if (result.boundary)
     {
-        geo_.move_to_boundary();
+        geo_.move_to_boundary(result.distance);
     }
     else
     {
