@@ -39,9 +39,9 @@ set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 
 if(CELERITAS_BUILTIN_CLI11)
   celer_fetch_external(
-    CLI11 2.5.0
+    CLI11 2.7.1
     "https://github.com/CLIUtils/CLI11/archive/refs/tags/v@VERSION@.tar.gz"
-    17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55
+    e2af34b0101f576dc61b32b66a255b612e84229536520fe61ccfd5fdb16686de
   )
 
   set(CLI11_BUILD_EXAMPLES OFF)
@@ -56,9 +56,9 @@ endif()
 
 if(CELERITAS_BUILTIN_covfie)
   celer_fetch_external(
-    covfie 0.15.3
+    covfie 0.16.0
     "https://github.com/acts-project/covfie/archive/refs/tags/v@VERSION@.tar.gz"
-    72da1147c44731caf9163f3931de78d7605a44f056f22a2f6ea024ad02a1ba71
+    f1491b85c5e8ed9535e4b99adb85661512964132baf6dc9b9a9af10e4b625cb3
   )
 
   set(COVFIE_PLATFORM_CPU ON)
@@ -77,9 +77,9 @@ endif()
 
 if(CELERITAS_BUILTIN_GTest)
   celer_fetch_external(
-    GTest 1.17.0
+    GTest 1.18.0
     "https://github.com/google/googletest/archive/refs/tags/v@VERSION@.tar.gz"
-    65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c
+    6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5
   )
 
   set(BUILD_GMOCK OFF) # For compatibility
@@ -107,13 +107,10 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_Perfetto)
-  if(PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
-    set(FETCHCONTENT_SOURCE_DIR_PERFETTO "${PERFETTO_ROOT}")
-  endif()
   celer_fetch_external(
-    Perfetto 49.0
-    "https://github.com/google/perfetto/archive/refs/tags/v@VERSION@.tar.gz"
-    0871a92a162ac5655b7d724f9359b15a75c4e92472716edbc4227a64a4680be4
+    Perfetto 59.1
+    "https://github.com/google/perfetto/releases/download/v@VERSION@/perfetto-cpp-sdk-src.zip"
+    79951246078ea0406eb4c7c6bb71dbbc31849d5dc13de2c0697995c7acfd0b04
   )
 endif()
 
@@ -123,9 +120,9 @@ endif()
 
 if(CELERITAS_BUILTIN_G4VG)
   celer_fetch_external(
-    G4VG 1.0.5
+    G4VG 1.0.7
     "https://github.com/celeritas-project/g4vg/releases/download/v@VERSION@/g4vg-@VERSION@.tar.gz"
-    fa44d071aaf95de596f7b22d2062830acd7e154a3bc9d67ad5a306eff64630d2
+    fb70f509cc85b0d5311b70246e141ffdd47abf9b175cf95aa0fd1b75edae616e
   )
   foreach(_var BUILD_TESTS DEBUG)
     set(G4VG_${_var} ${CELERITAS_${_var}})
@@ -168,8 +165,13 @@ endforeach()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
-  set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}/sdk")
+  set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}")
   add_library(perfetto STATIC "${Perfetto_INCLUDE_DIR}/perfetto.cc")
+  # Don't apply developer warning flags (e.g. -pedantic -Werror) to the
+  # third-party amalgamated source
+  target_compile_options(perfetto PRIVATE
+    $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>
+  )
   target_include_directories(perfetto
     INTERFACE "$<BUILD_INTERFACE:${Perfetto_INCLUDE_DIR}>"
   )
