@@ -20,9 +20,10 @@
 
 #include "detail/AlongStepKernels.hh"
 #include "detail/FieldFunctors.hh"
-#include "detail/FieldTrackPropagator.hh"
+#include "detail/FieldPropagationLauncher.device.hh"
 #include "detail/LinearTrackPropagator.hh"
 #include "detail/PropagationApplier.hh"
+#include "detail/SafetyApplier.hh"
 
 // Field classes
 #include "celeritas/field/UniformField.hh"
@@ -36,24 +37,29 @@ namespace celeritas
 void AlongStepUniformMscAction::step(CoreParams const& params,
                                      CoreStateDevice& state) const
 {
+    auto const& field = field_->ref<MemSpace::native>();
+    if (this->has_msc() || field.options.use_safety_sphere)
+    {
+        detail::launch_safety(*this,
+                              detail::get_msc_ref<MemSpace::native>(msc_.get()),
+                              params,
+                              state);
+    }
     if (this->has_msc())
     {
         detail::launch_limit_msc_step(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }
-    auto field = field_->ref<MemSpace::native>();
     {
         ScopedProfiling profile_this{"propagate"};
 
-        auto execute_thread = ConditionalTrackExecutor{
-            params.ptr<MemSpace::native>(),
-            state.ptr(),
+        detail::launch_field_propagation<UniformField>(
+            *this,
+            field,
             detail::IsAlongStepUniformField{this->action_id(), field},
-            detail::PropagationApplier{
-                detail::FieldTrackPropagator<UniformField>{field}}};
-        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            *this, "propagate-uniform");
-        launch_kernel(*this, params, state, execute_thread);
+            "propagate-uniform",
+            params,
+            state);
 
         if (!field_->in_all_volumes())
         {
@@ -71,6 +77,8 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
 
     if (this->has_msc())
     {
+        detail::launch_scatter_safety(
+            *this, msc_->ref<MemSpace::native>(), params, state);
         detail::launch_apply_msc(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }

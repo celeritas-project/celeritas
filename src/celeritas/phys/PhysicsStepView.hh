@@ -60,6 +60,9 @@ class PhysicsStepView
     // Save MSC step data
     inline CELER_FUNCTION void msc_step(MscStep const&);
 
+    // Save a sphere known to contain no boundaries
+    inline CELER_FUNCTION void safety_sphere(SafetySphere const&);
+
     // Reset the energy deposition
     inline CELER_FUNCTION void reset_energy_deposition();
 
@@ -88,6 +91,9 @@ class PhysicsStepView
 
     // Retrieve MSC step data
     inline CELER_FUNCTION MscStep const& msc_step() const;
+
+    // Sphere around a previous position known to contain no boundaries
+    inline CELER_FUNCTION SafetySphere const& safety_sphere() const;
 
     // Access local energy deposition
     inline CELER_FUNCTION Energy energy_deposition() const;
@@ -161,6 +167,16 @@ CELER_FUNCTION void PhysicsStepView::element(ElementComponentId elcomp_id)
 CELER_FUNCTION void PhysicsStepView::msc_step(MscStep const& limit)
 {
     states_.msc_step[track_slot_] = limit;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Save a sphere known to contain no boundaries.
+ */
+CELER_FUNCTION void PhysicsStepView::safety_sphere(SafetySphere const& sphere)
+{
+    CELER_EXPECT(sphere.radius >= 0);
+    this->state().safety_sphere = sphere;
 }
 
 //---------------------------------------------------------------------------//
@@ -257,6 +273,18 @@ CELER_FUNCTION MscStep& PhysicsStepView::msc_step()
 CELER_FUNCTION MscStep const& PhysicsStepView::msc_step() const
 {
     return states_.msc_step[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sphere around a previous position known to contain no boundaries.
+ *
+ * The sphere is reset when the track is initialized. It is not updated when
+ * the track moves, so users must check that the current position is inside it.
+ */
+CELER_FUNCTION SafetySphere const& PhysicsStepView::safety_sphere() const
+{
+    return this->state().safety_sphere;
 }
 
 //---------------------------------------------------------------------------//

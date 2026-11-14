@@ -331,6 +331,7 @@ if(CELERITAS_USE_Geant4)
     "Em3AlongStepTest.fluct_nomsc"
     "SimpleCmsAlongStepTest.msc_field"
     "SimpleCmsAlongStepTest.msc_field_finegrid"
+    "SimpleCmsAlongStepTest.msc_field_no_safety_sphere"
     "SimpleCmsFieldVolAlongStepTest.msc_field"
     "LeadBoxAlongStepTest.*"
   )
