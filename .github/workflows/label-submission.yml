@@ -95,6 +95,7 @@ jobs:
             let cleaned = body;
             const auth = cfg.authorship;
             if (!isPR && auth) {
+              // Process author block: get label and comment it out
               const re = new RegExp(
                 `^### ${esc(auth.heading)}\\s*\\n+([^\\n]*)\\n*`, 'gm');
               cleaned = cleaned.replace(re, (m, answer) => {
@@ -108,6 +109,7 @@ jobs:
             cleaned = cleaned.replace(
               /^@github-actions[ \t]+(\w+)[ \t]+(\S+)[ \t]*$/gim,
               (line, cmd, arg) => {
+                // Process command,replace with commented line
                 cmd = cmd.toLowerCase();
                 arg = arg.toLowerCase();
                 if (!isPR && cmd === 'type' && arg in types) {
