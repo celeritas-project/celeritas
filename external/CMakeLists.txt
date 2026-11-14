@@ -41,7 +41,7 @@ if(CELERITAS_BUILTIN_CLI11)
   celer_fetch_external(
     CLI11 2.7.1
     "https://github.com/CLIUtils/CLI11/archive/refs/tags/v@VERSION@.tar.gz"
-    e2af34b0101f576dc61b32b66a255b612e84229536520fe61ccfd5fdb16686de
+    c02abe5c5fed9b9c9192bff3c74d2c0d19755253f9ca9e3c44484c1cf5ce6568
   )
 
   set(CLI11_BUILD_EXAMPLES OFF)
