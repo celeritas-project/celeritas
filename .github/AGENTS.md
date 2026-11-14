@@ -1,0 +1,28 @@
+# GitHub configuration notes
+
+Conventions for `.github/` in Celeritas.
+
+## Workflows (`.github/workflows/`)
+
+- Names: workflows triggered by an event are named after it with underscores
+  (`pull_request.yml`, `pull_request_completed.yml`, `merge_group.yml`,
+  `push.yml`, `cron_daily.yml`, `pull_request_target_opened.yml`,
+  `issues_opened.yml`). Build/check workflows use hyphens (`build-fast.yml`,
+  `check-dd4hep-integration.yml`).
+- The `name:` field matches the file name without extension.
+- Every file starts with the Copyright/SPDX header comment block used by the
+  existing workflows.
+- Prefer `actions/github-script` (JavaScript) over shell for API logic.
+  Write literal characters (e.g. the robot emoji), not unicode escapes.
+- Use least-privilege `permissions:` per workflow.
+- Use `pull_request_target` only for label/comment tasks that need write access
+  on fork PRs, and never check out or run PR code in such workflows.
+
+## Issue templates (`.github/ISSUE_TEMPLATE/`)
+
+- Blank issues are disabled (`config.yml`); use a form.
+- Forms use an "Authorship" dropdown; the issues workflow parses the rendered
+  `### Heading` sections, so renaming headings or options requires updating
+  `issues_opened.yml`.
+- Agents must set Authorship to AI-assisted/generated and end the description
+  with a "Generated with" statement (see top-level `AGENTS.md`).
