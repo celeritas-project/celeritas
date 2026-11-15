@@ -162,9 +162,17 @@ endforeach()
 # Activate externals
 FetchContent_MakeAvailable(${_celer_builtin_packages})
 if(_celer_builtin_static_packages)
+  set(_cur_BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS}")
+  set(_cached_BUILD_SHARED_LIBS "$CACHE{BUILD_SHARED_LIBS}")
   set(BUILD_SHARED_LIBS OFF)
   FetchContent_MakeAvailable(${_celer_builtin_static_packages})
-  set(BUILD_SHARED_LIBS "${_saved_BUILD_SHARED_LIBS}")
+  if(NOT "$CACHE{BUILD_SHARED_LIBS}" STREQUAL "${_cached_BUILD_SHARED_LIBS}")
+    # Our temporary value hides changes to the cache: expose them to the check
+    set(_cur_BUILD_SHARED_LIBS "$CACHE{BUILD_SHARED_LIBS}")
+  endif()
+  set(BUILD_SHARED_LIBS "${_cur_BUILD_SHARED_LIBS}")
+  unset(_cur_BUILD_SHARED_LIBS)
+  unset(_cached_BUILD_SHARED_LIBS)
 endif()
 
 # Check that variables are unmodified
