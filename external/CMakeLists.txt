@@ -3,8 +3,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-# Download the package, save version, add to a list
+# Download the package, save version, and add it to a list of packages to
+# build: pass STATIC to always build its libraries statically instead of
+# following BUILD_SHARED_LIBS
 set(_celer_builtin_packages)
+set(_celer_builtin_static_packages)
 macro(celer_fetch_external name version url sha)
   if(CELERITAS_BUILTIN_${name} AND NOT CELERITAS_USE_${name})
     message(WARNING "Ignoring CELERITAS_BUILTIN_${name} "
@@ -23,7 +26,12 @@ macro(celer_fetch_external name version url sha)
       URL_HASH SHA256=${sha}
       DOWNLOAD_NO_PROGRESS TRUE
     )
-    list(APPEND _celer_builtin_packages "${name}")
+    set(_args ${ARGN})
+    if("STATIC" IN_LIST _args)
+      list(APPEND _celer_builtin_static_packages "${name}")
+    else()
+      list(APPEND _celer_builtin_packages "${name}")
+    endif()
   endif()
 endmacro()
 
@@ -38,19 +46,20 @@ set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_CLI11)
+  # As a subproject, CLI11 doesn't install its precompiled library, which is
+  # shared (since 2.7) when BUILD_SHARED_LIBS is on: build it statically into
+  # the apps
   celer_fetch_external(
     CLI11 2.7.1
     "https://github.com/CLIUtils/CLI11/archive/refs/tags/v@VERSION@.tar.gz"
     c02abe5c5fed9b9c9192bff3c74d2c0d19755253f9ca9e3c44484c1cf5ce6568
+    STATIC
   )
 
   set(CLI11_BUILD_EXAMPLES OFF)
   set(CLI11_BUILD_DOCS OFF)
   set(CLI11_BUILD_TESTS OFF)
-  # As a subproject, CLI11 doesn't install its precompiled library, which is
-  # shared (since 2.7) when BUILD_SHARED_LIBS is on. Installed apps would
-  # then fail to load it
-  set(CLI11_PRECOMPILED OFF)
+  set(CLI11_PRECOMPILED ON)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -152,6 +161,11 @@ endforeach()
 
 # Activate externals
 FetchContent_MakeAvailable(${_celer_builtin_packages})
+if(_celer_builtin_static_packages)
+  set(BUILD_SHARED_LIBS OFF)
+  FetchContent_MakeAvailable(${_celer_builtin_static_packages})
+  set(BUILD_SHARED_LIBS "${_saved_BUILD_SHARED_LIBS}")
+endif()
 
 # Check that variables are unmodified
 foreach(_var IN LISTS _checked_cmake_variables)
@@ -189,7 +203,7 @@ if(CELERITAS_BUILTIN_CLI11)
     # __cplusplus: use standard-compliant C++ version macro
     # preprocessor: use standard-compliant preprocessor
     # EHsc: enable standard C++ exception handling
-    target_compile_options(CLI11 INTERFACE
+    target_compile_options(CLI11 PUBLIC
       $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus /Zc:preprocessor /EHsc>
     )
   endif()
