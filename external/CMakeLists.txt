@@ -127,15 +127,9 @@ if(CELERITAS_BUILTIN_G4VG)
     "https://github.com/celeritas-project/g4vg/releases/download/v@VERSION@/g4vg-@VERSION@.tar.gz"
     fb70f509cc85b0d5311b70246e141ffdd47abf9b175cf95aa0fd1b75edae616e
   )
-  foreach(_var BUILD_TESTS DEBUG)
-    set(G4VG_${_var} ${CELERITAS_${_var}})
-  endforeach()
-  if(CELERITAS_BUILTIN_GTest)
-    # Prevent G4VG from finding an installed GTest that conflicts with the
-    # builtin targets
-    # TODO: Delete once a release includes https://github.com/celeritas-project/g4vg/pull/50
-    set(GTest_FOUND TRUE)
-  endif()
+  set(G4VG_DEBUG ${CELERITAS_DEBUG})
+  # Don't build G4VG's own tests, which would also look for GTest
+  set(G4VG_BUILD_TESTS OFF)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -176,6 +170,7 @@ endforeach()
 if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
   set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}")
   add_library(perfetto STATIC "${Perfetto_INCLUDE_DIR}/perfetto.cc")
+  # Vendored source fails to compile with -pedantic -Werror
   target_compile_options(perfetto PRIVATE
     $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>
   )
@@ -187,12 +182,6 @@ if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
     EXPORT celeritas-targets
     COMPONENT runtime
   )
-endif()
-
-if(CELERITAS_BUILTIN_GTest AND NOT TARGET GTest::GTest)
-  # Provide the target name created by CMake's FindGTest (used by G4VG)
-  # TODO: Delete once a release includes https://github.com/celeritas-project/g4vg/pull/50
-  add_library(GTest::GTest ALIAS gtest)
 endif()
 
 if(CELERITAS_BUILTIN_CLI11)
