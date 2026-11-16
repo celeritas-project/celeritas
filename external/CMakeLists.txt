@@ -3,8 +3,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-# Download the package, save version, add to a list
+# Download the package, save version, and add it to a list of packages to
+# build: pass STATIC to always build its libraries statically instead of
+# following BUILD_SHARED_LIBS
 set(_celer_builtin_packages)
+set(_celer_builtin_static_packages)
 macro(celer_fetch_external name version url sha)
   if(CELERITAS_BUILTIN_${name} AND NOT CELERITAS_USE_${name})
     message(WARNING "Ignoring CELERITAS_BUILTIN_${name} "
@@ -23,7 +26,12 @@ macro(celer_fetch_external name version url sha)
       URL_HASH SHA256=${sha}
       DOWNLOAD_NO_PROGRESS TRUE
     )
-    list(APPEND _celer_builtin_packages "${name}")
+    set(_args ${ARGN})
+    if("STATIC" IN_LIST _args)
+      list(APPEND _celer_builtin_static_packages "${name}")
+    else()
+      list(APPEND _celer_builtin_packages "${name}")
+    endif()
   endif()
 endmacro()
 
@@ -38,10 +46,14 @@ set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_CLI11)
+  # As a subproject, CLI11 doesn't install its precompiled library, which is
+  # shared (since 2.7) when BUILD_SHARED_LIBS is on: build it statically into
+  # the apps
   celer_fetch_external(
-    CLI11 2.5.0
+    CLI11 2.7.1
     "https://github.com/CLIUtils/CLI11/archive/refs/tags/v@VERSION@.tar.gz"
-    17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55
+    c02abe5c5fed9b9c9192bff3c74d2c0d19755253f9ca9e3c44484c1cf5ce6568
+    STATIC
   )
 
   set(CLI11_BUILD_EXAMPLES OFF)
@@ -56,9 +68,9 @@ endif()
 
 if(CELERITAS_BUILTIN_covfie)
   celer_fetch_external(
-    covfie 0.15.3
+    covfie 0.16.0
     "https://github.com/acts-project/covfie/archive/refs/tags/v@VERSION@.tar.gz"
-    72da1147c44731caf9163f3931de78d7605a44f056f22a2f6ea024ad02a1ba71
+    f1491b85c5e8ed9535e4b99adb85661512964132baf6dc9b9a9af10e4b625cb3
   )
 
   set(COVFIE_PLATFORM_CPU ON)
@@ -77,9 +89,9 @@ endif()
 
 if(CELERITAS_BUILTIN_GTest)
   celer_fetch_external(
-    GTest 1.17.0
+    GTest 1.18.0
     "https://github.com/google/googletest/archive/refs/tags/v@VERSION@.tar.gz"
-    65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c
+    6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5
   )
 
   set(BUILD_GMOCK OFF) # For compatibility
@@ -107,13 +119,10 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_Perfetto)
-  if(PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
-    set(FETCHCONTENT_SOURCE_DIR_PERFETTO "${PERFETTO_ROOT}")
-  endif()
   celer_fetch_external(
-    Perfetto 49.0
-    "https://github.com/google/perfetto/archive/refs/tags/v@VERSION@.tar.gz"
-    0871a92a162ac5655b7d724f9359b15a75c4e92472716edbc4227a64a4680be4
+    Perfetto 59.1
+    "https://github.com/google/perfetto/releases/download/v@VERSION@/perfetto-cpp-sdk-src.zip"
+    79951246078ea0406eb4c7c6bb71dbbc31849d5dc13de2c0697995c7acfd0b04
   )
 endif()
 
@@ -123,13 +132,13 @@ endif()
 
 if(CELERITAS_BUILTIN_G4VG)
   celer_fetch_external(
-    G4VG 1.0.5
+    G4VG 1.0.7
     "https://github.com/celeritas-project/g4vg/releases/download/v@VERSION@/g4vg-@VERSION@.tar.gz"
-    fa44d071aaf95de596f7b22d2062830acd7e154a3bc9d67ad5a306eff64630d2
+    fb70f509cc85b0d5311b70246e141ffdd47abf9b175cf95aa0fd1b75edae616e
   )
-  foreach(_var BUILD_TESTS DEBUG)
-    set(G4VG_${_var} ${CELERITAS_${_var}})
-  endforeach()
+  set(G4VG_DEBUG ${CELERITAS_DEBUG})
+  # Don't build G4VG's own tests, which would also look for GTest
+  set(G4VG_BUILD_TESTS OFF)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -152,6 +161,19 @@ endforeach()
 
 # Activate externals
 FetchContent_MakeAvailable(${_celer_builtin_packages})
+if(_celer_builtin_static_packages)
+  set(_cur_BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS}")
+  set(_cached_BUILD_SHARED_LIBS "$CACHE{BUILD_SHARED_LIBS}")
+  set(BUILD_SHARED_LIBS OFF)
+  FetchContent_MakeAvailable(${_celer_builtin_static_packages})
+  if(NOT "$CACHE{BUILD_SHARED_LIBS}" STREQUAL "${_cached_BUILD_SHARED_LIBS}")
+    # Our temporary value hides changes to the cache: expose them to the check
+    set(_cur_BUILD_SHARED_LIBS "$CACHE{BUILD_SHARED_LIBS}")
+  endif()
+  set(BUILD_SHARED_LIBS "${_cur_BUILD_SHARED_LIBS}")
+  unset(_cur_BUILD_SHARED_LIBS)
+  unset(_cached_BUILD_SHARED_LIBS)
+endif()
 
 # Check that variables are unmodified
 foreach(_var IN LISTS _checked_cmake_variables)
@@ -168,8 +190,12 @@ endforeach()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_Perfetto AND perfetto_POPULATED)
-  set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}/sdk")
+  set(Perfetto_INCLUDE_DIR "${perfetto_SOURCE_DIR}")
   add_library(perfetto STATIC "${Perfetto_INCLUDE_DIR}/perfetto.cc")
+  # Vendored source fails to compile with -pedantic -Werror
+  target_compile_options(perfetto PRIVATE
+    $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>
+  )
   target_include_directories(perfetto
     INTERFACE "$<BUILD_INTERFACE:${Perfetto_INCLUDE_DIR}>"
   )
