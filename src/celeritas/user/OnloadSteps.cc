@@ -23,13 +23,13 @@ namespace
  *
  * Valid slots have a track ID.
  */
-class IsSelected
+class IsOnloadSelected
 {
   public:
     using StepDataRef
         = OnloadStateDataImpl<Ownership::reference, MemSpace::native>;
 
-    explicit IsSelected(StepDataRef const& data) : data_{data} {}
+    explicit IsOnloadSelected(StepDataRef const& data) : data_{data} {}
 
     //! Number of track slots
     size_type size() const { return data_.size(); }
@@ -43,7 +43,6 @@ class IsSelected
   private:
     StepDataRef const& data_;
 };
-
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -64,7 +63,7 @@ void copy_steps(
     ScopedProfiling profile_this{"copy-onload-steps"};
 
     // Get the number of threads that are active and selected
-    IsSelected const is_selected{state.data};
+    IsOnloadSelected const is_selected{state.data};
     size_type size = detail::count_num_valid(is_selected);
 
     // Resize and copy if the fields are present
