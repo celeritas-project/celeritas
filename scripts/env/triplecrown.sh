@@ -13,8 +13,8 @@ export CELER_DISABLE_DEVICE=1
 export CXX=/usr/bin/g++-13
 export CC=/usr/bin/gcc-13
 
-# Even though the machine has no nvidia cards, use it to build for deployment to A100, H100
-export CUDAARCHS=80,90
+# Even though the machine has no nvidia cards, use it to build for deployment to V100, A100, H100
+export CUDAARCHS="70;80;90"
 
 # Dispatch common loading to the 'excl' system
 load_system_env excl || return $?
