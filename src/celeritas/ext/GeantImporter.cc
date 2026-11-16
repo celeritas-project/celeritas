@@ -82,7 +82,6 @@
 #include "detail/GeantProcessImporter.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
-inline constexpr celeritas::PDGNumber g4_optical_pdg{-22};
 
 namespace celeritas
 {
@@ -116,6 +115,9 @@ struct ParticleFilter
 
     bool operator()(PDGNumber pdgnum)
     {
+        // Geant4 internal PDG number for optical photons
+        constexpr PDGNumber optical_photon{-22};
+
         if (!pdgnum)
         {
             return (which & DataSelection::dummy);
@@ -128,7 +130,7 @@ struct ParticleFilter
         {
             return (which & DataSelection::em_ex);
         }
-        else if (pdgnum == g4_optical_pdg)
+        else if (pdgnum == optical_photon)
         {
             return (which & DataSelection::optical);
         }
@@ -284,15 +286,7 @@ std::vector<inp::Particle> import_particles(
     while (particle_iterator())
     {
         GeantParticleView particle_view{*(particle_iterator.value())};
-
-        PDGNumber pdg = [&] {
-            if (G4VERSION_NUMBER < 1070 && particle_view.is_optical_photon())
-            {
-                // Before 10.7, geant4 uses PDG 0 plus a unique string name
-                return g4_optical_pdg;
-            }
-            return particle_view.pdg();
-        }();
+        PDGNumber pdg = particle_view.pdg();
 
         if (!include_particle(pdg))
         {
@@ -780,17 +774,7 @@ auto import_processes(GeantImporter::DataSelection selected,
 
     for (auto const& p : particles)
     {
-        G4ParticleDefinition* g4_particle_def;
-        if (G4VERSION_NUMBER < 1070 && p.pdg == g4_optical_pdg)
-        {
-            // Optical photon PDG in Geant4 is 0 before version 10.7
-            g4_particle_def = G4OpticalPhoton::OpticalPhoton();
-        }
-        else
-        {
-            g4_particle_def = G4ParticleTable::GetParticleTable()->FindParticle(
-                p.pdg.get());
-        }
+        auto const* g4_particle_def = GeantParticleView::find(p.pdg);
         CELER_ASSERT(g4_particle_def);
 
         if (!include_particle(p.pdg))
@@ -852,15 +836,7 @@ ImportTransParameters import_trans_parameters(
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
     {
-        PDGNumber pdg = [&particle_iterator] {
-            GeantParticleView particle{*(particle_iterator.value())};
-            if (G4VERSION_NUMBER < 1070 && particle.is_optical_photon())
-            {
-                // Before 10.7, geant4 uses PDG 0 plus a unique string name
-                return g4_optical_pdg;
-            }
-            return particle.pdg();
-        }();
+        PDGNumber pdg = GeantParticleView{*particle_iterator.value()}.pdg();
 
         if (!include_particle(pdg))
         {

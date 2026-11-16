@@ -7,11 +7,11 @@
 #include "GeantParticleUtils.hh"
 
 #include <G4ParticleDefinition.hh>
-#include <G4ParticleTable.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
+#include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
@@ -28,14 +28,11 @@ namespace detail
 std::vector<G4ParticleDefinition const*> make_geant_particles(
     ParticleParams const& par)
 {
-    auto& g4particles = *G4ParticleTable::GetParticleTable();
-
     std::vector<G4ParticleDefinition const*> result(par.size());
     std::vector<ParticleId> missing;
     for (auto pid : range(ParticleId{par.size()}))
     {
-        int pdg = par.id_to_pdg(pid).get();
-        if (G4ParticleDefinition* particle = g4particles.FindParticle(pdg))
+        if (auto const* particle = GeantParticleView::find(par.id_to_pdg(pid)))
         {
             result[pid.get()] = particle;
         }
