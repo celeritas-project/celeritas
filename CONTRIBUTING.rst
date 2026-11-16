@@ -58,6 +58,13 @@ this reason, and for ethical considerations, we make three requirements:
   human in the loop.
 - The submitting person *must* perform a review of the submitted code before
   marking the PR as "ready."
+- Every comment an agent posts on an issue or pull request *must* disclose the
+  agent harness and include a 🤖 emoji in clear text.
+
+Work labeled ``ai-generated`` (written essentially entirely by an agent) is
+*not* eligible for credit in :file:`scripts/release/contributors.jsonl`.
+Work labeled ``ai-assisted``, where a human substantially authored and
+reviewed the change, is eligible.
 
 .. _AGENTS file: ./AGENTS.md#Contributions
 
@@ -73,7 +80,8 @@ acknowledge the attribution and authorship policy laid out in :ref:`authorship`.
 
 .. note:: To uniquely link your contribution for the next release, you must add
    your GitHub username and ORCID to :file:`scripts/release/contributors.jsonl`
-   to your first PR.
+   to your first PR (``ai-generated`` pull requests are not eligible; see
+   :ref:`ai_assisted`).
    (Otherwise, only your GitHub-derived name will show on the record.)
    If you
    want the release to be automatically propagated to your ORCID account, you
