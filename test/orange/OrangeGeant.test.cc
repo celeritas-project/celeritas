@@ -149,7 +149,7 @@ TEST_F(FourLevelsTest, reentrant_normal)
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
-TEST_F(FourLevelsTest, DISABLED_safety)
+TEST_F(FourLevelsTest, safety)
 {
     this->impl().test_safety();
 }

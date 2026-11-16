@@ -740,12 +740,14 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
  * universe levels, since surface deduplication can potentionally elide
  * bounding surfaces at more deeply embedded universe levels.
  *
- * Since we currently support only "simple" safety distances, we can't
- * eliminate anything by checking only nearby surfaces.
+ * The result is no larger than the maximum step. The smallest distance found
+ * so far limits the search at each universe level, which allows a universe to
+ * check only nearby volumes.
  */
-CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
+CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type max_step)
 {
     CELER_EXPECT(!this->is_on_boundary());
+    CELER_EXPECT(max_step > 0);
 
     TrackerVisitor visit_tracker{params_};
     // If we're intersecting a surface, the safety cannot be more than that.
@@ -754,17 +756,25 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
     // This fixes incorrectly large safety when a next step has been found,
     // necessary for CheckedGeoTrackView::find_next_step and more consistent in
     // general .
-    real_type min_safety_dist = this->has_next_surface()
-                                    ? this->next_step()
-                                    : NumericLimits<real_type>::infinity();
+    real_type min_safety_dist
+        = this->has_next_surface()
+              ? celeritas::min(max_step, this->next_step())
+              : max_step;
 
     for (auto ulev_id : range(this->univ_level() + 1))
     {
         auto lsa = this->make_lsa(ulev_id);
         auto local_safety = visit_tracker(
-            [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
+            [&lsa, min_safety_dist](auto&& t) {
+                return t.safety(lsa.pos(), lsa.vol(), min_safety_dist);
+            },
             lsa.univ());
         min_safety_dist = celeritas::min(min_safety_dist, local_safety);
+        if (min_safety_dist == 0)
+        {
+            // No deeper level can reduce the safety further
+            break;
+        }
     }
     return min_safety_dist;
 }

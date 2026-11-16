@@ -7,6 +7,7 @@
 #include "GeoTests.hh"
 
 #include <algorithm>
+#include <cmath>
 #include <string_view>
 
 #include "corecel/Config.hh"
@@ -980,6 +981,16 @@ void FourLevelsGeoTest::test_safety() const
         // boundary is closer: 24 - 20.1 = 3.9 cm.
         expected_safeties.back() = 3.9;
     }
+    else if (test_->geometry_type() == "ORANGE")
+    {
+        // Inside the world, the safety is the Euclidean distance to the
+        // nearest envelope's bounding box, limited by the world boundary
+        expected_safeties.front() = std::sqrt(12.83);
+        expected_safeties[9] = std::sqrt(1.22);
+        expected_safeties.back() = 3.9;
+        // Bounding boxes are bumped outward by the construction tolerance
+        tol.safety = std::max<real_type>(tol.safety, 1e-6);
+    }
     EXPECT_VEC_NEAR(expected_safeties, safeties, tol.safety);
 
     std::vector<double> expected_lim_safeties = {
@@ -995,6 +1006,10 @@ void FourLevelsGeoTest::test_safety() const
         1.1,
         3.9,
     };
+    if (test_->geometry_type() == "ORANGE")
+    {
+        expected_lim_safeties[9] = expected_safeties[9];
+    }
 
     if (test_->geometry_type() != "Geant4")
     {

@@ -96,8 +96,8 @@ class RectArrayTracker
         LocalState const& state) const;
 
     // Calculate closest distance to a surface in any direction
-    inline CELER_FUNCTION real_type safety(Real3 const& pos,
-                                           LocalVolumeId vol) const;
+    inline CELER_FUNCTION real_type safety(
+        Real3 const& pos, LocalVolumeId vol, real_type max_dist) const;
 
     // Calculate the local surface normal
     inline CELER_FUNCTION Real3 normal(Real3 const& pos,
@@ -266,10 +266,11 @@ CELER_FUNCTION auto RectArrayTracker::intersect(
  * Calculate nearest distance to a surface in any direction.
  *
  * On an axis-aligned rectlinear grid the minimum distance to any surface is
- * always always occurs along a line parallel to an axis.
+ * always always occurs along a line parallel to an axis. Only the surfaces of
+ * the current volume are checked, so the maximum search distance is unused.
  */
-CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
-                                                  LocalVolumeId vol_id) const
+CELER_FUNCTION real_type RectArrayTracker::safety(
+    Real3 const& pos, LocalVolumeId vol_id, real_type) const
 {
     CELER_EXPECT(vol_id && vol_id.get() < this->num_volumes());
 

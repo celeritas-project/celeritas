@@ -57,6 +57,7 @@ celeritas_add_test(detail/UniverseIndexer.test.cc)
 celeritas_add_test(detail/BvhBuilder.test.cc)
 celeritas_add_test(detail/BvhEnclosingVolFinder.test.cc)
 celeritas_add_test(detail/BvhIntersectingVolFinder.test.cc)
+celeritas_add_test(detail/BvhSafetyCalculator.test.cc)
 celeritas_add_test(detail/BvhUtils.test.cc)
 
 # Oriented Bounding Zone

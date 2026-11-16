@@ -447,7 +447,8 @@ TEST_F(OneVolumeTest, safety)
     EXPECT_SOFT_EQ(
         inf,
         tracker.safety({1, 2, 3},
-                       ui.local_volume(this->find_volume("infinite")).volume));
+                       ui.local_volume(this->find_volume("infinite")).volume,
+                       inf));
 }
 
 TEST_F(OneVolumeTest, heuristic_init)
@@ -659,13 +660,13 @@ TEST_F(TwoVolumeTest, safety)
         = ui.local_volume(this->find_volume("outside")).volume;
     LocalVolumeId inside = ui.local_volume(this->find_volume("inside")).volume;
 
-    EXPECT_SOFT_EQ(1.9641016151377535, tracker.safety({2, 2, 2}, outside));
-    EXPECT_SOFT_EQ(1.3284271247461905, tracker.safety({2, 0, 2}, outside));
-    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 2}, outside));
-    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 1}, inside));
-    EXPECT_SOFT_EQ(1.5 - 1e-10, tracker.safety({1e-10, 0, 0}, inside));
+    EXPECT_SOFT_EQ(1.9641016151377535, tracker.safety({2, 2, 2}, outside, inf));
+    EXPECT_SOFT_EQ(1.3284271247461905, tracker.safety({2, 0, 2}, outside, inf));
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 2}, outside, inf));
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 1}, inside, inf));
+    EXPECT_SOFT_EQ(1.5 - 1e-10, tracker.safety({1e-10, 0, 0}, inside, inf));
     // At the center of the sphere, where the normal is undefined
-    EXPECT_SOFT_EQ(1.5, tracker.safety({0, 0, 0}, inside));
+    EXPECT_SOFT_EQ(1.5, tracker.safety({0, 0, 0}, inside, inf));
 }
 
 TEST_F(TwoVolumeTest, normal)
@@ -807,10 +808,16 @@ TEST_F(FieldLayersTest, safety)
     EXPECT_TRUE(vol.simple_safety());
 
     // Halfway between two layers
-    EXPECT_SOFT_EQ(0.5, tracker.safety({0, -3, 0}, bg));
-    // Note: distance is conservatively to the nearest surface in the unit
-    // (the extension of the layers' +z face), not the world boundary
-    EXPECT_SOFT_EQ(0.25, tracker.safety({0, 10, 9.25}, bg));
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, -3, 0}, bg, inf));
+    // Past the layers in y and z: the world boundary is nearest, not the
+    // extension of the layers' +z face
+    EXPECT_SOFT_EQ(0.75, tracker.safety({0, 10, 9.25}, bg, inf));
+    // Nothing within the search distance
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 10, 9.25}, bg, 0.5));
+    // Diagonally off the edge of a layer: (0.3, 0.5) from its bounding box,
+    // which is slightly larger than the layer
+    EXPECT_SOFT_NEAR(
+        std::sqrt(0.34), tracker.safety({9.3, -3, 0}, bg, inf), 1e-4);
 }
 
 TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
@@ -1020,10 +1027,11 @@ TEST_F(FiveVolumesTest, safety)
     LocalVolumeId a = ui.local_volume(this->find_volume("a")).volume;
     LocalVolumeId d = ui.local_volume(this->find_volume("d")).volume;
 
-    EXPECT_SOFT_EQ(0.15138781886599728, tracker.safety({-0.75, 0.5, 0}, a));
+    EXPECT_SOFT_EQ(0.15138781886599728,
+                   tracker.safety({-0.75, 0.5, 0}, a, inf));
 
     // Note: distance with "d" surfaces is conservatively to internal planes
-    EXPECT_SOFT_EQ(0.5, tracker.safety({-5, 20, 0}, d));
+    EXPECT_SOFT_EQ(0.5, tracker.safety({-5, 20, 0}, d, inf));
 }
 
 TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
@@ -1054,13 +1062,22 @@ TEST_F(BackgroundQuadricTest, safety)
     detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
     LocalVolumeId bg = ui.local_volume(this->find_volume("background")).volume;
 
-    // A unit with a non-simple surface cannot give a background safety, so
-    // the volume must not claim it
+    // The background does not claim simple safety when the unit has a
+    // non-simple surface
     detail::LocalVolumeView vol{this->host_params(), tracker.unit_record(), bg};
     EXPECT_TRUE(vol.implicit_vol());
     EXPECT_FALSE(vol.simple_safety());
 
-    EXPECT_SOFT_EQ(0.0, tracker.safety({0, 3, 0}, bg));
+    // Nearest is the world sphere
+    EXPECT_SOFT_EQ(1.0, tracker.safety({0, 3, 0}, bg, inf));
+    EXPECT_SOFT_EQ(0.25, tracker.safety({0, 3, 0}, bg, 0.25));
+    // Nearest is the bounding box of the ellipsoid, which is slightly larger
+    // than the ellipsoid: exact beyond a face, conservative beyond an edge
+    EXPECT_SOFT_NEAR(0.5, tracker.safety({0, 1.5, 0}, bg, inf), 1e-6);
+    EXPECT_SOFT_NEAR(
+        std::sqrt(0.5), tracker.safety({1.5, 1.5, 0}, bg, inf), 1e-6);
+    // Outside the ellipsoid but inside its bounding box
+    EXPECT_SOFT_EQ(0.0, tracker.safety({0.9, 0.9, 0}, bg, inf));
 }
 
 //---------------------------------------------------------------------------//
