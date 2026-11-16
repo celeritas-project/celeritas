@@ -8,8 +8,10 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
+#include <G4ParticleTable.hh>
 #include <G4Version.hh>
 
+#include "corecel/Assert.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -36,14 +38,17 @@ class GeantParticleView
     //!@}
 
   public:
+    // Return a particle view from a PDG number
+    static inline GeantParticleView from_pdg(PDGNumber);
+
     // Construct from G4ParticleDefinition
     explicit GeantParticleView(G4ParticleDefinition const& def) : pd_(def) {}
 
     //! Name
     std::string const& name() const { return pd_.GetParticleName(); }
 
-    //! PDG number
-    PDGNumber pdg() const { return PDGNumber{pd_.GetPDGEncoding()}; }
+    // PDG number
+    inline PDGNumber pdg() const;
 
     //! Rest mass [MeV / c^2]
     Mass mass() const { return Mass{pd_.GetPDGMass()}; }
@@ -60,9 +65,57 @@ class GeantParticleView
     // Whether it is an optical photon
     inline bool is_optical_photon() const;
 
+    //! Underlying Geant4 particle definition
+    G4ParticleDefinition const& definition() const { return pd_; }
+
   private:
     G4ParticleDefinition const& pd_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a particle view from a PDG number.
+ */
+GeantParticleView GeantParticleView::from_pdg(PDGNumber pdg)
+{
+    CELER_EXPECT(pdg);
+
+    G4ParticleDefinition const* particle = [&pdg] {
+        auto& table = *G4ParticleTable::GetParticleTable();
+        if constexpr (G4VERSION_NUMBER < 1070)
+        {
+            // Geant4 adopted PDG number -22 for optical photons in
+            // version 10.7. Older versions use PDG 0 plus a unique name
+            if (pdg == PDGNumber{-22})
+            {
+                return table.FindParticle("opticalphoton");
+            }
+        }
+        return table.FindParticle(pdg.get());
+    }();
+
+    CELER_VALIDATE(particle,
+                   << "no Geant4 particle definition for PDG " << pdg.get());
+    return GeantParticleView{*particle};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the PDG number.
+ */
+PDGNumber GeantParticleView::pdg() const
+{
+    if constexpr (G4VERSION_NUMBER < 1070)
+    {
+        // Geant4 adopted PDG number -22 for optical photons in version 10.7.
+        // Older versions use PDG 0 plus a unique name
+        if (pd_.GetPDGEncoding() == 0 && this->name() == "opticalphoton")
+        {
+            return PDGNumber{-22};
+        }
+    }
+    return PDGNumber{pd_.GetPDGEncoding()};
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -91,20 +144,11 @@ bool GeantParticleView::is_antiparticle() const
 //---------------------------------------------------------------------------//
 /*!
  * Whether it is an optical photon.
- *
- * Newer versions of Geant4 have a special PDG number.
  */
 bool GeantParticleView::is_optical_photon() const
 {
-    if constexpr (G4VERSION_NUMBER >= 1070)
-    {
-        // Special Geant4 internal terminology for optical photon
-        return this->pdg() == PDGNumber{-22};
-    }
-    else
-    {
-        return this->pdg() == PDGNumber{0} && this->name() == "opticalphoton";
-    }
+    // Special Geant4 internal terminology for optical photon
+    return this->pdg() == PDGNumber{-22};
 }
 
 //---------------------------------------------------------------------------//
