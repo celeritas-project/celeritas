@@ -6,14 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "DetectorSteps.hh"
 
-#include <thrust/iterator/counting_iterator.h>
-
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/AsyncSnapshot.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/data/Copier.hh"
-#include "corecel/data/DeviceAlgorithms.device.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
@@ -22,6 +17,7 @@
 
 #include "StepData.hh"
 
+#include "detail/StepCopyUtils.device.hh"
 #include "detail/StepScratchCopyExecutor.hh"
 
 using namespace celeritas::literals;
@@ -31,90 +27,8 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-template<class T>
-using StateRef
-    = celeritas::StateCollection<T, Ownership::reference, MemSpace::native>;
-
 using StepStateDeviceRef
     = StepStateData<Ownership::reference, MemSpace::device>;
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether the ID at the given track slot is valid.
- */
-template<class IdT>
-struct IsValidAt
-{
-    IdT const* ids;
-
-    CELER_FORCEINLINE_FUNCTION bool operator()(size_type i) const
-    {
-        return static_cast<bool>(ids[i]);
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Store the slot indices of selected tracks and their count on device.
- *
- * With CUB, the count is written to device memory without synchronizing.
- * The thrust fallback must synchronize to obtain the count.
- */
-template<class IdT>
-void select_valid_ids(StepStateDeviceRef const& state,
-                      StateRef<IdT> const& stencil)
-{
-    copy_if_async(thrust::make_counting_iterator(0_sz),
-                  state.valid_id.data(),
-                  state.size(),
-                  state.num_selected.data(),
-                  IsValidAt<IdT>{stencil.data().get()},
-                  state.stream_id);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Resize the destination and enqueue a copy of the first items of a field.
- *
- * The field may be indexed by track slot or, for multi-level data, by item.
- * The destination is cleared if the field is unused or had no hits.
- */
-template<class T, class I>
-void copy_field(
-    DetectorStepOutput::PinnedVec<T>* dst,
-    Collection<T, Ownership::reference, MemSpace::native, I> const& src,
-    size_type count,
-    Stream const& stream)
-{
-    if (src.empty() || count == 0)
-    {
-        // This field is not in use or had no hits
-        dst->clear();
-        return;
-    }
-    CELER_EXPECT(count <= src.size());
-    dst->resize(count);
-    // Copy all items from valid threads. Note that make_observer would give
-    // a device pointer here since "native" memory is the device in .cu files.
-    copy_bytes<MemSpace::host, MemSpace::device>(
-        ObserverPtr<T, MemSpace::host>{dst->data()},
-        src.data(),
-        count * sizeof(T),
-        stream);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Reserve the destination for every item of a field if the field is in use.
- */
-template<class T, class SrcRef>
-void reserve_field(DetectorStepOutput::PinnedVec<T>* dst, SrcRef const& src)
-{
-    if (!src.empty())
-    {
-        dst->reserve(src.size());
-    }
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -153,11 +67,11 @@ void compact_steps_async(StepStateDeviceRef const& state,
     // Store the thread IDs of active tracks that are selected
     if (state.data.detector_id.empty())
     {
-        select_valid_ids(state, state.data.track_id);
+        detail::select_valid_ids(state, state.data.track_id);
     }
     else
     {
-        select_valid_ids(state, state.data.detector_id);
+        detail::select_valid_ids(state, state.data.detector_id);
     }
 
     // Gather the step data on device, using the count stored on device
@@ -199,7 +113,8 @@ void copy_compacted_steps_async(DetectorStepOutput* output,
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    copy_field(&(output->FIELD), state.scratch.FIELD, num_valid, stream)
+    detail::copy_field( \
+        &(output->FIELD), state.scratch.FIELD, num_valid, stream)
 
     DS_ASSIGN(detector_id);
     DS_ASSIGN(track_id);
@@ -214,10 +129,10 @@ void copy_compacted_steps_async(DetectorStepOutput* output,
         // Volume instances are stored per track and level
         auto const& vids = state.scratch.points[sp].volume_instance_ids;
         CELER_ASSERT(state.num_volume_levels > 0 || vids.empty());
-        copy_field(&(output->points[sp].volume_instance_ids),
-                   vids,
-                   num_valid * state.num_volume_levels,
-                   stream);
+        detail::copy_field(&(output->points[sp].volume_instance_ids),
+                           vids,
+                           num_valid * state.num_volume_levels,
+                           stream);
     }
 
     DS_ASSIGN(event_id);
@@ -257,7 +172,8 @@ void reserve_compacted_steps(DetectorStepOutput* output,
     CELER_EXPECT(output);
     CELER_EXPECT(state);
 
-#define DS_RESERVE(FIELD) reserve_field(&(output->FIELD), state.scratch.FIELD)
+#define DS_RESERVE(FIELD) \
+    detail::reserve_field(&(output->FIELD), state.scratch.FIELD)
 
     DS_RESERVE(detector_id);
     DS_RESERVE(track_id);

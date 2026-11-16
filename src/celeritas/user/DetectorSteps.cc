@@ -8,24 +8,16 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 
 #include "StepData.hh"
+
+#include "detail/StepCopyUtils.hh"
 
 namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-template<class T>
-using StateRef
-    = celeritas::StateCollection<T, Ownership::reference, MemSpace::native>;
-
-template<class T>
-using ItemRef
-    = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Whether the gathered data in a track slot is valid.
@@ -57,82 +49,6 @@ class IsSelected
 };
 
 //---------------------------------------------------------------------------//
-size_type count_num_valid(IsSelected const& is_selected)
-{
-    size_type size{0};
-    for (TrackSlotId tid : range(TrackSlotId{is_selected.size()}))
-    {
-        if (is_selected(tid))
-        {
-            ++size;
-        }
-    }
-    return size;
-}
-
-//---------------------------------------------------------------------------//
-template<class T>
-void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
-                  StateRef<T> const& src,
-                  IsSelected const& is_selected,
-                  size_type size)
-
-{
-    if (src.empty())
-    {
-        // This attribute is not in use
-        dst->clear();
-        return;
-    }
-
-    // Copy all items from valid threads
-    dst->resize(size);
-
-    auto iter = dst->begin();
-    for (TrackSlotId tid : range(TrackSlotId{is_selected.size()}))
-    {
-        if (is_selected(tid))
-        {
-            *iter++ = src[tid];
-        }
-    }
-    CELER_ASSERT(iter == dst->end());
-}
-
-//---------------------------------------------------------------------------//
-template<class T>
-void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
-                  ItemRef<T> const& src,
-                  IsSelected const& is_selected,
-                  size_type size,
-                  size_type per_thread)
-
-{
-    if (src.empty())
-    {
-        // This attribute is not in use
-        dst->clear();
-        return;
-    }
-
-    // Copy all items from valid threads
-    dst->resize(size * per_thread);
-
-    auto iter = dst->begin();
-    for (TrackSlotId tid : range(TrackSlotId{is_selected.size()}))
-    {
-        if (is_selected(tid))
-        {
-            for (size_type i = 0; i != per_thread; ++i)
-            {
-                *iter++ = src[ItemId<T>{per_thread * tid.unchecked_get() + i}];
-            }
-        }
-    }
-    CELER_ASSERT(iter == dst->end());
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -154,11 +70,11 @@ void copy_steps(
 
     // Get the number of threads that are active and selected
     IsSelected const is_selected{state.data};
-    size_type size = count_num_valid(is_selected);
+    size_type size = detail::count_num_valid(is_selected);
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    assign_field(&(output->FIELD), state.data.FIELD, is_selected, size)
+    detail::assign_field(&(output->FIELD), state.data.FIELD, is_selected, size)
 
     DS_ASSIGN(detector_id);
     DS_ASSIGN(track_id);
@@ -171,11 +87,11 @@ void copy_steps(
         DS_ASSIGN(points[sp].energy);
         if (state.num_volume_levels > 0)
         {
-            assign_field(&(output->points[sp].volume_instance_ids),
-                         state.data.points[sp].volume_instance_ids,
-                         is_selected,
-                         size,
-                         state.num_volume_levels);
+            detail::assign_field(&(output->points[sp].volume_instance_ids),
+                                 state.data.points[sp].volume_instance_ids,
+                                 is_selected,
+                                 size,
+                                 state.num_volume_levels);
         }
     }
 
