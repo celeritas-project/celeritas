@@ -774,17 +774,17 @@ auto import_processes(GeantImporter::DataSelection selected,
 
     for (auto const& p : particles)
     {
-        auto const* g4_particle_def = GeantParticleView::find(p.pdg);
-        CELER_ASSERT(g4_particle_def);
+        auto const& g4_particle_def
+            = GeantParticleView::from_pdg(p.pdg).definition();
 
         if (!include_particle(p.pdg))
         {
             CELER_LOG(debug) << "Filtered all processes from particle '"
-                             << g4_particle_def->GetParticleName() << "'";
+                             << g4_particle_def.GetParticleName() << "'";
             continue;
         }
 
-        auto const& process_vec = get_process_vec(*g4_particle_def);
+        auto const& process_vec = get_process_vec(g4_particle_def);
 
         for (auto j : range(process_vec.size()))
         {
@@ -795,7 +795,7 @@ auto import_processes(GeantImporter::DataSelection selected,
                 continue;
             }
 
-            append_process(*g4_particle_def, process);
+            append_process(g4_particle_def, process);
         }
     }
 

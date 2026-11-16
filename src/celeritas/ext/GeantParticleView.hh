@@ -38,8 +38,8 @@ class GeantParticleView
     //!@}
 
   public:
-    // Find the Geant4 particle definition for a PDG number
-    static inline G4ParticleDefinition const* find(PDGNumber pdg);
+    // Return a particle view from a PDG number
+    static inline GeantParticleView from_pdg(PDGNumber);
 
     // Construct from G4ParticleDefinition
     explicit GeantParticleView(G4ParticleDefinition const& def) : pd_(def) {}
@@ -65,31 +65,38 @@ class GeantParticleView
     // Whether it is an optical photon
     inline bool is_optical_photon() const;
 
+    //! Underlying Geant4 particle definition
+    G4ParticleDefinition const& definition() const { return pd_; }
+
   private:
     G4ParticleDefinition const& pd_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the Geant4 particle definition for a PDG number.
- *
- * The result is null if no particle is found.
+ * Return a particle view from a PDG number.
  */
-G4ParticleDefinition const* GeantParticleView::find(PDGNumber pdg)
+GeantParticleView GeantParticleView::from_pdg(PDGNumber pdg)
 {
     CELER_EXPECT(pdg);
 
-    auto& table = *G4ParticleTable::GetParticleTable();
-    if constexpr (G4VERSION_NUMBER < 1070)
-    {
-        // Geant4 adopted PDG number -22 for optical photons in version 10.7.
-        // Older versions use PDG 0 plus a unique name
-        if (pdg == PDGNumber{-22})
+    G4ParticleDefinition const* particle = [&pdg] {
+        auto& table = *G4ParticleTable::GetParticleTable();
+        if constexpr (G4VERSION_NUMBER < 1070)
         {
-            return table.FindParticle("opticalphoton");
+            // Geant4 adopted PDG number -22 for optical photons in
+            // version 10.7. Older versions use PDG 0 plus a unique name
+            if (pdg == PDGNumber{-22})
+            {
+                return table.FindParticle("opticalphoton");
+            }
         }
-    }
-    return table.FindParticle(pdg.get());
+        return table.FindParticle(pdg.get());
+    }();
+
+    CELER_VALIDATE(particle,
+                   << "no Geant4 particle definition for PDG " << pdg.get());
+    return GeantParticleView{*particle};
 }
 
 //---------------------------------------------------------------------------//
