@@ -125,6 +125,9 @@ struct OnloadStateData
     //! Thread IDs of active tracks that are in a detector
     StateItems<size_type> valid_id;
 
+    //! Number of selected tracks after device compaction (single element)
+    Collection<size_type, W, M> num_selected;
+
     //! Unique identifier for "thread-local" data.
     StreamId stream_id;
 
@@ -139,6 +142,8 @@ struct OnloadStateData
         };
 
         return data.size() > 0 && right_sized(scratch) && right_sized(valid_id)
+               && (num_selected.size() == 1
+                   || (num_selected.empty() && M == MemSpace::host))
                && stream_id;
     }
 
@@ -154,6 +159,7 @@ struct OnloadStateData
         data = other.data;
         scratch = other.scratch;
         valid_id = other.valid_id;
+        num_selected = other.num_selected;
         stream_id = other.stream_id;
         return *this;
     }
@@ -214,6 +220,7 @@ inline void resize(OnloadStateData<Ownership::value, M>* state,
         // Allocate extra space on device for gathering step data
         resize(&state->scratch, size);
         resize(&state->valid_id, size);
+        resize(&state->num_selected, 1);
     }
 }
 
