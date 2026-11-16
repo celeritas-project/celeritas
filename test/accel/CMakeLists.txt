@@ -224,6 +224,13 @@ add_integration_tests(
   RMTYPE serial
 )
 
+# Test muon offloading with decay
+add_integration_tests(
+  TrackingManagerIntegration TestEm3MuDecay run
+  OFFLOAD cpu gpu
+  RMTYPE serial
+)
+
 foreach(_test_case IN ITEMS run_small_flush run_small_initializers)
   add_integration_tests(
     TrackingManagerIntegration WaterSphere ${_test_case}
@@ -240,13 +247,6 @@ add_integration_tests(
   UserActionIntegration LarSphereGammaScintOffload run
   OFFLOAD cpu gpu
   ${_optical_args}
-)
-
-# Test muon offloading with decay
-add_integration_tests(
-  UserActionIntegration TestEm3MuDecay run
-  OFFLOAD cpu gpu
-  RMTYPE serial
 )
 
 # Test with optical physics offloading distributions
