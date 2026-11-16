@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstddef>
 #include <iosfwd>
 #include <vector>
 #include <gtest/gtest.h>
@@ -23,9 +22,12 @@ struct SDP;
 
 namespace celeritas
 {
+struct CounterAccumStats;
+
 namespace test
 {
 class AssertionHelper;
+
 //---------------------------------------------------------------------------//
 struct RunResult
 {
@@ -67,6 +69,47 @@ struct DepHitResult
 bool is_ref_eq(AssertionHelper& helper,
                DepHitResult const& expected,
                DepHitResult const& actual);
+
+//---------------------------------------------------------------------------//
+struct OpticalDistributionResult
+{
+    std::vector<size_type> num_photons;
+    std::vector<size_type> components;
+    std::vector<size_type> primaries;
+
+    static constexpr char class_str[] = "OpticalDistributionResult";
+
+    friend std::ostream& operator<<(std::ostream&,
+                                    OpticalDistributionResult const&);
+};
+
+bool is_ref_eq(AssertionHelper& helper,
+               OpticalDistributionResult const& expected,
+               OpticalDistributionResult const& actual);
+
+//---------------------------------------------------------------------------//
+struct DiagnosticResult
+{
+    std::vector<size_type> flushes;
+    std::vector<size_type> num_cut;
+    std::vector<size_type> num_errored;
+    std::vector<size_type> step_iters;
+    std::vector<size_type> steps;
+    std::vector<size_type> gen_size;
+    std::vector<size_type> buffer_size;
+    std::vector<size_type> num_generated;
+    std::vector<size_type> num_pending;
+
+    void append(CounterAccumStats const& stats);
+
+    static constexpr char class_str[] = "DiagnosticResult";
+
+    friend std::ostream& operator<<(std::ostream&, DiagnosticResult const&);
+};
+
+bool is_ref_eq(AssertionHelper& helper,
+               DiagnosticResult const& expected,
+               DiagnosticResult const& actual);
 
 //---------------------------------------------------------------------------//
 }  // namespace test
