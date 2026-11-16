@@ -36,7 +36,7 @@ NUM_EVENTS=${1:-1}
 lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n $NUM_EVENTS -o genie-output-${NUM_EVENTS}.root
 
 # Run LArG4 + IonAndScint with original dune10kt_v6_refactored_1x2x6.gdml
-lar -c "${EXAMPLE_DIR}/larg4_dune10kt_1x2x6.fcl" -n 1 -s genie-output-${NUM_EVENTS}.root -o larg4-output.root
+lar -c "${EXAMPLE_DIR}/larg4_dune10kt_1x2x6.fcl" -s genie-output-${NUM_EVENTS}.root -o larg4-output.root
 
 # Run FastSim and Celeritas CPU optical simulations with patched geometry
 lar -c "${EXAMPLE_DIR}/opticalsim_dune10kt_1x2x6.fcl" -s larg4-output.root -o fastsim-output.root
