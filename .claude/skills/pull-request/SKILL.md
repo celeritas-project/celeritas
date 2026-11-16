@@ -35,7 +35,7 @@ and contain a clear-text 🤖, e.g. `🤖 (Claude Code, Sonnet 5.5)`.
 
 ## Credit
 
-`ai-generated` work is not eligible for `scripts/release/contributors.jsonl`.
+`ai-generated` work is not automatically eligible for `scripts/release/contributors.jsonl`.
 
 ## After submission
 

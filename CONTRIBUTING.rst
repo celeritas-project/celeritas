@@ -63,6 +63,12 @@ this reason, and for ethical considerations, we require:
 - Every comment an agent posts on an issue or pull request *must* disclose the
   agent harness and include a 🤖 emoji in clear text.
 
+That said, we *do* encourage the use of AI agents to fix and enhance code.
+Pull requests with physics-oriented improvements, especially if they have
+validation results, are absolutely eligible for contribution credit.
+Authors who guided the agent to a result are encouraged to describe their
+motivations and role in the process.
+
 .. _AGENTS file: ./AGENTS.md#Contributions
 
 
