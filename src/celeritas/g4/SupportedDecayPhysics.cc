@@ -11,7 +11,6 @@
 #include <G4LeptonConstructor.hh>
 #include <G4MuonMinus.hh>
 #include <G4MuonPlus.hh>
-#include <G4ParticleDefinition.hh>
 #include <G4PhysicsListHelper.hh>
 
 #include "corecel/Assert.hh"
@@ -54,12 +53,8 @@ void SupportedDecayPhysics::ConstructProcess()
     // Geant4 takes ownership of the process (shared by mu- and mu+) when it is
     // registered
     auto* decay = new G4Decay();
-    for (G4ParticleDefinition* p :
-         {static_cast<G4ParticleDefinition*>(G4MuonMinus::Definition()),
-          static_cast<G4ParticleDefinition*>(G4MuonPlus::Definition())})
-    {
-        ph->RegisterProcess(decay, p);
-    }
+    ph->RegisterProcess(decay, G4MuonMinus::Definition());
+    ph->RegisterProcess(decay, G4MuonPlus::Definition());
     CELER_LOG(debug) << "Using muon decay with G4Decay";
 }
 
