@@ -64,6 +64,8 @@ struct GeantMuonPhysicsOptions
     //! Enable multiple coulomb scattering and select a model.
     //! Muon MSC currently requires MSC enabled for electrons and positrons
     MscModelSelection msc{MscModelSelection::urban};
+    //! Enable muon decay
+    bool decay{true};
 };
 
 //! Equality operator
@@ -75,7 +77,8 @@ constexpr bool operator==(GeantMuonPhysicsOptions const& a,
            && a.ionization == b.ionization
            && a.bremsstrahlung == b.bremsstrahlung
            && a.coulomb == b.coulomb
-           && a.msc == b.msc;
+           && a.msc == b.msc
+           && a.decay == b.decay;
     // clang-format on
 }
 

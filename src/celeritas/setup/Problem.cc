@@ -33,6 +33,7 @@
 #include "celeritas/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/alongstep/AlongStepRZMapFieldMscAction.hh"
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
+#include "celeritas/decay/DecayProcess.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
@@ -174,6 +175,11 @@ auto build_physics(inp::Problem const& p,
 
     // Build processes
     input.processes = build_physics_processes(p.physics.em, params, imported);
+    if (imported.decay_physics)
+    {
+        input.decay = std::make_shared<DecayProcess>(params.particle,
+                                                     imported.decay_physics);
+    }
 
     return std::make_shared<PhysicsParams>(std::move(input));
 }

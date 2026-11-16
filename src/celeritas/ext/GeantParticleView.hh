@@ -123,13 +123,17 @@ PDGNumber GeantParticleView::pdg() const
  */
 auto GeantParticleView::decay_constant() const -> InvTime
 {
-    if (pd_.GetPDGStable())
+    auto lifetime = pd_.GetPDGLifeTime();
+    if (pd_.GetPDGStable() || lifetime <= 0)
     {
-        // Decay constant of zero is an infinite half-life, i.e., stable
+        // Decay constant of zero is an infinite half-life, i.e., stable.
+        // Short-lived resonances (e.g., delta++) are unstable but have a
+        // lifetime of zero since they're described by their width: these
+        // also have no exponential decay.
         return zero_quantity();
     }
 
-    return InvTime{1 / pd_.GetPDGLifeTime()};
+    return InvTime{1 / lifetime};
 }
 
 //---------------------------------------------------------------------------//
