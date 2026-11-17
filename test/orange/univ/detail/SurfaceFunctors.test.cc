@@ -91,6 +91,18 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
     pos = {2.25_r, 1, 0};
     EXPECT_SOFT_EQ(1, calc_distance(px_));
     EXPECT_SOFT_EQ(1.25, calc_distance(s_));
+
+    // Cylinder offset from the origin
+    CylZ cz{{2, 0, 0}, 1};
+    pos = {2, 0.25, 5};
+    EXPECT_SOFT_EQ(0.75, calc_distance(cz));
+    pos = {0, 0, 0};
+    EXPECT_SOFT_EQ(1, calc_distance(cz));
+    pos = {-8, 0, 0};
+    EXPECT_SOFT_EQ(9, calc_distance(cz));
+    // On the axis, where the normal is undefined
+    pos = {2, 0, 0};
+    EXPECT_SOFT_EQ(1, calc_distance(cz));
 }
 
 //---------------------------------------------------------------------------//
