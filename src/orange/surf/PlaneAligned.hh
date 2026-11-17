@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
@@ -79,6 +81,9 @@ class PlaneAligned
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     //! Intersection with the axis
@@ -191,6 +196,19 @@ template<Axis T>
 CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(Real3 const&) const
 {
     return this->calc_normal();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * This is the magnitude of the displacement along the normal:
+ * \f$ |\hat{n} \cdot \mathbf{x} - d| \f$.
+ */
+template<Axis T>
+CELER_FUNCTION real_type PlaneAligned<T>::calc_safety(Real3 const& pos) const
+{
+    return std::fabs(this->dot_normal(pos) - this->displacement());
 }
 
 //---------------------------------------------------------------------------//
