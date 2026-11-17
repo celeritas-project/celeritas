@@ -314,7 +314,6 @@ TEST_F(IntersectsSegmentTest, degenerate)
     Real3 plus_x{1, 0, 0};
     {
         auto inf_bbox = BBox::from_infinite();
-        constexpr real_type infr = std::numeric_limits<real_type>::infinity();
         EXPECT_TRUE(
             intersects_segment(inf_bbox, Real3{0, 0, 0}, plus_x, 0.2_r));
         EXPECT_TRUE(
