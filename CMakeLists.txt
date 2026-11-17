@@ -404,13 +404,12 @@ endif()
 # Model explicit package dependencies
 foreach(_pkg LArSoft DD4hep)
   if(CELERITAS_USE_${_pkg})
-    foreach(_dep ROOT Geant4)
-      if(NOT CELERITAS_USE_${_dep})
-        celeritas_error_incompatible_option(
-          "${_pkg} requires ${_dep}" CELERITAS_USE_${_dep} ON
-        )
-      endif()
-    endforeach()
+    set(_dep Geant4)
+    if(NOT CELERITAS_USE_${_dep})
+      celeritas_error_incompatible_option(
+        "${_pkg} requires ${_dep}" CELERITAS_USE_${_dep} ON
+      )
+    endif()
   endif()
 endforeach()
 
