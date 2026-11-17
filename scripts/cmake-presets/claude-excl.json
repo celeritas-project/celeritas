@@ -54,6 +54,7 @@
           "value": "ON"
         },
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-stringop-overread -fdiagnostics-color -ffile-prefix-map=${sourceDir}/..=/work",
+        "CMAKE_INSTALL_RPATH": "$ORIGIN:$ORIGIN/../lib",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CUDA_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_STANDARD": "20",
