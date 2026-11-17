@@ -46,7 +46,8 @@ namespace test
  * - \c is_reference_rng, \c is_reference_geo, \c is_reference_phys: whether
  *   the core RNG, core geometry, and G4 data are the "defaults" used for
  *   testing regression results.
- * - \c inf, \c inff:  double- and single-precision infinities
+ * - \c inf, \c inff, \c infr: double, single, and \c real_type precision
+ *   infinities
  */
 class Test : public ::testing::Test
 {
@@ -87,6 +88,11 @@ class Test : public ::testing::Test
     // Define "inf" value for subclass testing
     static constexpr double inf = HUGE_VAL;
     static constexpr float inff = HUGE_VALF;
+#if CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+    static constexpr double infr = inf;
+#elif CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
+    static constexpr float infr = inff;
+#endif
 
     // Define coarse epsilon (sqrt typical precision)
 
