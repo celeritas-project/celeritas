@@ -32,10 +32,12 @@ Commit requirements:
 - Commit subjects and PR titles: imperative mood, capitalized, no trailing
   period, no labels/emoji.
   (PR titles are copied into the release notes.)
-- History: you may rebase or force-push a PR branch *only* when it is in draft
+- History: you may force-push a PR branch *only* when it is in draft
   form and not under review.
-  Push new commits rather than amending, and incorporate upstream changes by
-  *merging* `upstream/develop` (see `CONTRIBUTING.rst`).
+  Local history modification is allowed unless it diverges from the remote
+  branch.
+  Push new commits rather than amending remote commits, and incorporate
+  upstream changes by *merging* `upstream/develop` (see `CONTRIBUTING.rst`).
 
 Prohibitions:
 - Never submit a pull request without `draft=True`.
