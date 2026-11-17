@@ -36,6 +36,7 @@ list(APPEND PUBLIC_DEPS ${_core_geo_deps})
 list(APPEND SOURCES
   Types.cc
   TypesIO.json.cc
+  decay/DecayProcess.cc
   em/detail/Utils.cc
   em/params/AtomicRelaxationParams.cc
   em/params/FluctuationParams.cc
@@ -243,6 +244,7 @@ if(CELERITAS_USE_Geant4)
     g4/DetectorConstruction.cc
     g4/GeantOffloadUtils.cc
     g4/StateDependent.cc
+    g4/SupportedDecayPhysics.cc
     g4/SupportedEmStandardPhysics.cc
     g4/SupportedOpticalPhysics.cc
     g4/Threading.cc
@@ -389,6 +391,7 @@ celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)
 celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
+celeritas_polysource(decay/channel/MuDecayChannel)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
 celeritas_polysource(em/model/BraggModel)

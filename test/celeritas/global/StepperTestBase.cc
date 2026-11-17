@@ -64,6 +64,10 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
     {
         result.processes.emplace_back(p.process(process_id)->label());
     }
+    if (auto const& decay = p.decay_process())
+    {
+        result.processes.emplace_back(decay->label());
+    }
 
     // Create temporary host stepper to get action ordering
     Stepper<MemSpace::host> temp_stepper(this->make_stepper_input(1));

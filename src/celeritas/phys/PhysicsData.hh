@@ -118,11 +118,15 @@ struct IntegralXsProcess
  * integral_xs will only be assigned if the integral approach is used and the
  * particle has continuous-discrete processes.
  *
- * \todo If it's possible for a particle to have multiple at-rest processes, \c
- * at_rest should be the process with the smallest lifetime. This is used in \c
- * select_discrete_interaction to choose the at-rest process with the smallest
- * time to interaction if the particle is stopped and has a process that
- * applies at rest.
+ * At most one interaction process per particle may apply at rest. Such
+ * processes are selected immediately (with no sampled time to interaction)
+ * when the particle stops, so decay is the at-rest process only when no other
+ * is present.
+ *
+ * \todo If processes with a nonzero time to interaction at rest are added,
+ * \c at_rest should be replaced by the set of at-rest processes, and \c
+ * select_discrete_interaction should choose the one with the shortest sampled
+ * time to interaction.
  */
 struct ProcessGroup
 {
@@ -134,6 +138,7 @@ struct ProcessGroup
     UniformTable range;  //!< Process-integrated range
     UniformTable inverse_range;  //!< Inverse process-integrated range
     ParticleProcessId at_rest;  //!< ID of the particle's at-rest process
+    ActionId decay_action;  //!< Decay channel action, if the particle decays
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -252,6 +257,8 @@ struct PhysicsParamsScalars
     ActionId first_model_action{};
     //! Number of physics models
     ModelId::size_type num_models{};
+    //! ID of the decay process, if present
+    ProcessId decay;
 
     // User-configurable constants
     real_type min_eprime_over_e{};  //!< xi [unitless]

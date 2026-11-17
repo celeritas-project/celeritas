@@ -44,7 +44,7 @@ set(_optical_args "RMTYPE" "serial")
 if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
   list(APPEND _optical_args "mt")
 endif()
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2)
   # VecGeom < 2.2 does not provide surface normals: required for optical
   # (hack the run manager
   list(APPEND _optical_args "DISABLE")
@@ -220,6 +220,13 @@ endforeach()
 # Test cleanup after runtime error
 add_integration_tests(
   TrackingManagerIntegration TestEm3 max_step_iters_error
+  OFFLOAD cpu gpu
+  RMTYPE serial
+)
+
+# Test muon offloading with decay
+add_integration_tests(
+  TrackingManagerIntegration TestEm3MuDecay run
   OFFLOAD cpu gpu
   RMTYPE serial
 )

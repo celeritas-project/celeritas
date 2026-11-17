@@ -63,11 +63,12 @@ Primary generators
 Physics lists
 """""""""""""
 
-Two physics constructors build exclusively processes supported by Celeritas for
-Geant4:
+Three physics constructors build exclusively processes supported by Celeritas
+for Geant4:
 
 .. doxygenclass:: celeritas::SupportedEmStandardPhysics
 .. doxygenclass:: celeritas::SupportedOpticalPhysics
+.. doxygenclass:: celeritas::SupportedDecayPhysics
 
 Two "modular" physics lists (one using Geant4 hadronics, the other using pure
 Celeritas) are stand-ins for physics factories suitable for sending to

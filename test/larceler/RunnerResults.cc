@@ -6,16 +6,18 @@
 //---------------------------------------------------------------------------//
 #include "RunnerResults.hh"
 
+#include <iostream>
 #include <larcoreobj/SimpleTypesAndConstants/geo_vectors.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Repr.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 
 #include "AssertionHelper.hh"
 #include "RefComparer.hh"
-#include "testdetail/TestMacrosImpl.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -89,6 +91,74 @@ bool is_ref_eq(AssertionHelper& helper,
     CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, DepHitResult, num_photons);
     CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, DepHitResult, energy);
     CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, DepHitResult, pos);
+    return static_cast<bool>(compare);
+}
+
+//---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, OpticalDistributionResult const& ref)
+{
+    return os << '{' << CELER_REPR_ATTR(ref, num_photons) << ", "
+              << CELER_REPR_ATTR(ref, components) << ", "
+              << CELER_REPR_ATTR(ref, primaries) << ",}";
+}
+
+bool is_ref_eq(AssertionHelper& helper,
+               OpticalDistributionResult const& expected,
+               OpticalDistributionResult const& actual)
+{
+    RefComparer<OpticalDistributionResult> compare{helper, expected, actual};
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_eq, OpticalDistributionResult, num_photons);
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_eq, OpticalDistributionResult, components);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, OpticalDistributionResult, primaries);
+    return static_cast<bool>(compare);
+}
+
+//---------------------------------------------------------------------------//
+void DiagnosticResult::append(CounterAccumStats const& stats)
+{
+    flushes.push_back(stats.flushes);
+    num_cut.push_back(stats.num_cut);
+    num_errored.push_back(stats.num_errored);
+    step_iters.push_back(stats.step_iters);
+    steps.push_back(stats.steps);
+    gen_size.push_back(stats.generators.size());
+    for (auto const& gen : stats.generators)
+    {
+        buffer_size.push_back(gen.buffer_size);
+        num_generated.push_back(gen.num_generated);
+        num_pending.push_back(gen.num_pending);
+    }
+}
+
+std::ostream& operator<<(std::ostream& os, DiagnosticResult const& ref)
+{
+    return os << '{' << CELER_REPR_ATTR(ref, flushes) << ", "
+              << CELER_REPR_ATTR(ref, num_cut) << ", "
+              << CELER_REPR_ATTR(ref, num_errored) << ", "
+              << CELER_REPR_ATTR(ref, step_iters) << ", "
+              << CELER_REPR_ATTR(ref, steps) << ", "
+              << CELER_REPR_ATTR(ref, gen_size) << ", "
+              << CELER_REPR_ATTR(ref, buffer_size) << ", "
+              << CELER_REPR_ATTR(ref, num_generated) << ", "
+              << CELER_REPR_ATTR(ref, num_pending) << ",}";
+}
+
+bool is_ref_eq(AssertionHelper& helper,
+               DiagnosticResult const& expected,
+               DiagnosticResult const& actual)
+{
+    RefComparer<DiagnosticResult> compare{helper, expected, actual};
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, flushes);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, num_cut);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, num_errored);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, step_iters);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, steps);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, gen_size);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, buffer_size);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, num_generated);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, num_pending);
     return static_cast<bool>(compare);
 }
 
