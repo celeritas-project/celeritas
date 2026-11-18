@@ -1,5 +1,6 @@
 #!/bin/sh -ex
-# Local, untracked: secretariat settings using the dunesw-cuda spack view.
+# Local, untracked: secretariat settings for the dunesw spack view (CUDA or HIP)
+# selected by the env script that the user sourced beforehand.
 
 export CELER_DISABLE_DEVICE=1
 export CXX=/usr/bin/g++-13
@@ -23,22 +24,14 @@ mkdir -p "${CCACHE_TEMPDIR}"
 export CCACHE_BASEDIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 export CCACHE_NOHASHDIR=1
 
-CELER_SPACK_VIEW=/auto/projects/celeritas/view/dunesw-cuda
-if ! [ -d "${CELER_SPACK_VIEW}" ]; then
-  echo "error: missing view ${CELER_SPACK_VIEW}" >&2
+# Require that the user has already sourced one of the view environment
+# scripts (/auto/projects/celeritas/environments/scripts/dunesw-{cuda,hip}-env.sh).
+# They set SPACK_ENV_VIEW and put the view on PATH, CMAKE_PREFIX_PATH,
+# PKG_CONFIG_PATH, etc., along with FHICL_FILE_PATH and FW_SEARCH_PATH.
+if [ -z "${SPACK_ENV_VIEW}" ]; then
+  echo "error: source /auto/projects/celeritas/environments/scripts/dunesw-{cuda,hip}-env.sh first" >&2
   return 1
 fi
-export CELER_SPACK_VIEW
-export PATH=${CELER_SPACK_VIEW}/bin:${PATH}
-# The view's env script sets FHICL_FILE_PATH and FW_SEARCH_PATH, including a
-# mirror of the GENIE flux/data files that are otherwise only on CVMFS.
-# Source it (rather than just adding the view to PATH) to run LArSoft examples.
-CELER_SPACK_VIEW_ENV=${CELER_SPACK_VIEW}-env.sh
-if ! [ -f "${CELER_SPACK_VIEW_ENV}" ]; then
-  echo "error: missing view env script ${CELER_SPACK_VIEW_ENV}" >&2
-  return 1
+if [ -x "${SPACK_ENV_VIEW}/bin/nvcc" ]; then
+  export CUDACXX=${SPACK_ENV_VIEW}/bin/nvcc
 fi
-. "${CELER_SPACK_VIEW_ENV}"
-export CMAKE_PREFIX_PATH=${CELER_SPACK_VIEW}:${CMAKE_PREFIX_PATH}
-export CUDACXX=${CELER_SPACK_VIEW}/bin/nvcc
-export PKG_CONFIG_PATH=/auto/projects/celeritas/view/dunesw-cuda/lib/pkgconfig:/auto/projects/celeritas/view/dunesw-cuda/lib64/pkgconfig:/auto/projects/celeritas/view/dunesw-cuda/share/pkgconfig:${PKG_CONFIG_PATH}
