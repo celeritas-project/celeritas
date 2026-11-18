@@ -30,6 +30,15 @@ if ! [ -d "${CELER_SPACK_VIEW}" ]; then
 fi
 export CELER_SPACK_VIEW
 export PATH=${CELER_SPACK_VIEW}/bin:${PATH}
+# The view's env script sets FHICL_FILE_PATH and FW_SEARCH_PATH, including a
+# mirror of the GENIE flux/data files that are otherwise only on CVMFS.
+# Source it (rather than just adding the view to PATH) to run LArSoft examples.
+CELER_SPACK_VIEW_ENV=${CELER_SPACK_VIEW}-env.sh
+if ! [ -f "${CELER_SPACK_VIEW_ENV}" ]; then
+  echo "error: missing view env script ${CELER_SPACK_VIEW_ENV}" >&2
+  return 1
+fi
+. "${CELER_SPACK_VIEW_ENV}"
 export CMAKE_PREFIX_PATH=${CELER_SPACK_VIEW}:${CMAKE_PREFIX_PATH}
 export CUDACXX=${CELER_SPACK_VIEW}/bin/nvcc
 export PKG_CONFIG_PATH=/auto/projects/celeritas/view/dunesw-cuda/lib/pkgconfig:/auto/projects/celeritas/view/dunesw-cuda/lib64/pkgconfig:/auto/projects/celeritas/view/dunesw-cuda/share/pkgconfig:${PKG_CONFIG_PATH}
