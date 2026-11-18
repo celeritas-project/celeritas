@@ -23,7 +23,9 @@ set -x
 #   in the FHICL lookup path
 # - the modified GDML lookup also requires the example directory
 export FHICL_FILE_PATH=$EXAMPLE_DIR:$FHICL_FILE_PATH
-export FW_SEARCH_PATH=$EXAMPLE_DIR:$FW_SEARCH_PATH
+# - the patched GDML is downloaded into the current directory, so that must
+#   be searched too
+export FW_SEARCH_PATH=$PWD:$EXAMPLE_DIR:$FW_SEARCH_PATH
 
 # Download and patch the geometry file for Celeritas execution into the current directory
 if ! [ -f dune10kt_v6_refactored_1x2x6_optical.gdml ]; then
