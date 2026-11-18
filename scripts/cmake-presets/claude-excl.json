@@ -43,7 +43,7 @@
         },
         "CELERITAS_USE_ROOT": {
           "type": "BOOL",
-          "value": "OFF"
+          "value": "ON"
         },
         "CELERITAS_USE_DD4hep": {
           "type": "BOOL",
