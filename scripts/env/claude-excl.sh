@@ -1,6 +1,6 @@
 #!/bin/sh -ex
-# Local, untracked: secretariat settings for the dunesw spack view (CUDA or HIP)
-# selected by the env script that the user sourced beforehand.
+# Settings for apptainer-based Claude on ExCL: the dunesw spack view (CUDA or
+# HIP) is selected by the env script that the user sourced beforehand.
 
 export CELER_DISABLE_DEVICE=1
 export CXX=/usr/bin/g++-13
