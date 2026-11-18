@@ -87,8 +87,8 @@
       }
     },
     {
-      "name": "release-orange",
-      "displayName": "Build with full optimizations (ORANGE)",
+      "name": "release-orange-cuda",
+      "displayName": "Build with full optimizations (ORANGE, CUDA)",
       "inherits": [".orange", ".base", ".release"],
       "cacheVariables": {
         "CELERITAS_USE_OpenMP": {
@@ -96,6 +96,28 @@
           "value": "ON"
         },
         "CELERITAS_OPENMP": "track"
+      }
+    },
+    {
+      "name": "release-orange-hip",
+      "displayName": "Build with full optimizations (ORANGE, HIP)",
+      "inherits": [".orange", ".base", ".release"],
+      "cacheVariables": {
+        "CELERITAS_USE_OpenMP": {
+          "type": "BOOL",
+          "value": "ON"
+        },
+        "CELERITAS_OPENMP": "track",
+        "CELERITAS_USE_CUDA": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
+        "CELERITAS_USE_HIP": {
+          "type": "BOOL",
+          "value": "ON"
+        },
+        "CMAKE_HIP_ARCHITECTURES": "gfx906;gfx908;gfx942",
+        "CMAKE_HIP_COMPILER_LAUNCHER": "ccache"
       }
     },
     {
@@ -123,8 +145,13 @@
       "nativeToolOptions": ["-k0"]
     },
     {
-      "name": "release-orange",
-      "configurePreset": "release-orange",
+      "name": "release-orange-cuda",
+      "configurePreset": "release-orange-cuda",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-orange-hip",
+      "configurePreset": "release-orange-hip",
       "inherits": ".base"
     },
     {
@@ -152,8 +179,13 @@
       }
     },
     {
-      "name": "release-orange",
-      "configurePreset": "release-orange",
+      "name": "release-orange-cuda",
+      "configurePreset": "release-orange-cuda",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-orange-hip",
+      "configurePreset": "release-orange-hip",
       "inherits": ".base"
     },
     {
