@@ -87,7 +87,7 @@ Generating GENIE samples
 Running LArG4 + IonAndScint
 ---------------------------
 
-- Use local ``larg4_dune10k_1x2x6.fcl`` file.
+- Use local ``larg4_dune10kt_1x2x6.fcl`` file.
 - To loop over a subset of events, replace ``-s`` by
   ``-n [num_events]``.
 - The GDML input geometry in ``LArG4`` should **not** tag Arapucas as
@@ -111,17 +111,17 @@ Fast simulation
 
 .. code:: console
 
-   $ lar -c dune10k_optical_1x2x6.fcl -s larg4-output.root -o fastsim-output.root
+   $ lar -c opticalsim_dune10kt_1x2x6.fcl -s larg4-output.root -o fastsim-output.root
 
 Celeritas
 ^^^^^^^^^
 
 .. code:: console
 
-   $ lar -c dune10k_optical_celeritas_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
+   $ lar -c opticalsim_celeritas_dune10kt_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
 
 By default, Celeritas will run on CPU. See documentation in the
-``dune10k_optical_celeritas_1x2x6.fcl`` file to toggle GPU execution.
+``opticalsim_celeritas_dune10kt_1x2x6.fcl`` file to toggle GPU execution.
 
 Celeritas geometry requires correct optical material information and correct
 ``SensDet`` data assigned to the Arapucas.
