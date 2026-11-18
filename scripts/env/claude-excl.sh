@@ -9,15 +9,14 @@ export CUDAARCHS="70;80;90"
 
 export USER="${USER:-$(id -un)}"
 export LC_ALL=C
-# Locations come from the apptainer launcher (claude-run): TMPDIR and
-# XDG_CACHE_HOME are bound to local scratch storage, as is /work/build (see the
-# presets: build in ../build, install in ../install relative to the source).
-if [ -z "${XDG_CACHE_HOME}" ] || [ -z "${TMPDIR}" ]; then
-  echo "error: XDG_CACHE_HOME and TMPDIR must be set (run via claude-run)" >&2
+# Locations come from the apptainer launcher (claude-excl-celer.sh): TMPDIR,
+# XDG_CACHE_HOME, and CCACHE_DIR are bound to scratch/persistent storage, as
+# are /work/build and /work/install (see the presets: build in ../build,
+# install in ../install relative to the source).
+if [ -z "${CCACHE_DIR}" ] || [ -z "${TMPDIR}" ]; then
+  echo "error: CCACHE_DIR and TMPDIR must be set (run via claude-excl-celer.sh)" >&2
   return 1
 fi
-mkdir -p "${XDG_CACHE_HOME}/ccache" || return $?
-export CCACHE_DIR="${XDG_CACHE_HOME}/ccache"
 export CCACHE_TEMPDIR="${TMPDIR}/ccache"
 mkdir -p "${CCACHE_TEMPDIR}"
 # Share cache hits regardless of source/build location
