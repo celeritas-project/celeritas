@@ -35,7 +35,18 @@ fi
 # Get event count from first argument (default 1)
 NUM_EVENTS=${1:-1}
 # Note: this fcl file is part of the `dunesw` spack package
-lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n $NUM_EVENTS -o genie-output-${NUM_EVENTS}.root
+# Some GENIE libraries use libGFwReg symbols without linking against it, which
+# fails with an undefined symbol unless it is loaded first:
+#   https://github.com/GENIE-MC/Generator/issues/570
+# Preload it for the GENIE run only, if the Spack view provides it.
+genie_ld_preload=${LD_PRELOAD}
+if [ -n "${SPACK_ENV_VIEW}" ] \
+   && genie_reg=$(realpath "${SPACK_ENV_VIEW}/lib/libGFwReg.so" 2>/dev/null) \
+   && [ -x "${genie_reg}" ]; then
+  genie_ld_preload="${genie_reg}${LD_PRELOAD:+:${LD_PRELOAD}}"
+fi
+LD_PRELOAD="${genie_ld_preload}" \
+  lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n $NUM_EVENTS -o genie-output-${NUM_EVENTS}.root
 
 # Run LArG4 + IonAndScint with original dune10kt_v6_refactored_1x2x6.gdml
 lar -c "${EXAMPLE_DIR}/larg4_dune10kt_1x2x6.fcl" -s genie-output-${NUM_EVENTS}.root -o larg4-output.root
