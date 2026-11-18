@@ -418,6 +418,15 @@ interprocess communication and process ID namespaces for VM-like process
 isolation.
 Scratch and code directories are forwarded with ``-B``.
 
+.. note::
+
+   On ExCL systems without CVMFS, the spack view's ``dunesw-cuda-env.sh``
+   script must be sourced (not just the view added to ``PATH``) to run LArSoft
+   workflows such as the :file:`example/larceler` example: it sets
+   ``FHICL_FILE_PATH`` and a ``FW_SEARCH_PATH`` that mirrors the GENIE flux and
+   data files normally found on CVMFS. :file:`scripts/env/claude-excl.sh` does
+   this automatically.
+
 .. _milan2: https://docs.excl.ornl.gov/system-overview/milan
 
 Scientific Linux 7
