@@ -42,14 +42,17 @@ for d in $CLAUDE_HOME $CLAUDE_CCACHE $CLAUDE_INSTALL; do
 done
 
 # Scratch directories
+CLAUDE_TMP="$(mktemp -d $USER.claude.XXXXXXXX)"
 if [ -z "${SCRATCHDIR}" ]; then
   SCRATCHDIR="/scratch/$USER"
 fi
-CLAUDE_TMP="$SCRATCHDIR/claude/tmp"
+if ! [ -d "${SCRATCHDIR}" ]; then
+  mkdir -p "$SCRATCHDIR"
+  chmod 700 "$SCRATCHDIR"
+fi
 CLAUDE_CACHE="$SCRATCHDIR/claude/cache"
 CLAUDE_BUILD="$SCRATCHDIR/claude/build"
-mkdir -p "$CLAUDE_TMP" "$CLAUDE_CACHE" "$CLAUDE_BUILD"
-chmod 700 "$CLAUDE_TMP" "$CLAUDE_CACHE"
+mkdir -p "$CLAUDE_CACHE" "$CLAUDE_BUILD"
 
 # Environment
 export APPTAINERENV_https_proxy=http://proxy.ftpn.ornl.gov:3128
