@@ -242,7 +242,7 @@ CELER_FUNCTION Real3 ConeAligned<T>::calc_gradient(Real3 const& pos) const
     Real3 result;
     for (auto i = to_int(Axis::x); i < to_int(Axis::size_); ++i)
     {
-        result[i] = pos[i] - origin_[i];
+        result[i] = 2 * (pos[i] - origin_[i]);
     }
     result[to_int(T)] *= -tsq_;
     return result;
