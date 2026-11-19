@@ -64,10 +64,18 @@ TEST(ConeAlignedTest, sense)
 
 TEST(ConeAlignedTest, normal)
 {
-    ConeX cone{{2, 3, 4}, 0.5};
+    {
+        ConeX cone{{2, 3, 4}, 0.5};
 
-    EXPECT_VEC_SOFT_EQ(make_unit_vector(Real3{-1, 2, 0}),
-                       cone.calc_normal({2 + 2, 3 + 1, 4 + 0}));
+        EXPECT_VEC_SOFT_EQ(make_unit_vector(Real3{-1, 2, 0}),
+                           cone.calc_normal({2 + 2, 3 + 1, 4 + 0}));
+    }
+    {
+        ConeZ cone{{2, 3, 4}, 0.5};
+
+        EXPECT_VEC_SOFT_EQ(make_unit_vector(Real3{2, 0, -1}),
+                           cone.calc_normal({2 + 1, 3 + 0, 4 + 2}));
+    }
 }
 
 TEST(ConeAlignedTest, intersection_typical)
