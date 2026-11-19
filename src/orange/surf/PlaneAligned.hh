@@ -38,6 +38,9 @@ class PlaneAligned
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
+    //! Gradient has unit length
+    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient() { return true; }
+
   public:
     //// CONSTRUCTORS ////
 

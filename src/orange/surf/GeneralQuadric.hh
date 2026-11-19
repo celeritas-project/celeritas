@@ -59,6 +59,12 @@ class GeneralQuadric
     //! Safety is *not* the nearest intersection along the surface "normal"
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
 
+    //! Gradient does not have unit length
+    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
+    {
+        return false;
+    }
+
   public:
     //// CONSTRUCTORS ////
 

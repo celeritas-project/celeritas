@@ -87,6 +87,12 @@ class CylAligned
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
 
+    //! Gradient does not have unit length
+    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
+    {
+        return false;
+    }
+
     //!@{
     //! Axes
     static CELER_CONSTEXPR_FUNCTION Axis t_axis() { return T; }

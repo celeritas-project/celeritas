@@ -75,6 +75,12 @@ class Toroid
     //! https://web.archive.org/web/20170829172516/https://www.spaceroots.org/documents/distance/distance-to-ellipse.pdf
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
 
+    //! Gradient does not have unit length
+    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
+    {
+        return false;
+    }
+
   public:
     //// CONSTRUCTORS ////
 
