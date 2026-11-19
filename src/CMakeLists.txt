@@ -106,7 +106,7 @@ celeritas_add_interface_library(ExtDeviceApi)
 # Find the include directory of a CUDA header used by host-compiled code.
 # Search the toolkit include directories (and their subdirectories given by
 # PATH_SUFFIXES) before the default paths, and fail if the header is missing.
-function(celer_find_cuda_header var header package)
+function(celer_find_cuda_header var header component)
   cmake_parse_arguments(PARSE_ARGV 3 _arg "" "" "PATHS;PATH_SUFFIXES")
   set(_doc "Path to CUDA header <${header}>")
   find_path(${var} "${header}"
@@ -124,9 +124,8 @@ function(celer_find_cuda_header var header package)
   if(NOT ${var})
     message(SEND_ERROR "Could not find the CUDA header <${header}> in "
       "the CUDA toolkit include directories (${CUDAToolkit_INCLUDE_DIRS}). "
-      "If CUDA is installed from conda-forge (e.g., with pixi), add the "
-      "'${package}' package to the environment; otherwise set ${var} to "
-      "the directory that contains ${header}."
+      "Install the development headers for the CUDA ${component} component "
+      "or set ${var} to the directory that contains ${header}."
     )
   endif()
 endfunction()
@@ -139,15 +138,15 @@ if(CELERITAS_USE_CUDA)
   # - CUDA 13 moves CCCL (Thrust/CUB) to include/cccl, which is only detected
   #   by CMake 3.31.8/4.0.3 and later
   # - The NVIDIA HPC SDK installs math library (cuRAND) headers separately
-  # - Conda-forge distributes each set of headers as a separate package
+  # - Some distributions package the headers of each CUDA component separately
   celer_find_cuda_header(CELERITAS_CUDA_CCCL_INCLUDE_DIR
-    thrust/version.h cuda-cccl PATH_SUFFIXES cccl
+    thrust/version.h CCCL PATH_SUFFIXES cccl
   )
   celer_find_cuda_header(CELERITAS_CUDA_NVTX_INCLUDE_DIR
-    nvtx3/nvToolsExt.h cuda-nvtx-dev
+    nvtx3/nvToolsExt.h NVTX
   )
   celer_find_cuda_header(CELERITAS_CUDA_CURAND_INCLUDE_DIR
-    curand_kernel.h libcurand-dev PATHS ${CUDAToolkit_MATH_INCLUDE_DIR}
+    curand_kernel.h cuRAND PATHS ${CUDAToolkit_MATH_INCLUDE_DIR}
   )
   set(_dirs)
   foreach(_hdr IN ITEMS CCCL NVTX CURAND)

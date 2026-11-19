@@ -24,7 +24,7 @@ foreach(_dir IN ITEMS
 endforeach()
 unset(_dir)
 if(CUDAToolkit_LIBRARY_DIR)
-  # Conda-forge installs CMake configs under targets/<arch>/lib
+  # Some distributions install CMake configs only under targets/<arch>/lib
   list(APPEND _hints "${CUDAToolkit_LIBRARY_DIR}/cmake/thrust")
 endif()
 list(REMOVE_DUPLICATES _hints)
