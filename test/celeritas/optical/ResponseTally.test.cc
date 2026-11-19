@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ResponseTally.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/Assert.hh"
 #include "corecel/data/ParamsDataStore.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/optical/ResponseTallyData.hh"
@@ -23,20 +24,20 @@ class ResponseTallyTest : public ::celeritas::test::Test
   protected:
     void SetUp() override
     {
-        // 2 detectors, 2x3x4 spatial bins over [0, 2) x [0, 3) x [0, 4),
-        // 5 time bins over [0, 10)
+        // 2x3x4 spatial bins over [0, 2) x [0, 3) x [0, 4), 3 detectors,
+        // 5 time bins over [0, 10); dims are {x, y, z, detector, time}
         HostVal<ResponseTallyParamsData> host;
         host.x_grid = UniformGridData::from_bounds({0, 2}, 3);
         host.y_grid = UniformGridData::from_bounds({0, 3}, 4);
         host.z_grid = UniformGridData::from_bounds({0, 4}, 5);
         host.time_grid = UniformGridData::from_bounds({0, 10}, 6);
-        host.dims = {2, 3, 4, 2, 5};
+        host.dims = {2, 3, 4, 3, 5};
         ASSERT_TRUE(host);
         params_ = ParamsDataStore<ResponseTallyParamsData>{std::move(host)};
     }
 
     //! Combine start and end bins, returning -1 for a null result
-    long long bin(size_type det, Real3 const& pos, real_type time) const
+    long long bin(Real3 const& pos, size_type det, real_type time) const
     {
         ResponseTallyView view(params_.host_ref());
         auto result = view.end_bin(view.start_bin(pos), DetectorId{det}, time);
@@ -49,21 +50,21 @@ class ResponseTallyTest : public ::celeritas::test::Test
 TEST_F(ResponseTallyTest, params)
 {
     auto const& ref = params_.host_ref();
-    EXPECT_EQ(2 * 3 * 4 * 2 * 5, ref.num_bins());
+    EXPECT_EQ(2 * 3 * 4 * 3 * 5, ref.num_bins());
 }
 
 TEST_F(ResponseTallyTest, start_bin)
 {
     ResponseTallyView view(params_.host_ref());
-    EXPECT_EQ(240u, view.num_bins());
+    EXPECT_EQ(360u, view.num_bins());
 
     // Only the spatial coordinates contribute to the partial bin
     EXPECT_EQ(0u, view.start_bin({0.5, 0.5, 0.5}).get());
-    // z has stride 5, y stride 20, x stride 60
-    EXPECT_EQ(10u, view.start_bin({0.5, 0.5, 1.5}).get());
-    EXPECT_EQ(40u, view.start_bin({0.5, 1.5, 0.5}).get());
-    EXPECT_EQ(120u, view.start_bin({1.5, 0.5, 0.5}).get());
-    EXPECT_EQ(230u, view.start_bin({1.5, 2.5, 3.5}).get());
+    // z has stride 15, y stride 60, x stride 180
+    EXPECT_EQ(15u, view.start_bin({0.5, 0.5, 1.5}).get());
+    EXPECT_EQ(60u, view.start_bin({0.5, 1.5, 0.5}).get());
+    EXPECT_EQ(180u, view.start_bin({1.5, 0.5, 0.5}).get());
+    EXPECT_EQ(345u, view.start_bin({1.5, 2.5, 3.5}).get());
 
     // Outside the spatial grid
     EXPECT_FALSE(view.start_bin({-0.1, 0.5, 0.5}));
@@ -82,9 +83,9 @@ TEST_F(ResponseTallyTest, end_bin)
     // Detector is second fastest
     EXPECT_EQ(5, this->bin({0.5, 0.5, 0.5}, 1, 0.5));
     // Last bin
-    EXPECT_EQ(239, this->bin({1.5, 2.5, 3.5}, 1, 9.5));
+    EXPECT_EQ(354, this->bin({1.5, 2.5, 3.5}, 1, 9.5));
     // Contributions add
-    EXPECT_EQ(120 + 60 + 20 + 5 + 3, this->bin({1.5, 1.5, 1.5}, 1, 6.5));
+    EXPECT_EQ(180 + 60 + 15 + 5 + 3, this->bin({1.5, 1.5, 1.5}, 1, 6.5));
 }
 
 TEST_F(ResponseTallyTest, out_of_range)
@@ -94,14 +95,20 @@ TEST_F(ResponseTallyTest, out_of_range)
     // Bad start
     EXPECT_EQ(-1, this->bin({-0.1, 0.5, 0.5}, 0, 0.5));
     EXPECT_EQ(-1, this->bin({0.5, 0.5, 4.0}, 0, 0.5));
-    // Bad detector
-    EXPECT_EQ(-1, this->bin({0.5, 0.5, 0.5}, 2, 0.5));
     // Bad time
     EXPECT_EQ(-1, this->bin({0.5, 0.5, 0.5}, 0, -1));
     EXPECT_EQ(-1, this->bin({0.5, 0.5, 0.5}, 0, 10));
 
     // A null starting bin is never scored
     EXPECT_FALSE(view.end_bin(ResponseBinId{}, DetectorId{0}, 0.5));
+
+    // The detector must be valid and in range (a precondition, not a result)
+    if constexpr (CELERITAS_DEBUG)
+    {
+        auto start = view.start_bin({0.5, 0.5, 0.5});
+        EXPECT_THROW(view.end_bin(start, DetectorId{}, 0.5), DebugError);
+        EXPECT_THROW(view.end_bin(start, DetectorId{3}, 0.5), DebugError);
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -117,7 +117,7 @@ CELER_FUNCTION ResponseBinId ResponseTallyView::end_bin(
     ResponseBinId start, DetectorId detector, real_type time) const
 {
     CELER_EXPECT(detector);
-    CELER_EXPECT(detector.unchecked_get() < params_.dims[0]);
+    CELER_EXPECT(detector.unchecked_get() < params_.dims[3]);
 
     if (!start)
     {
