@@ -5,7 +5,7 @@
 export CELER_DISABLE_DEVICE=1
 export CXX=/usr/bin/g++-13
 export CC=/usr/bin/gcc-13
-export CUDAARCHS="70;80;90"
+export CUDAARCHS="70;80;90;120"
 
 export USER="${USER:-$(id -un)}"
 export LC_ALL=C
