@@ -34,7 +34,8 @@ CLAUDE_SRC=$CELER_SOURCE_DIR
 CLAUDE_HOME="$HOME/claude/home"
 CLAUDE_CCACHE="$HOME/claude/ccache"
 CLAUDE_INSTALL="$HOME/claude/install"
-for d in $CLAUDE_HOME $CLAUDE_CCACHE $CLAUDE_INSTALL; do
+CLAUDE_RUN="$HOME/claude/run"
+for d in $CLAUDE_HOME $CLAUDE_CCACHE $CLAUDE_INSTALL $CLAUDE_RUN; do
   if ! [ -d $d ]; then
     echo "Creating $d"
     mkdir -p $d
@@ -80,6 +81,7 @@ exec apptainer run \
   --bind "$CLAUDE_CCACHE:/ccache" \
   --env CLAUDE_CODE_TMPDIR=/scratch \
   --bind "$CLAUDE_SCRATCH:/scratch" \
+  --bind "$CLAUDE_RUN:/work/run" \
   --bind "$CLAUDE_SRC:/work/src" \
   --bind "$CLAUDE_BUILD:/work/build" \
   --bind "$CLAUDE_INSTALL:/work/install" \
