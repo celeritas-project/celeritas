@@ -103,6 +103,11 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
     // On the axis, where the normal is undefined
     pos = {2, 0, 0};
     EXPECT_SOFT_EQ(1, calc_distance(cz));
+
+    // Cone with a 45 degree opening angle
+    ConeZ kz{{0, 0, 0}, 1};
+    pos = {3, 0, 1};
+    EXPECT_SOFT_EQ(1.4142135623730951, calc_distance(kz));
 }
 
 //---------------------------------------------------------------------------//

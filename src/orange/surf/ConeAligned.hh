@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -65,8 +67,8 @@ class ConeAligned
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type();
 
-    //! Safety is intersection along surface normal
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+    //! Safety is the exact distance to the cone surface
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
     //! Gradient does not have unit length
     static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
@@ -122,6 +124,9 @@ class ConeAligned
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Location of the vanishing point
@@ -246,6 +251,32 @@ CELER_FUNCTION Real3 ConeAligned<T>::calc_gradient(Real3 const& pos) const
     }
     result[to_int(T)] *= -tsq_;
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * In a plane containing the cone axis and the point, the surface consists of
+ * two lines intersecting at the apex. The shortest distance is the
+ * perpendicular distance to the nearer line:
+ * \f[
+   d = \frac{|\rho - t |h||}{\sqrt{1 + t^2}}
+   \f]
+ * where \f$\rho\f$ is the radial distance from the axis, \f$h\f$ is the axial
+ * displacement from the apex, and \f$t\f$ is the magnitude of the tangent of
+ * the opening angle.
+ */
+template<Axis T>
+CELER_FUNCTION real_type ConeAligned<T>::calc_safety(Real3 const& pos) const
+{
+    real_type const h = pos[to_int(T)] - origin_[to_int(T)];
+    real_type const u = pos[to_int(U)] - origin_[to_int(U)];
+    real_type const v = pos[to_int(V)] - origin_[to_int(V)];
+
+    real_type const rho = std::sqrt(ipow<2>(u) + ipow<2>(v));
+    return std::fabs(rho - std::sqrt(tsq_) * std::fabs(h))
+           / std::sqrt(1 + tsq_);
 }
 
 //---------------------------------------------------------------------------//

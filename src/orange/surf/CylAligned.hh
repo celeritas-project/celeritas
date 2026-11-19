@@ -303,8 +303,7 @@ CELER_FUNCTION Real3 CylAligned<T>::calc_gradient(Real3 const& pos) const
  *
  * This is the magnitude of the radial displacement from the surface:
  * \f$ | |\mathbf{x} - \mathbf{x}_0| - R | \f$ in the plane perpendicular
- * to the axis. It is well defined even
- * on the axis of the cylinder, where the normal is not.
+ * to the axis.
  */
 template<Axis T>
 CELER_FUNCTION real_type CylAligned<T>::calc_safety(Real3 const& pos) const

@@ -48,9 +48,9 @@ struct NumIntersections
 /*!
  * Calculate the smallest distance from a point to the surface.
  *
- * Surface types that support "simple safety" (spheres, cylinders, planes)
- * provide the exact distance to their nearest point in closed form. All other
- * surfaces return a conservative distance of zero.
+ * Surface types that support "simple safety" (spheres, cylinders, planes,
+ * cones) provide the exact distance to their nearest point in closed form. All
+ * other surfaces return a conservative distance of zero.
  */
 struct CalcSafetyDistance
 {
