@@ -71,7 +71,7 @@
           "type": "BOOL",
           "value": "OFF"
         },
-        "CMAKE_CUDA_ARCHITECTURES": "70;80;90"
+        "CMAKE_CUDA_ARCHITECTURES": "70;80;90;120"
       }
     },
     {
@@ -121,6 +121,25 @@
       }
     },
     {
+      "name": "release-orange-nodevice",
+      "displayName": "Build with full optimizations (ORANGE, no device, no OpenMP)",
+      "inherits": [".orange", ".base", ".release"],
+      "cacheVariables": {
+        "CELERITAS_USE_OpenMP": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
+        "CELERITAS_USE_CUDA": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
+        "CELERITAS_USE_HIP": {
+          "type": "BOOL",
+          "value": "OFF"
+        }
+      }
+    },
+    {
       "name": "reldeb-orange",
       "displayName": "Build with optimizations, but enable host debugging (ORANGE)",
       "inherits": [".orange", ".base", ".reldeb"]
@@ -152,6 +171,11 @@
     {
       "name": "release-orange-hip",
       "configurePreset": "release-orange-hip",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-orange-nodevice",
+      "configurePreset": "release-orange-nodevice",
       "inherits": ".base"
     },
     {
