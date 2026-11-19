@@ -10,6 +10,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
@@ -238,9 +239,13 @@ CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
 template<Axis T>
 CELER_FUNCTION Real3 ConeAligned<T>::calc_gradient(Real3 const& pos) const
 {
-    // Calculate the position relative to the origin of the quadric
-    auto rpos = [&](Axis ax) { return pos[to_int(ax)] - origin_[to_int(ax)]; };
-    return {-tsq_ * rpos(T), rpos(U), rpos(V)};
+    Real3 result;
+    for (auto i = to_int(Axis::x); i < to_int(Axis::size_); ++i)
+    {
+        result[i] = pos[i] - origin_[i];
+    }
+    result[to_int(T)] *= -tsq_;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
