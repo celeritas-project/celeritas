@@ -52,7 +52,8 @@ if ! [ -d "${SCRATCHDIR}" ]; then
 fi
 CLAUDE_CACHE="$SCRATCHDIR/claude/cache"
 CLAUDE_BUILD="$SCRATCHDIR/claude/build"
-mkdir -p "$CLAUDE_CACHE" "$CLAUDE_BUILD"
+CLAUDE_SCRATCH="$SCRATCHDIR/claude/scratch"
+mkdir -p "$CLAUDE_CACHE" "$CLAUDE_BUILD" "$CLAUDE_SCRATCH"
 
 # Environment
 export APPTAINERENV_https_proxy=http://proxy.ftpn.ornl.gov:3128
@@ -70,12 +71,15 @@ ro_path() {
 exec apptainer run \
   --containall \
   --cleanenv \
+  --env CELER_HOSTNAME=claude-excl \
   --env TMPDIR="/tmp" \
-  --env XDG_CACHE_HOME="/cache" \
-  --env CCACHE_DIR="/ccache" \
   --bind "$CLAUDE_TMP:/tmp" \
+  --env XDG_CACHE_HOME="/cache" \
   --bind "$CLAUDE_CACHE:/cache" \
+  --env CCACHE_DIR="/ccache" \
   --bind "$CLAUDE_CCACHE:/ccache" \
+  --env CLAUDE_CODE_TMPDIR=/scratch \
+  --bind "$CLAUDE_SCRATCH:/scratch" \
   --bind "$CLAUDE_SRC:/work/src" \
   --bind "$CLAUDE_BUILD:/work/build" \
   --bind "$CLAUDE_INSTALL:/work/install" \
