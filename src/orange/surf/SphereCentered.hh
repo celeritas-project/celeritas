@@ -14,6 +14,7 @@
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/Quantity.hh"
 
 namespace celeritas
 {
@@ -40,12 +41,6 @@ class SphereCentered
 
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
-
-    //! Gradient does not have unit length
-    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
-    {
-        return false;
-    }
 
   public:
     //// CONSTRUCTORS ////
@@ -85,7 +80,8 @@ class SphereCentered
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+    inline CELER_FUNCTION auto calc_gradient(Real3 const& pos) const
+        -> detail::ScaledReal3<detail::Quadratic>;
 
   private:
     // Square of the radius
@@ -176,16 +172,17 @@ CELER_FUNCTION auto SphereCentered::calc_intersections(
  */
 CELER_FUNCTION Real3 SphereCentered::calc_normal(Real3 const& pos) const
 {
-    return make_unit_vector(this->calc_gradient(pos));
+    return make_unit_vector(this->calc_gradient(pos).value());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the gradient at a point.
  */
-CELER_FUNCTION Real3 SphereCentered::calc_gradient(Real3 const& pos) const
+CELER_FUNCTION auto SphereCentered::calc_gradient(Real3 const& pos) const
+    -> detail::ScaledReal3<detail::Quadratic>
 {
-    return {2 * pos[0], 2 * pos[1], 2 * pos[2]};
+    return detail::ScaledReal3<detail::Quadratic>{pos};
 }
 
 //---------------------------------------------------------------------------//

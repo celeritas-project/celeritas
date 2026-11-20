@@ -178,10 +178,11 @@ CELER_FUNCTION auto SenseCalculator<DirT>::operator()(FaceId face_id) -> Sense
             {
                 // Use the direction of travel to choose the side: "on" if
                 // the direction is tangent to the surface
-                auto gradient
-                    = visit_([&pos = this->pos_](
-                                 auto&& s) { return s.calc_gradient(pos); },
-                             surf);
+                auto gradient = visit_(
+                    [&pos = this->pos_](auto&& s) {
+                        return s.calc_gradient(pos).value();
+                    },
+                    surf);
                 ss = real_to_sense(dot_product(gradient, *dir_));
             }
         }

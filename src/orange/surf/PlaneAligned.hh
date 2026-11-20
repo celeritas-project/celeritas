@@ -14,6 +14,8 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
+#include "detail/Quantity.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -37,9 +39,6 @@ class PlaneAligned
 
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
-
-    //! Gradient has unit length
-    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient() { return true; }
 
   public:
     //// CONSTRUCTORS ////
@@ -87,7 +86,8 @@ class PlaneAligned
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+    inline CELER_FUNCTION auto calc_gradient(Real3 const& pos) const
+        -> detail::ScaledReal3<detail::Linear>;
 
   private:
     //! Intersection with the axis
@@ -209,7 +209,7 @@ CELER_FUNCTION auto PlaneAligned<T>::calc_intersections(
 template<Axis T>
 CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(Real3 const&) const
 {
-    return this->calc_gradient({});
+    return this->calc_gradient({}).value();
 }
 
 //---------------------------------------------------------------------------//
@@ -217,9 +217,10 @@ CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(Real3 const&) const
  * Calculate the gradient at a point.
  */
 template<Axis T>
-CELER_FUNCTION Real3 PlaneAligned<T>::calc_gradient(Real3 const&) const
+CELER_FUNCTION auto PlaneAligned<T>::calc_gradient(Real3 const&) const
+    -> detail::ScaledReal3<detail::Linear>
 {
-    return this->calc_normal();
+    return detail::ScaledReal3<detail::Linear>{this->calc_normal()};
 }
 
 //---------------------------------------------------------------------------//
