@@ -42,8 +42,8 @@ Commit requirements:
 Prohibitions:
 - Never submit a pull request without `draft=True`.
 - Never mark a pull request as ready.
-- Never mark a review comment as resolved.
-- Never rebase or force-push a pull request branch that a user marked as ready.
+- Never mark a review comment as resolved. Instead, add a comment linking and/or describing the implemented resolution.
+- Never rebase or force-push a pull request branch that a user marked as ready. Instead, merge or rebase local changes.
 
 ## File Organization
 

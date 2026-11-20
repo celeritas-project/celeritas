@@ -123,6 +123,10 @@ TEST(ToroidTest, normal)
 {
     Real3 origin{1, 2, 3};
     Toroid tor{origin, 5, 1, 2};
+    auto gradient = tor.calc_gradient(origin + Real3{5, 0, 2});
+    EXPECT_EQ(4, decltype(gradient)::unit_type::value());
+    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 100}), native_value_from(gradient));
+
     EXPECT_VEC_SOFT_EQ((Real3{0, 0, 1}),
                        tor.calc_normal(origin + Real3{5, 0, 2}));
     EXPECT_VEC_SOFT_EQ((Real3{0, 0, -1}),

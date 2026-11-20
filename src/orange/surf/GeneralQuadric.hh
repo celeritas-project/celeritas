@@ -16,6 +16,7 @@
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/Quantity.hh"
 
 namespace celeritas
 {
@@ -46,6 +47,7 @@ class GeneralQuadric
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 10>;
     using SpanConstReal3 = Span<real_type const, 3>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -58,12 +60,6 @@ class GeneralQuadric
 
     //! Safety is *not* the nearest intersection along the surface "normal"
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
-
-    //! Gradient does not have unit length
-    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
-    {
-        return false;
-    }
 
   public:
     //// CONSTRUCTORS ////
@@ -114,7 +110,7 @@ class GeneralQuadric
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
   private:
     // Second-order terms (a, b, c)
@@ -206,22 +202,23 @@ CELER_FUNCTION auto GeneralQuadric::calc_intersections(
  */
 CELER_FUNCTION Real3 GeneralQuadric::calc_normal(Real3 const& pos) const
 {
-    return make_unit_vector(this->calc_gradient(pos));
+    return make_unit_vector(this->calc_gradient(pos).value());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the gradient at a point.
  */
-CELER_FUNCTION Real3 GeneralQuadric::calc_gradient(Real3 const& pos) const
+CELER_FUNCTION auto GeneralQuadric::calc_gradient(Real3 const& pos) const
+    -> Gradient
 {
     real_type const x = pos[to_int(Axis::x)];
     real_type const y = pos[to_int(Axis::y)];
     real_type const z = pos[to_int(Axis::z)];
 
-    return {2 * a_ * x + d_ * y + f_ * z + g_,
-            2 * b_ * y + d_ * x + e_ * z + h_,
-            2 * c_ * z + e_ * y + f_ * x + i_};
+    return Gradient{Real3{a_ * x + (d_ * y + f_ * z + g_) / 2,
+                          b_ * y + (d_ * x + e_ * z + h_) / 2,
+                          c_ * z + (e_ * y + f_ * x + i_) / 2}};
 }
 
 //---------------------------------------------------------------------------//

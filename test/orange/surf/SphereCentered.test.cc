@@ -50,6 +50,10 @@ TEST_F(SphereCenteredTest, maths)
 
     Real3 const on_surface{
         radius * sqrt_third, radius * sqrt_third, radius * sqrt_third};
+    auto gradient = s.calc_gradient(on_surface);
+    EXPECT_EQ(2, decltype(gradient)::unit_type::value());
+    EXPECT_VEC_SOFT_EQ(2 * on_surface, native_value_from(gradient));
+
     Intersections distances;
 
     // On surface, inward

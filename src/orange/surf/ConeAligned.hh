@@ -15,6 +15,7 @@
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/Quantity.hh"
 
 namespace celeritas
 {
@@ -53,6 +54,7 @@ class ConeAligned
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 4>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
   private:
@@ -67,12 +69,6 @@ class ConeAligned
 
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
-
-    //! Gradient does not have unit length
-    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
-    {
-        return false;
-    }
 
     //!@{
     //! Axes
@@ -121,7 +117,7 @@ class ConeAligned
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
   private:
     // Location of the vanishing point
@@ -229,7 +225,7 @@ CELER_FUNCTION auto ConeAligned<T>::calc_intersections(
 template<Axis T>
 CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
 {
-    return make_unit_vector(this->calc_gradient(pos));
+    return make_unit_vector(this->calc_gradient(pos).value());
 }
 
 //---------------------------------------------------------------------------//
@@ -237,15 +233,16 @@ CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
  * Calculate the gradient at a point.
  */
 template<Axis T>
-CELER_FUNCTION Real3 ConeAligned<T>::calc_gradient(Real3 const& pos) const
+CELER_FUNCTION auto ConeAligned<T>::calc_gradient(Real3 const& pos) const
+    -> Gradient
 {
     Real3 result;
     for (auto i = to_int(Axis::x); i < to_int(Axis::size_); ++i)
     {
-        result[i] = 2 * (pos[i] - origin_[i]);
+        result[i] = pos[i] - origin_[i];
     }
     result[to_int(T)] *= -tsq_;
-    return result;
+    return Gradient{result};
 }
 
 //---------------------------------------------------------------------------//
