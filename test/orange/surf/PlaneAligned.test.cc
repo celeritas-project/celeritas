@@ -47,6 +47,10 @@ TEST_F(PlaneAlignedTest, x_plane)
 {
     PlaneX p(1.0);
 
+    auto gradient = p.calc_gradient({});
+    EXPECT_EQ(1, decltype(gradient)::unit_type::value());
+    EXPECT_VEC_SOFT_EQ(p.calc_normal(), native_value_from(gradient));
+
     EXPECT_EQ((Real3{1.0, 0.0, 0.0}), p.calc_normal(Real3{1.0, 0.1, -4.2}));
     EXPECT_EQ((Real3{1.0, 0.0, 0.0}), p.calc_normal());
 

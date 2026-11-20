@@ -30,6 +30,7 @@ class PlaneAligned
     //! \name Type aliases
     using Intersections = Array<real_type, 1>;
     using StorageSpan = Span<real_type const, 1>;
+    using Gradient = detail::ScaledReal3<detail::Linear>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -86,8 +87,7 @@ class PlaneAligned
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION auto calc_gradient(Real3 const& pos) const
-        -> detail::ScaledReal3<detail::Linear>;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
   private:
     //! Intersection with the axis
@@ -218,9 +218,9 @@ CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(Real3 const&) const
  */
 template<Axis T>
 CELER_FUNCTION auto PlaneAligned<T>::calc_gradient(Real3 const&) const
-    -> detail::ScaledReal3<detail::Linear>
+    -> Gradient
 {
-    return detail::ScaledReal3<detail::Linear>{this->calc_normal()};
+    return Gradient{this->calc_normal()};
 }
 
 //---------------------------------------------------------------------------//

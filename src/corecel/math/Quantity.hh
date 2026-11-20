@@ -328,7 +328,19 @@ CELER_CONSTEXPR_FUNCTION auto native_value_from(
     Quantity<UnitT, ValueT> quant) noexcept
 {
     using common_type = typename Quantity<UnitT, ValueT>::common_type;
-    return static_cast<common_type>(quant.value()) * UnitT::value();
+    if constexpr (std::is_same_v<decltype(UnitT::value()), Constant>)
+    {
+        return static_cast<common_type>(quant.value()) * UnitT::value();
+    }
+    else if constexpr (std::is_arithmetic_v<ValueT>)
+    {
+        return quant.value() * static_cast<ValueT>(UnitT::value());
+    }
+    else
+    {
+        using element_type = typename ValueT::value_type;
+        return quant.value() * static_cast<element_type>(UnitT::value());
+    }
 }
 
 //---------------------------------------------------------------------------//

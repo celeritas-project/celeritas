@@ -36,6 +36,7 @@ class Plane
     //! \name Type aliases
     using Intersections = Array<real_type, 1>;
     using StorageSpan = Span<real_type const, 4>;
+    using Gradient = detail::ScaledReal3<detail::Linear>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -96,8 +97,7 @@ class Plane
     inline CELER_FUNCTION Real3 calc_normal(Real3 const&) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION auto calc_gradient(Real3 const&) const
-        -> detail::ScaledReal3<detail::Linear>;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const&) const;
 
   private:
     // Normal to plane (a,b,c)
@@ -200,9 +200,9 @@ CELER_FORCEINLINE_FUNCTION Real3 Plane::calc_normal(Real3 const&) const
  * Calculate the gradient at a point.
  */
 CELER_FORCEINLINE_FUNCTION auto Plane::calc_gradient(Real3 const&) const
-    -> detail::ScaledReal3<detail::Linear>
+    -> Gradient
 {
-    return detail::ScaledReal3<detail::Linear>{normal_};
+    return Gradient{normal_};
 }
 
 //---------------------------------------------------------------------------//

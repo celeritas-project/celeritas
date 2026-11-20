@@ -29,6 +29,7 @@ class SphereCentered
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 1>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -80,8 +81,7 @@ class SphereCentered
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION auto calc_gradient(Real3 const& pos) const
-        -> detail::ScaledReal3<detail::Quadratic>;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
   private:
     // Square of the radius
@@ -180,9 +180,9 @@ CELER_FUNCTION Real3 SphereCentered::calc_normal(Real3 const& pos) const
  * Calculate the gradient at a point.
  */
 CELER_FUNCTION auto SphereCentered::calc_gradient(Real3 const& pos) const
-    -> detail::ScaledReal3<detail::Quadratic>
+    -> Gradient
 {
-    return detail::ScaledReal3<detail::Quadratic>{pos};
+    return Gradient{pos};
 }
 
 //---------------------------------------------------------------------------//

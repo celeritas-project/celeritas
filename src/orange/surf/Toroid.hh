@@ -60,6 +60,7 @@ class Toroid
     using Real3 = Array<real_type, 3>;
     using Real4 = Array<real_type, 4>;
     using Real5 = Array<real_type, 5>;
+    using Gradient = detail::ScaledReal3<detail::Quartic>;
     //@}
 
   public:
@@ -126,8 +127,7 @@ class Toroid
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION auto calc_gradient(Real3 const& pos) const
-        -> detail::ScaledReal3<detail::Quartic>;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
   private:
     //// DATA ////
@@ -273,8 +273,7 @@ CELER_FUNCTION auto Toroid::calc_normal(Real3 const& pos) const -> Real3
 /*!
  * Calculate the gradient at a point.
  */
-CELER_FUNCTION auto Toroid::calc_gradient(Real3 const& pos) const
-    -> detail::ScaledReal3<detail::Quartic>
+CELER_FUNCTION auto Toroid::calc_gradient(Real3 const& pos) const -> Gradient
 {
     auto [x0, y0, z0] = pos - origin_;
 
@@ -282,8 +281,7 @@ CELER_FUNCTION auto Toroid::calc_gradient(Real3 const& pos) const
     real_type const scale_z = sq(a_ / b_);
     real_type const q = rho_sq + scale_z * sq(z0) + (sq(r_) - sq(a_));
     real_type const scale_xy = q - 2 * sq(r_);
-    return detail::ScaledReal3<detail::Quartic>{
-        Real3{scale_xy * x0, scale_xy * y0, scale_z * q * z0}};
+    return Gradient{Real3{scale_xy * x0, scale_xy * y0, scale_z * q * z0}};
 }
 
 //---------------------------------------------------------------------------//

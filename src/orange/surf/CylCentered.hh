@@ -44,6 +44,7 @@ class CylCentered
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 1>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
   private:
@@ -103,8 +104,7 @@ class CylCentered
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION auto calc_gradient(Real3 const& pos) const
-        -> detail::ScaledReal3<detail::Quadratic>;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
   private:
     //! Square of cylinder radius
@@ -248,14 +248,14 @@ CELER_FUNCTION Real3 CylCentered<T>::calc_normal(Real3 const& pos) const
  */
 template<Axis T>
 CELER_FUNCTION auto CylCentered<T>::calc_gradient(Real3 const& pos) const
-    -> detail::ScaledReal3<detail::Quadratic>
+    -> Gradient
 {
     Real3 norm{0, 0, 0};
 
     norm[to_int(U)] = pos[to_int(U)];
     norm[to_int(V)] = pos[to_int(V)];
 
-    return detail::ScaledReal3<detail::Quadratic>{norm};
+    return Gradient{norm};
 }
 
 //---------------------------------------------------------------------------//

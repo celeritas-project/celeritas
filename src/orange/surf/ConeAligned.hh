@@ -54,6 +54,7 @@ class ConeAligned
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 4>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
   private:
@@ -116,8 +117,7 @@ class ConeAligned
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION auto calc_gradient(Real3 const& pos) const
-        -> detail::ScaledReal3<detail::Quadratic>;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
   private:
     // Location of the vanishing point
@@ -234,7 +234,7 @@ CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
  */
 template<Axis T>
 CELER_FUNCTION auto ConeAligned<T>::calc_gradient(Real3 const& pos) const
-    -> detail::ScaledReal3<detail::Quadratic>
+    -> Gradient
 {
     Real3 result;
     for (auto i = to_int(Axis::x); i < to_int(Axis::size_); ++i)
@@ -242,7 +242,7 @@ CELER_FUNCTION auto ConeAligned<T>::calc_gradient(Real3 const& pos) const
         result[i] = pos[i] - origin_[i];
     }
     result[to_int(T)] *= -tsq_;
-    return detail::ScaledReal3<detail::Quadratic>{result};
+    return Gradient{result};
 }
 
 //---------------------------------------------------------------------------//

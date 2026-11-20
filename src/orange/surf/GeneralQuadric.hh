@@ -47,6 +47,7 @@ class GeneralQuadric
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 10>;
     using SpanConstReal3 = Span<real_type const, 3>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -109,8 +110,7 @@ class GeneralQuadric
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION auto calc_gradient(Real3 const& pos) const
-        -> detail::ScaledReal3<detail::Quadratic>;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
   private:
     // Second-order terms (a, b, c)
@@ -210,16 +210,15 @@ CELER_FUNCTION Real3 GeneralQuadric::calc_normal(Real3 const& pos) const
  * Calculate the gradient at a point.
  */
 CELER_FUNCTION auto GeneralQuadric::calc_gradient(Real3 const& pos) const
-    -> detail::ScaledReal3<detail::Quadratic>
+    -> Gradient
 {
     real_type const x = pos[to_int(Axis::x)];
     real_type const y = pos[to_int(Axis::y)];
     real_type const z = pos[to_int(Axis::z)];
 
-    return detail::ScaledReal3<detail::Quadratic>{
-        Real3{a_ * x + (d_ * y + f_ * z + g_) / 2,
-              b_ * y + (d_ * x + e_ * z + h_) / 2,
-              c_ * z + (e_ * y + f_ * x + i_) / 2}};
+    return Gradient{Real3{a_ * x + (d_ * y + f_ * z + g_) / 2,
+                          b_ * y + (d_ * x + e_ * z + h_) / 2,
+                          c_ * z + (e_ * y + f_ * x + i_) / 2}};
 }
 
 //---------------------------------------------------------------------------//

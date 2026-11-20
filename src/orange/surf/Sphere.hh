@@ -37,6 +37,7 @@ class Sphere
     //! Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 4>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -93,8 +94,7 @@ class Sphere
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION auto calc_gradient(Real3 const& pos) const
-        -> detail::ScaledReal3<detail::Quadratic>;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
   private:
     // Spatial position
@@ -186,10 +186,9 @@ CELER_FUNCTION Real3 Sphere::calc_normal(Real3 const& pos) const
 /*!
  * Calculate the gradient at a point.
  */
-CELER_FUNCTION auto Sphere::calc_gradient(Real3 const& pos) const
-    -> detail::ScaledReal3<detail::Quadratic>
+CELER_FUNCTION auto Sphere::calc_gradient(Real3 const& pos) const -> Gradient
 {
-    return detail::ScaledReal3<detail::Quadratic>{
+    return Gradient{
         Real3{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]}};
 }
 

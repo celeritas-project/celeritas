@@ -38,6 +38,12 @@ struct DozenUnit
     static constexpr char const* label() { return "dozen"; }
 };
 
+struct DoubleDozenUnit
+{
+    static constexpr double value() { return 12; }
+    static constexpr char const* label() { return "dozen"; }
+};
+
 using Dozen = Quantity<DozenUnit, int>;
 
 //---------------------------------------------------------------------------//
@@ -119,6 +125,19 @@ TEST(QuantityTest, mixed_precision)
         DozenFlt demoted{4};
         demoted = DozenDbl{6.5};
         EXPECT_FLOAT_EQ(6.5f, demoted.value());
+    }
+    {
+        using DoubleUnitDozenFlt = Quantity<DoubleDozenUnit, float>;
+        auto two_dozen_flt = native_value_from(DoubleUnitDozenFlt{2});
+        EXPECT_TRUE((std::is_same_v<decltype(two_dozen_flt), float>));
+        EXPECT_FLOAT_EQ(24, two_dozen_flt);
+    }
+    {
+        using Float3 = Array<float, 3>;
+        using DoubleUnitDozen3 = Quantity<DoubleDozenUnit, Float3>;
+        auto two_dozen = native_value_from(DoubleUnitDozen3{Float3{2, 3, 4}});
+        EXPECT_TRUE((std::is_same_v<decltype(two_dozen), Float3>));
+        EXPECT_EQ((Float3{24, 36, 48}), two_dozen);
     }
 }
 
