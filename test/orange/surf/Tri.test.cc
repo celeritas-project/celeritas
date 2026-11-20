@@ -35,15 +35,15 @@ TEST_F(TriTest, construction)
 {
     Tri<real_type> tri({a, b, c});
 
-    EXPECT_VEC_SOFT_EQ(a, tri.verts()[0]);
-    EXPECT_VEC_SOFT_EQ(b, tri.verts()[1]);
-    EXPECT_VEC_SOFT_EQ(c, tri.verts()[2]);
+    EXPECT_VEC_SOFT_EQ(a, tri.vertex());
+    EXPECT_VEC_SOFT_EQ(b - a, tri.edges()[0]);
+    EXPECT_VEC_SOFT_EQ(c - a, tri.edges()[1]);
 
     // Test that triangle is ordered CCW after construction
     Tri<real_type> tri_out_of_order({a, c, b});
-    EXPECT_VEC_SOFT_EQ(a, tri.verts()[0]);
-    EXPECT_VEC_SOFT_EQ(b, tri.verts()[1]);
-    EXPECT_VEC_SOFT_EQ(c, tri.verts()[2]);
+    EXPECT_VEC_SOFT_EQ(a, tri.vertex());
+    EXPECT_VEC_SOFT_EQ(b - a, tri.edges()[0]);
+    EXPECT_VEC_SOFT_EQ(c - a, tri.edges()[1]);
 }
 
 TEST_F(TriTest, calc_intersections)

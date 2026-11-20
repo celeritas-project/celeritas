@@ -40,6 +40,7 @@ class Tri
     using real_type = T;
     using Real3 = Array<real_type, 3>;
     using Vertices = Array<Real3, 3>;
+    using Edges = Array<Real3, 2>;
     using StorageSpan = Span<real_type const, 3>;
     //!@}
 
@@ -51,8 +52,11 @@ class Tri
     template<class R>
     explicit inline CELER_FUNCTION Tri(Span<R, StorageSpan::extent>);
 
-    //! The vertices defining the triangle
-    inline CELER_FUNCTION Vertices const& verts() const { return verts_; }
+    //! The base vertex of the triangle
+    inline CELER_FUNCTION Real3 const& vertex() const { return vertex_; }
+
+    //! The two edges connected to the triangle
+    inline CELER_FUNCTION Edges const& edges() const { return edges_; }
 
     // Calculate straight-line intersections with this triangle
     inline CELER_FUNCTION real_type calc_intersections(
@@ -61,8 +65,10 @@ class Tri
   private:
     //// DATA ////
 
-    // Vertices defining the triangle
-    Vertices verts_;
+    // The first vertex of the triangle
+    Real3 vertex_;
+    // Two edges of the triangle connected to vertex_
+    Edges edges_;
 };
 
 //---------------------------------------------------------------------------//
@@ -72,24 +78,24 @@ class Tri
  * Construct from 3 vertices.
  */
 template<typename T>
-CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
+CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : vertex_(verts[0])
 {
+    // Store the two edges
+    edges_[0] = verts[1] - verts[0];
+    edges_[1] = verts[2] - verts[0];
+
     // Check that triangle is not degenerate
     CELER_EXPECT([&] {
-        auto edge1 = verts[1] - verts[0];
-        auto edge2 = verts[2] - verts[0];
-        return !soft_zero(norm(cross_product(edge1, edge2)));
+        return !soft_zero(norm(cross_product(edges_[0], edges_[1])));
     }());
-
-    // Edge 1 and Edge 2
-    auto edge1 = verts_[1] - verts[0];
-    auto edge2 = verts_[2] - verts[0];
 
     // Check if orientation is CCW relative to global z axis. Swap 2nd and
     // third vertices if not
-    if (edge1[0] * edge2[1] - edge1[1] * edge2[0] < real_type{0})
+    if (edges_[0][0] * edges_[1][1] - edges_[0][1] * edges_[1][0]
+        < real_type{0})
     {
-        trivial_swap(verts_[1], verts_[2]);
+        edges_[0] = verts[2] - verts[0];
+        edges_[1] = verts[1] - verts[0];
     }
 }
 
@@ -100,7 +106,7 @@ CELER_FUNCTION Tri<T>::Tri(Vertices const& verts) : verts_(verts)
 template<typename T>
 template<class R>
 CELER_FUNCTION Tri<T>::Tri(Span<R, StorageSpan::extent> data)
-    : verts_{data[0], data[1], data[2]}
+    : vertex_{data[0]}, edges_{data[1], data[2]}
 {
 }
 
@@ -122,12 +128,8 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
         return real_type(no_intersection());
     }
 
-    // Edge 1 and Edge 2
-    auto edge1 = verts_[1] - verts_[0];
-    auto edge2 = verts_[2] - verts_[0];
-
-    auto ray_cross_edge2 = cross_product(dir, edge2);
-    real_type det = dot_product(edge1, ray_cross_edge2);
+    auto ray_cross_edge2 = cross_product(dir, edges_[1]);
+    real_type det = dot_product(edges_[0], ray_cross_edge2);
 
     // Ray is parallel to triangle
     if (soft_zero(det))
@@ -136,7 +138,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     }
 
     real_type inv_det = 1 / det;
-    auto s = pos - verts_[0];
+    auto s = pos - vertex_;
     real_type u = inv_det * dot_product(s, ray_cross_edge2);
 
     // Ray intersects edge2 outside the triangle
@@ -145,7 +147,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
         return real_type(no_intersection());
     }
 
-    auto s_cross_edge1 = cross_product(s, edge1);
+    auto s_cross_edge1 = cross_product(s, edges_[0]);
     real_type v = inv_det * dot_product(dir, s_cross_edge1);
 
     // Ray intersects edge1 outside the triangle
@@ -155,7 +157,7 @@ CELER_FUNCTION auto Tri<T>::calc_intersections(
     }
 
     // Compute distance to intersection
-    real_type t = inv_det * dot_product(edge2, s_cross_edge1);
+    real_type t = inv_det * dot_product(edges_[1], s_cross_edge1);
 
     if (t > real_type{0})
     {

@@ -10,8 +10,7 @@
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" },
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
-        "CMAKE_CUDA_FLAGS": "-I/home/ghaddarth/projects/SCALE/scale-dev-environment/.pixi/envs/mpi/targets/x86_64-linux/include/cccl -I/home/ghaddarth/projects/SCALE/scale-dev-environment/.pixi/envs/mpi/nsight-compute-2026.3.1/host/target-linux-x64/nvtx/include/",
-        "CMAKE_CXX_FLAGS": "-fdiagnostics-color=always -I/home/ghaddarth/projects/SCALE/scale-dev-environment/.pixi/envs/mpi/targets/x86_64-linux/include/cccl -I/home/ghaddarth/projects/SCALE/scale-dev-environment/.pixi/envs/mpi/nsight-compute-2026.3.1/host/target-linux-x64/nvtx/include/",
+        "CMAKE_CXX_FLAGS": "-fdiagnostics-color=always",
         "CELERITAS_USE_CUDA": { "type": "BOOL", "value": "OFF" }
       }
     },
