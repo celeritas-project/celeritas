@@ -440,7 +440,7 @@ if(CELERITAS_USE_DD4hep)
 endif()
 
 # NOTE: some older versions of CUDA/HIP/Thrust lack CMake configuration
-# files, so we don't make them required (except Thrust with CUDA)
+# files, so we don't make them required
 if(CELERITAS_USE_CUDA)
   if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT (DEFINED ENV{CUDAARCHS}))
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
@@ -466,8 +466,7 @@ if(CELERITAS_USE_CUDA)
     )
   endif()
   find_package(CUB)
-  # Thrust provides the CCCL include directories for host code (ExtThrust)
-  find_package(Thrust REQUIRED)
+  find_package(Thrust)
   # NVTX headers are part of the toolkit but may be packaged separately
   find_package(NVTX REQUIRED)
 elseif(CELERITAS_USE_HIP)
