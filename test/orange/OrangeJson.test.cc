@@ -299,7 +299,7 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
@@ -318,7 +318,7 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("alpha.my", this->surface_name(geo));
 }
 
@@ -331,7 +331,7 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
 
     auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.75, next.distance);
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
@@ -350,7 +350,7 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
     next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("john.my", this->surface_name(geo));
 }
 
@@ -364,7 +364,7 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("bob.my", this->surface_name(geo));
     EXPECT_EQ("bobby", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
@@ -383,7 +383,7 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("alpha.py", this->surface_name(geo));
 }
 
@@ -397,7 +397,7 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("bob.my", this->surface_name(geo));
     EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
@@ -416,7 +416,7 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("bob.py", this->surface_name(geo));
 }
 
@@ -429,7 +429,7 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
@@ -448,7 +448,7 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("inner_c.py", this->surface_name(geo));
 }
 
@@ -461,7 +461,7 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.25, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
@@ -480,7 +480,7 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("john.my", this->surface_name(geo));
 }
 
@@ -495,7 +495,7 @@ TEST_F(UniversesTest, cross_between_daughters)
     auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.2, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("inner_a.pz", this->surface_name(geo));
     EXPECT_EQ("a", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -2, 0.5}), geo.pos());
@@ -514,7 +514,7 @@ TEST_F(UniversesTest, cross_between_daughters)
     next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("bob.mz", this->surface_name(geo));
 }
 
@@ -529,7 +529,7 @@ TEST_F(UniversesTest, reentrant)
     EXPECT_SOFT_EQ(0.2, next.distance);
 
     // Move to universe boundary
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("inner_c.py", this->surface_name(geo));
     EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
@@ -551,7 +551,7 @@ TEST_F(UniversesTest, reentrant)
     // Make sure we can take another step after calling cross_boundary
     next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 0.7}), geo.pos());
@@ -609,7 +609,7 @@ TEST_F(NestedRectArraysTest, tracking)
     auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("{x,1}", this->surface_name(geo));
     EXPECT_EQ("Afill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0.5, 0.5}), geo.pos());
@@ -644,7 +644,7 @@ TEST_F(NestedRectArraysTest, leaving)
     auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ("arrfill.px", this->surface_name(geo));
     EXPECT_EQ("Bfill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({4, 1.5, 0.5}), geo.pos());

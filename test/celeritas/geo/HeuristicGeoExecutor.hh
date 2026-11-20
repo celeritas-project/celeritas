@@ -151,7 +151,7 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
         }
         else if (prop.boundary)
         {
-            geo.move_to_boundary();
+            geo.move_to_boundary(prop.distance);
             CELER_ASSERT(geo.is_on_boundary());
         }
         else

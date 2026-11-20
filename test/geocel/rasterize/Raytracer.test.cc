@@ -34,7 +34,7 @@ TEST(MockGeo, tracking)
     auto next_step = geo.find_next_step(2.0);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(0.75, next_step.distance);
-    geo.move_to_boundary();
+    geo.move_to_boundary(next_step.distance);
     EXPECT_EQ(5, geo.impl_volume_id().get());
     EXPECT_REAL_EQ(6.0, geo.pos()[2]);
     geo.cross_boundary();
@@ -42,7 +42,7 @@ TEST(MockGeo, tracking)
     next_step = geo.find_next_step(1.5);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(1.0, next_step.distance);
-    geo.move_to_boundary();
+    geo.move_to_boundary(next_step.distance);
     EXPECT_EQ(6, geo.impl_volume_id().get());
     geo.cross_boundary();
     EXPECT_EQ(7, geo.impl_volume_id().get());

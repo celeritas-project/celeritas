@@ -46,6 +46,7 @@ class Raytracer
 
     size_type pixel_{invalid_pixel()};  //!< Current pixel
     real_type distance_{0};  //!< Distance to next boundary
+    real_type boundary_distance_{0};  //!< Boundary distance from geo_.pos()
     int cur_id_{-1};  //!< Current ID
 
     //// HELPER FUNCTIONS ////
@@ -135,7 +136,7 @@ CELER_FUNCTION auto Raytracer<GTV, F>::operator()(size_type pix) -> result_type
         distance_ = 0;
 
         // Cross surface and update post-crossing ID
-        geo_.move_to_boundary();
+        geo_.move_to_boundary(boundary_distance_);
         geo_.cross_boundary();
 
         if (--abort_counter == 0)
@@ -214,6 +215,8 @@ CELER_FUNCTION void Raytracer<GTV, F>::find_next_step()
                                         * image_.pixel_width())
                         .distance;
     }
+    // Save the full distance since distance_ is decremented by pixel
+    boundary_distance_ = distance_;
     cur_id_ = this->calc_id_(geo_);
 
     CELER_ENSURE(distance_ > 0);
