@@ -232,17 +232,37 @@ CELER_FUNCTION Real3 GeneralQuadric::calc_gradient(Real3 const& pos) const
 /*!
  * Calculate a lower bound on the distance to the surface.
  *
- * The second-order matrix has diagonal \f$ (a, b, c) \f$ and off-diagonal
- * elements \f$ d/2 \f$ (xy), \f$ e/2 \f$ (yz), and \f$ f/2 \f$ (zx). Its
- * eigenvalues are bounded by the Gershgorin discs, centered on the diagonal
- * with radii equal to the off-diagonal row sums:
+ * The quadratic terms of the implicit surface equation can be written as \f$
+ * \mathbf{x}^T A \mathbf{x} \f$, where
  * \f[
-   \mu_\pm = \max/\min \left( a \pm \frac{|d| + |f|}{2},\,
-                             b \pm \frac{|d| + |e|}{2},\,
-                             c \pm \frac{|e| + |f|}{2} \right) \,.
-   \f]
- * These are exact when there are no cross terms and conservative otherwise.
- * See \c detail::calc_quadric_safety for the derivation and accuracy.
+   A = \begin{pmatrix}
+     a & d/2 & f/2 \\
+     d/2 & b & e/2 \\
+     f/2 & e/2 & c
+   \end{pmatrix} \,.
+ * \f]
+ * The eigenvalues of this symmetric matrix bound the quadratic contribution to
+ * the change in the implicit function along any direction.
+ *
+ * Rather than calculating the eigenvalues directly, the Gershgorin circle
+ * theorem is used to obtain conservative bounds. Each Gershgorin disc is
+ * centered at a diagonal entry, with a radius equal to the sum of the absolute
+ * values of the off-diagonal entries in that row. This gives
+ * \f[
+   \begin{aligned}
+     \mu_- &= \min\left(
+       a - \frac{|d| + |f|}{2},\,
+       b - \frac{|d| + |e|}{2},\,
+       c - \frac{|e| + |f|}{2}\right), \\
+     \mu_+ &= \max\left(
+       a + \frac{|d| + |f|}{2},\,
+       b + \frac{|d| + |e|}{2},\,
+       c + \frac{|e| + |f|}{2}\right).
+   \end{aligned}
+ * \f]
+ * These bounds are exact when there are no cross terms, but may be
+ * conservative otherwise. See \c detail::calc_quadric_safety for the
+ * derivation of the safety distance.
  */
 CELER_FUNCTION real_type GeneralQuadric::calc_safety(Real3 const& pos) const
 {

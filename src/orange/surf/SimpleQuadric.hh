@@ -235,9 +235,9 @@ CELER_FUNCTION Real3 SimpleQuadric::calc_gradient(Real3 const& pos) const
 /*!
  * Calculate a lower bound on the distance to the surface.
  *
- * The second-order matrix is diagonal, so its eigenvalues are exactly
- * \em a, \em b, and \em c. See \c detail::calc_quadric_safety for the
- * derivation and accuracy.
+ * The quadratic coefficient matrix is diagonal, so its eigenvalues are exactly
+ * \f$ a \f$, \f$ b \f$, and \f$ c \f$. See \c detail::calc_quadric_safety for
+ * the safety distance derivation.
  */
 CELER_FUNCTION real_type SimpleQuadric::calc_safety(Real3 const& pos) const
 {
