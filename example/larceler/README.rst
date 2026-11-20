@@ -31,14 +31,12 @@ This example uses a script to download and patch an official DUNE gdml file:
    :language: sh
    :start-at: # Download and patch
 
-the patches add optical properties:
+the first patch adds optical properties:
 
 .. literalinclude:: ../../example/larceler/dune10kt-optical.patch
    :language: diff
 
-and as a performance expedient delete the non-axis-aligned U,V wires in the TPC plane.
-
-The third patch tags the ``volOpDetSensitive`` volumes as Geant4 sensitive detectors.
+The second patch tags the ``volOpDetSensitive`` volumes as Geant4 sensitive detectors.
 
 Overview
 --------
@@ -125,8 +123,6 @@ By default, Celeritas will run on CPU. See documentation in the
 
 Celeritas geometry requires correct optical material information and correct
 ``SensDet`` data assigned to the Arapucas.
-The geometry has also been modified to remove the U and V wires as an expedient
-to improve runtime performance for smoke testing.
 
 Generating analysis files from the optical simulation
 -----------------------------------------------------
