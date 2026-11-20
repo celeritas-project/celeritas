@@ -88,9 +88,11 @@ class Constant;
 template<class UnitT, class ValueT>
 class Quantity
 {
-    static_assert(std::is_arithmetic_v<decltype(UnitT::value())>
-                      || std::is_same_v<decltype(UnitT::value()), Constant>,
+    static_assert(detail::is_arithmetic_or_constant_v<decltype(UnitT::value())>,
                   "unit value type must be arithmetic or constant");
+    static_assert(detail::is_arithmetic_or_array_v<ValueT>,
+                  "quantity value type must be arithmetic or an array-like "
+                  "of arithmetic");
 
   public:
     //!@{
@@ -338,7 +340,9 @@ CELER_CONSTEXPR_FUNCTION auto native_value_from(
     }
     else
     {
+        // Non-arithmetic ValueT: presumably a container
         using element_type = typename ValueT::value_type;
+        static_assert(detail::is_arithmetic_or_constant_v<element_type>);
         return quant.value() * static_cast<element_type>(UnitT::value());
     }
 }
