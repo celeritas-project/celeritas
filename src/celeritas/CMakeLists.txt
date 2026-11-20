@@ -174,6 +174,7 @@ list(APPEND SOURCES
   track/TrackInitParams.cc
   user/ActionTimes.cc
   user/DetectorSteps.cc
+  user/OnloadSteps.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc
   user/SimpleCalo.cc
@@ -268,6 +269,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantScintillationLoader.cc
     ext/detail/GeantSurfacePhysicsLoader.cc
     ext/detail/HitProcessor.cc
+    ext/detail/OnloadProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
     ext/detail/NaviTouchableUpdater.cc
     ext/detail/NullGeantProcess.cc
@@ -458,6 +460,7 @@ celeritas_polysource(track/InitializeTracksAction)
 celeritas_polysource(track/StatusChecker)
 celeritas_polysource(user/ActionDiagnostic)
 celeritas_polysource(user/DetectorSteps)
+celeritas_polysource(user/OnloadSteps)
 celeritas_polysource(user/SlotDiagnostic)
 celeritas_polysource(user/StepDiagnostic)
 celeritas_polysource(user/detail/SimpleCaloImpl)
