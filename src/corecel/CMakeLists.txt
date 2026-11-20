@@ -363,13 +363,14 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  # Note: we currently assume the CUDA install includes the nvtx header
   list(APPEND SOURCES
     sys/detail/NvtxUtils.cc
     sys/detail/TraceCounterImpl.cuda.cc
     sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
   )
+  # NVTX is header-only and only used in source files: don't export it
+  list(APPEND PRIVATE_DEPS $<BUILD_INTERFACE:NVTX::nvtx3>)
 endif()
 
 if(CELERITAS_USE_HIP)

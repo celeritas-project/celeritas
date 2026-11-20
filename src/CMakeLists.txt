@@ -114,21 +114,6 @@ if(CELERITAS_USE_CUDA)
     unset(_dirs)
   endif()
 
-  # NVTX headers are part of the toolkit but may be packaged separately
-  set(_found FALSE)
-  foreach(_dir IN LISTS CUDAToolkit_INCLUDE_DIRS)
-    if(EXISTS "${_dir}/nvtx3/nvToolsExt.h")
-      set(_found TRUE)
-    endif()
-  endforeach()
-  if(NOT _found)
-    message(SEND_ERROR "Could not find <nvtx3/nvToolsExt.h> in the CUDA "
-      "toolkit include directories (${CUDAToolkit_INCLUDE_DIRS}): install "
-      "the development headers for the CUDA NVTX component"
-    )
-  endif()
-  unset(_found)
-
   # NVTX requires `-ldl`
   # This does not appears to be needed anymore with
   # CMake 3.26.5 and CUDA sdk 12.6.

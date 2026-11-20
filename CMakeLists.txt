@@ -468,6 +468,8 @@ if(CELERITAS_USE_CUDA)
   find_package(CUB)
   # Thrust provides the CCCL include directories for host code (ExtThrust)
   find_package(Thrust REQUIRED)
+  # NVTX headers are part of the toolkit but may be packaged separately
+  find_package(NVTX REQUIRED)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   find_package(hip) # Enable hip API in host code, and support version diagnostics
