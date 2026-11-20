@@ -84,13 +84,10 @@ class Constant;
  * operate in the Celeritas native unit system), use the resulting numeric
  * values in your mathematical expressions, then return a new Quantity class
  * with the resulting value and correct type.
- * Furthermore, this class is \em not compatible with \c Array.
  */
 template<class UnitT, class ValueT>
 class Quantity
 {
-    static_assert(std::is_arithmetic_v<ValueT>,
-                  "value type must be arithmetic");
     static_assert(std::is_arithmetic_v<decltype(UnitT::value())>
                       || std::is_same_v<decltype(UnitT::value()), Constant>,
                   "unit value type must be arithmetic or constant");
@@ -331,8 +328,7 @@ CELER_CONSTEXPR_FUNCTION auto native_value_from(
     Quantity<UnitT, ValueT> quant) noexcept
 {
     using common_type = typename Quantity<UnitT, ValueT>::common_type;
-    return static_cast<common_type>(quant.value())
-           * static_cast<common_type>(UnitT::value());
+    return static_cast<common_type>(quant.value()) * UnitT::value();
 }
 
 //---------------------------------------------------------------------------//

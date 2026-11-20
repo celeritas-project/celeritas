@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/StreamUtils.hh"
+#include "corecel/math/ArrayOperators.hh"  // IWYU pragma: keep
 #include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/QuantityIO.json.hh"  // IWYU pragma: keep
 #include "corecel/math/Turn.hh"
@@ -247,6 +248,20 @@ TEST(QuantityTest, swappiness)
     }
     EXPECT_EQ(12, native_value_from(dozen));
     EXPECT_EQ(144, native_value_from(gross));
+}
+
+TEST(QuantityTest, vector_value)
+{
+    using Dozen3 = Quantity<DozenUnit, Real3>;
+
+    Dozen3 const dozens{Real3{1, 2, 3}};
+    EXPECT_TRUE(
+        (std::is_same_v<Real3, std::decay_t<decltype(dozens.value())>>));
+    EXPECT_EQ((Real3{1, 2, 3}), dozens.value());
+
+    auto native = native_value_from(dozens);
+    EXPECT_TRUE((std::is_same_v<Real3, decltype(native)>));
+    EXPECT_EQ((Real3{12, 24, 36}), native);
 }
 
 TEST(QuantityTest, array)
