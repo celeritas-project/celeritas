@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -109,6 +111,9 @@ class CylCentered
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     //! Square of cylinder radius
@@ -259,6 +264,24 @@ CELER_FUNCTION Real3 CylCentered<T>::calc_gradient(Real3 const& pos) const
     norm[to_int(V)] = 2 * pos[to_int(V)];
 
     return norm;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * This is the magnitude of the radial displacement from the surface:
+ * \f$ | |\mathbf{x} - \mathbf{x}_0| - R | \f$ in the plane perpendicular to
+ * the axis.
+ */
+template<Axis T>
+CELER_FUNCTION real_type CylCentered<T>::calc_safety(Real3 const& pos) const
+{
+    real_type const u = pos[to_int(U)];
+    real_type const v = pos[to_int(V)];
+
+    return std::fabs(
+        std::sqrt(ipow<2>(u) + ipow<2>(v)) - std::sqrt(radius_sq_));
 }
 
 //---------------------------------------------------------------------------//

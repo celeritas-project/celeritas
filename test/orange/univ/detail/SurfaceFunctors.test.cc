@@ -86,6 +86,11 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
     pos = {3.5_r, 1, 0};
     EXPECT_SOFT_EQ(2.25, calc_distance(px_));
     EXPECT_SOFT_EQ(0.0, calc_distance(s_));
+
+    // At the center of the sphere, where the normal is undefined
+    pos = {2.25_r, 1, 0};
+    EXPECT_SOFT_EQ(1, calc_distance(px_));
+    EXPECT_SOFT_EQ(1.25, calc_distance(s_));
 }
 
 //---------------------------------------------------------------------------//

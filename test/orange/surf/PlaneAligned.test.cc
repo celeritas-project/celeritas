@@ -123,6 +123,15 @@ TEST_F(PlaneAlignedTest, plane_z)
     EXPECT_EQ(no_intersection(), calc_intersection(p, {-1.01, 0.0, 0.0}, px));
 }
 
+TEST_F(PlaneAlignedTest, safety)
+{
+    PlaneY p(-1.0);
+
+    EXPECT_SOFT_EQ(3.5, p.calc_safety(Real3{10.0, 2.5, -4.2}));
+    EXPECT_SOFT_EQ(0.25, p.calc_safety(Real3{10.0, -1.25, -4.2}));
+    EXPECT_SOFT_EQ(0.0, p.calc_safety(Real3{10.0, -1.0, -4.2}));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

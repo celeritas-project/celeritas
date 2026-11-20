@@ -507,6 +507,16 @@ TEST_F(DegenerateBoundaryTest, pos)
     eps = 1.e-8;
     run_all();
 }
+TEST_F(CCylZTest, safety)
+{
+    CCylZ cyl(2.0);
+
+    EXPECT_SOFT_EQ(0.5, cyl.calc_safety(Real3{0, 1.5, 100}));
+    EXPECT_SOFT_EQ(3.0, cyl.calc_safety(Real3{3, -4, -100}));
+    EXPECT_SOFT_EQ(0.0, cyl.calc_safety(Real3{-2, 0, 1}));
+    EXPECT_SOFT_EQ(2.0, cyl.calc_safety(Real3{0, 0, 5}));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

@@ -48,9 +48,9 @@ struct NumIntersections
 /*!
  * Calculate the smallest distance from a point to the surface.
  *
- * For certain surface types (spheres, cylinders, planes), defined such that
- * the normal is *outward* (positive when "outside", negative when "inside"),
- * the nearest distance to the surface can be calculated quite trivially.
+ * Surface types that support "simple safety" (spheres, cylinders, planes)
+ * provide the exact distance to their nearest point in closed form. All other
+ * surfaces return a conservative distance of zero.
  */
 struct CalcSafetyDistance
 {
@@ -60,42 +60,14 @@ struct CalcSafetyDistance
     template<class S>
     CELER_FUNCTION real_type operator()(S const& surf)
     {
-        if (!S::simple_safety())
+        if constexpr (S::simple_safety())
         {
-            // Not a surface that satisfies our simplifying constraints: return
-            // a conservative answer.
-            return 0;
+            return surf.calc_safety(this->pos);
         }
-
-        // Calculate outward normal
-        Real3 dir = surf.calc_normal(this->pos);
-        if (CELER_UNLIKELY(std::isnan(dir[0])))
-        {
-            // Magnitude may have been zero, e.g. taking the safety at the
-            // center of a sphere/cyl, so assume it's a long way off.
-            return numeric_limits<real_type>::infinity();
-        }
-        CELER_ASSERT(is_soft_unit_vector(dir));
-
-        auto sense = surf.calc_sense(this->pos);
-        // If sense is "positive" (on or outside), flip direction to inward so
-        // that the vector points toward the surface
-        if (sense == SignedSense::outside)
-        {
-            for (real_type& d : dir)
-            {
-                d *= -1;
-            }
-        }
-        else if (sense == SignedSense::on)
+        else
         {
             return 0;
         }
-
-        // Return the closest intersection
-        auto intersect
-            = surf.calc_intersections(this->pos, dir, SurfaceState::off);
-        return *celeritas::min_element(intersect.begin(), intersect.end());
     }
 };
 
