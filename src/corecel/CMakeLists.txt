@@ -364,13 +364,25 @@ endif()
 
 if(CELERITAS_USE_CUDA)
   list(APPEND SOURCES
+    sys/ScopedLimitSaver.cuda.cc
+  )
+
+  # NVTX is header-only and only used by these sources: add its include
+  # directory privately so that downstream projects don't need to find it
+  celeritas_add_object_library(corecel_nvtx_obj
     sys/detail/NvtxUtils.cc
     sys/detail/TraceCounterImpl.cuda.cc
-    sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
   )
-  # NVTX is header-only and only used in source files: don't export it
-  list(APPEND PRIVATE_DEPS $<BUILD_INTERFACE:NVTX::nvtx3>)
+  target_include_directories(corecel_nvtx_obj
+    SYSTEM PRIVATE ${NVTX_INCLUDE_DIRS}
+  )
+  # NVTX uses dlopen, which requires `-ldl` before glibc 2.34
+  celeritas_target_link_libraries(corecel_nvtx_obj
+    PRIVATE Celeritas::ExtDeviceApi Celeritas::BuildFlags ${CMAKE_DL_LIBS}
+  )
+  list(APPEND SOURCES $<TARGET_OBJECTS:corecel_nvtx_obj>)
+  list(APPEND PRIVATE_DEPS corecel_nvtx_obj)
 endif()
 
 if(CELERITAS_USE_HIP)

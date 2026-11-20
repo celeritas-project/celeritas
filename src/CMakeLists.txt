@@ -113,11 +113,6 @@ if(CELERITAS_USE_CUDA)
     target_include_directories(ExtDeviceApi SYSTEM INTERFACE ${_dirs})
     unset(_dirs)
   endif()
-
-  # NVTX requires `-ldl`
-  # This does not appears to be needed anymore with
-  # CMake 3.26.5 and CUDA sdk 12.6.
-  target_link_libraries(ExtDeviceApi INTERFACE ${CMAKE_DL_LIBS})
 elseif(CELERITAS_USE_HIP)
   if(CMAKE_HIP_COMPILER_ROCM_ROOT)
     # Undocumented CMake variable
@@ -188,7 +183,8 @@ if(CELERITAS_USE_CUDA)
   unset(_dirs)
   unset(_tgt_dirs)
 
-  # Perlmutter with RDC enabled complains about missing dlclose
+  # Thrust and CUB annotate their algorithms with NVTX, which uses dlopen and
+  # requires `-ldl` before glibc 2.34
   target_link_libraries(ExtThrust INTERFACE ${CMAKE_DL_LIBS})
 endif()
 

@@ -11,11 +11,11 @@ part of the CUDA toolkit but may be packaged separately, so the toolkit include
 directories are searched first and then the default search paths (including
 ``NVTX_ROOT``). Set ``NVTX_INCLUDE_DIR`` to override the search.
 
-Result targets
-^^^^^^^^^^^^^^
+Result variables
+^^^^^^^^^^^^^^^^
 
-``NVTX::nvtx3``
-  Interface target providing the NVTX include directory.
+``NVTX_INCLUDE_DIRS``
+  Include directory containing ``nvtx3/nvToolsExt.h``.
 
 #]=======================================================================]
 
@@ -36,15 +36,6 @@ find_package_handle_standard_args(NVTX
   REASON_FAILURE_MESSAGE
     "install the development headers for the CUDA NVTX component"
 )
-
-if(NVTX_FOUND AND NOT TARGET NVTX::nvtx3)
-  set(NVTX_INCLUDE_DIRS "${NVTX_INCLUDE_DIR}")
-  add_library(NVTX::nvtx3 INTERFACE IMPORTED)
-  set_target_properties(NVTX::nvtx3 PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${NVTX_INCLUDE_DIR}"
-    # NVTX loads the profiler injection library with dlopen
-    INTERFACE_LINK_LIBRARIES "${CMAKE_DL_LIBS}"
-  )
-endif()
+set(NVTX_INCLUDE_DIRS "${NVTX_INCLUDE_DIR}")
 
 #-----------------------------------------------------------------------------#
