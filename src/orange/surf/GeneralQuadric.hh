@@ -16,6 +16,7 @@
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/QuadricSafety.hh"
 
 namespace celeritas
 {
@@ -56,8 +57,8 @@ class GeneralQuadric
         return SurfaceType::gq;
     }
 
-    //! Safety is *not* the nearest intersection along the surface "normal"
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+    //! Safety is a lower bound on the distance to the surface
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
     //! Gradient does not have unit length
     static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
@@ -115,6 +116,9 @@ class GeneralQuadric
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+
+    // Calculate a lower bound on the distance to the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Second-order terms (a, b, c)
@@ -222,6 +226,35 @@ CELER_FUNCTION Real3 GeneralQuadric::calc_gradient(Real3 const& pos) const
     return {2 * a_ * x + d_ * y + f_ * z + g_,
             2 * b_ * y + d_ * x + e_ * z + h_,
             2 * c_ * z + e_ * y + f_ * x + i_};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate a lower bound on the distance to the surface.
+ *
+ * The second-order matrix has diagonal \f$ (a, b, c) \f$ and off-diagonal
+ * elements \f$ d/2 \f$ (xy), \f$ e/2 \f$ (yz), and \f$ f/2 \f$ (zx). Its
+ * eigenvalues are bounded by the Gershgorin discs, centered on the diagonal
+ * with radii equal to the off-diagonal row sums:
+ * \f[
+   \mu_\pm = \max/\min \left( a \pm \frac{|d| + |f|}{2},\,
+                             b \pm \frac{|d| + |e|}{2},\,
+                             c \pm \frac{|e| + |f|}{2} \right) \,.
+   \f]
+ * These are exact when there are no cross terms and conservative otherwise.
+ * See \c detail::calc_quadric_safety for the derivation and accuracy.
+ */
+CELER_FUNCTION real_type GeneralQuadric::calc_safety(Real3 const& pos) const
+{
+    real_type const rx = (std::fabs(d_) + std::fabs(f_)) / 2;
+    real_type const ry = (std::fabs(d_) + std::fabs(e_)) / 2;
+    real_type const rz = (std::fabs(e_) + std::fabs(f_)) / 2;
+
+    return detail::calc_quadric_safety(
+        this->calc_value(pos),
+        this->calc_gradient(pos),
+        celeritas::min(a_ - rx, celeritas::min(b_ - ry, c_ - rz)),
+        celeritas::max(a_ + rx, celeritas::max(b_ + ry, c_ + rz)));
 }
 
 //---------------------------------------------------------------------------//

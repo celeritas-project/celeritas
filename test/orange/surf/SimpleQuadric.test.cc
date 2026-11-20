@@ -7,6 +7,7 @@
 #include "orange/surf/SimpleQuadric.hh"
 
 #include "corecel/Constants.hh"
+#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "orange/surf/ConeAligned.hh"
@@ -14,6 +15,7 @@
 #include "orange/surf/Plane.hh"
 #include "orange/surf/Sphere.hh"
 
+#include "SurfaceTestUtils.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -161,6 +163,63 @@ TEST(SimpleQuadricTest, small_ellipsoid)
     EXPECT_VEC_SOFT_EQ((Real3{0, 0, -1}), sq.calc_normal({0, 0, -0.3}));
     EXPECT_VEC_SOFT_EQ((Real3{0, 1, 0}), sq.calc_normal({0, 2.5, 0}));
     EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), sq.calc_normal({-1, 0, 0}));
+}
+
+TEST(SimpleQuadricTest, safety)
+{
+    {
+        SCOPED_TRACE("sphere");
+        SimpleQuadric const sq{Sphere{{1, 2, 3}, 2}};
+        // Exact inside: radius minus distance from center
+        EXPECT_SOFT_EQ(2, sq.calc_safety({1, 2, 3}));
+        EXPECT_SOFT_EQ(1, sq.calc_safety({1, 2, 4}));
+        // Outside: f/|grad f| = (25 - 4) / 10, less than the true 3
+        EXPECT_SOFT_EQ(2.1, sq.calc_safety({1, 2, 8}));
+    }
+    {
+        SCOPED_TRACE("ellipsoid");
+        // 1 x 2.5 x .3 radii
+        SimpleQuadric const sq{{ipow<2>(2.5) * ipow<2>(0.3),
+                                ipow<2>(1.0) * ipow<2>(0.3),
+                                ipow<2>(1.0) * ipow<2>(2.5)},
+                               {0, 0, 0},
+                               -ipow<2>(1) * ipow<2>(2.5) * ipow<2>(0.3)};
+        EXPECT_SOFT_EQ(0, sq.calc_safety({0, 2.5, 0}));
+        // Exact at the center: the smallest semi-axis
+        EXPECT_SOFT_EQ(0.3, sq.calc_safety({0, 0, 0}));
+        // Nearly exact just outside and inside the surface
+        EXPECT_SOFT_NEAR(1e-4, sq.calc_safety({0, 0, 0.3 + 1e-4}), 1e-3);
+        EXPECT_SOFT_NEAR(1e-4, sq.calc_safety({0, 0, 0.3 - 1e-4}), 1e-3);
+
+        for (Real3 const& pos : {Real3{0.5, 1, 0.1},
+                                 Real3{2, 0, 0},
+                                 Real3{-1, 3, 1},
+                                 Real3{0.1, 0.1, 0.25}})
+        {
+            EXPECT_LE(sq.calc_safety(pos), calc_sampled_distance(sq, pos))
+                << "at " << repr(pos);
+        }
+    }
+    {
+        SCOPED_TRACE("hyperboloid");
+        // One sheet: x^2 + y^2 - z^2 = 1
+        SimpleQuadric const sq{{1, 1, -1}, {0, 0, 0}, -1};
+        // Exact at the waist center
+        EXPECT_SOFT_EQ(1, sq.calc_safety({0, 0, 0}));
+        // Above the waist on the axis (true distance sqrt(13.5))
+        EXPECT_SOFT_EQ(2.14142842854285, sq.calc_safety({0, 0, 5}));
+        // Outside the waist (true distance sqrt(3.5))
+        EXPECT_SOFT_EQ(1.1231056256176606, sq.calc_safety({3, 0, 0}));
+
+        for (Real3 const& pos : {Real3{0, 0, 5},
+                                 Real3{3, 0, 0},
+                                 Real3{1, 1, 2},
+                                 Real3{0.5, 0.2, 0.3}})
+        {
+            EXPECT_LE(sq.calc_safety(pos), calc_sampled_distance(sq, pos))
+                << "at " << repr(pos);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

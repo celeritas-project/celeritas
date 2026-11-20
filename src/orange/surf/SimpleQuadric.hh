@@ -16,6 +16,7 @@
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/QuadricSafety.hh"
 
 namespace celeritas
 {
@@ -65,8 +66,8 @@ class SimpleQuadric
         return SurfaceType::sq;
     }
 
-    //! Safety is *not* the intersection along surface normal
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+    //! Safety is a lower bound on the distance to the surface
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
     //! Gradient does not have unit length
     static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
@@ -129,6 +130,9 @@ class SimpleQuadric
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+
+    // Calculate a lower bound on the distance to the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Second-order terms (a, b, c)
@@ -225,6 +229,23 @@ CELER_FUNCTION Real3 SimpleQuadric::calc_gradient(Real3 const& pos) const
     real_type const z = pos[to_int(Axis::z)];
 
     return {2 * a_ * x + d_, 2 * b_ * y + e_, 2 * c_ * z + f_};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate a lower bound on the distance to the surface.
+ *
+ * The second-order matrix is diagonal, so its eigenvalues are exactly
+ * \em a, \em b, and \em c. See \c detail::calc_quadric_safety for the
+ * derivation and accuracy.
+ */
+CELER_FUNCTION real_type SimpleQuadric::calc_safety(Real3 const& pos) const
+{
+    return detail::calc_quadric_safety(
+        this->calc_value(pos),
+        this->calc_gradient(pos),
+        celeritas::min(a_, celeritas::min(b_, c_)),
+        celeritas::max(a_, celeritas::max(b_, c_)));
 }
 
 //---------------------------------------------------------------------------//

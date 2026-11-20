@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/GeneralQuadric.hh"
 
+#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/surf/SimpleQuadric.hh"
 
@@ -116,6 +117,49 @@ TEST(GeneralQuadricTest, all)
     distances = calc_intersections(gq, pos, outward, SurfaceState::off);
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(7.0, distances[1]);
+
+    // Safety
+    EXPECT_LT(gq.calc_safety(on_surface), 1e-12);
+    for (Real3 const& p : {center, pos, Real3{4, 5, 5}, Real3{1, 2, 3.5}})
+    {
+        EXPECT_LE(gq.calc_safety(p), calc_sampled_distance(gq, p))
+            << "at " << repr(p);
+    }
+}
+
+TEST(GeneralQuadricTest, safety)
+{
+    {
+        SCOPED_TRACE("cylinder");
+        // Unit cylinder along (1, 1, 0) / sqrt(2): x^2 + y^2 + z^2 -
+        // (x + y)^2 / 2 = 1
+        GeneralQuadric const gq{{0.5, 0.5, 1}, {-1, 0, 0}, {0, 0, 0}, -1};
+        // Exact inside: radius minus distance from axis
+        EXPECT_SOFT_EQ(1, gq.calc_safety({0, 0, 0}));
+        EXPECT_SOFT_EQ(1, gq.calc_safety({4, 4, 0}));
+        EXPECT_SOFT_EQ(0.5, gq.calc_safety({0, 0, 0.5}));
+        // Outside: f/|grad f| = 8 / 6, less than the true 2
+        EXPECT_SOFT_EQ(4.0 / 3, gq.calc_safety({0, 0, 3}));
+        // On the surface
+        EXPECT_SOFT_EQ(0, gq.calc_safety({0, 0, 1}));
+    }
+    {
+        SCOPED_TRACE("twisted");
+        // Twisted surface with only zz, yz, and zx second-order terms, like
+        // the faces of an accordion calorimeter
+        GeneralQuadric const gq{{0, 0, 0.1}, {0, 0.3, -0.2}, {1, 0.5, 0}, -2};
+        for (Real3 const& pos : {Real3{0, 0, 0},
+                                 Real3{2, 0, 0.5},
+                                 Real3{1, 1, 1},
+                                 Real3{-3, 2, 5},
+                                 Real3{2.1, 0, 0.1}})
+        {
+            real_type const safety = gq.calc_safety(pos);
+            EXPECT_GT(safety, 0) << "at " << repr(pos);
+            EXPECT_LE(safety, calc_sampled_distance(gq, pos))
+                << "at " << repr(pos);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
