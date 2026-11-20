@@ -237,7 +237,7 @@ CELER_FUNCTION Real3 PlaneAligned<T>::calc_gradient(Real3 const&) const
 template<Axis T>
 CELER_FUNCTION real_type PlaneAligned<T>::calc_safety(Real3 const& pos) const
 {
-    return std::fabs(this->dot_normal(pos) - this->displacement());
+    return std::fabs(this->calc_value(pos));
 }
 
 //---------------------------------------------------------------------------//

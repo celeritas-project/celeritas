@@ -218,7 +218,7 @@ CELER_FORCEINLINE_FUNCTION Real3 const& Plane::calc_gradient(Real3 const&) const
  */
 CELER_FUNCTION real_type Plane::calc_safety(Real3 const& pos) const
 {
-    return std::fabs(this->dot_normal(pos) - this->displacement());
+    return std::fabs(this->calc_value(pos));
 }
 
 //---------------------------------------------------------------------------//
