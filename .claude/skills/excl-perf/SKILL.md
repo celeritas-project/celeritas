@@ -6,7 +6,7 @@ description: Build Celeritas in the ExCL apptainer container and benchmark celer
 Celeritas-side knowledge for the ExCL workflow. The run/analysis half lives in the **dune-perf** repo at
 `/work/run/dune-perf` (skill: `/work/run/dune-perf/.claude/skills/celer-optical-perf/SKILL.md`; read it
 before running or analyzing sweeps). Both repos must be available locally; this checkout is `/work/src`
-(branch `excl-env`, pushes go only to the `bot` remote, the user opens PRs).
+(branch `excl-env`, or `larceler-keep-wires` = `excl-env` + keep-wires commit; pushes go only to the `bot` remote, the user opens PRs).
 
 ## Layout and environment (apptainer session, launcher `claude-excl-celer.sh`)
 - Source `/work/src`; builds `/work/build` (local scratch); installs `/work/install` (networked); `/work` is
@@ -48,3 +48,10 @@ before running or analyzing sweeps). Both repos must be available locally; this 
 ## Access
 - AMD discrete GPUs (explorer, cousteau, maxwell) need the `render` group for `/dev/kfd`; check `id -nG`
   inside a Slurm job if HIP reports no device.
+
+## larceler example (dunesw GENIE/larg4 -> optical sim)
+- `example/larceler/run.sh` generates events; needs `LD_PRELOAD=$SPACK_ENV_VIEW/lib/libGFwReg.so` for GENIE (the script does it)
+  and the patched GDML in the cwd (`FW_SEARCH_PATH` includes `$PWD`). Env scripts must be sourced from bash.
+- `PDFullSimCeler` (CPU) defaults to `OpticalCapacityTracks: 128`; `PDFullSimCelerGPU` enables the device with 1048576 slots.
+  dune-perf's `larceler/` has override fcls and `run.sbatch` for the CPU/GPU benchmarks (see the celer-optical-perf skill).
+- `larceler-env` sets `OMP_NUM_THREADS` from the Slurm allocation if unset.
