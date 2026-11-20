@@ -106,10 +106,13 @@ celeritas_add_interface_library(ExtDeviceApi)
 if(CELERITAS_USE_CUDA)
   target_link_libraries(ExtDeviceApi INTERFACE CUDA::toolkit)
 
-  # NVTX requires `-ldl`
-  # This does not appears to be needed anymore with
-  # CMake 3.26.5 and CUDA sdk 12.6.
-  target_link_libraries(ExtDeviceApi INTERFACE ${CMAKE_DL_LIBS})
+  # The NVIDIA HPC SDK installs math library headers separately: add the
+  # cuRAND include directories without linking the (unused) host library
+  if(TARGET CUDA::curand)
+    get_target_property(_dirs CUDA::curand INTERFACE_INCLUDE_DIRECTORIES)
+    target_include_directories(ExtDeviceApi SYSTEM INTERFACE ${_dirs})
+    unset(_dirs)
+  endif()
 elseif(CELERITAS_USE_HIP)
   if(CMAKE_HIP_COMPILER_ROCM_ROOT)
     # Undocumented CMake variable
@@ -162,7 +165,26 @@ endif()
 
 celer_add_ext_library(Thrust)
 if(CELERITAS_USE_CUDA)
-  # Perlmutter with RDC enabled complains about missing dlclose
+  # Propagate the CCCL headers located by the Thrust package configuration,
+  # since CUDA::toolkit lacks the CUDA 13 include/cccl directory before CMake
+  # 3.31.8/4.0.3. Thrust's targets can't be linked directly because they are
+  # not imported and therefore can't be exported.
+  set(_dirs)
+  foreach(_tgt IN ITEMS Thrust::Thrust Thrust::libcudacxx)
+    if(TARGET ${_tgt})
+      get_target_property(_tgt_dirs ${_tgt} INTERFACE_INCLUDE_DIRECTORIES)
+      if(_tgt_dirs)
+        list(APPEND _dirs ${_tgt_dirs})
+      endif()
+    endif()
+  endforeach()
+  list(REMOVE_DUPLICATES _dirs)
+  target_include_directories(ExtThrust SYSTEM INTERFACE ${_dirs})
+  unset(_dirs)
+  unset(_tgt_dirs)
+
+  # Thrust and CUB annotate their algorithms with NVTX, which uses dlopen and
+  # requires `-ldl` before glibc 2.34
   target_link_libraries(ExtThrust INTERFACE ${CMAKE_DL_LIBS})
 endif()
 
