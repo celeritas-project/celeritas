@@ -254,11 +254,14 @@ CELER_FUNCTION real_type FresnelCalculator::calc_transmission_te() const
 /*!
  * Calculate transmission coefficient of the TM component.
  *
- * Derived from equation 2.53 of \cite{fowles-optics-1975}.
+ * Derived from equation 2.53 of \cite{fowles-optics-1975}:
+ * \f$ t_p = 2 n_1 \cos\theta_i / (n_2 \cos\theta_i + n_1 \cos\theta_t) \f$,
+ * which is \f$ (1 - r_p) n_1 / n_2 \f$ with the sign of \f$ r_p \f$ used
+ * here.
  */
 CELER_FUNCTION real_type FresnelCalculator::calc_transmission_tm() const
 {
-    return relative_r_index_ * (this->calc_reflectivity_tm() + 1);
+    return (1 - this->calc_reflectivity_tm()) / relative_r_index_;
 }
 
 //---------------------------------------------------------------------------//

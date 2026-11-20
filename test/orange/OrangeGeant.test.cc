@@ -4,7 +4,11 @@
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeGeant.test.cc
 //---------------------------------------------------------------------------//
+#include <fstream>
+#include <set>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #include "corecel/Config.hh"
 
@@ -12,6 +16,7 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/io/StringUtils.hh"
@@ -19,6 +24,7 @@
 #include "geocel/GeoTests.hh"
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "orange/Debug.hh"
 #include "orange/OrangeTypes.hh"
@@ -403,6 +409,75 @@ TEST_F(TestEm3Test, trace)
     this->impl().test_trace();
 }
 
+// Load a JSON geometry whose volume names mostly differ from Geant4's
+TEST_F(TestEm3Test, from_json)
+{
+    auto const& volumes = this->geometry()->volumes();
+    ASSERT_TRUE(volumes);
+    std::string const filename
+        = this->test_data_path("orange", "testem3.org.json");
+
+    {
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                    LogLevel::warning};
+        auto geo = OrangeParams::from_json(filename, volumes);
+        ASSERT_EQ(1, scoped_log_.messages().size()) << scoped_log_;
+        auto const& msg = scoped_log_.messages().front();
+        EXPECT_TRUE(starts_with(
+            msg,
+            "ORANGE volumes do not correspond to any canonical volume: "
+            "pair_0, pair_1, "))
+            << msg;
+        EXPECT_TRUE(ends_with(msg, "pair_49, gap, absorber")) << msg;
+
+        // Only the world matches a canonical volume
+        auto const& impl_vols = geo->impl_volumes();
+        auto world = impl_vols.find_unique("world");
+        ASSERT_TRUE(world);
+        EXPECT_EQ(volumes->world(), geo->volume_id(world));
+        EXPECT_EQ(volumes->world_instance(), geo->volume_instance_id(world));
+        for (auto name : {"pair_0", "gap", "absorber"})
+        {
+            auto iv_id = impl_vols.find_unique(name);
+            ASSERT_TRUE(iv_id) << name;
+            EXPECT_FALSE(geo->volume_id(iv_id)) << name;
+            EXPECT_FALSE(geo->volume_instance_id(iv_id)) << name;
+        }
+    }
+    {
+        SCOPED_TRACE("Volume with multiple placements");
+        std::string contents;
+        {
+            std::ifstream infile(filename);
+            std::ostringstream os;
+            os << infile.rdbuf();
+            contents = os.str();
+        }
+        std::string const old_name = R"("pair_0")";
+        auto pos = contents.find(old_name);
+        ASSERT_NE(std::string::npos, pos);
+        contents.replace(pos, old_name.size(), R"("layer")");
+        auto const modified = this->make_unique_filename(".org.json");
+        std::ofstream(modified) << contents;
+
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                    LogLevel::warning};
+        try
+        {
+            OrangeParams::from_json(modified, volumes);
+            FAIL() << "expected a runtime error";
+        }
+        catch (RuntimeError const& e)
+        {
+            EXPECT_TRUE(std::string{e.what()}.find(
+                            "cannot map ORANGE volume 'layer' to a canonical "
+                            "volume instance: it has 50 placements")
+                        != std::string::npos)
+                << e.what();
+        }
+    }
+}
+
 //---------------------------------------------------------------------------//
 using TestEm3FlatTest
     = GenericGeoParameterizedTest<GeantOrangeTest, TestEm3FlatGeoTest>;
@@ -410,6 +485,49 @@ using TestEm3FlatTest
 TEST_F(TestEm3FlatTest, trace)
 {
     this->impl().test_trace();
+}
+
+// Load the equivalent JSON geometry, whose volumes are in a different order
+TEST_F(TestEm3FlatTest, from_json)
+{
+    auto const& g4_geo = *this->geometry();
+    auto const& volumes = g4_geo.volumes();
+    ASSERT_TRUE(volumes);
+
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
+    auto json_geo = OrangeParams::from_json(
+        this->test_data_path("geocel", "testem3-flat.org.json"), volumes);
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    EXPECT_EQ(volumes.get(), json_geo->volumes().get());
+
+    auto to_string = [&volumes](VolumeInstanceId vi_id) -> std::string {
+        if (!vi_id)
+        {
+            return "---";
+        }
+        return volumes->volume_instance_labels().at(vi_id).name;
+    };
+
+    // Scan along the layers: lengths in the JSON file are in native units
+    std::set<VolumeInstanceId> found;
+    std::vector<std::string> mismatched;
+    for (auto i : range(480))
+    {
+        Real3 const pos{static_cast<real_type>(-23.95 + 0.1 * i), 0, 0};
+        auto expected = g4_geo.find_volume_instance_at(from_cm(pos));
+        auto actual = json_geo->find_volume_instance_at(pos);
+        if (actual != expected)
+        {
+            std::ostringstream os;
+            os << pos[0] << ": " << to_string(actual) << " (expected "
+               << to_string(expected) << ")";
+            mismatched.push_back(os.str());
+        }
+        found.insert(actual);
+    }
+    EXPECT_EQ(std::vector<std::string>{}, mismatched);
+    // World and 50 pairs of layers
+    EXPECT_EQ(101, found.size());
 }
 
 //---------------------------------------------------------------------------//

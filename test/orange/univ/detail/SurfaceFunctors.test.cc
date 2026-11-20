@@ -57,19 +57,6 @@ TEST_F(SurfaceFunctorsTest, num_intersections)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(SurfaceFunctorsTest, calc_normal)
-{
-    Real3 pos;
-    CalcNormal calc_normal{pos};
-
-    pos = {1.25, 1, 1};
-    EXPECT_EQ(Real3({1, 0, 0}), calc_normal(px_));
-    pos = {2.25, 2.25, 0};
-    EXPECT_EQ(Real3({0, 1, 0}), calc_normal(s_));
-}
-
-//---------------------------------------------------------------------------//
-
 TEST_F(SurfaceFunctorsTest, calc_safety_distance)
 {
     Real3 pos;
@@ -99,6 +86,11 @@ TEST_F(SurfaceFunctorsTest, calc_safety_distance)
     pos = {3.5_r, 1, 0};
     EXPECT_SOFT_EQ(2.25, calc_distance(px_));
     EXPECT_SOFT_EQ(0.0, calc_distance(s_));
+
+    // At the center of the sphere, where the normal is undefined
+    pos = {2.25_r, 1, 0};
+    EXPECT_SOFT_EQ(1, calc_distance(px_));
+    EXPECT_SOFT_EQ(1.25, calc_distance(s_));
 }
 
 //---------------------------------------------------------------------------//

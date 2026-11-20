@@ -23,8 +23,12 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "orange/OrangeGeoTestBase.hh"
+#include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
+#include "orange/surf/SimpleQuadric.hh"
+#include "orange/surf/Sphere.hh"
+#include "orange/univ/detail/LocalVolumeView.hh"
 
 #include "AssertionHelper.hh"
 #include "SimpleUnitTracker.test.hh"
@@ -143,6 +147,42 @@ class FieldLayersTest : public SimpleUnitTrackerTest
 class FiveVolumesTest : public SimpleUnitTrackerTest
 {
     void SetUp() override { this->build_geometry("five-volumes.org.json"); }
+};
+
+//! Ellipsoid (not a "simple safety" surface) in a background-filled sphere
+class BackgroundQuadricTest : public SimpleUnitTrackerTest
+{
+    void SetUp() override
+    {
+        UnitInput input;
+        input.label = "background quadric";
+        input.bbox = {{-4, -4, -4}, {4, 4, 4}};
+        input.surfaces = {Sphere({0, 0, 0}, 4),
+                          SimpleQuadric({1, 1, 0.25}, {0, 0, 0}, -1)};
+        input.surface_labels = {Label("world"), Label("ellipsoid")};
+
+        VolumeInput exterior;
+        exterior.label = "exterior";
+        exterior.faces = {LocalSurfaceId{0}};
+        exterior.logic = {0};
+        exterior.bbox = BBox::from_infinite();
+        exterior.zorder = ZOrder::exterior;
+
+        VolumeInput ellipsoid;
+        ellipsoid.label = "ellipsoid";
+        ellipsoid.faces = {LocalSurfaceId{1}};
+        ellipsoid.logic = {1, logic::lnot};
+        ellipsoid.bbox = {{-1, -1, -2}, {1, 1, 2}};
+        ellipsoid.zorder = ZOrder::media;
+
+        VolumeInput background;
+        background.label = "background";
+        background.flags = VolumeInput::Flags::implicit_vol;
+        background.zorder = ZOrder::background;
+
+        input.volumes = {exterior, ellipsoid, background};
+        this->build_geometry(std::move(input));
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -445,10 +485,34 @@ TEST_F(TwoVolumeTest, initialize)
     }
     {
         // Test rejection
-        SCOPED_TRACE("On the boundary but not crossing a surface");
+        SCOPED_TRACE("On the boundary and moving tangent to it");
         auto init
             = tracker.initialize(this->make_state({1.5, 0, 0}, {0, 0, 1}));
         EXPECT_FALSE(init);
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+    }
+    {
+        SCOPED_TRACE("On the boundary heading in");
+        auto init
+            = tracker.initialize(this->make_state({1.5, 0, 0}, {-1, 0, 0}));
+        EXPECT_EQ("inside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::inside, init.surface.sense());
+
+        // Next intersection is the far side of the sphere
+        auto state = this->make_state(
+            {1.5, 0, 0}, {-1, 0, 0}, "inside", "sphere", '-');
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("sphere", this->id_to_label(isect.surface.id()));
+        EXPECT_SOFT_EQ(3.0, isect.distance);
+    }
+    {
+        SCOPED_TRACE("On the boundary heading out");
+        auto init
+            = tracker.initialize(this->make_state({0, 1.5, 0}, {0, 0.6, 0.8}));
+        EXPECT_EQ("outside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
         SCOPED_TRACE("Outside the sphere");
@@ -600,13 +664,8 @@ TEST_F(TwoVolumeTest, safety)
     EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 2}, outside));
     EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 1}, inside));
     EXPECT_SOFT_EQ(1.5 - 1e-10, tracker.safety({1e-10, 0, 0}, inside));
-#if 0
-    // Correct result but there is a singularity at zero
-    EXPECT_SOFT_EQ(1.5, tracker.safety({0, 0, 0}, inside)); // degenerate!
-#else
-    // Actual result
-    EXPECT_SOFT_EQ(inf, tracker.safety({0, 0, 0}, inside));  // degenerate!
-#endif
+    // At the center of the sphere, where the normal is undefined
+    EXPECT_SOFT_EQ(1.5, tracker.safety({0, 0, 0}, inside));
 }
 
 TEST_F(TwoVolumeTest, normal)
@@ -736,6 +795,24 @@ TEST_F(FieldLayersTest, intersect)
     }
 }
 
+TEST_F(FieldLayersTest, safety)
+{
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
+    LocalVolumeId bg = ui.local_volume(this->find_volume("world.bg")).volume;
+
+    // All surfaces in the unit are planes
+    detail::LocalVolumeView vol{this->host_params(), tracker.unit_record(), bg};
+    EXPECT_TRUE(vol.implicit_vol());
+    EXPECT_TRUE(vol.simple_safety());
+
+    // Halfway between two layers
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, -3, 0}, bg));
+    // Note: distance is conservatively to the nearest surface in the unit
+    // (the extension of the layers' +z face), not the world boundary
+    EXPECT_SOFT_EQ(0.25, tracker.safety({0, 10, 9.25}, bg));
+}
+
 TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 8192;
@@ -804,11 +881,26 @@ TEST_F(FiveVolumesTest, initialize)
         EXPECT_FALSE(init.surface);
     }
     {
-        // Triple point between a, c, d
-        SCOPED_TRACE("On the boundary but not crossing a surface");
-        auto init
-            = tracker.initialize(this->make_state({0, 0.75, 0}, {1, 1, 0}));
-        EXPECT_FALSE(init);
+        // Triple point between a, c, d: on the alpha.px plane (x = 0) and
+        // the gamma sphere (r = 0.75); both "on" tests and normals are exact
+        // since 0.75 and 0.75^2 are exactly representable. The direction is
+        // outward from both, which selects 'd'. The stored surface is the
+        // first face of 'd' that the point is on.
+        SCOPED_TRACE("On the boundary heading into d");
+        auto state = this->make_state({0, 0.75, 0}, {1, 1, 0});
+        auto init = tracker.initialize(state);
+        EXPECT_EQ("d", this->id_to_label(init.volume));
+        EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
+
+        // The next intersection must be the outer sphere, a nonzero distance
+        // away: neither surface the point is on can be hit at zero distance
+        state.volume = init.volume;
+        state.surface = init.surface;
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(99.46826365422226, isect.distance);
     }
 }
 
@@ -952,6 +1044,23 @@ TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
         auto result = this->run_heuristic_init_device(num_tracks);
         EXPECT_REF_EQ(expected, result);
     }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(BackgroundQuadricTest, safety)
+{
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
+    LocalVolumeId bg = ui.local_volume(this->find_volume("background")).volume;
+
+    // A unit with a non-simple surface cannot give a background safety, so
+    // the volume must not claim it
+    detail::LocalVolumeView vol{this->host_params(), tracker.unit_record(), bg};
+    EXPECT_TRUE(vol.implicit_vol());
+    EXPECT_FALSE(vol.simple_safety());
+
+    EXPECT_SOFT_EQ(0.0, tracker.safety({0, 3, 0}, bg));
 }
 
 //---------------------------------------------------------------------------//

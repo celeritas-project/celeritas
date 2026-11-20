@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Gamma-nuclear process.
  */
-class GammaNuclearProcess : public Process
+class GammaNuclearProcess : public InteractionProcess
 {
   public:
     //!@{

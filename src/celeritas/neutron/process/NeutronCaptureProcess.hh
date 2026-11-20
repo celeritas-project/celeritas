@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Capture process for neutrons.
  */
-class NeutronCaptureProcess : public Process
+class NeutronCaptureProcess : public InteractionProcess
 {
   public:
     //!@{

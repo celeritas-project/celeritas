@@ -1053,7 +1053,7 @@ class Tet final : public IntersectRegionInterface
 };
 
 /*!
- * A torus centered around the origin, defined by two radii.
+ * A z-revolved elliptical torus centered at the origin.
  *
  * The major radius extends from the origin to the center of the revolved
  * circle, and the minor radius is that of the revolved circle.

@@ -146,8 +146,9 @@ CELER_FUNCTION TwodSubgridCalculator SBEnergyDistHelper::make_xs_calc(
     CELER_EXPECT(inc_energy > 0);
 
     TwodGridData const& grid = xs_params.elements[element].grid;
-    CELER_ASSERT(inc_energy >= std::exp(xs_params.reals[grid.x.front()])
-                 && inc_energy < std::exp(xs_params.reals[grid.x.back()]));
+    CELER_ASSERT(
+        inc_energy >= std::exp(real_type{xs_params.reals[grid.x.front()]})
+        && inc_energy < std::exp(real_type{xs_params.reals[grid.x.back()]}));
 
     static_assert(std::is_same<Energy::unit_type, units::Mev>::value
                       && std::is_same<SBElementTableData::EnergyUnits,

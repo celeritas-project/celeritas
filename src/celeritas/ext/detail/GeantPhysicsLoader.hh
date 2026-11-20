@@ -32,8 +32,9 @@ class GeantMaterialPropertyGetter;
  *
  * One process can be shared by multiple particles. Only handles special cases
  * (non-EM, non-MSC processes): optical processes, Cerenkov, scintillation,
- * and muon-catalyzed fusion capture. Returns \c true if the process was
- * recognized (even if no data required import), \c false otherwise.
+ * muon-catalyzed fusion capture, and (per particle) decay. Returns \c true if
+ * the process was recognized (even if no data required import), \c false
+ * otherwise.
  *
  * \todo When import data is refactored this will replace \em all G4 process
  * importing.
@@ -79,6 +80,7 @@ class GeantPhysicsLoader
     size_type op_wls2(G4VProcess const& p);
 
     // Per-particle loaders
+    size_type decay(GeantParticleView const&, G4VProcess const&);
     size_type mu_pair_production(GeantParticleView const&, G4VProcess const&);
 
     //// HELPERS ////

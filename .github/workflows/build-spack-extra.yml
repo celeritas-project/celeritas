@@ -28,8 +28,6 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true # to get version information
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
@@ -46,7 +44,9 @@ jobs:
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack
+          # Only save ccache on develop to reduce PR-related cache churn
           ccache-max-size: 512Mi
+          save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
       - name: Run tests
         id: test
         uses: ./.github/actions/run-ctest
@@ -68,8 +68,6 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true # to get version information
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
@@ -111,8 +109,6 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true # to get version information
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:

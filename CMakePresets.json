@@ -137,6 +137,15 @@
       }
     },
     {
+      "name": ".cuda-ampere",
+      "hidden": true,
+      "description": "Enable CUDA on Ampere (A100) architecture",
+      "inherits": [".cuda"],
+      "cacheVariables": {
+        "CMAKE_CUDA_ARCHITECTURES": { "type": "STRING", "value": "80" }
+      }
+    },
+    {
       "name": ".hip",
       "hidden": true,
       "description": "Enable HIP",

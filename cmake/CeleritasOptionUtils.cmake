@@ -42,7 +42,9 @@ CMake configuration utility functions for Celeritas, primarily for option setup.
   packages. If given, the ``<find_package>`` package name will searched for
   instead of ``<package>``, and an ``@`` symbol can be used to find a specific
   version (e.g. ``Geant4@11.0``) which will be passed to the ``find_package``
-  command.
+  command. The search only happens if ``CELERITAS_USE_<package>`` is not
+  already defined; if ``CELERITAS_BUILTIN_<package>`` is enabled, the option
+  instead defaults to ``ON`` without searching.
 
 .. command:: celeritas_set_default
 
@@ -225,6 +227,12 @@ macro(celeritas_optional_package package)
   set(_var "CELERITAS_USE_${package}")
   if(DEFINED "${_var}")
     set(_val "${_var}")
+  elseif(CELERITAS_BUILTIN_${package})
+    # As with celeritas_find_or_builtin_package, don't search when using the
+    # builtin: we could find a copy we installed ourself, and its imported
+    # targets would conflict with the fetched ones
+    set(_val ON)
+    message(STATUS "Set ${_var}=${_val} based on CELERITAS_BUILTIN_${package}")
   else()
     set(_reset_found OFF)
     list(GET _findpkg 0 _findpkg)

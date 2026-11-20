@@ -475,7 +475,7 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] status@Transporter.cc: Transporting on host
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
-G4WT0 > [1/1] info@LocalOpticalGenOffload.cc: Finalizing Celeritas after 161712 optical steps (over 28 step iterations) from 105138 optical photons generated from 240 distributions
+G4WT0 > [1/1] info@LocalOpticalGenOffload.cc: Finalizing Celeritas after 161710 optical steps (over 28 step iterations) from 105138 optical photons generated from 240 distributions
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M] info@DistOffloadMixin.cc: Total Geant4 steps: 0 optical, 176 other
 [M] status@IntegrationSingleton.cc: Finalizing Celeritas

@@ -107,6 +107,15 @@ struct OrangeGeoFromGeant : public OrangeGeoFromCsg
     //! to improve acceleration. Keys are LV names.
     std::map<std::string, SquareMatrixReal3> universe_alignment;
 
+    //! The minimum number of daughters required for an LV to be a candidate
+    //! for automatic alignment (zero disables). This requirement is bypassed
+    //! for LVs that are entries in the user-supplied \c universe_alignment map.
+    unsigned int align_daughter_threshold{10};
+
+    //! Fraction of daughters that must share a rotation to automatically
+    //! align an LV. Must be > 0.5.
+    double align_daughter_fraction{0.8};
+
     //!@}
     //!@{
     //! \name Debug output

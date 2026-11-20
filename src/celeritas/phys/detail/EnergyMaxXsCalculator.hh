@@ -25,7 +25,7 @@ class EnergyMaxXsCalculator
 {
   public:
     // Construct with physics options and process
-    EnergyMaxXsCalculator(PhysicsOptions const&, Process const&);
+    EnergyMaxXsCalculator(PhysicsOptions const&, InteractionProcess const&);
 
     // Calculate the energy of the maximum cross section in the grid
     real_type operator()(inp::XsGrid const&) const;

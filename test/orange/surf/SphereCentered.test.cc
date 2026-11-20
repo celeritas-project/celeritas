@@ -89,6 +89,16 @@ TEST_F(SphereCenteredTest, TEST_IF_CELERITAS_DOUBLE(degenerate))
     EXPECT_SOFT_EQ(2 * radius, distances[1]);
 }
 
+TEST_F(SphereCenteredTest, safety)
+{
+    SphereCentered s{2.0};
+
+    EXPECT_SOFT_EQ(0.5, s.calc_safety(Real3{0, 1.5, 0}));
+    EXPECT_SOFT_EQ(3.0, s.calc_safety(Real3{3, 0, -4}));
+    EXPECT_SOFT_EQ(0.0, s.calc_safety(Real3{0, 0, -2}));
+    EXPECT_SOFT_EQ(2.0, s.calc_safety(Real3{0, 0, 0}));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

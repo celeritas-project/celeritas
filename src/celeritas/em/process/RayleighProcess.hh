@@ -20,7 +20,7 @@ namespace celeritas
 /*!
  * Rayleigh scattering process for gammas.
  */
-class RayleighProcess : public Process
+class RayleighProcess : public InteractionProcess
 {
   public:
     //!@{

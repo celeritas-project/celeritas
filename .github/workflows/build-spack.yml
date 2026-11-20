@@ -72,9 +72,6 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true # to get version information
-
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:

@@ -1,0 +1,35 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Label AI-generated or AI-assisted pull requests on creation, and add allow-listed
+# labels from `@github-actions label <label>` commands in the description.
+# See @../../.claude/skills/pull-request/SKILL.md
+#-----------------------------------------------------------------------------#
+
+name: pull_request_target_opened
+run-name: >-
+  #${{github.event.number}}: ${{github.event.pull_request.title}}
+
+# Use pull_request_target so the token can write labels on PRs from forks.
+# This workflow never checks out or executes code from the PR.
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions: {}
+
+jobs:
+  label-ai:
+    name: "Add AI labels"
+    # Keep the allow-lists in sync with the agent skills in .claude/skills/
+    permissions:
+      pull-requests: write
+    uses: ./.github/workflows/label-submission.yml
+    with:
+      config: |
+        {
+          "labels": ["physics", "geometry", "field", "app", "external", "scoring"],
+          "marker": "🤖",
+          "trailer": "Assisted-by"
+        }

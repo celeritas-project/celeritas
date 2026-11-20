@@ -95,6 +95,7 @@ celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Transforms
+celeritas_add_test(transform/RotationCounter.test.cc)
 celeritas_add_test(transform/SignedPermutation.test.cc)
 celeritas_add_test(transform/TransformSimplifier.test.cc)
 celeritas_add_test(transform/Transformation.test.cc)

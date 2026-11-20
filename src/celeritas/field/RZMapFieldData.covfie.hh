@@ -43,9 +43,9 @@ template<>
 struct RZMapFieldParamsData<Ownership::value, MemSpace::host>
     : RZMapFieldParamsDataBase<MemSpace::host>
 {
-    CELER_FUNCTION view_t get_view() const { return view_t(*field); }
+    view_t get_view() const { return view_t(*field); }
 
-    CELER_FUNCTION explicit operator bool() const { return field.get(); }
+    explicit operator bool() const { return field.get(); }
 
     std::unique_ptr<field_t> field;
 };

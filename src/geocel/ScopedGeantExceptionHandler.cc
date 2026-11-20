@@ -119,18 +119,25 @@ G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
         case FatalException:
         case FatalErrorInArgument:
         case RunMustBeAborted:
-        case EventMustBeAborted:
-            // Severe or initialization error
-            CELER_LOG_LOCAL(debug)
-                << "Handling exception: " << strip_ansi(err.what());
-            CELER_TRY_HANDLE(throw err, handle_);
-            if (auto* run_man = G4RunManager::GetRunManager())
+        case EventMustBeAborted: {
+            // Severe or initialization error: the message is logged once,
+            // when aborting the run if there is one
+            auto* run_man = G4RunManager::GetRunManager();
+            if (!run_man)
             {
-                CELER_LOG_LOCAL(critical) << "Aborting run due to exception ("
-                                          << exception_code << ")";
+                CELER_LOG_LOCAL(debug)
+                    << "Handling exception: " << strip_ansi(err.what());
+            }
+            CELER_TRY_HANDLE(throw err, handle_);
+            if (run_man)
+            {
+                CELER_LOG_LOCAL(critical)
+                    << "Aborting run due to exception (" << exception_code
+                    << "): " << strip_ansi(err.what());
                 run_man->AbortRun();
             }
             break;
+        }
         case JustWarning: {
             // Display a message: log destination depends on whether we're
             // actually running particles and if the thread is a worker (or if

@@ -440,7 +440,7 @@ if(CELERITAS_USE_DD4hep)
 endif()
 
 # NOTE: some older versions of CUDA/HIP/Thrust lack CMake configuration
-# files, so we don't make them required
+# files, so we don't make them required (except Thrust with CUDA)
 if(CELERITAS_USE_CUDA)
   if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT (DEFINED ENV{CUDAARCHS}))
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
@@ -466,7 +466,10 @@ if(CELERITAS_USE_CUDA)
     )
   endif()
   find_package(CUB)
-  find_package(Thrust)
+  # Thrust provides the CCCL include directories for host code (ExtThrust)
+  find_package(Thrust REQUIRED)
+  # NVTX headers are part of the toolkit but may be packaged separately
+  find_package(NVTX REQUIRED)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   find_package(hip) # Enable hip API in host code, and support version diagnostics
@@ -492,6 +495,29 @@ elseif(CELERITAS_USE_HIP)
       CELERITAS_USE_covfie
       OFF
     )
+  endif()
+
+  # Clang treats deduction guides as host+device only since LLVM PR #168711,
+  # which some "Clang 22" ROCm compilers (e.g. ROCm 7.2) do not include:
+  # check whether guides must be annotated (see CELER_CTAD_FUNCTION)
+  if(NOT DEFINED CELERITAS_HIP_ANNOTATE_CTAD)
+    set(_saved_try_type "${CMAKE_TRY_COMPILE_TARGET_TYPE}")
+    set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+    try_compile(CELERITAS_TRY_HIP_CTAD
+      # NOTE: the line below is required for CMake < 3.25
+      "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeScratch/hipctad"
+      SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-hip-ctad.hip"
+    )
+    set(CMAKE_TRY_COMPILE_TARGET_TYPE "${_saved_try_type}")
+    if(CELERITAS_TRY_HIP_CTAD)
+      set(_annotate OFF)
+    else()
+      set(_annotate ON)
+    endif()
+    set(CELERITAS_HIP_ANNOTATE_CTAD ${_annotate} CACHE INTERNAL
+      "HIP deduction guides need host/device annotations"
+    )
+    message(STATUS "Annotate HIP deduction guides: ${_annotate}")
   endif()
 endif()
 # Unconditionally set availability for downstream configuration
@@ -596,15 +622,7 @@ if(CELERITAS_USE_covfie)
 endif()
 
 if(CELERITAS_USE_VecGeom)
-  if(CELERITAS_USE_CUDA)
-    # 1.2.10 is needed due to the `no-as-needed` link feature
-    # requiring VecGeom to be build with a distinct object
-    # and final libraries
-    set(_min_vecgeom_version 1.2.10)
-  else()
-    # 1.2.8 is needed due to G4VG, which needs the logger.
-    set(_min_vecgeom_version 1.2.8)
-  endif()
+  set(_min_vecgeom_version 1.2.11)
   if(NOT VecGeom_FOUND)
     find_package(VecGeom ${_min_vecgeom_version} REQUIRED)
   elseif(VecGeom_VERSION VERSION_LESS _min_vecgeom_version)
@@ -619,7 +637,7 @@ if(CELERITAS_USE_VecGeom)
       AND VecGeom_VERSION VERSION_LESS 2.2)
     # 2.2 is needed for the NavView navigation interface
     celeritas_error_incompatible_option(
-      "VecGeom version \"${VecGeom_VERSION}\" at \"${VecGeom_DIR}\" is not supported by Celeritas: you must use VecGeom 1.2 or update to 2.2 or higher"
+      "VecGeom version \"${VecGeom_VERSION}\" at \"${VecGeom_DIR}\" is not supported by Celeritas: you must use VecGeom 1.2.11 or update to 2.2 or higher"
       CELERITAS_USE_VecGeom
       OFF
     )
@@ -654,6 +672,14 @@ if(CELERITAS_USE_VecGeom)
         "runtime errors may result"
       )
     endif()
+  elseif(VecGeom_CUDA_FOUND)
+    # Only the CUDA RDC link wrappers resolve the device symbols of a
+    # CUDA-enabled VecGeom
+    celeritas_error_incompatible_option(
+      "VecGeom installation at \"${VecGeom_DIR}\" is CUDA-enabled: Celeritas must also use CUDA"
+      CELERITAS_USE_CUDA
+      "${VecGeom_CUDA_FOUND}"
+    )
   endif()
   if(CELERITAS_REAL_TYPE STREQUAL "float" AND NOT VecGeom_single_precision_FOUND)
     celeritas_error_incompatible_option(

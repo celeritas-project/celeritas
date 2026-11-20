@@ -71,6 +71,12 @@ endif()
 add_subdirectory(corecel)
 add_subdirectory(geocel)
 add_subdirectory(orange)
+
+if(CELERITAS_USE_Geant4)
+  # Set up support for G4 executable tests
+  include(CeleritasG4Tests)
+endif()
+
 add_subdirectory(celeritas)
 
 if(CELERITAS_USE_Geant4)

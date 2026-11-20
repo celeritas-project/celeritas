@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
-
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
@@ -21,11 +19,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Z-aligned Elliptical Toroid.
+ * Z-centered elliptical toroid.
  *
  * An elliptical toroid is a shape created by revolving an axis-aligned ellipse
  * around a central axis. This shape can be used in everything from pipe bends
- * to tokamaks in fusion reactors. It possesses a major radius \em r, and
+ * to tokamaks in fusion reactors.
+ * It is parameterized by a major radius \em r and
  * ellipse radii \em a and \em b, as shown in the below diagram:
  *
  * \verbatim
@@ -40,11 +39,11 @@ namespace celeritas
 
    \endverbatim
  *
- * This torus can be defined with the following quartic equation:
+ * This torus is defined by the following quartic equation:
  * \f[
- *   (x^2 + y^2 + p*z^2 + B_0)^2 - 4 r^2 * (x^2 + y^2) = 0
+ *   \left( x^2 + y^2 + \frac{a^2}{b^2} z^2 + r^2 - a^2 \right)^2
+     - 4 r^2 (x^2 + y^2) = 0 \,.
  * \f]
- * where \f$p = a^2/b^2 \f$, \f$A_0 = 4 r^2 \f$, and \f$ B_0 = (r^2-a^2)\f$.
  *
  * The intersection is calculated using an algorithm from
  * \cite{arvo-graphicsgems-1995}.
@@ -75,6 +74,12 @@ class Toroid
     //! calculable
     //! https://web.archive.org/web/20170829172516/https://www.spaceroots.org/documents/distance/distance-to-ellipse.pdf
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+
+    //! Gradient does not have unit length
+    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
+    {
+        return false;
+    }
 
   public:
     //// CONSTRUCTORS ////
@@ -114,12 +119,18 @@ class Toroid
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the toroid expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
 
   private:
     //// DATA ////
@@ -176,12 +187,19 @@ CELER_FUNCTION Toroid::Toroid(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const
 {
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the toroid expression at a point.
+ */
+CELER_FUNCTION real_type Toroid::calc_value(Real3 const& pos) const
+{
     auto [x0, y0, z0] = pos - origin_;
 
-    real_type val = (sq(sq(x0) + sq(y0) + sq(z0 * a_ / b_) + (sq(r_) - sq(a_)))
-                     - (4 * sq(r_)) * (sq(x0) + sq(y0)));
-
-    return real_to_sense(val);
+    return (sq(sq(x0) + sq(y0) + sq(z0 * a_ / b_) + (sq(r_) - sq(a_)))
+            - (4 * sq(r_)) * (sq(x0) + sq(y0)));
 }
 
 //---------------------------------------------------------------------------//
@@ -251,12 +269,22 @@ CELER_FUNCTION auto Toroid::calc_intersection_polynomial(
  */
 CELER_FUNCTION auto Toroid::calc_normal(Real3 const& pos) const -> Real3
 {
+    return make_unit_vector(this->calc_gradient(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FUNCTION auto Toroid::calc_gradient(Real3 const& pos) const -> Real3
+{
     auto [x0, y0, z0] = pos - origin_;
 
-    real_type d = hypot(x0, y0);
-    real_type f = 2 * (d - r_) / (d * sq(a_));
-    Real3 n{x0 * f, y0 * f, (2 * z0) / (sq(b_))};
-    return make_unit_vector(n);
+    real_type const rho_sq = sq(x0) + sq(y0);
+    real_type const scale_z = sq(a_ / b_);
+    real_type const q = rho_sq + scale_z * sq(z0) + (sq(r_) - sq(a_));
+    real_type const scale_xy = q - 2 * sq(r_);
+    return {4 * scale_xy * x0, 4 * scale_xy * y0, 4 * scale_z * q * z0};
 }
 
 //---------------------------------------------------------------------------//

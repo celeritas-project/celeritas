@@ -91,6 +91,10 @@ class OutputReference:
             self.expected_lines = self.expected.read_text().splitlines()
 
 
+ANSI_GRAY = "\x1b[2;37m"
+ANSI_RESET = "\x1b[0m"
+
+
 class Stream:
     def __init__(self, name: str, stream: IO[str], verbose: bool = True):
         self.name = name.replace("std", "")
@@ -100,14 +104,23 @@ class Stream:
 
     def capture_stream(self) -> None:
         prefix = self.name[0].upper() + ">"
+        cleaned_prefix = f" {ANSI_GRAY}->"
         append = self.output.append
-        verbose = self.verbose
+        stderr = sys.stderr if self.verbose else None
         try:
-            for i, line in enumerate(iter(self.stream.readline, "")):
-                cleaned = normalize_line(line.rstrip())
-                if verbose:
-                    print(prefix, cleaned, file=sys.stderr)
-                append(strip_ansi(cleaned))
+            for line in iter(self.stream.readline, ""):
+                sline = line.rstrip()
+                cleaned = normalize_line(sline)
+                stripped = strip_ansi(cleaned)
+                if stderr:
+                    stderr.write(f"{prefix} {sline}")
+                    if cleaned != stripped:
+                        # ANSI sequences present: clear before newline
+                        stderr.write(ANSI_RESET)
+                    stderr.write("\n")
+                    if sline != cleaned:
+                        stderr.write(f"{cleaned_prefix}{stripped}{ANSI_RESET}\n")
+                append(stripped)
                 if not line:
                     # EOF
                     break

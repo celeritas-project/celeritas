@@ -81,7 +81,7 @@ struct GeneratorDistributionData
                    && continuous_edep_fraction <= 1)
                && ((points[StepPoint::pre].speed > zero_quantity()
                     && (points[StepPoint::pre].speed
-                        > points[StepPoint::post].speed))
+                        >= points[StepPoint::post].speed))
                    || (type == GeneratorType::scintillation
                        && points[StepPoint::post].time
                               > points[StepPoint::pre].time));

@@ -11,6 +11,7 @@ spack:
   include:
     - reqs-celer.yaml
     - reqs-ci.yaml
+    - prefs-build.yaml
     - prefs-hep-nogui.yaml
     - ext-ubuntu24.yaml
 

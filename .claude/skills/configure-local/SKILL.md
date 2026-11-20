@@ -29,6 +29,32 @@ The wrapper loads the host environment and configures CMake with the user preset
 
 Carefully examine stdout if the script succeeds (error code 0): the script may print an updated `CMAKE` path or `ENV_SCRIPT` environment to use.
 
-## 3. Report
+## 3. Check that Geant4 is enabled
 
-Summarize the preset used, whether configuration succeeded, and whether an environment update is required. If any step fails, report the relevant error and stop before changing local presets, dependency settings, or environment configuration. Never include machine-specific values from the user's preset unless needed to explain a failure and the user has asked for them.
+After a successful configure, check the cache in the build directory:
+
+```sh
+grep -E '^CELERITAS_USE_Geant4:' <build-dir>/CMakeCache.txt
+```
+
+If the value is not `ON`, this is a **serious problem** for local development,
+even though configuration "succeeded": Geant4-dependent libraries and tests
+(Geant4 geometry/GDML loading, ORANGE `g4org` conversion, physics import, most
+EM/optical physics tests, and `celer-g4`) are silently disabled, so a passing
+test run covers only a fraction of the code. The usual cause is a preset that
+was not picked up (e.g., the wrapper's warning that `CMakeUserPresets.json`
+does not include the machine-specific preset) or a host environment (e.g.,
+Spack view) that was not loaded.
+
+When Geant4 is disabled:
+- Put a prominent **WARNING: Geant4 is disabled** at the top of your report,
+  with any related wrapper warnings from the configure output.
+- Do not proceed to building or testing (including via other skills) until the
+  user acknowledges it, unless they already said a Geant4-free build is
+  acceptable.
+- Never describe test results from such a build as complete: list the
+  disabled tests and say they were not run.
+
+## 4. Report
+
+Summarize the preset used, whether configuration succeeded, whether Geant4 is enabled, and whether an environment update is required. If any step fails, report the relevant error and stop before changing local presets, dependency settings, or environment configuration. Never include machine-specific values from the user's preset unless needed to explain a failure and the user has asked for them.

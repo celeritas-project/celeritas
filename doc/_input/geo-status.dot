@@ -12,8 +12,8 @@ digraph GeoStatus {
 
   // From invalid: operator= places track in geometry
   "invalid" -> "interior"  [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(interior)>];
-  "invalid" -> "boundary_out"  [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(on boundary)>];
-  "invalid" -> "error"             [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(volume not found)>];
+  "invalid" -> "boundary_out"  [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(on boundary,<BR/>heading into volume)>];
+  "invalid" -> "error"             [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(volume not found, or<BR/>tangent on boundary [ORANGE])>];
   "invalid" -> "invalid"           [label=<<FONT FACE="Monospace">initialize</FONT><BR/>(not in world [G4, VG])>];
 
   // From interior: propagation

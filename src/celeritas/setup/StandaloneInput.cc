@@ -51,6 +51,10 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
         std::holds_alternative<std::string>(si.problem.model.geometry));
     std::shared_ptr<GeantGeoParams> ggp;
 
+    // Keep Geant4 alive until the problem is set up: exporting the geometry
+    // needs the UI manager, which is destroyed along with the run manager
+    GeantSetup geant_setup;
+
     // Import physics data from Geant4 or ROOT: see Import.hh
     ImportData imported;
     std::visit(Overload{
@@ -64,7 +68,7 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
                    [&](inp::PhysicsFromGeant& pfg) {
                        // Take file name from problem and physics options from
                        // the arguments, and set up Geant4
-                       GeantSetup geant_setup(
+                       geant_setup = GeantSetup(
                            std::get<std::string>(si.problem.model.geometry),
                            si.geant_setup);
 

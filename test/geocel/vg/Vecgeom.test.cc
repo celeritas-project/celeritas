@@ -45,7 +45,8 @@ namespace test
 
 namespace
 {
-auto const vecgeom_version = celeritas::Version::from_package("VecGeom");
+constexpr auto vecgeom_version
+    = celeritas::Version::from_hex_xxyyzz(CELERITAS_VECGEOM_VERSION);
 
 }  // namespace
 
@@ -131,6 +132,34 @@ TEST_F(TwoBoxesVgdmlTest, trace)
     this->impl().test_trace();
 }
 
+TEST_F(TwoBoxesVgdmlTest, TEST_IF_CELERITAS_DOUBLE(push_distance))
+{
+    {
+        // Near the origin, the push is the minimum physical length
+        auto geo = this->make_geo_track_view({1, 0, 0}, {1, 0, 0});
+        EXPECT_SOFT_EQ(1e-13, to_cm(geo.track_view().push_distance()));
+    }
+    if (vecgeom_version < Version{2})
+    {
+        GTEST_SKIP() << "VecGeom " << vecgeom_version
+                     << " cannot initialize a track on the world boundary";
+    }
+    {
+        // On the world boundary far from the origin, a zero-length boundary
+        // step is lengthened in proportion to the position so that the track
+        // actually moves
+        auto geo = this->make_geo_track_view({-3, 4, 500}, {0, 0, 1});
+        EXPECT_SOFT_EQ(5e-11, to_cm(geo.track_view().push_distance()));
+        auto next = geo.find_next_step(from_cm(1.0));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_SOFT_EQ(5e-11, to_cm(next.distance));
+        geo.move_to_boundary();
+        EXPECT_GT(geo.pos()[2], from_cm(500));
+        geo.cross_boundary();
+        EXPECT_TRUE(geo.is_outside());
+    }
+}
+
 //---------------------------------------------------------------------------//
 // G4VG TESTS
 //---------------------------------------------------------------------------//
@@ -192,9 +221,9 @@ TEST_F(CmseTest, imager)
     inp.vertical_pixels = 8;
 
     std::string prefix = "vg";
-    if (vecgeom_version >= Version{2})
+    if (vecgeom_version < Version{2})
     {
-        prefix += "2";
+        prefix += "1";
     }
 
     write_image(ImageParams{inp}, prefix + "-cmse.jsonl");
@@ -507,23 +536,16 @@ class SolidsTest
     : public GenericGeoParameterizedTest<GeantVecgeomTest, SolidsGeoTest>
 {
   public:
-    static void SetUpTestSuite()
-    {
-        if (vecgeom_version < Version(1, 2, 2))
-        {
-            ADD_FAILURE()
-                << "VecGeom " << vecgeom_version
-                << " is missing features: upgrade to 1.2.2 to pass this test";
-        }
-    }
-
-    // VecGeom volume 1.2.10 boolean tracking disagrees ~1e-7 from Geant4
     GenericGeoTrackingTolerance tracking_tol() const override
     {
         auto result = VecgeomTestBase::tracking_tol();
-
-        result.distance = 1e-7;
-        result.safety = 1e-7;
+        if (vecgeom_version < Version{2})
+        {
+            // VecGeom 1.x boolean tracking disagrees ~1e-7 from Geant4
+            // TODO: remove in v0.8.0
+            result.distance = 1e-7;
+            result.safety = 1e-7;
+        }
         return result;
     }
 };
@@ -593,9 +615,9 @@ TEST_F(SolidsTest, imager)
     inp.vertical_pixels = 8;
 
     std::string prefix = "vg";
-    if (vecgeom_version >= Version{2})
+    if (vecgeom_version < Version{2})
     {
-        prefix += "2";
+        prefix += "1";
     }
 
     write_image(ImageParams{inp}, prefix + "-solids-xy-hi.jsonl");
