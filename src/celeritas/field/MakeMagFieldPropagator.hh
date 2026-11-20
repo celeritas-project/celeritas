@@ -17,6 +17,7 @@
 #include "FieldPropagator.hh"
 #include "FieldSubstepper.hh"
 #include "MagFieldEquation.hh"
+#include "SafetyFieldPropagator.hh"
 
 namespace celeritas
 {
@@ -96,6 +97,48 @@ CELER_FUNCTION decltype(auto) make_mag_field_propagator(
         options,
         particle,
         ::celeritas::forward<GTV>(geometry));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a field propagator for a step inside a safety sphere.
+ *
+ * The whole step must fit inside the sphere (see \c SafetyFieldPropagator ).
+ */
+template<class IntegratorT, class GTV>
+CELER_FUNCTION decltype(auto) make_safety_field_propagator(
+    IntegratorT&& integrate,
+    FieldDriverOptions const& options,
+    ParticleTrackView const& particle,
+    GTV&& geometry,
+    SafetySphere const& sphere)
+{
+    return SafetyFieldPropagator{
+        FieldSubstepper{options, ::celeritas::forward<IntegratorT>(integrate)},
+        particle,
+        ::celeritas::forward<GTV>(geometry),
+        sphere};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a magnetic field propagator for a step inside a safety sphere.
+ */
+template<template<class EquationT> class IntegratorT, class FieldT, class GTV>
+CELER_FUNCTION decltype(auto) make_mag_field_safety_propagator(
+    FieldT&& field,
+    FieldDriverOptions const& options,
+    ParticleTrackView const& particle,
+    GTV&& geometry,
+    SafetySphere const& sphere)
+{
+    return make_safety_field_propagator(
+        make_mag_field_integrator<IntegratorT>(
+            ::celeritas::forward<FieldT>(field), particle.charge()),
+        options,
+        particle,
+        ::celeritas::forward<GTV>(geometry),
+        sphere);
 }
 
 //---------------------------------------------------------------------------//

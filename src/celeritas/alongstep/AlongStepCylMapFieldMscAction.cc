@@ -27,6 +27,7 @@
 #include "detail/MscApplier.hh"
 #include "detail/MscStepLimitApplier.hh"
 #include "detail/PropagationApplier.hh"
+#include "detail/SafetyApplier.hh"
 #include "detail/TimeUpdater.hh"
 #include "detail/TrackUpdater.hh"
 
@@ -95,15 +96,24 @@ void AlongStepCylMapFieldMscAction::step(CoreParams const& params,
                 std::forward<decltype(execute_track)>(execute_track)));
     };
 
+    auto const msc_ref = get_msc_ref<MemSpace::native>(msc_.get());
+    bool const calc_safety
+        = this->has_msc()
+          || field_->ref<MemSpace::native>().options.use_safety_sphere;
     launch_impl([&](CoreTrackView& track) {
+        if (calc_safety)
+        {
+            SafetyApplier{msc_ref}(track);
+        }
         if (this->has_msc())
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{FieldTrackPropagator<CylMapField>{
-            field_->ref<MemSpace::native>()}}(track);
+        apply_field_propagation<CylMapField>(track,
+                                             field_->ref<MemSpace::native>());
         if (this->has_msc())
         {
+            ScatterSafetyApplier{msc_->ref<MemSpace::native>()}(track);
             MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
         TimeUpdater{}(track);
