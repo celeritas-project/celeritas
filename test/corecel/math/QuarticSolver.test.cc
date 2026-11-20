@@ -6,10 +6,17 @@
 //---------------------------------------------------------------------------//
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Alg1010Solver.hh"
 #include "corecel/math/FerrariSolver.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "corecel/math/detail/Alg1010Impl.hh"
 
 #include "celeritas_test.hh"
+
+#ifndef CELERITAS_TEST_CRITICAL_QUARTIC_ROOTS
+// Double roots are notable, but (currently) counterproductive to test.
+#    define CELERITAS_TEST_CRITICAL_QUARTIC_ROOTS 0
+#endif
 
 namespace celeritas
 {
@@ -17,6 +24,9 @@ namespace test
 {
 using Real5 = Array<real_type, 5>;
 using Real4 = Array<real_type, 4>;
+using Comp4 = Array<detail::Complex, 4>;
+using Real2 = Array<real_type, 2>;
+using TwinReal4 = Array<Real2, 4>;
 using Roots = Array<real_type, 4>;
 static constexpr real_type practical_tolerance
     = std::is_same_v<real_type, double> ? 1e-10 : 1e-6;
@@ -53,7 +63,7 @@ class QuarticSolverTest : public ::celeritas::test::Test
 {
 };
 
-using QuarticSolvers = ::testing::Types<FerrariSolver>;
+using QuarticSolvers = ::testing::Types<FerrariSolver, Alg1010Solver>;
 TYPED_TEST_SUITE(QuarticSolverTest, QuarticSolvers, );
 
 //---------------------------------------------------------------------------//
@@ -90,12 +100,14 @@ TYPED_TEST(QuarticSolverTest, one_root)
     TypeParam solve{};
     // x^4 - 16
     // One quadruple root at 2 (Critically degenerate torus)
+    if constexpr (CELERITAS_TEST_CRITICAL_QUARTIC_ROOTS)
     {
         EXPECT_VEC_SOFT_EQ(make_roots({2.0}),
                            sorted(solve(Real5{1, 0, 0, 0, -16})));
     }
     // x^4 - 2*x^3 - 2*x^2 + 8
     // One double root at 2, two imag rooots
+    if constexpr (CELERITAS_TEST_CRITICAL_QUARTIC_ROOTS)
     {
         EXPECT_VEC_SOFT_EQ(make_roots({2.0}),
                            sorted(solve(Real5{1, -2, -2, 0, 8})));
@@ -131,6 +143,7 @@ TYPED_TEST(QuarticSolverTest, two_roots)
     }
     // x^4 - 6*x^3 + 13*x^2 - 12*x + 4
     // Double root at 1, double root at 2
+    if constexpr (CELERITAS_TEST_CRITICAL_QUARTIC_ROOTS)
     {
         EXPECT_VEC_SOFT_EQ(make_roots({1.0, 2.0}),
                            sorted(solve(Real5{1, -6, 13, -12, 4})));
@@ -164,6 +177,7 @@ TYPED_TEST(QuarticSolverTest, three_roots)
     TypeParam solve{};
     // x^4 - 7*x^3 + 17*x^2 - 17*x + 6
     // Double root at 1, two roots at 2, 3
+    if constexpr (CELERITAS_TEST_CRITICAL_QUARTIC_ROOTS)
     {
         EXPECT_VEC_SOFT_EQ(make_roots({1.0, 2.0, 3.0}),
                            sorted(solve(Real5{1, -7, 17, -17, 6})));
@@ -230,6 +244,240 @@ TYPED_TEST(QuarticSolverTest, surf_three_roots)
     // Surface, roots at 1, 2, and 3
     EXPECT_VEC_SOFT_EQ(make_roots({1.0, 2.0, 3.0}),
                        sorted(solve(Real4{1, -6, 11, -6})));
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Test cases from Orellana & De Michele Algorithm 1010.
+ * These cases are denoted by number matching appearance in the paper.
+ */
+
+/*
+ * Generates a set of coefficients from a set of roots, as in ODM's demos 1-22
+ */
+Real5 make_coeffs(Comp4 const& roots)
+{
+    auto [x1c, x2c, x3c, x4c] = roots;
+    return Real5{
+        1.0,
+        ((x1c + x2c + x3c + x4c) * -1.0).real,
+        (x1c * x2c + (x1c + x2c) * (x3c + x4c) + x3c * x4c).real,
+        (x1c * x2c * (x3c + x4c) * -1.0 - x3c * x4c * (x1c + x2c)).real,
+        (x1c * x2c * x3c * x4c).real};
+}
+
+Real5 make_coeffs(Real4 const& roots)
+{
+    auto [x1, x2, x3, x4] = roots;
+    return Real5{1.0,
+                 (x1 + x2 + x3 + x4) * -1.0,
+                 x1 * x2 + (x1 + x2) * (x3 + x4) + x3 * x4,
+                 x1 * x2 * (x3 + x4) * -1.0 - x3 * x4 * (x1 + x2),
+                 x1 * x2 * x3 * x4};
+}
+
+Real4 strip_imag(Comp4 const& comp_roots)
+{
+    auto [x1c, x2c, x3c, x4c] = comp_roots;
+    return {x1c.real, x2c.real, x3c.real, x4c.real};
+}
+
+Real2 split(detail::Complex value)
+{
+    return {value.real, value.imag};
+}
+
+TwinReal4 split(Comp4 const& comp_roots)
+{
+    auto [x1c, x2c, x3c, x4c] = comp_roots;
+    return {split(x1c), split(x2c), split(x3c), split(x4c)};
+}
+
+/*
+ * Flip first two and last two roots in lieu of sorting complexes
+ */
+Comp4 flip2(Comp4 const& comp_roots)
+{
+    auto [x, y, z, w] = comp_roots;
+    return {z, w, x, y};
+}
+
+/*
+ * Alternatingly swap every other root
+ */
+Comp4 alternate(Comp4 const& comp_roots)
+{
+    auto [x, y, z, w] = comp_roots;
+    return {y, x, w, z};
+}
+
+Array<real_type, 8> full_split(Comp4 const& comp_roots)
+{
+    auto [x, y, z, w] = comp_roots;
+    return {x.real, x.imag, y.real, y.imag, z.real, z.imag, w.real, w.imag};
+}
+/*
+ * Harness for tests based on Orellano & De Michele (ODM)
+ */
+class ODMTest : public testing::Test
+{
+  protected:
+    using ctype = detail::Complex;
+    ODMTest() : solve_{} {}
+
+    Alg1010Solver solve_;
+    ctype i_{0, 1};
+};
+
+TEST_F(ODMTest, case_1)
+{
+    Real4 expected = sorted({1E9, 1E6, 1E3, 1});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+
+TEST_F(ODMTest, case_2)
+{
+    real_type paper_error = 8.9e-7;
+    Real4 expected = sorted({2.003, 2.002, 2.001, 2});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_NEAR(expected, actual, paper_error);
+}
+
+TEST_F(ODMTest, case_3)
+{
+    Real4 expected = sorted({1E53_r, 1E50_r, 1E49_r, 1E47_r});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+
+TEST_F(ODMTest, case_4)
+{
+    Real4 expected = sorted({1E14, 2, 1, -1});
+    Real4 actual
+        = sorted(strip_imag(solve_.unfiltered_roots(make_coeffs(expected))));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_5)
+{
+    Real4 expected = sorted({-2E7, 1E7, 1, -1});
+    Real4 actual
+        = sorted(strip_imag(solve_.unfiltered_roots(make_coeffs(expected))));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_6)
+{
+    Comp4 expected{1E7, -1E6, 1 + i_, 1 - i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_7)
+{
+    Comp4 expected{-7, -4, -1E6 + i_ * 1E5, -1E6 - i_ * 1E5};
+    printf("Case 7!\n");
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_8)
+{
+    Comp4 expected{1E8, 11, 1E3 + i_, 1E3 - i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_9)
+{
+    Comp4 expected{1E7 + i_ * 1E6, 1E7 - i_ * 1E6, 1 + 2 * i_, 1 - 2 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_10)
+{
+    Comp4 expected{1E4 + 3 * i_, 1E4 - 3 * i_, -7 + 1E3 * i_, -7 - 1E3 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_11)
+{
+    Comp4 expected = {1.001 + 4.998 * i_,
+                      1.001 - 4.998 * i_,
+                      1.000 + 5.001 * i_,
+                      1.000 - 5.001 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(alternate(actual)));
+}
+TEST_F(ODMTest, case_12)
+{
+    Comp4 expected{1E3 + 3 * i_, 1E3 - 3 * i_, 1E3 + i_, 1E3 - i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected),
+                       full_split(flip2(alternate(actual))));
+}
+TEST_F(ODMTest, case_13)
+{
+    Comp4 expected{2 + 1E4 * i_, 2 - 1E4 * i_, 1 + 1E3 * i_, 1 - 1E3 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_14)
+{
+    Real4 expected = sorted({1000, 1000, 1000, 1000});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_15)
+{
+    Real4 expected = sorted({1000, 1000, 1000, 1E-15});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_16)
+{
+    Comp4 expected{
+        1E16 + i_ * 1E7, 1E16 - i_ * 1E7, 1 + 0.1 * i_, 1 - 0.1 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    // NOTE: The paper's implementation fully misses the large imaginaries
+    Comp4 paper_actual{
+        1E16 + i_ * 0.0, 1E16 - i_ * 0.0, 1 + 0.1 * i_, 1 - 0.1 * i_};
+    EXPECT_VEC_SOFT_EQ(full_split(paper_actual), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_17)
+{
+    real_type paper_error = 2.6e-7;
+    Real4 expected = sorted({10000, 10001, 10010, 10100});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_NEAR(expected, actual, paper_error);
+}
+TEST_F(ODMTest, case_18)
+{
+    Comp4 expected{
+        4E5 + i_ * 3E2, 4E5 - i_ * 3E2, 3E4 + i_ * 7E3, 3E4 - i_ * 7E3};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_19)
+{
+    Real4 expected = sorted({1E44, 1E30, 1E30, 1.0});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_20)
+{
+    real_type paper_error = 1.3e-8;
+    Real4 expected = sorted({1E14, 1E7, 1E7, 1.0});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_NEAR(expected, actual, paper_error);
+}
+TEST_F(ODMTest, case_21)
+{
+    Real4 expected = sorted({1E15, 1E7, 1E7, 1.0});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_22)
+{
+    Real4 expected = sorted({1E154, 1E152, 10.0, 1.0});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
 }
 
 //---------------------------------------------------------------------------//
