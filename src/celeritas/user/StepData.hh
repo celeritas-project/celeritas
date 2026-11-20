@@ -134,6 +134,11 @@ struct StepSelection
 /*!
  * Shared attributes about the hits being collected.
  *
+ * At most one filter is active: either the \c detector mapping is nonempty
+ * (only steps inside sensitive detectors are kept), or \c hand_back is set
+ * (only tracks marked with \c SimTrackView::hand_back are kept), or neither
+ * (all active tracks are kept).
+ *
  * This will be expanded to include filters for particle type, region, etc.
  */
 template<Ownership W, MemSpace M>
@@ -149,6 +154,9 @@ struct StepParamsData
 
     //! Filter out steps that have not deposited energy (for sensitive det)
     bool nonzero_energy_deposition{false};
+
+    //! Only keep tracks that are handed back to the host application
+    bool hand_back{false};
 
     //! Per-state volume instance size if volume_instance_ids selected
     size_type num_volume_levels{0};
@@ -169,6 +177,7 @@ struct StepParamsData
         selection = other.selection;
         detector = other.detector;
         nonzero_energy_deposition = other.nonzero_energy_deposition;
+        hand_back = other.hand_back;
         num_volume_levels = other.num_volume_levels;
         return *this;
     }
@@ -240,7 +249,8 @@ struct StepPointStateData
  *   values if the detector ID is "false" (i.e. no information is being
  *   collected). The detector ID for inactive threads is always "false".
  * - If no detectors are specified, a slot's data is valid if and only if its
- *   track ID is set.
+ *   track ID is set. When gathering handed-back tracks, the track ID is
+ *   "false" for tracks that are not handed back.
  */
 template<Ownership W, MemSpace M>
 struct StepStateDataImpl

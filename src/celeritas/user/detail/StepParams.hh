@@ -48,8 +48,8 @@ class StepParams : public AuxParams<StepParamsData, StepStateData>
     //!@{
     //! \name Aux interface
 
-    //! Short name for the aux data
-    std::string_view label() const final { return "detector-step"; }
+    // Short name for the aux data
+    inline std::string_view label() const final;
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
     //!@}
@@ -72,6 +72,9 @@ class StepParams : public AuxParams<StepParamsData, StepStateData>
     // Whether detectors are defined (false to gather *all* data)
     inline bool has_detectors() const;
 
+    // Whether only handed-back tracks are gathered
+    inline bool is_hand_back() const;
+
   private:
     AuxId aux_id_;
     ParamsDataStore<StepParamsData> mirror_;
@@ -92,6 +95,27 @@ StepSelection const& StepParams::selection() const
 bool StepParams::has_detectors() const
 {
     return !this->host_ref().detector.empty();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether only handed-back tracks are gathered.
+ */
+bool StepParams::is_hand_back() const
+{
+    return this->host_ref().hand_back;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Short name for the aux data.
+ *
+ * Hand-back data is gathered separately from detector/MC truth data, so it
+ * has a distinct label.
+ */
+std::string_view StepParams::label() const
+{
+    return this->is_hand_back() ? "hand-back-step" : "detector-step";
 }
 
 //---------------------------------------------------------------------------//
