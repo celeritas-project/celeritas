@@ -426,7 +426,18 @@ CELER_FUNCTION auto SimpleUnitTracker::normal(
     CELER_EXPECT(surf);
 
     LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
-    return visit_surface(detail::CalcNormal{pos}, surf);
+    bool is_normalized{false};
+    Real3 result = visit_surface(
+        [&pos, &is_normalized](auto&& s) {
+            is_normalized = s.normalized_gradient();
+            return s.calc_gradient(pos);
+        },
+        surf);
+    if (!is_normalized)
+    {
+        result = make_unit_vector(result);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
