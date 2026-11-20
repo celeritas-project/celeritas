@@ -13,6 +13,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/Types.hh"
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
@@ -50,6 +51,12 @@ class Sphere
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
+    //! Gradient does not have unit length
+    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
+    {
+        return false;
+    }
+
   public:
     //// CONSTRUCTORS ////
 
@@ -82,12 +89,18 @@ class Sphere
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the sphere expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
 
     // Calculate the distance to the nearest point on the surface
     inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
@@ -130,9 +143,20 @@ CELER_FUNCTION Sphere::Sphere(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Sphere::calc_sense(Real3 const& pos) const
 {
-    Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
+    return real_to_sense(this->calc_value(pos));
+}
 
-    return real_to_sense(dot_product(tpos, tpos) - radius_sq_);
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the sphere expression at a point.
+ */
+CELER_FUNCTION real_type Sphere::calc_value(Real3 const& pos) const
+{
+    // Calculate the position relative to the origin of the quadric
+    auto rpos_sq = [&](Axis ax) {
+        return ipow<2>(pos[to_int(ax)] - origin_[to_int(ax)]);
+    };
+    return rpos_sq(Axis::x) + rpos_sq(Axis::y) + rpos_sq(Axis::z) - radius_sq_;
 }
 
 //---------------------------------------------------------------------------//
@@ -164,8 +188,18 @@ CELER_FUNCTION auto Sphere::calc_intersections(
  */
 CELER_FUNCTION Real3 Sphere::calc_normal(Real3 const& pos) const
 {
-    return make_unit_vector(
-        Real3{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]});
+    return make_unit_vector(this->calc_gradient(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FUNCTION Real3 Sphere::calc_gradient(Real3 const& pos) const
+{
+    return {2 * (pos[0] - origin_[0]),
+            2 * (pos[1] - origin_[1]),
+            2 * (pos[2] - origin_[2])};
 }
 
 //---------------------------------------------------------------------------//

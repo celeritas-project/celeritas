@@ -45,19 +45,6 @@ struct NumIntersections
 };
 
 //---------------------------------------------------------------------------//
-//! Calculate the outward normal at a position.
-struct CalcNormal
-{
-    Real3 const& pos;
-
-    template<class S>
-    CELER_FUNCTION Real3 operator()(S const& surf)
-    {
-        return surf.calc_normal(this->pos);
-    }
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Calculate the smallest distance from a point to the surface.
  *

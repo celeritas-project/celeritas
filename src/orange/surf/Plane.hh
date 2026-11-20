@@ -49,6 +49,9 @@ class Plane
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
+    //! Gradient has unit length
+    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient() { return true; }
+
   public:
     //// CONSTRUCTORS ////
 
@@ -85,12 +88,18 @@ class Plane
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the plane expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position on the surface
     inline CELER_FUNCTION Real3 const& calc_normal(Real3 const&) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Real3 const& calc_gradient(Real3 const&) const;
 
     // Calculate the distance to the nearest point on the surface
     inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
@@ -152,7 +161,16 @@ CELER_FORCEINLINE_FUNCTION real_type Plane::dot_normal(Real3 const& x) const
  */
 CELER_FUNCTION SignedSense Plane::calc_sense(Real3 const& pos) const
 {
-    return real_to_sense(this->dot_normal(pos) - this->displacement());
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the plane expression at a point.
+ */
+CELER_FUNCTION real_type Plane::calc_value(Real3 const& pos) const
+{
+    return this->dot_normal(pos) - this->displacement();
 }
 
 //---------------------------------------------------------------------------//
@@ -178,6 +196,15 @@ CELER_FUNCTION auto Plane::calc_intersections(
  * Calculate outward normal at a position on the surface.
  */
 CELER_FORCEINLINE_FUNCTION Real3 const& Plane::calc_normal(Real3 const&) const
+{
+    return this->calc_gradient({});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FORCEINLINE_FUNCTION Real3 const& Plane::calc_gradient(Real3 const&) const
 {
     return normal_;
 }
