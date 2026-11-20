@@ -13,6 +13,7 @@
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "geocel/AllVolumesView.hh"

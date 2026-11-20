@@ -20,28 +20,29 @@ namespace celeritas
 {
 
 template<class T>
-struct ReprTraits<BoundingBox<T>>
+struct BoundingBoxRepr
 {
-    static void init(std::ostream& os) { ReprTraits<T>::init(os); }
+    BoundingBox<T> const& obj;
 
-    static void print_type(std::ostream& os, char const* name = nullptr)
-    {
-        detail::print_container_type<T>(os, "BoundingBox", name);
-    }
-
-    static void print_value(std::ostream& os, BoundingBox<T> const& bb)
+    friend std::ostream& operator<<(std::ostream& os,
+                                    BoundingBoxRepr const& value)
     {
         os << '{';
-        if (bb)
+        if (value.obj)
         {
-            using ArrayT3 = Array<T, 3>;
-            ReprTraits<ArrayT3>::print_value(os, bb.lower());
+            os << repr(value.obj.lower());
             os << ", ";
-            ReprTraits<ArrayT3>::print_value(os, bb.upper());
+            os << repr(value.obj.upper());
         }
-        os << '}';
+        return os << '}';
     }
 };
+
+template<class T>
+BoundingBoxRepr<T> repr(BoundingBox<T> const& bb)
+{
+    return {bb};
+}
 
 namespace orangeinp
 {

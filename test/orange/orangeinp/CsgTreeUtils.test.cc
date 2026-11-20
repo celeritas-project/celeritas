@@ -34,32 +34,42 @@ std::ostream& operator<<(std::ostream& os, SignedSense s)
     return (os << to_cstring(s));
 }
 
-template<>
-struct ReprTraits<N>
+struct NodeIdRepr
 {
-    static void print_type(std::ostream&, char const* = nullptr) {}
-    static void init(std::ostream&) {}
-    static void print_value(std::ostream& os, N value)
+    N const& obj;
+
+    friend std::ostream& operator<<(std::ostream& os, NodeIdRepr const& value)
     {
-        orangeinp::test::stream_node_id(os, value);
+        orangeinp::test::stream_node_id(os, value.obj);
+        return os;
     }
 };
 
-template<>
-struct ReprTraits<S>
+inline NodeIdRepr repr(N const& obj)
 {
-    static void print_type(std::ostream&, char const* = nullptr) {}
-    static void init(std::ostream&) {}
-    static void print_value(std::ostream& os, S s)
+    return {obj};
+}
+
+struct LocalSurfaceIdRepr
+{
+    S const& obj;
+
+    friend std::ostream& operator<<(std::ostream& os,
+                                    LocalSurfaceIdRepr const& value)
     {
         os << "S{";
-        if (s)
+        if (value.obj)
         {
-            os << s.unchecked_get();
+            os << value.obj.unchecked_get();
         }
-        os << '}';
+        return os << '}';
     }
 };
+
+inline LocalSurfaceIdRepr repr(S const& obj)
+{
+    return {obj};
+}
 
 namespace orangeinp
 {
