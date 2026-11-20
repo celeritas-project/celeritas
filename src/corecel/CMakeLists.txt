@@ -363,7 +363,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  # Note: the NVTX header location is checked in src/CMakeLists.txt
+  # Note: we currently assume the CUDA install includes the nvtx header
   list(APPEND SOURCES
     sys/detail/NvtxUtils.cc
     sys/detail/TraceCounterImpl.cuda.cc
