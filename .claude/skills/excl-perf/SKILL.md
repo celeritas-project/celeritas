@@ -26,9 +26,11 @@ before running or analyzing sweeps). Both repos must be available locally; this 
   (resolves the claude-excl cache variables into plain `-D` options, drops `-Werror`). Use a dedicated worktree
   under `/work/build`, never `/work/src`.
 - 1e512029 ROCm needs `-D__HIP_PLATFORM_AMD__=1` (covfie headers are included before `corecel/DeviceRuntimeApi.hh`).
-- Single precision: `-DCELERITAS_REAL_TYPE=float`, plus `-DCELERITAS_USE_LArSoft=OFF` because
-  `src/larceler` (`LarStandaloneRunner.cc`, `PDFullSimCeler.cc`) assigns `Array<double,3>` to float `Real3`
-  on e0fd574f. celer-optical does not use it. Use a separate build/install dir per precision.
+- Single precision: use the `release-orange-{cuda,hip}-float` presets (`CELERITAS_REAL_TYPE=float`, separate
+  build/install dir per precision). `src/larceler` builds and its tests pass in float on current branches
+  (fixed after e0fd574f; the old `-DCELERITAS_USE_LArSoft=OFF` workaround is no longer needed). On
+  e0fd574f and older commits, larceler assigns `Array<double,3>` to float `Real3`, so pass
+  `-DCELERITAS_USE_LArSoft=OFF` there (celer-optical does not use it).
 - Check `build.config.real_type` and `gpu_architectures` in the output JSON to confirm what was run.
 
 ## celer-optical input/output facts

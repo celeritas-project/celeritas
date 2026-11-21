@@ -154,6 +154,22 @@
           "value": "OFF"
         }
       }
+    },
+    {
+      "name": "release-orange-cuda-float",
+      "displayName": "Build with full optimizations, single precision (ORANGE, CUDA)",
+      "inherits": ["release-orange-cuda"],
+      "cacheVariables": {
+        "CELERITAS_REAL_TYPE": "float"
+      }
+    },
+    {
+      "name": "release-orange-hip-float",
+      "displayName": "Build with full optimizations, single precision (ORANGE, HIP)",
+      "inherits": ["release-orange-hip"],
+      "cacheVariables": {
+        "CELERITAS_REAL_TYPE": "float"
+      }
     }
   ],
   "buildPresets": [
@@ -186,6 +202,16 @@
     {
       "name": "debug-orange",
       "configurePreset": "debug-orange",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-orange-cuda-float",
+      "configurePreset": "release-orange-cuda-float",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-orange-hip-float",
+      "configurePreset": "release-orange-hip-float",
       "inherits": ".base"
     }
   ],
@@ -220,6 +246,16 @@
     {
       "name": "debug-orange",
       "configurePreset": "debug-orange",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-orange-cuda-float",
+      "configurePreset": "release-orange-cuda-float",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-orange-hip-float",
+      "configurePreset": "release-orange-hip-float",
       "inherits": ".base"
     }
   ],
