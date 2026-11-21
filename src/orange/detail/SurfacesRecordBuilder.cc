@@ -48,7 +48,7 @@ auto SurfacesRecordBuilder::operator()(VecSurface const& surfaces)
         }
         if constexpr (!CELERITAS_ORANGE_TORUS
                       && std::remove_reference_t<decltype(s)>::surface_type()
-                             == SurfaceType::tor)
+                             == SurfaceType::tzc)
         {
             // See discussion on
             // https://github.com/celeritas-project/celeritas/pull/2427

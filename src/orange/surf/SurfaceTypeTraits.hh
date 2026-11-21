@@ -38,6 +38,7 @@ struct SurfaceTypeTraits;
 ORANGE_SURFACE_TRAITS(px,  PlaneAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(py,  PlaneAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(pz,  PlaneAligned<Axis::z>);
+ORANGE_SURFACE_TRAITS(p,   Plane);
 ORANGE_SURFACE_TRAITS(cxc, CylCentered<Axis::x>);
 ORANGE_SURFACE_TRAITS(cyc, CylCentered<Axis::y>);
 ORANGE_SURFACE_TRAITS(czc, CylCentered<Axis::z>);
@@ -45,12 +46,11 @@ ORANGE_SURFACE_TRAITS(sc,  SphereCentered);
 ORANGE_SURFACE_TRAITS(cx,  CylAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(cy,  CylAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(cz,  CylAligned<Axis::z>);
-ORANGE_SURFACE_TRAITS(p,   Plane);
 ORANGE_SURFACE_TRAITS(s,   Sphere);
 ORANGE_SURFACE_TRAITS(kx,  ConeAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(ky,  ConeAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(kz,  ConeAligned<Axis::z>);
-ORANGE_SURFACE_TRAITS(tor, Toroid);
+ORANGE_SURFACE_TRAITS(tzc, Toroid);
 ORANGE_SURFACE_TRAITS(sq,  SimpleQuadric);
 ORANGE_SURFACE_TRAITS(gq,  GeneralQuadric);
 ORANGE_SURFACE_TRAITS(inv, Involute);
@@ -79,6 +79,7 @@ CELER_CONSTEXPR_FUNCTION decltype(auto) visit_surface_type(F&& func,
         ORANGE_ST_VISIT_CASE(px);
         ORANGE_ST_VISIT_CASE(py);
         ORANGE_ST_VISIT_CASE(pz);
+        ORANGE_ST_VISIT_CASE(p);
         ORANGE_ST_VISIT_CASE(cxc);
         ORANGE_ST_VISIT_CASE(cyc);
         ORANGE_ST_VISIT_CASE(czc);
@@ -86,7 +87,6 @@ CELER_CONSTEXPR_FUNCTION decltype(auto) visit_surface_type(F&& func,
         ORANGE_ST_VISIT_CASE(cx);
         ORANGE_ST_VISIT_CASE(cy);
         ORANGE_ST_VISIT_CASE(cz);
-        ORANGE_ST_VISIT_CASE(p);
         ORANGE_ST_VISIT_CASE(s);
         ORANGE_ST_VISIT_CASE(kx);
         ORANGE_ST_VISIT_CASE(ky);
@@ -94,9 +94,9 @@ CELER_CONSTEXPR_FUNCTION decltype(auto) visit_surface_type(F&& func,
         ORANGE_ST_VISIT_CASE(sq);
         ORANGE_ST_VISIT_CASE(gq);
 #if CELERITAS_ORANGE_TORUS
-        ORANGE_ST_VISIT_CASE(tor);
+        ORANGE_ST_VISIT_CASE(tzc);
 #else
-        case SurfaceType::tor:
+        case SurfaceType::tzc:
             CELER_ASSERT_UNREACHABLE();
 #endif
         case SurfaceType::inv:

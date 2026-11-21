@@ -9,8 +9,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "orange/surf/detail/IntersectionSolver.hh"
 
 #include "Types.hh"
 #include "Utils.hh"
@@ -94,10 +95,9 @@ class CalcIntersections
         , pos_(pos)
         , dir_(dir)
         , on_face_idx_(on_face.unchecked_get())
-        , fill_isect_(!is_simple)
         , face_(next_face.face)
         , distance_(next_face.distance)
-        , isect_(next_face.isect)
+        , isect_(!is_simple ? next_face.isect : nullptr)
     {
         CELER_EXPECT(face_ && distance_);
     }
@@ -106,36 +106,34 @@ class CalcIntersections
     template<class S>
     CELER_FUNCTION void operator()(S const& surf)
     {
+        using Surface = S;
         auto on_surface = (on_face_idx_ == face_idx_) ? SurfaceState::on
                                                       : SurfaceState::off;
-        if constexpr (typename S::Intersections{}.size() == 1)
+        if constexpr (Surface::surface_type() == SurfaceType::inv)
         {
-            if (on_surface == SurfaceState::on)
+            CELER_ASSERT_UNREACHABLE();
+            return;
+        }
+        else if constexpr (surface_type_group(Surface::surface_type())
+                           == SurfaceTypeGroup::planar)
+        {
+            if (on_surface == SurfaceState::off)
             {
-                // On surface so cannot reintersect
-                ++face_idx_;
-                return;
+                // Can only intersect if not on the surface
+                this->solve_and_store(
+                    surf.calc_intersection_planar(pos_, dir_, on_surface));
             }
         }
-
-        // Calculate distance to surface along this direction
-        auto all_dist = surf.calc_intersections(pos_, dir_, on_surface);
-
-        // Copy possible intersections and this surface to the output
-        for (real_type dist : all_dist)
+        else if constexpr (surface_type_group(Surface::surface_type())
+                           == SurfaceTypeGroup::quadric)
         {
-            CELER_ASSERT(dist > 0);
-            if (is_valid_isect_(dist))
-            {
-                // Save intersection in the list
-                face_[isect_idx_] = FaceId{face_idx_};
-                distance_[isect_idx_] = dist;
-                if (fill_isect_)
-                {
-                    isect_[isect_idx_] = isect_idx_;
-                }
-                ++isect_idx_;
-            }
+            this->solve_and_store(
+                surf.calc_intersection_quadratic(pos_, dir_, on_surface));
+        }
+        else
+        {
+            this->solve_and_store(
+                surf.calc_intersection_quartic(pos_, dir_, on_surface));
         }
         // Increment to next face
         ++face_idx_;
@@ -151,12 +149,43 @@ class CalcIntersections
     Real3 const& pos_;
     Real3 const& dir_;
     size_type const on_face_idx_;
-    bool const fill_isect_;
     FaceId* const face_;
     real_type* const distance_;
     size_type* const isect_;
     FaceId::size_type face_idx_{0};
     size_type isect_idx_{0};
+
+    //// HELPERS ////
+
+    template<class T>
+    CELER_FUNCTION void solve_and_store(T const& input)
+    {
+        return this->store_intersections(detail::solve_intersections(input));
+    }
+
+    template<size_type N>
+    CELER_FUNCTION void store_intersections(Array<real_type, N> const& all_dist)
+    {
+        for (real_type dist : all_dist)
+        {
+            this->store_intersection(dist);
+        }
+    }
+
+    CELER_FUNCTION void store_intersection(real_type dist)
+    {
+        CELER_EXPECT(dist > 0);
+        if (is_valid_isect_(dist))
+        {
+            face_[isect_idx_] = FaceId{face_idx_};
+            distance_[isect_idx_] = dist;
+            if (isect_)
+            {
+                isect_[isect_idx_] = isect_idx_;
+            }
+            ++isect_idx_;
+        }
+    }
 };
 
 //---------------------------------------------------------------------------//

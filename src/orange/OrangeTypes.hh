@@ -11,6 +11,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -116,39 +117,76 @@ enum class Sense : bool
 /*!
  * Enumeration for mapping surface classes to integers.
  *
- * These are ordered roughly by complexity. The storage requirement for
+ * These are ordered first by polynomial order, then by complexity.
+ * The storage requirement for
  * corresponding surfaces are:
  * - 1 for `p.|sc|c.c`,
  * - 3 for `c.`,
  * - 4 for `[ps]|k.`,
+ * - 6 for `t.c|inv`
  * - 7 for `sq`, and
  * - 10 for `gq`.
+ *
+ * To support compile-time polymorphism, the different type classes are
+ * bracketed with begin/end sentinels.
  *
  * See \c orange/surf/SurfaceTypeTraits.hh for how these map to classes.
  */
 enum class SurfaceType : unsigned char
 {
-    px,  //!< Plane aligned with X axis
+    begin_planar_,
+    px = begin_planar_,  //!< Plane aligned with X axis
     py,  //!< Plane aligned with Y axis
     pz,  //!< Plane aligned with Z axis
-    cxc,  //!< Cylinder centered on X axis
+    p,  //!< General plane
+    end_planar_,
+    begin_quadric_ = end_planar_,
+    cxc = begin_quadric_,  //!< Cylinder centered on X axis
     cyc,  //!< Cylinder centered on Y axis
     czc,  //!< Cylinder centered on Z axis
     sc,  //!< Sphere centered at the origin
     cx,  //!< Cylinder parallel to X axis
     cy,  //!< Cylinder parallel to Y axis
     cz,  //!< Cylinder parallel to Z axis
-    p,  //!< General plane
     s,  //!< Sphere
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
     gq,  //!< General quadric
-    tor,  //!< Toroid
+    end_quadric_,
+    begin_other_ = end_quadric_,
+    tzc = begin_other_,  //!< Toroid centered on Z
     inv,  //!< Involute
-    size_  //!< Sentinel value for number of surface types
+    end_other_,
+    size_ = end_other_
 };
+
+//! Groups of surfaces with shared intersection solvers
+enum class SurfaceTypeGroup
+{
+    planar,
+    quadric,
+    quartic
+};
+
+//! Get the intersection solver group for a surface type
+CELER_CONSTEXPR_FUNCTION SurfaceTypeGroup surface_type_group(SurfaceType st)
+{
+    if (st >= SurfaceType::begin_planar_ && st < SurfaceType::end_planar_)
+    {
+        return SurfaceTypeGroup::planar;
+    }
+    if (st >= SurfaceType::begin_quadric_ && st < SurfaceType::end_quadric_)
+    {
+        return SurfaceTypeGroup::quadric;
+    }
+    if (st == SurfaceType::tzc)
+    {
+        return SurfaceTypeGroup::quartic;
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
 
 //---------------------------------------------------------------------------//
 /*!
