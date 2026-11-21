@@ -64,9 +64,13 @@ geo::Point_t convert_to_larsoft(Array<double, 3> const& v)
 //---------------------------------------------------------------------------//
 //! Convert via a quantity from native LArSoft types/units
 template<class Q>
-Array<typename Q::value_type, 3> convert_from_larsoft(geo::Point_t const& v)
+Array<real_type, 3> convert_from_larsoft(geo::Point_t const& v)
 {
-    return native_value_from(make_quantity_array<Q>(to_array(v)));
+    // LArSoft uses double precision: narrow after unit conversion
+    auto const native = native_value_from(make_quantity_array<Q>(to_array(v)));
+    return {static_cast<real_type>(native[0]),
+            static_cast<real_type>(native[1]),
+            static_cast<real_type>(native[2])};
 }
 
 //---------------------------------------------------------------------------//

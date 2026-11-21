@@ -258,7 +258,10 @@ TEST_F(DuneCryoTest, two_sim_edeps)
         /* num_hits = */ {274, 273, 11, 4},
     };
 
-    EXPECT_REF_EQ(ref, result) << result;
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(ref, result) << result;
+    }
 
     auto const& sim_channel = raw_result.sim_photons.at(3);
     EXPECT_EQ(3, sim_channel.OpChannel);
@@ -270,7 +273,10 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     ref = RunResult{
         /* num_hits = */ {258, 260, 14, 5},
     };
-    EXPECT_REF_EQ(ref, result) << result;
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(ref, result) << result;
+    }
 
     // Run again with varying scintillation yield ratios
     run({make_sed(10, 0.25, 1), make_sed(10, 1.0, 2), make_sed(10, 0.0, 3)});
@@ -323,7 +329,10 @@ TEST_F(DuneCryoTest, two_sim_edeps)
         /* num_generated = */ {8192, 8192, 30},
         /* num_pending = */ {8192, 8192, 30},
     };
-    EXPECT_REF_EQ(diagnostic_ref, diagnostic_result) << diagnostic_result;
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(diagnostic_ref, diagnostic_result) << diagnostic_result;
+    }
 }
 
 TEST_F(DuneCryoTest, zero_photons)

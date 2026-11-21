@@ -59,6 +59,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # GCC 13 and 14 have *lots* of false positives, and not just on our project
     # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107532
     celer_silence_flag(CXX dangling-reference)
+    # Spurious warning from inlined std::vector moves of ORANGE UnitInput
+    # (OrangeInputIO.json.cc, single precision)
+    celer_silence_flag(CXX maybe-uninitialized)
   endif()
   if(CMAKE_UNITY_BUILD)
     # With Unity build enabled GCC will complain about linkage issue when
