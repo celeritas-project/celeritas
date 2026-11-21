@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "larceler/LarStandaloneRunner.hh"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -151,21 +152,16 @@ std::string LarStandaloneRunnerTestBase::close_diagnostics()
 namespace
 {
 //---------------------------------------------------------------------------//
-//! Compare against reference hits, which are exact only in double precision
-void check_run_result(RunResult const& ref, RunResult const& result)
+//! Check that every optical detector has hits (single-precision smoke test)
+bool smoke_test(RunResult const& ref, RunResult const& result)
 {
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    if (ref.num_hits.size() != result.num_hits.size())
     {
-        EXPECT_REF_EQ(ref, result) << result;
-        return;
+        return false;
     }
-
-    // Smoke check: every optical detector should still see photons
-    ASSERT_EQ(ref.num_hits.size(), result.num_hits.size()) << result;
-    for (auto h : result.num_hits)
-    {
-        EXPECT_GT(h, 0) << result;
-    }
+    return std::all_of(result.num_hits.begin(),
+                       result.num_hits.end(),
+                       [](int h) { return h > 0; });
 }
 
 //---------------------------------------------------------------------------//
@@ -281,7 +277,14 @@ TEST_F(DuneCryoTest, two_sim_edeps)
         /* num_hits = */ {274, 273, 11, 4},
     };
 
-    check_run_result(ref, result);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+    else
+    {
+        EXPECT_TRUE(smoke_test(ref, result)) << result;
+    }
 
     auto const& sim_channel = raw_result.sim_photons.at(3);
     EXPECT_EQ(3, sim_channel.OpChannel);
@@ -293,7 +296,14 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     ref = RunResult{
         /* num_hits = */ {258, 260, 14, 5},
     };
-    check_run_result(ref, result);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+    else
+    {
+        EXPECT_TRUE(smoke_test(ref, result)) << result;
+    }
 
     // Run again with varying scintillation yield ratios
     run({make_sed(10, 0.25, 1), make_sed(10, 1.0, 2), make_sed(10, 0.0, 3)});
