@@ -389,11 +389,10 @@ CELER_FUNCTION auto SimpleUnitTracker::intersect(
 /*!
  * Calculate a lower bound on the distance to a surface in any direction.
  *
- * The algorithm is:
- * - If the volume is the "background", search externally for the nearest
- *   volume with \c background_safety, up to the given maximum distance.
- * - Otherwise use \c simple_safety for the given volume. The maximum distance
- *   is not needed to limit that search, so the result can exceed it.
+ * For an implicit background volume, search nearby volumes using
+ * \c background_safety, limited by \c max_dist. Otherwise, calculate
+ * \c simple_safety for the given volume. The result is no larger than
+ * \c max_dist.
  */
 CELER_FUNCTION real_type SimpleUnitTracker::safety(
     Real3 const& pos, LocalVolumeId vol_id, real_type max_dist) const
@@ -407,7 +406,7 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(
         // Search nearby volumes "externally"
         return this->background_safety(pos, max_dist);
     }
-    return this->simple_safety(pos, vol);
+    return celeritas::min(this->simple_safety(pos, vol), max_dist);
 }
 
 //---------------------------------------------------------------------------//
@@ -713,26 +712,21 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the nearest distance to any face of a volume.
+ * Calculate a lower bound on the distance to a surface in any direction.
  *
- * The simple safety calculation uses a very limited method: it's the nearest
- * distance to any surface, for a certain subset of surfaces. A volume with
- * any other surface type will return a safety distance of zero.
- * Complex surfaces might return the distance to internal surfaces that do not
- * represent the edge of a volume. Such distances are conservative but will
- * necessarily slow down the simulation.
- *
- * Since the boundary of a volume is a subset of its faces, the result is a
- * lower bound on the distance to that boundary whether the point is inside or
- * outside the volume.
+ * For each face, calculate a conservative estimate of the distance to its
+ * surface. Some surface types provide exact distances, while others provide
+ * lower bounds. If any surface does not support safety calculations this will
+ * return zero. Complex surfaces might return the distance to internal surfaces
+ * that do not represent the edge of a volume.
  */
 CELER_FUNCTION real_type SimpleUnitTracker::simple_safety(
     Real3 const& pos, VolumeView const& vol) const
 {
     if (!vol.simple_safety())
     {
-        // Has a tricky surface: we can't use the simple algorithm to calculate
-        // the safety, so return a conservative estimate.
+        // Has a surface that doesn't have a simple algorithm to calculate the
+        // safety, so return a conservative estimate.
         return 0;
     }
 
@@ -765,13 +759,13 @@ CELER_FUNCTION real_type SimpleUnitTracker::simple_safety(
 CELER_FUNCTION real_type SimpleUnitTracker::background_safety(
     Real3 const& pos, real_type max_dist) const
 {
-    auto calc_vol_safety = [this, &pos](LocalVolumeId vol_id) {
+    auto calc_simple_safety = [this, &pos](LocalVolumeId vol_id) {
         return this->simple_safety(pos, this->make_local_volume(vol_id));
     };
 
     detail::BvhSafetyCalculator calc_safety{unit_record_.bvh_tree,
                                             params_.bvh_tree_data};
-    return calc_safety(pos, calc_vol_safety, max_dist);
+    return calc_safety(pos, calc_simple_safety, max_dist);
 }
 
 //---------------------------------------------------------------------------//

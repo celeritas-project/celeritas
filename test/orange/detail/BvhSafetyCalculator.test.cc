@@ -89,7 +89,6 @@ class BvhSafetyCalculatorTest : public ::celeritas::test::Test
 //---------------------------------------------------------------------------//
 /* Partial and fully overlapping bounding boxes, with one infinite volume (V0).
  * \verbatim
-
            0    V1    1.6
            |--------------|
 

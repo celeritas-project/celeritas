@@ -265,14 +265,16 @@ CELER_FUNCTION auto RectArrayTracker::intersect(
 /*!
  * Calculate nearest distance to a surface in any direction.
  *
- * On an axis-aligned rectlinear grid the minimum distance to any surface is
- * always always occurs along a line parallel to an axis. Only the surfaces of
- * the current volume are checked, so the maximum search distance is unused.
+ * On an axis-aligned rectlinear grid the minimum distance to any surface
+ * always occurs along a line parallel to an axis. Only the surfaces of the
+ * current volume are checked, so the maximum distance does not limit the
+ * search; the result is no larger than \c max_dist.
  */
 CELER_FUNCTION real_type RectArrayTracker::safety(
-    Real3 const& pos, LocalVolumeId vol_id, real_type) const
+    Real3 const& pos, LocalVolumeId vol_id, real_type max_dist) const
 {
     CELER_EXPECT(vol_id && vol_id.get() < this->num_volumes());
+    CELER_EXPECT(max_dist > 0);
 
     VolumeInverseIndexer to_coords(record_.dims);
     auto coords = to_coords(vol_id.unchecked_get());
@@ -292,7 +294,7 @@ CELER_FUNCTION real_type RectArrayTracker::safety(
 
     CELER_ENSURE(min_dist >= 0
                  && min_dist < numeric_limits<real_type>::infinity());
-    return min_dist;
+    return celeritas::min(min_dist, max_dist);
 }
 
 //---------------------------------------------------------------------------//

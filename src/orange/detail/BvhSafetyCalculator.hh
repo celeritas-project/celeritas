@@ -58,7 +58,16 @@ class BvhSafetyCalculator
         Real3 const& pos, F&& calc_vol_safety, real_type max_dist) const;
 
   private:
+    //// TYPES ////
+
+    struct Child
+    {
+        BvhNodeId id;
+        real_type dist_sq;
+    };
+
     //// DATA ////
+
     BvhView view_;
 
     //// HELPER FUNCTIONS ////
@@ -69,11 +78,6 @@ class BvhSafetyCalculator
                                                Real3 const& pos,
                                                real_type result,
                                                F&& calc_vol_safety) const;
-
-    // Update the result with the volumes that have infinite bounding boxes
-    template<class F>
-    inline CELER_FUNCTION real_type visit_inf_vols(real_type result,
-                                                   F&& calc_vol_safety) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -104,13 +108,23 @@ CELER_FUNCTION real_type BvhSafetyCalculator::operator()(
     CELER_EXPECT(max_dist > 0);
 
     using Side = BvhInternalNode::Side;
+    using StackT = IdStack<BvhNodeId, max_bvh_depth - 1>;
 
-    real_type result = this->visit_inf_vols(max_dist, calc_vol_safety);
+    real_type result = max_dist;
+
+    // Volumes without finite bounding boxes cannot be pruned
+    for (LocalVolumeId id : view_.inf_vol_ids())
+    {
+        result = celeritas::min(result, calc_vol_safety(id));
+        if (result == 0)
+        {
+            return 0;
+        }
+    }
 
     // Stack of deferred nodes
-    using StackT = IdStack<BvhNodeId, max_bvh_depth - 1>;
-    BvhNodeId stack_spill_[StackT::spill_extent];
-    StackT stack{stack_spill_};
+    BvhNodeId stack_storage[StackT::spill_extent];
+    StackT stack{stack_storage};
     stack.push(BvhNodeId{0});
 
     while (!stack.empty() && result > 0)
@@ -125,26 +139,30 @@ CELER_FUNCTION real_type BvhSafetyCalculator::operator()(
         }
 
         auto const& node = view_.inner_node(node_id);
-        BvhNodeId near_child = node.child(Side::left);
-        BvhNodeId far_child = node.child(Side::right);
-        real_type near_sq = calc_squared_distance(node.bbox(Side::left), pos);
-        real_type far_sq = calc_squared_distance(node.bbox(Side::right), pos);
-        if (far_sq < near_sq)
+
+        Child near{node.child(Side::left),
+                   calc_squared_distance(node.bbox(Side::left), pos)};
+        Child far{node.child(Side::right),
+                  calc_squared_distance(node.bbox(Side::right), pos)};
+
+        if (far.dist_sq < near.dist_sq)
         {
-            trivial_swap(near_child, far_child);
-            trivial_swap(near_sq, far_sq);
+            trivial_swap(near, far);
         }
 
-        // Defer the farther child so that the nearer one is visited first
+        // Prune both children if even the nearer one is too far away
         real_type const result_sq = ipow<2>(result);
-        if (far_sq < result_sq)
+        if (near.dist_sq >= result_sq)
         {
-            stack.push(far_child);
+            continue;
         }
-        if (near_sq < result_sq)
+
+        // Defer the farther child so the nearer one is visited first
+        if (far.dist_sq < result_sq)
         {
-            stack.push(near_child);
+            stack.push(far.id);
         }
+        stack.push(near.id);
     }
 
     CELER_ENSURE(result >= 0 && result <= max_dist);
@@ -167,29 +185,15 @@ CELER_FUNCTION real_type BvhSafetyCalculator::visit_leaf(
     for (LocalVolumeId id : view_.leaf_vol_ids(leaf_id))
     {
         real_type const bbox_sq = calc_squared_distance(view_.bbox(id), pos);
-        if (bbox_sq < ipow<2>(result))
+        if (bbox_sq >= ipow<2>(result))
         {
-            // Both the bounding box distance and the volume's own estimate
-            // are lower bounds, so use the tighter (larger) one
-            result = celeritas::min(
-                result,
-                celeritas::max(std::sqrt(bbox_sq), calc_vol_safety(id)));
+            continue;
         }
-    }
-    return result;
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Update the result with the volumes that have infinite bounding boxes.
- */
-template<class F>
-CELER_FUNCTION real_type BvhSafetyCalculator::visit_inf_vols(
-    real_type result, F&& calc_vol_safety) const
-{
-    for (LocalVolumeId id : view_.inf_vol_ids())
-    {
-        result = celeritas::min(result, calc_vol_safety(id));
+        // Both the bounding box distance and the volume's own estimate are
+        // lower bounds, so use the tighter (larger) one
+        result = celeritas::min(
+            result, celeritas::max(std::sqrt(bbox_sq), calc_vol_safety(id)));
     }
     return result;
 }

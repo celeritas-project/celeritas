@@ -272,8 +272,6 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  * Calculate the square of the distance from a point to a bounding box.
  *
  * The result is zero if the point is inside or on the bounding box.
- *
- * \pre The bounding box cannot be null
  */
 template<class T>
 inline CELER_FUNCTION T calc_squared_distance(BoundingBox<T> const& bbox,
@@ -285,10 +283,11 @@ inline CELER_FUNCTION T calc_squared_distance(BoundingBox<T> const& bbox,
     for (auto ax : range(Axis::size_))
     {
         T const p = pos[to_int(ax)];
-        // At most one of the lower and upper gaps is positive
+
+        // Distance outside the bounding box along this axis (zero if inside)
         T const gap = celeritas::max(bbox.point(Bound::lo, ax) - p,
                                      p - bbox.point(Bound::hi, ax));
-        result += ipow<2>(celeritas::max(gap, T{0}));
+        result += ipow<2>(clamp_to_nonneg(gap));
     }
     return result;
 }
