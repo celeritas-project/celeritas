@@ -133,6 +133,7 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/PhysicsParams.cc
+  optical/ResponseTallyData.cc
   optical/Runner.cc
   optical/SimParams.cc
   optical/Transporter.cc
