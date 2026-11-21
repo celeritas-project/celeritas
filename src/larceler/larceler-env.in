@@ -32,6 +32,19 @@ else
 fi
 
 prefix="@CELER_INSTALL_PREFIX@"
+use_openmp=@CELER_USE_OPENMP@
+
+# Limit OpenMP threads to the Slurm allocation, if any. Diagnostics are
+# emitted as printf commands since stdout is evaluated by the shell.
+if [ "${use_openmp}" = "1" ] && [ -z "${OMP_NUM_THREADS}" ]; then
+  # Prefer the per-task count (srun/sbatch --cpus-per-task) over the
+  # per-node count
+  _slurm_cpus="${SLURM_CPUS_PER_TASK:-${SLURM_CPUS_ON_NODE}}"
+  if [ -n "${_slurm_cpus}" ]; then
+    _set_var "OMP_NUM_THREADS" "${_slurm_cpus}"
+    printf "printf \"Set OMP_NUM_THREADS=%%s from Slurm allocation\\\\n\" \"${_slurm_cpus}\" >&2\n"
+  fi
+fi
 
 _prepend_var "CMAKE_PREFIX_PATH" "${prefix}"
 _set_var "CELERITAS_DIR" "${prefix}"
