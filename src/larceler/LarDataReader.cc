@@ -139,7 +139,8 @@ LarDataReader::VecOpDetCenter LarDataReader::optical_detector_centers() const
     for (auto i : range(num_dets))
     {
         tree->GetEntry(i);
-        result[i] = {pos->GetValue(0), pos->GetValue(1), pos->GetValue(2)};
+        result[i] = static_array_cast<real_type>(
+            Array{pos->GetValue(0), pos->GetValue(1), pos->GetValue(2)});
     }
     return result;
 }

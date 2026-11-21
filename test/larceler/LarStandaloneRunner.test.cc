@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "larceler/LarStandaloneRunner.hh"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -148,6 +149,24 @@ std::string LarStandaloneRunnerTestBase::close_diagnostics()
 
 //---------------------------------------------------------------------------//
 
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Check that every optical detector has hits (single-precision smoke test)
+bool smoke_test(RunResult const& ref, RunResult const& result)
+{
+    if (ref.num_hits.size() != result.num_hits.size())
+    {
+        return false;
+    }
+    return std::all_of(result.num_hits.begin(),
+                       result.num_hits.end(),
+                       [](int h) { return h > 0; });
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 class DuneCryoTest : public LarStandaloneRunnerTestBase
 {
   protected:
@@ -258,7 +277,14 @@ TEST_F(DuneCryoTest, two_sim_edeps)
         /* num_hits = */ {274, 273, 11, 4},
     };
 
-    EXPECT_REF_EQ(ref, result) << result;
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+    else
+    {
+        EXPECT_TRUE(smoke_test(ref, result)) << result;
+    }
 
     auto const& sim_channel = raw_result.sim_photons.at(3);
     EXPECT_EQ(3, sim_channel.OpChannel);
@@ -270,7 +296,14 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     ref = RunResult{
         /* num_hits = */ {258, 260, 14, 5},
     };
-    EXPECT_REF_EQ(ref, result) << result;
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+    else
+    {
+        EXPECT_TRUE(smoke_test(ref, result)) << result;
+    }
 
     // Run again with varying scintillation yield ratios
     run({make_sed(10, 0.25, 1), make_sed(10, 1.0, 2), make_sed(10, 0.0, 3)});
@@ -323,7 +356,23 @@ TEST_F(DuneCryoTest, two_sim_edeps)
         /* num_generated = */ {8192, 8192, 30},
         /* num_pending = */ {8192, 8192, 30},
     };
-    EXPECT_REF_EQ(diagnostic_ref, diagnostic_result) << diagnostic_result;
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_REF_EQ(diagnostic_ref, diagnostic_result) << diagnostic_result;
+    }
+    else
+    {
+        // Smoke check: stochastic counters differ in single precision, but
+        // the offloaded photons must all be generated without errors
+        EXPECT_VEC_EQ(diagnostic_ref.num_generated,
+                      diagnostic_result.num_generated);
+        EXPECT_VEC_EQ(diagnostic_ref.num_errored,
+                      diagnostic_result.num_errored);
+        for (auto n : diagnostic_result.steps)
+        {
+            EXPECT_GT(n, 0);
+        }
+    }
 }
 
 TEST_F(DuneCryoTest, zero_photons)
