@@ -106,8 +106,8 @@ void PDFullSimCeler::beginJob()
     for (auto i : range(geo->NOpDets()))
     {
         auto const& opdet = geo->OpDetGeoFromOpDet(i);
-        positions.push_back(
-            convert_from_larsoft<LarsoftLen>(opdet.GetCenter()));
+        positions.push_back(static_array_cast<real_type>(
+            convert_from_larsoft<LarsoftLen>(opdet.GetCenter())));
     }
 
     runner_ = std::make_unique<LarStandaloneRunner>(
