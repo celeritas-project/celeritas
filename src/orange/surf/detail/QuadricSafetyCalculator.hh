@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/surf/detail/QuadricSafetyCalculator.hh
+//! \sa test/orange/surf/detail/QuadricSafetyCalculator.test.cc
 //! \sa test/orange/surf/SimpleQuadric.test.cc
 //! \sa test/orange/surf/GeneralQuadric.test.cc
 //---------------------------------------------------------------------------//
