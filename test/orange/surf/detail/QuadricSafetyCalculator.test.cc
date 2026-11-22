@@ -114,7 +114,11 @@ class QuadricSafetyCalculatorTest : public ::celeritas::test::Test
                      real_type length)
     {
         SCOPED_TRACE(surface);
-        LineData line{surface, reference, start, make_unit_vector(dir)};
+        LineData line;
+        line.surface = surface;
+        line.reference = reference;
+        line.start = start;
+        line.dir = make_unit_vector(dir);
         SoftEqual<> soft_eq;
         for (auto i : range(num_points))
         {
