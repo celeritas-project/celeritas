@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/detail/QuadricSafety.hh
+//! \file orange/surf/detail/QuadricSafetyCalculator.hh
 //! \sa test/orange/surf/SimpleQuadric.test.cc
 //! \sa test/orange/surf/GeneralQuadric.test.cc
 //---------------------------------------------------------------------------//
@@ -10,6 +10,7 @@
 
 #include <cmath>
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
@@ -63,21 +64,46 @@ namespace detail
  * surface and underestimates the true distance by at most a factor of two
  * outside. The bound may be more conservative for other quadrics or when the
  * eigenvalue bounds are loose.
- *
- * \param value Quadric expression \f$ f(\mathbf{x}) \f$
- * \param gradient Gradient \f$ \nabla f(\mathbf{x}) \f$ (not normalized)
- * \param min_eigen_bound Lower bound \f$ \mu_- \f$ on the eigenvalues of \em A
- * \param max_eigen_bound Upper bound \f$ \mu_+ \f$ on the eigenvalues of \em A
  */
-inline CELER_FUNCTION real_type calc_quadric_safety(real_type value,
-                                                    Real3 const& gradient,
-                                                    real_type min_eigen_bound,
-                                                    real_type max_eigen_bound)
+class QuadricSafetyCalculator
 {
-    using namespace celeritas::literals;
+  public:
+    // Construct from bounds on the eigenvalues of the second-order matrix
+    inline CELER_FUNCTION QuadricSafetyCalculator(real_type min_eigen_bound,
+                                                  real_type max_eigen_bound);
 
+    // Calculate the safety from the quadric value and gradient at a point
+    inline CELER_FUNCTION real_type operator()(real_type value,
+                                               Real3 const& gradient) const;
+
+  private:
+    //! Curvature toward the surface from the positive side (f > 0)
+    real_type lambda_pos_;
+    //! Curvature toward the surface from the negative side (f < 0)
+    real_type lambda_neg_;
+};
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from bounds on the eigenvalues of the second-order matrix.
+ */
+CELER_FUNCTION QuadricSafetyCalculator::QuadricSafetyCalculator(
+    real_type min_eigen_bound, real_type max_eigen_bound)
+    : lambda_pos_{clamp_to_nonneg(-min_eigen_bound)}
+    , lambda_neg_{clamp_to_nonneg(max_eigen_bound)}
+{
     CELER_EXPECT(min_eigen_bound <= max_eigen_bound);
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the safety from the quadric value and gradient at a point.
+ */
+CELER_FUNCTION real_type QuadricSafetyCalculator::operator()(
+    real_type value, Real3 const& gradient) const
+{
     if (value == 0)
     {
         // On the surface (or at a singular point such as a cone apex, where
@@ -85,8 +111,7 @@ inline CELER_FUNCTION real_type calc_quadric_safety(real_type value,
         return 0;
     }
 
-    real_type const lambda = value > 0 ? celeritas::max(0_r, -min_eigen_bound)
-                                       : celeritas::max(0_r, max_eigen_bound);
+    real_type const lambda = value > 0 ? lambda_pos_ : lambda_neg_;
     real_type const abs_value = std::fabs(value);
     real_type const g = norm(gradient);
     real_type const result

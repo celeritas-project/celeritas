@@ -119,7 +119,9 @@ TEST(GeneralQuadricTest, all)
     EXPECT_SOFT_EQ(7.0, distances[1]);
 
     // Safety
-    EXPECT_LT(gq.calc_safety(on_surface), 1e-12);
+    real_type const tol
+        = CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-12 : 1e-5;
+    EXPECT_LT(gq.calc_safety(on_surface), tol);
     for (Real3 const& p : {center, pos, Real3{4, 5, 5}, Real3{1, 2, 3.5}})
     {
         EXPECT_LE(gq.calc_safety(p), calc_sampled_distance(gq, p))
