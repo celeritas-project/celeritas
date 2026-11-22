@@ -170,6 +170,26 @@
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float"
       }
+    },
+    {
+      "name": "debug-orange-float",
+      "displayName": "Build without optimization, single precision (ORANGE, no device, no OpenMP)",
+      "inherits": ["debug-orange"],
+      "cacheVariables": {
+        "CELERITAS_REAL_TYPE": "float",
+        "CELERITAS_USE_CUDA": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
+        "CELERITAS_USE_HIP": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
+        "CELERITAS_USE_OpenMP": {
+          "type": "BOOL",
+          "value": "OFF"
+        }
+      }
     }
   ],
   "buildPresets": [
@@ -212,6 +232,11 @@
     {
       "name": "release-orange-hip-float",
       "configurePreset": "release-orange-hip-float",
+      "inherits": ".base"
+    },
+    {
+      "name": "debug-orange-float",
+      "configurePreset": "debug-orange-float",
       "inherits": ".base"
     }
   ],
@@ -256,6 +281,11 @@
     {
       "name": "release-orange-hip-float",
       "configurePreset": "release-orange-hip-float",
+      "inherits": ".base"
+    },
+    {
+      "name": "debug-orange-float",
+      "configurePreset": "debug-orange-float",
       "inherits": ".base"
     }
   ],
