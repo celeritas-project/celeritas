@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/GeneralQuadric.hh"
 
+#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/surf/SimpleQuadric.hh"
 
@@ -116,6 +117,85 @@ TEST(GeneralQuadricTest, all)
     distances = calc_intersections(gq, pos, outward, SurfaceState::off);
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(7.0, distances[1]);
+
+    // Safety
+    real_type const tol
+        = CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-12 : 1e-5;
+    EXPECT_LT(gq.calc_safety(on_surface), tol);
+    for (Real3 const& p : {center, pos, Real3{4, 5, 5}, Real3{1, 2, 3.5}})
+    {
+        EXPECT_LE(gq.calc_safety(p), calc_sampled_distance(gq, p))
+            << "at " << repr(p);
+    }
+}
+
+TEST(GeneralQuadricTest, safety)
+{
+    {
+        SCOPED_TRACE("cylinder");
+
+        // Unit cylinder along (1, 1, 0) / sqrt(2): x^2 + y^2 + z^2 -
+        // (x + y)^2 / 2 = 1
+        GeneralQuadric const gq{{0.5, 0.5, 1}, {-1, 0, 0}, {0, 0, 0}, -1};
+
+        // Exact inside: radius minus distance from axis
+        EXPECT_SOFT_EQ(1, gq.calc_safety({0, 0, 0}));
+        EXPECT_SOFT_EQ(1, gq.calc_safety({4, 4, 0}));
+        EXPECT_SOFT_EQ(0.5, gq.calc_safety({0, 0, 0.5}));
+
+        // Outside: f/|grad f| = 8 / 6, less than the true 2
+        EXPECT_SOFT_EQ(4.0 / 3, gq.calc_safety({0, 0, 3}));
+        EXPECT_LE(gq.calc_safety({0, 0, 3}), 2);
+
+        // On the surface
+        EXPECT_SOFT_EQ(0, gq.calc_safety({0, 0, 1}));
+    }
+    {
+        SCOPED_TRACE("twisted");
+
+        // Twisted surface with only zz, yz, and zx second-order terms, like
+        // the faces of an accordion calorimeter
+        GeneralQuadric const gq{{0, 0, 0.1}, {0, 0.3, -0.2}, {1, 0.5, 0}, -2};
+
+        // No closed-form nearest point: compare to a sampled distance
+        std::vector<real_type> safeties;
+        std::vector<real_type> sampled_distances;
+
+        for (Real3 const& pos : {Real3{0, 0, 0},
+                                 Real3{2, 0, 0.5},
+                                 Real3{1, 1, 1},
+                                 Real3{-3, 2, 5},
+                                 Real3{2.1, 0, 0.1}})
+        {
+            auto safety = gq.calc_safety(pos);
+            auto sampled_distance = calc_sampled_distance(gq, pos);
+
+            safeties.push_back(safety);
+            sampled_distances.push_back(sampled_distance);
+
+            EXPECT_LE(safety, sampled_distance) << "at " << repr(pos);
+        }
+
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            auto expected_safeties = {
+                1.2777531299999,
+                0.14571200364984,
+                0.23919832136286,
+                1.4128126694297,
+                0.049530106395716,
+            };
+            auto expected_sampled_distances = {
+                1.7773278916208,
+                0.15209586488135,
+                0.25484666616036,
+                1.703512011067,
+                0.049886862461445,
+            };
+            EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
+            EXPECT_VEC_SOFT_EQ(expected_sampled_distances, sampled_distances);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
