@@ -232,6 +232,34 @@ TEST_F(LArSphereGeneratorTest, direct)
     EXPECT_EQ(128, gen.num_generated);
 }
 
+// Photons that start in a volume without an optical material (here, the
+// vacuum world) must be flagged as errored rather than crashing
+TEST_F(LArSphereGeneratorTest, direct_nonoptical_volume)
+{
+    osi_.problem.generator = inp::OpticalDirectGenerator{};
+    osi_.problem.capacity.tracks = 32;
+
+    auto make_init = [](Real3 const& pos) {
+        return optical::TrackInitializer{units::MevEnergy{1e-5},
+                                         pos,
+                                         Real3{1, 0, 0},
+                                         Real3{0, 1, 0},
+                                         0,
+                                         {},  // primary
+                                         ImplVolumeId{0}};
+    };
+    std::vector<optical::TrackInitializer> inits(8, make_init({0, 0, 0}));
+    inits[3] = make_init({500, 0, 0});  // world: vacuum, no optical material
+
+    optical::Runner run(std::move(osi_));
+    run.insert(make_span(inits));
+    auto result = run();
+
+    EXPECT_EQ(1, result.counters.num_errored);
+    ASSERT_EQ(1, result.counters.generators.size());
+    EXPECT_EQ(8, result.counters.generators.front().num_generated);
+}
+
 TEST_F(LArSphereGeneratorTest, offload)
 {
     // Generate Cherenkov and scintillation photons
@@ -289,6 +317,36 @@ TEST_F(LArSphereGeneratorTest, offload)
         "tracking-cut",
     };
     EXPECT_VEC_EQ(expected_labels, labels);
+}
+
+// Scintillation with identical pre- and post-step times (delta distribution)
+// is valid: all photons are emitted at the pre-step time
+TEST_F(LArSphereGeneratorTest, offload_scint_delta_time)
+{
+    osi_.problem.generator = inp::OpticalOffloadGenerator{};
+    osi_.geant_setup.scintillation = ScintillationPhysicsOptions{};
+    osi_.problem.capacity.generators = 64;
+
+    auto host_data
+        = this->make_distributions(*osi_.problem.capacity.generators);
+    for (auto& d : host_data)
+    {
+        d.type = GeneratorType::scintillation;
+        d.points[StepPoint::pre].speed = units::LightSpeed{0};
+        d.points[StepPoint::post].speed = units::LightSpeed{0};
+        d.points[StepPoint::post].time = d.points[StepPoint::pre].time;
+        EXPECT_TRUE(d);
+    }
+
+    optical::Runner run(std::move(osi_));
+    run.insert(make_span(host_data));
+    auto result = run();
+
+    ASSERT_EQ(1, result.counters.generators.size());
+    auto const& gen = result.counters.generators.front();
+    EXPECT_GT(gen.num_generated, 0);
+    EXPECT_EQ(gen.num_generated, gen.num_pending);
+    EXPECT_EQ(0, result.counters.num_errored);
 }
 
 TEST_F(DuneGeneratorTest, offload)
