@@ -283,11 +283,16 @@ inline CELER_FUNCTION T calc_squared_distance(BoundingBox<T> const& bbox,
     for (auto ax : range(Axis::size_))
     {
         T const p = pos[to_int(ax)];
-
-        // Distance outside the bounding box along this axis (zero if inside)
-        T const gap = celeritas::max(bbox.point(Bound::lo, ax) - p,
-                                     p - bbox.point(Bound::hi, ax));
-        result += ipow<2>(clamp_to_nonneg(gap));
+        T const lo = bbox.point(Bound::lo, ax);
+        T const hi = bbox.point(Bound::hi, ax);
+        if (p < lo)
+        {
+            result += ipow<2>(lo - p);
+        }
+        else if (p > hi)
+        {
+            result += ipow<2>(p - hi);
+        }
     }
     return result;
 }

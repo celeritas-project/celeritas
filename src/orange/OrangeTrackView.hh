@@ -750,16 +750,7 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type max_step)
     CELER_EXPECT(max_step > 0);
 
     TrackerVisitor visit_tracker{params_};
-    // If we're intersecting a surface, the safety cannot be more than that.
-    // Use that as a bound for degenerate cases such as starting in the exact
-    // center of a sphere (where the safety can't correctly be calculated).
-    // This fixes incorrectly large safety when a next step has been found,
-    // necessary for CheckedGeoTrackView::find_next_step and more consistent in
-    // general .
-    real_type min_safety_dist
-        = this->has_next_surface()
-              ? celeritas::min(max_step, this->next_step())
-              : max_step;
+    real_type min_safety_dist = max_step;
 
     for (auto ulev_id : range(this->univ_level() + 1))
     {
