@@ -988,8 +988,11 @@ void FourLevelsGeoTest::test_safety() const
         expected_safeties.front() = std::sqrt(12.83);
         expected_safeties[9] = std::sqrt(1.22);
         expected_safeties.back() = 3.9;
-        // Bounding boxes are bumped outward by the construction tolerance
-        tol.safety = std::max<real_type>(tol.safety, 1e-6);
+        // Bounding boxes are bumped outward by the construction tolerance,
+        // which is much larger in single precision
+        tol.safety = std::max<real_type>(
+            tol.safety,
+            CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-6 : 2e-2);
     }
     EXPECT_VEC_NEAR(expected_safeties, safeties, tol.safety);
 
