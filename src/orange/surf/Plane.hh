@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -98,6 +100,9 @@ class Plane
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Real3 const& calc_gradient(Real3 const&) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Normal to plane (a,b,c)
@@ -202,6 +207,18 @@ CELER_FORCEINLINE_FUNCTION Real3 const& Plane::calc_normal(Real3 const&) const
 CELER_FORCEINLINE_FUNCTION Real3 const& Plane::calc_gradient(Real3 const&) const
 {
     return normal_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * This is the magnitude of the displacement along the normal:
+ * \f$ |\hat{n} \cdot \mathbf{x} - d| \f$.
+ */
+CELER_FUNCTION real_type Plane::calc_safety(Real3 const& pos) const
+{
+    return std::fabs(this->calc_value(pos));
 }
 
 //---------------------------------------------------------------------------//

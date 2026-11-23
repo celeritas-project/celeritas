@@ -1,4 +1,4 @@
-//------------------------------ -*- cuda -*- -------------------------------//
+//------------------------------- -*- C++ -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -52,7 +52,7 @@ std::ostream& operator<<(std::ostream& os, StreamableStream const& sds)
 struct Stream::Impl
 {
     StreamT stream{nullptr};
-    ResourceT memory_resource;
+    detail::UPAsyncMemoryResource memory_resource;
 };
 
 //---------------------------------------------------------------------------//
@@ -108,7 +108,7 @@ Stream::Stream(Device const& device)
     CELER_LOG_LOCAL(debug) << "Created stream " << StreamableStream{stream};
     impl_.reset(new Impl);
     impl_->stream = stream;
-    impl_->memory_resource = ResourceT{stream};
+    impl_->memory_resource = detail::make_async_memory_resource(stream);
 }
 
 //---------------------------------------------------------------------------//
@@ -137,7 +137,13 @@ Stream::StreamT Stream::get() const
 Stream::ResourceT& Stream::memory_resource()
 {
     CELER_EXPECT(*this);
-    return impl_->memory_resource;
+#if CELER_USE_DEVICE
+    CELER_ASSERT(impl_->memory_resource);
+    return *impl_->memory_resource;
+#else
+    // Streams can't be constructed without a device
+    CELER_ASSERT_UNREACHABLE();
+#endif
 }
 
 //---------------------------------------------------------------------------//

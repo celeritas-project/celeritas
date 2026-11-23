@@ -168,26 +168,9 @@ endif()
 
 celer_add_ext_library(Thrust)
 if(CELERITAS_USE_CUDA)
-  # Propagate the CCCL headers located by the Thrust package configuration,
-  # since CUDA::toolkit lacks the CUDA 13 include/cccl directory before CMake
-  # 3.31.8/4.0.3. Thrust's targets can't be linked directly because they are
-  # not imported and therefore can't be exported.
-  set(_dirs)
-  foreach(_tgt IN ITEMS Thrust::Thrust Thrust::libcudacxx)
-    if(TARGET ${_tgt})
-      get_target_property(_tgt_dirs ${_tgt} INTERFACE_INCLUDE_DIRECTORIES)
-      if(_tgt_dirs)
-        list(APPEND _dirs ${_tgt_dirs})
-      endif()
-    endif()
-  endforeach()
-  list(REMOVE_DUPLICATES _dirs)
-  target_include_directories(ExtThrust SYSTEM INTERFACE ${_dirs})
-  unset(_dirs)
-  unset(_tgt_dirs)
-
-  # Thrust and CUB annotate their algorithms with NVTX, which uses dlopen and
-  # requires `-ldl` before glibc 2.34
+  # Thrust is only included by device code, which gets the CCCL headers from
+  # the CUDA compiler. Thrust and CUB annotate their algorithms with NVTX,
+  # which uses dlopen and requires `-ldl` before glibc 2.34
   target_link_libraries(ExtThrust INTERFACE ${CMAKE_DL_LIBS})
 endif()
 
