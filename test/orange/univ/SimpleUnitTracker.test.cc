@@ -26,8 +26,8 @@
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
-#include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/Sphere.hh"
+#include "orange/surf/Toroid.hh"
 #include "orange/univ/detail/LocalVolumeView.hh"
 
 #include "AssertionHelper.hh"
@@ -149,17 +149,22 @@ class FiveVolumesTest : public SimpleUnitTrackerTest
     void SetUp() override { this->build_geometry("five-volumes.org.json"); }
 };
 
-//! Ellipsoid (not a "simple safety" surface) in a background-filled sphere
-class BackgroundQuadricTest : public SimpleUnitTrackerTest
+//! Torus (not a "simple safety" surface) in a background-filled sphere
+class BackgroundTorusTest : public SimpleUnitTrackerTest
 {
     void SetUp() override
     {
+        if (!CELERITAS_ORANGE_TORUS)
+        {
+            // Every other runtime surface type supports simple safety
+            GTEST_SKIP() << "Runtime toroid support is disabled";
+        }
+
         UnitInput input;
-        input.label = "background quadric";
+        input.label = "background torus";
         input.bbox = {{-4, -4, -4}, {4, 4, 4}};
-        input.surfaces = {Sphere({0, 0, 0}, 4),
-                          SimpleQuadric({1, 1, 0.25}, {0, 0, 0}, -1)};
-        input.surface_labels = {Label("world"), Label("ellipsoid")};
+        input.surfaces = {Sphere({0, 0, 0}, 4), Toroid({0, 0, 0}, 2, 0.5, 0.5)};
+        input.surface_labels = {Label("world"), Label("torus")};
 
         VolumeInput exterior;
         exterior.label = "exterior";
@@ -168,19 +173,19 @@ class BackgroundQuadricTest : public SimpleUnitTrackerTest
         exterior.bbox = BBox::from_infinite();
         exterior.zorder = ZOrder::exterior;
 
-        VolumeInput ellipsoid;
-        ellipsoid.label = "ellipsoid";
-        ellipsoid.faces = {LocalSurfaceId{1}};
-        ellipsoid.logic = {1, logic::lnot};
-        ellipsoid.bbox = {{-1, -1, -2}, {1, 1, 2}};
-        ellipsoid.zorder = ZOrder::media;
+        VolumeInput torus;
+        torus.label = "torus";
+        torus.faces = {LocalSurfaceId{1}};
+        torus.logic = {1, logic::lnot};
+        torus.bbox = {{-2.5, -2.5, -0.5}, {2.5, 2.5, 0.5}};
+        torus.zorder = ZOrder::media;
 
         VolumeInput background;
         background.label = "background";
         background.flags = VolumeInput::Flags::implicit_vol;
         background.zorder = ZOrder::background;
 
-        input.volumes = {exterior, ellipsoid, background};
+        input.volumes = {exterior, torus, background};
         this->build_geometry(std::move(input));
     }
 };
@@ -816,8 +821,10 @@ TEST_F(FieldLayersTest, safety)
     EXPECT_SOFT_EQ(0.5, tracker.safety({0, 10, 9.25}, bg, 0.5));
     // Diagonally off the edge of a layer: (0.3, 0.5) from its bounding box,
     // which is slightly larger than the layer
+    real_type const tol
+        = CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-6 : 1e-2;
     EXPECT_SOFT_NEAR(
-        std::sqrt(0.34), tracker.safety({9.3, -3, 0}, bg, inf), 1e-4);
+        std::sqrt(0.34), tracker.safety({9.3, -3, 0}, bg, inf), tol);
 }
 
 TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
@@ -1056,7 +1063,7 @@ TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 
 //---------------------------------------------------------------------------//
 
-TEST_F(BackgroundQuadricTest, safety)
+TEST_F(BackgroundTorusTest, safety)
 {
     SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
     detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
@@ -1068,16 +1075,17 @@ TEST_F(BackgroundQuadricTest, safety)
     EXPECT_TRUE(vol.implicit_vol());
     EXPECT_FALSE(vol.simple_safety());
 
-    // Nearest is the world sphere
-    EXPECT_SOFT_EQ(1.0, tracker.safety({0, 3, 0}, bg, inf));
+    // Nearest is the bounding box of the torus, which is slightly larger
+    // than the torus: exact beyond a face, conservative beyond an edge
+    real_type const tol
+        = CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-6 : 1e-2;
+    EXPECT_SOFT_NEAR(0.5, tracker.safety({0, 3, 0}, bg, inf), tol);
     EXPECT_SOFT_EQ(0.25, tracker.safety({0, 3, 0}, bg, 0.25));
-    // Nearest is the bounding box of the ellipsoid, which is slightly larger
-    // than the ellipsoid: exact beyond a face, conservative beyond an edge
-    EXPECT_SOFT_NEAR(0.5, tracker.safety({0, 1.5, 0}, bg, inf), 1e-6);
-    EXPECT_SOFT_NEAR(
-        std::sqrt(0.5), tracker.safety({1.5, 1.5, 0}, bg, inf), 1e-6);
-    // Outside the ellipsoid but inside its bounding box
-    EXPECT_SOFT_EQ(0.0, tracker.safety({0.9, 0.9, 0}, bg, inf));
+    EXPECT_SOFT_NEAR(0.5, tracker.safety({2.8, 0, 0.9}, bg, inf), tol);
+    // Nearest is the world sphere
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 3.5}, bg, inf));
+    // In the hole of the torus but inside its bounding box
+    EXPECT_SOFT_EQ(0.0, tracker.safety({0, 0, 0}, bg, inf));
 }
 
 //---------------------------------------------------------------------------//

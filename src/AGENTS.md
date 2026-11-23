@@ -87,6 +87,30 @@ See `\page collections` documentation in `@src/corecel/data/Collection.hh` .
    - **View**: Lightweight accessor with `CELER_FUNCTION` methods
    - **Executor/Interactor**: Physics implementation
 
+## Precision
+
+`real_type` (`corecel/Types.hh`) is `float` or `double` per
+`CELERITAS_REAL_TYPE`; both must build and pass. Patterns:
+- Use `real_type`, `Real3` (`Array<real_type, 3>`), and `RealQuantity`
+  (`Quantity<UnitT, real_type>`) in library code (`Quantity` itself can be
+  float, double, or both); never hard-code `double` except at external-API boundaries.
+- External libraries (LArSoft, ROOT, Geant4/CLHEP) are double. Keep their
+  converters (e.g. `larceler/Convert.hh`) at the external precision and narrow
+  at the call site with `static_array_cast<real_type>(...)`
+  (`corecel/cont/Array.hh`). `Array{a, b, c}` deduces its type via CTAD, so
+  `static_array_cast<real_type>(Array{x, y, z})` needs no explicit `double`.
+- Compare with `SoftEqual` (`corecel/math/SoftEqual.hh`) and test tolerances
+  from `test/Test.hh`, not exact equality.
+- Tests (`test/TestMacros.hh`): `EXPECT_REAL_EQ` is a single-ULP comparison
+  at `real_type` precision. `TEST_IF_CELERITAS_DOUBLE(name)` disables a test
+  in single precision. For stochastic or reference-bound results that differ
+  in float, branch on `CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE`:
+  compare to the reference in double and use a weaker smoke check otherwise.
+- Compiler false positives that appear only in float builds are silenced with
+  `celer_silence_flag` in `src/CMakeLists.txt`, not per-file options.
+- Build float in a separate build/install dir (preset
+  `CELERITAS_REAL_TYPE=float`).
+
 ## Style
 
 ### Helper functions and classes

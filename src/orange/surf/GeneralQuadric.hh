@@ -16,6 +16,7 @@
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/QuadricSafetyCalculator.hh"
 
 namespace celeritas
 {
@@ -37,6 +38,37 @@ class SimpleQuadric;
  * Note that some formulations of a general quadric include a factor of 2 for
  * the g/h/i terms, or use \f$ \dots + iz = j \f$ (reversing the sign of \em
  j).
+ *
+ * \par Safety distance
+ * The safety is a conservative lower bound on the distance to the surface
+ * calculated by \c detail::QuadricSafetyCalculator, which needs bounds on the
+ * eigenvalues of the second-order matrix. The quadratic terms of the implicit
+ * surface equation can be written as \f$ \mathbf{x}^T A \mathbf{x} \f$, where
+ * \f[
+   A = \begin{pmatrix}
+     a & d/2 & f/2 \\
+     d/2 & b & e/2 \\
+     f/2 & e/2 & c
+   \end{pmatrix} \,.
+ * \f]
+ * Rather than calculating the eigenvalues directly, the Gershgorin circle
+ * theorem is used to obtain conservative bounds. Each Gershgorin disc is
+ * centered at a diagonal entry, with a radius equal to the sum of the absolute
+ * values of the off-diagonal entries in that row. This gives
+ * \f[
+   \begin{aligned}
+     \mu_- &= \min\left(
+       a - \frac{|d| + |f|}{2},\,
+       b - \frac{|d| + |e|}{2},\,
+       c - \frac{|e| + |f|}{2}\right), \\
+     \mu_+ &= \max\left(
+       a + \frac{|d| + |f|}{2},\,
+       b + \frac{|d| + |e|}{2},\,
+       c + \frac{|e| + |f|}{2}\right).
+   \end{aligned}
+ * \f]
+ * These bounds are exact when there are no cross terms, but may be
+ * conservative otherwise.
  */
 class GeneralQuadric
 {
@@ -56,8 +88,8 @@ class GeneralQuadric
         return SurfaceType::gq;
     }
 
-    //! Safety is *not* the nearest intersection along the surface "normal"
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+    //! Safety is a lower bound on the distance to the surface
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
     //! Gradient does not have unit length
     static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
@@ -115,6 +147,9 @@ class GeneralQuadric
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+
+    // Calculate a lower bound on the distance to the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Second-order terms (a, b, c)
@@ -222,6 +257,25 @@ CELER_FUNCTION Real3 GeneralQuadric::calc_gradient(Real3 const& pos) const
     return {2 * a_ * x + d_ * y + f_ * z + g_,
             2 * b_ * y + d_ * x + e_ * z + h_,
             2 * c_ * z + e_ * y + f_ * x + i_};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate a lower bound on the distance to the surface.
+ *
+ * The eigenvalue bounds use Gershgorin discs (see the class documentation).
+ */
+CELER_FUNCTION real_type GeneralQuadric::calc_safety(Real3 const& pos) const
+{
+    // Gershgorin radii: off-diagonal row sums of the second-order matrix
+    real_type const rx = (std::fabs(d_) + std::fabs(f_)) / 2;
+    real_type const ry = (std::fabs(d_) + std::fabs(e_)) / 2;
+    real_type const rz = (std::fabs(e_) + std::fabs(f_)) / 2;
+
+    detail::QuadricSafetyCalculator calc_safety{
+        celeritas::min(a_ - rx, celeritas::min(b_ - ry, c_ - rz)),
+        celeritas::max(a_ + rx, celeritas::max(b_ + ry, c_ + rz))};
+    return calc_safety(this->calc_value(pos), this->calc_gradient(pos));
 }
 
 //---------------------------------------------------------------------------//
