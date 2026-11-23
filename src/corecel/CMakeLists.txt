@@ -392,11 +392,6 @@ if(CELERITAS_USE_HIP)
   if(roctracer_FOUND)
     list(APPEND PRIVATE_DEPS roctracer::roctx)
   endif()
-  # Build some files as HIP due to rocThrust
-  set_source_files_properties(
-    sys/Stream.cc
-    PROPERTIES LANGUAGE HIP
-  )
 endif()
 
 #-----------------------------------------------------------------------------#
