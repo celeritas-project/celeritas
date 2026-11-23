@@ -23,6 +23,10 @@ foreach(_dir IN ITEMS
   endif()
 endforeach()
 unset(_dir)
+if(CUDAToolkit_LIBRARY_DIR)
+  # Some distributions install CMake configs only under targets/<arch>/lib
+  list(APPEND _hints "${CUDAToolkit_LIBRARY_DIR}/cmake/thrust")
+endif()
 list(REMOVE_DUPLICATES _hints)
 
 find_package(Thrust QUIET CONFIG HINTS ${_hints})

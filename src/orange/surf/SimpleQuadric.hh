@@ -12,10 +12,12 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/Quantity.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/QuadricSafetyCalculator.hh"
 #include "detail/Quantity.hh"
 
 namespace celeritas
@@ -47,6 +49,12 @@ class Sphere;
  * In most non-pathological cases, the scale of the second-order components
  * should be unity, as is the case when promoting spheres, cones, and
  * cylinders.
+ *
+ * \par Safety distance
+ * The safety is a conservative lower bound on the distance to the surface
+ * calculated by \c detail::QuadricSafetyCalculator. The quadratic coefficient
+ * matrix is diagonal, so its eigenvalues are exactly \f$ a \f$, \f$ b \f$,
+ * and \f$ c \f$.
  */
 class SimpleQuadric
 {
@@ -67,8 +75,8 @@ class SimpleQuadric
         return SurfaceType::sq;
     }
 
-    //! Safety is *not* the intersection along surface normal
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+    //! Safety is a lower bound on the distance to the surface
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
   public:
     //// CONSTRUCTORS ////
@@ -125,6 +133,9 @@ class SimpleQuadric
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
+
+    // Calculate a lower bound on the distance to the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Second-order terms (a, b, c)
@@ -222,6 +233,19 @@ CELER_FUNCTION auto SimpleQuadric::calc_gradient(Real3 const& pos) const
     real_type const z = pos[to_int(Axis::z)];
 
     return Gradient{Real3{a_ * x + d_ / 2, b_ * y + e_ / 2, c_ * z + f_ / 2}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate a lower bound on the distance to the surface.
+ */
+CELER_FUNCTION real_type SimpleQuadric::calc_safety(Real3 const& pos) const
+{
+    detail::QuadricSafetyCalculator calc_safety{
+        celeritas::min(a_, celeritas::min(b_, c_)),
+        celeritas::max(a_, celeritas::max(b_, c_))};
+    return calc_safety(this->calc_value(pos),
+                       native_value_from(this->calc_gradient(pos)));
 }
 
 //---------------------------------------------------------------------------//

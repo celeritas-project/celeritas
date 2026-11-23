@@ -467,6 +467,8 @@ if(CELERITAS_USE_CUDA)
   endif()
   find_package(CUB)
   find_package(Thrust)
+  # NVTX headers are part of the toolkit but may be packaged separately
+  find_package(NVTX REQUIRED)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   find_package(hip) # Enable hip API in host code, and support version diagnostics

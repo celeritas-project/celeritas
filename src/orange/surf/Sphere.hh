@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -95,6 +97,9 @@ class Sphere
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Spatial position
@@ -190,6 +195,21 @@ CELER_FUNCTION auto Sphere::calc_gradient(Real3 const& pos) const -> Gradient
 {
     return Gradient{
         Real3{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * This is the magnitude of the radial displacement from the surface:
+ * \f$ | |\mathbf{x} - \mathbf{x}_0| - R | \f$.
+ */
+CELER_FUNCTION real_type Sphere::calc_safety(Real3 const& pos) const
+{
+    Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
+
+    return std::fabs(
+        std::sqrt(dot_product(tpos, tpos)) - std::sqrt(radius_sq_));
 }
 
 //---------------------------------------------------------------------------//

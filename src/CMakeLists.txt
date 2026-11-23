@@ -106,10 +106,13 @@ celeritas_add_interface_library(ExtDeviceApi)
 if(CELERITAS_USE_CUDA)
   target_link_libraries(ExtDeviceApi INTERFACE CUDA::toolkit)
 
-  # NVTX requires `-ldl`
-  # This does not appears to be needed anymore with
-  # CMake 3.26.5 and CUDA sdk 12.6.
-  target_link_libraries(ExtDeviceApi INTERFACE ${CMAKE_DL_LIBS})
+  # The NVIDIA HPC SDK installs math library headers separately: add the
+  # cuRAND include directories without linking the (unused) host library
+  if(TARGET CUDA::curand)
+    get_target_property(_dirs CUDA::curand INTERFACE_INCLUDE_DIRECTORIES)
+    target_include_directories(ExtDeviceApi SYSTEM INTERFACE ${_dirs})
+    unset(_dirs)
+  endif()
 elseif(CELERITAS_USE_HIP)
   if(CMAKE_HIP_COMPILER_ROCM_ROOT)
     # Undocumented CMake variable
@@ -162,7 +165,9 @@ endif()
 
 celer_add_ext_library(Thrust)
 if(CELERITAS_USE_CUDA)
-  # Perlmutter with RDC enabled complains about missing dlclose
+  # Thrust is only included by device code, which gets the CCCL headers from
+  # the CUDA compiler. Thrust and CUB annotate their algorithms with NVTX,
+  # which uses dlopen and requires `-ldl` before glibc 2.34
   target_link_libraries(ExtThrust INTERFACE ${CMAKE_DL_LIBS})
 endif()
 

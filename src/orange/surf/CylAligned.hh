@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -86,8 +88,8 @@ class CylAligned
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type();
 
-    //! Safety is intersection along surface normal
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+    //! Safety is the radial distance to the surface
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
     //!@{
     //! Axes
@@ -146,6 +148,9 @@ class CylAligned
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Off-axis location
@@ -287,6 +292,24 @@ CELER_FUNCTION auto CylAligned<T>::calc_gradient(Real3 const& pos) const
     norm[to_int(V)] = pos[to_int(V)] - origin_v_;
 
     return Gradient{norm};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * This is the magnitude of the radial displacement from the surface:
+ * \f$ | |\mathbf{x} - \mathbf{x}_0| - R | \f$ in the plane perpendicular
+ * to the axis.
+ */
+template<Axis T>
+CELER_FUNCTION real_type CylAligned<T>::calc_safety(Real3 const& pos) const
+{
+    real_type const u = pos[to_int(U)] - origin_u_;
+    real_type const v = pos[to_int(V)] - origin_v_;
+
+    return std::fabs(
+        std::sqrt(ipow<2>(u) + ipow<2>(v)) - std::sqrt(radius_sq_));
 }
 
 //---------------------------------------------------------------------------//

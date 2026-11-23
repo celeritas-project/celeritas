@@ -223,6 +223,26 @@ TEST(ConeAlignedTest, degenerate_boundary)
     }
 }
 
+TEST(ConeAlignedTest, safety)
+{
+    // Opening angle with tan = 0.5, so that cos = 1 / sqrt(1.25)
+    ConeZ cone{{1, 2, 3}, 0.5};
+    real_type const inv_sec = 1 / std::sqrt(real_type(1.25));
+
+    // On the surface
+    EXPECT_SOFT_EQ(0, cone.calc_safety({2, 2, 5}));
+    // Outside, far from the axis
+    EXPECT_SOFT_EQ(3 * inv_sec, cone.calc_safety({5, 2, 5}));
+    // Outside, nearly level with the vanishing point
+    EXPECT_SOFT_EQ(2.75 * inv_sec, cone.calc_safety({4, 2, 3.5}));
+    // Inside the lower sheet
+    EXPECT_SOFT_EQ(1 * inv_sec, cone.calc_safety({1, 3, -1}));
+    // On the axis, where the normal is undefined
+    EXPECT_SOFT_EQ(2 * inv_sec, cone.calc_safety({1, 2, 7}));
+    // At the vanishing point
+    EXPECT_SOFT_EQ(0, cone.calc_safety({1, 2, 3}));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

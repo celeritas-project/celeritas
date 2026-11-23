@@ -103,6 +103,16 @@ TEST_F(PlaneTest, tracking)
               calc_intersection(p, x, dir, SurfaceState::on));
 }
 
+TEST_F(PlaneTest, safety)
+{
+    // Rotated plane through (2, 2, 0)
+    Plane p{{inv_sqrt_two, inv_sqrt_two, 0.0}, 2.0_r * constants::sqrt_two};
+
+    EXPECT_SOFT_EQ(2 * constants::sqrt_two, p.calc_safety(Real3{0, 0, 10}));
+    EXPECT_SOFT_EQ(constants::sqrt_two, p.calc_safety(Real3{3, 3, -1}));
+    EXPECT_SOFT_EQ(0.0, p.calc_safety(Real3{4, 0, 5}));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
@@ -88,6 +90,9 @@ class PlaneAligned
 
     // Evaluate the gradient at a point
     inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     //! Intersection with the axis
@@ -221,6 +226,19 @@ CELER_FUNCTION auto PlaneAligned<T>::calc_gradient(Real3 const&) const
     -> Gradient
 {
     return Gradient{this->calc_normal()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * This is the magnitude of the displacement along the normal:
+ * \f$ |\hat{n} \cdot \mathbf{x} - d| \f$.
+ */
+template<Axis T>
+CELER_FUNCTION real_type PlaneAligned<T>::calc_safety(Real3 const& pos) const
+{
+    return std::fabs(this->calc_value(pos));
 }
 
 //---------------------------------------------------------------------------//
