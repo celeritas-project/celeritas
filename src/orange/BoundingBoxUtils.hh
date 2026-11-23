@@ -269,6 +269,36 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the square of the distance from a point to a bounding box.
+ *
+ * The result is zero if the point is inside or on the bounding box.
+ */
+template<class T>
+inline CELER_FUNCTION T calc_squared_distance(BoundingBox<T> const& bbox,
+                                              Array<T, 3> const& pos)
+{
+    CELER_EXPECT(bbox);
+
+    T result{0};
+    for (auto ax : range(Axis::size_))
+    {
+        T const p = pos[to_int(ax)];
+        T const lo = bbox.point(Bound::lo, ax);
+        T const hi = bbox.point(Bound::hi, ax);
+        if (p < lo)
+        {
+            result += ipow<2>(lo - p);
+        }
+        else if (p > hi)
+        {
+            result += ipow<2>(p - hi);
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Check if a line segment \em may intersect a bounding box.
  *
  * The line segment is defined from \c pos in direction \c dir with length

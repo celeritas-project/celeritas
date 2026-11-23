@@ -14,6 +14,7 @@
 #include "orange/SenseUtils.hh"
 #include "orange/detail/BvhEnclosingVolFinder.hh"
 #include "orange/detail/BvhIntersectingVolFinder.hh"
+#include "orange/detail/BvhSafetyCalculator.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/InfixEvaluator.hh"
@@ -111,9 +112,9 @@ class SimpleUnitTracker
     inline CELER_FUNCTION Intersection intersect(LocalState const& state,
                                                  real_type max_dist) const;
 
-    // Calculate closest distance to a surface in any direction
-    inline CELER_FUNCTION real_type safety(Real3 const& pos,
-                                           LocalVolumeId vol) const;
+    // Calculate nearby distance to a surface in any direction
+    inline CELER_FUNCTION real_type safety(
+        Real3 const& pos, LocalVolumeId vol, real_type max_dist) const;
 
     // Calculate the local surface normal
     inline CELER_FUNCTION Real3 normal(Real3 const& pos,
@@ -141,6 +142,11 @@ class SimpleUnitTracker
         LocalState const&, VolumeView const&, size_type, Sense, real_type) const;
     inline CELER_FUNCTION Intersection background_intersect(LocalState const&,
                                                             real_type) const;
+
+    inline CELER_FUNCTION real_type simple_safety(Real3 const&,
+                                                  VolumeView const&) const;
+    inline CELER_FUNCTION real_type background_safety(Real3 const&,
+                                                      real_type) const;
 
     // Create a Surfaces object from the params
     inline CELER_FUNCTION LocalSurfaceVisitor make_surface_visitor() const;
@@ -381,39 +387,26 @@ CELER_FUNCTION auto SimpleUnitTracker::intersect(
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate nearest distance to a surface in any direction.
+ * Calculate a lower bound on the distance to a surface in any direction.
  *
- * The safety calculation uses a very limited method for calculating the safety
- * distance: it's the nearest distance to any surface, for a certain subset of
- * surfaces.  Other surface types will return a safety distance of zero.
- * Complex surfaces might return the distance to internal surfaces that do not
- * represent the edge of a volume. Such distances are conservative but will
- * necessarily slow down the simulation.
+ * For an implicit background volume, search nearby volumes using
+ * \c background_safety, limited by \c max_dist. Otherwise, calculate
+ * \c simple_safety for the given volume. The result is no larger than
+ * \c max_dist.
  */
-CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
-                                                   LocalVolumeId vol_id) const
+CELER_FUNCTION real_type SimpleUnitTracker::safety(
+    Real3 const& pos, LocalVolumeId vol_id, real_type max_dist) const
 {
     CELER_EXPECT(vol_id);
+    CELER_EXPECT(max_dist > 0);
 
     VolumeView vol = this->make_local_volume(vol_id);
-    if (!vol.simple_safety())
+    if (vol.implicit_vol())
     {
-        // Has a tricky surface: we can't use the simple algorithm to calculate
-        // the safety, so return a conservative estimate.
-        return 0;
+        // Search nearby volumes "externally"
+        return this->background_safety(pos, max_dist);
     }
-
-    // Calculate minimum distance to all local faces
-    real_type result = numeric_limits<real_type>::infinity();
-    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
-    detail::CalcSafetyDistance calc_safety{pos};
-    for (LocalSurfaceId surface : vol.faces())
-    {
-        result = celeritas::min(result, visit_surface(calc_safety, surface));
-    }
-
-    CELER_ENSURE(result >= 0);
-    return result;
+    return celeritas::min(this->simple_safety(pos, vol), max_dist);
 }
 
 //---------------------------------------------------------------------------//
@@ -715,6 +708,64 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
 
     return find_intersection(
         {state.pos, state.dir}, is_intersecting, max_distance);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate a lower bound on the distance to a surface in any direction.
+ *
+ * For each face, calculate a conservative estimate of the distance to its
+ * surface. Some surface types provide exact distances, while others provide
+ * lower bounds. If any surface does not support safety calculations this will
+ * return zero. Complex surfaces might return the distance to internal surfaces
+ * that do not represent the edge of a volume.
+ */
+CELER_FUNCTION real_type SimpleUnitTracker::simple_safety(
+    Real3 const& pos, VolumeView const& vol) const
+{
+    if (!vol.simple_safety())
+    {
+        // Has a surface that doesn't have a simple algorithm to calculate the
+        // safety, so return a conservative estimate.
+        return 0;
+    }
+
+    // Calculate minimum distance to all local faces
+    real_type result = numeric_limits<real_type>::infinity();
+    LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
+    detail::CalcSafetyDistance calc_safety{pos};
+    for (LocalSurfaceId surface : vol.faces())
+    {
+        result = celeritas::min(result, visit_surface(calc_safety, surface));
+    }
+
+    CELER_ENSURE(result >= 0);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the safety from the background volume to any other volume.
+ *
+ * The background is everything in the unit that is outside the other volumes,
+ * so its safety is the distance to the nearest of them. This function is
+ * accelerated by the BVH, which skips volumes whose bounding boxes are further
+ * than the nearest distance found so far or the maximum search distance. The
+ * distance to a volume is bounded from below by both the distance to its
+ * bounding box and its \c simple_safety, so the larger is used. In contrast
+ * to the simple safety alone, the result can be nonzero for a volume with any
+ * surface type as long as the point is outside its bounding box.
+ */
+CELER_FUNCTION real_type SimpleUnitTracker::background_safety(
+    Real3 const& pos, real_type max_dist) const
+{
+    auto calc_simple_safety = [this, &pos](LocalVolumeId vol_id) {
+        return this->simple_safety(pos, this->make_local_volume(vol_id));
+    };
+
+    detail::BvhSafetyCalculator calc_safety{unit_record_.bvh_tree,
+                                            params_.bvh_tree_data};
+    return calc_safety(pos, calc_simple_safety, max_dist);
 }
 
 //---------------------------------------------------------------------------//
