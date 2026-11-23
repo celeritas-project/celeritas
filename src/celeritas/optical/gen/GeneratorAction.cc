@@ -94,7 +94,8 @@ void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
     for (auto const& d : data)
     {
         CELER_VALIDATE(d, << "invalid optical step distribution " << d);
-        if (d.points[StepPoint::pre].pos == d.points[StepPoint::post].pos)
+        if (d.type == GeneratorType::cherenkov
+            && d.points[StepPoint::pre].pos == d.points[StepPoint::post].pos)
         {
             // TODO: if we buffer this on the host, it might be better to fix
             // here rather than for every track in CherenkovOffload (see
@@ -102,6 +103,17 @@ void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
             CELER_LOG_LOCAL(warning)
                 << "Optical generator distribution data has undefined "
                    "direction due to coincident start/stop points: "
+                << d;
+        }
+        if (d.type == GeneratorType::scintillation
+            && d.points[StepPoint::pre].time == d.points[StepPoint::post].time)
+        {
+            // Photons will be emitted instantaneously at a single time
+            // (a delta distribution), e.g. because a short step has lost its
+            // time resolution in single precision
+            CELER_LOG_LOCAL(warning)
+                << "Scintillation distribution data has identical pre- and "
+                   "post-step times: "
                 << d;
         }
         num_photons += d.num_photons;
