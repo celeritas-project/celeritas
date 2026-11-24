@@ -27,6 +27,10 @@ namespace celeritas
  *
  * This samples the energy according to the Bragg and ICRU73QO models, as
  * described in \cite{g4prm} (release 11.2, section 11.1).
+ *
+ * As in \c G4BraggModel and \c G4ICRU73QOModel, the minimum delta ray energy
+ * is the larger of the production cut and the model's lowest kinetic energy
+ * scaled by the ratio of the incident particle mass to the proton mass.
  */
 class BraggICRU73QOEnergyDistribution
 {
@@ -96,7 +100,7 @@ CELER_FUNCTION BraggICRU73QOEnergyDistribution::BraggICRU73QOEnergyDistribution(
     : inc_mass_(value_as<Mass>(particle.mass()))
     , beta_sq_(particle.beta_sq())
     , min_energy_(
-          min(electron_cutoff,
+          max(electron_cutoff,
               Energy(value_as<Energy>(particle.charge() < zero_quantity()
                                           ? icru73qo_lowest_kin_energy()
                                           : bragg_lowest_kin_energy())
