@@ -12,8 +12,6 @@
 #include "corecel/inp/Distributions.hh"
 #include "celeritas/inp/OpticalPhysics.hh"
 
-class G4Scintillation;
-
 namespace celeritas
 {
 namespace detail
@@ -24,22 +22,20 @@ class GeantOpticalMatHelper;
 /*!
  * Populate \c inp::ScintillationProcess data for one optical material.
  *
- * Construct with a reference to the process data to be filled and the
- * Geant4 scintillation process. Call \c operator() for each optical material.
+ * Construct with a reference to the process data to be filled. Call
+ * \c operator() for each optical material.
  */
 class GeantScintillationLoader
 {
   public:
-    // Construct with scintillation process to populate
-    GeantScintillationLoader(inp::ScintillationProcess& process,
-                             G4Scintillation const& g4process);
+    //! Construct with scintillation process to populate
+    explicit GeantScintillationLoader(inp::ScintillationProcess& process);
 
     //! Load scintillation data for one optical material
     void operator()(GeantOpticalMatHelper const& helper);
 
   private:
     inp::ScintillationProcess& process_;
-    bool finite_rise_time_;
 
     //// HELPER FUNCTIONS ////
 

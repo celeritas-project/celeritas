@@ -9,7 +9,6 @@
 #include <string>
 #include <G4Material.hh>
 #include <G4MaterialPropertiesTable.hh>
-#include <G4Scintillation.hh>
 #include <G4SystemOfUnits.hh>
 
 #include "celeritas/Units.hh"
@@ -52,7 +51,7 @@ class GeantScintillationLoaderTest : public ::celeritas::test::Test
     inp::ScintillationMaterial load(G4Material const* mat)
     {
         inp::ScintillationProcess process;
-        GeantScintillationLoader load_material{process, g4scint_};
+        GeantScintillationLoader load_material{process};
         OptMatId const id{0};
         load_material(GeantOpticalMatHelper{id, mat});
         EXPECT_EQ(1, process.materials.size());
@@ -60,7 +59,6 @@ class GeantScintillationLoaderTest : public ::celeritas::test::Test
     }
 
     G4MaterialPropertiesTable* mpt_{nullptr};
-    G4Scintillation g4scint_;
 };
 
 //---------------------------------------------------------------------------//
@@ -88,21 +86,16 @@ TEST_F(GeantScintillationLoaderTest, default_zero_yield)
 }
 
 //---------------------------------------------------------------------------//
-// Geant4 ignores the rise time unless finite rise time is enabled
+// The loader always reads the rise time from the material properties: the
+// Geant4 finite rise time setting is applied by GeantPhysicsLoader
 TEST_F(GeantScintillationLoaderTest, rise_time)
 {
     auto* mat = this->make_material("rise_time");
 
-    g4scint_.SetFiniteRiseTime(false);
     auto scint = this->load(mat);
     ASSERT_EQ(1, scint.components.size());
-    EXPECT_EQ(0, scint.components[0].rise_time);
-    EXPECT_SOFT_EQ(10 * units::nanosecond, scint.components[0].fall_time);
-
-    g4scint_.SetFiniteRiseTime(true);
-    scint = this->load(mat);
-    ASSERT_EQ(1, scint.components.size());
     EXPECT_SOFT_EQ(1 * units::nanosecond, scint.components[0].rise_time);
+    EXPECT_SOFT_EQ(10 * units::nanosecond, scint.components[0].fall_time);
 }
 
 //---------------------------------------------------------------------------//

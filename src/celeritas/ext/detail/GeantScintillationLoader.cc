@@ -7,7 +7,6 @@
 #include "GeantScintillationLoader.hh"
 
 #include <vector>
-#include <G4Scintillation.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -24,13 +23,10 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Construct with a reference to the scintillation process to populate.
- *
- * As in Geant4, the scintillation rise times are only used if the Geant4
- * process has finite rise time enabled.
  */
 GeantScintillationLoader::GeantScintillationLoader(
-    inp::ScintillationProcess& process, G4Scintillation const& g4process)
-    : process_{process}, finite_rise_time_{g4process.GetFiniteRiseTime()}
+    inp::ScintillationProcess& process)
+    : process_{process}
 {
 }
 
@@ -100,11 +96,6 @@ void GeantScintillationLoader::load_one(GeantOpticalMatHelper const& helper)
         {
             // Component emits no photons
             continue;
-        }
-        if (!finite_rise_time_)
-        {
-            // Geant4 ignores the rise time
-            s->rise_time = 0;
         }
         renorm_yield += s->yield;
         scint_mat.components.push_back(std::move(*s));
