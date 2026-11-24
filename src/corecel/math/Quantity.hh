@@ -70,7 +70,7 @@ class Constant;
  * \code
     struct DozenUnit
     {
-        static constexpr int value() { return 12; }
+        static CELER_CONSTEXPR_FUNCTION int value() { return 12; }
         static constexpr char const* label() { return "dozen"; }
     };
    \endcode

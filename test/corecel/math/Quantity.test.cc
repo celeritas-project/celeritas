@@ -129,12 +129,25 @@ TEST(QuantityTest, mixed_precision)
         auto promoted = DozenFlt{2} * 0.5;
         EXPECT_TRUE((std::is_same_v<decltype(promoted), DozenDbl>));
         EXPECT_DOUBLE_EQ(1, promoted.value());
+
+        auto same = DozenFlt{2} * 0.5f;
+        EXPECT_TRUE((std::is_same_v<decltype(same), DozenFlt>));
+        EXPECT_FLOAT_EQ(1, same.value());
     }
     {
         using DoubleUnitDozenFlt = Quantity<DoubleDozenUnit, float>;
         auto two_dozen_flt = native_value_from(DoubleUnitDozenFlt{2});
         EXPECT_TRUE((std::is_same_v<decltype(two_dozen_flt), float>));
         EXPECT_FLOAT_EQ(24, two_dozen_flt);
+
+        auto promoted = DoubleUnitDozenFlt{2} * 0.5;
+        EXPECT_TRUE((std::is_same_v<decltype(promoted),
+                                    Quantity<DoubleDozenUnit, double>>));
+        EXPECT_DOUBLE_EQ(1, promoted.value());
+
+        auto same = DoubleUnitDozenFlt{2} * 2;
+        EXPECT_TRUE((std::is_same_v<decltype(same), DoubleUnitDozenFlt>));
+        EXPECT_FLOAT_EQ(4, same.value());
     }
     {
         using Float3 = Array<float, 3>;
