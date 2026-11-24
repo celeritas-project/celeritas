@@ -435,6 +435,8 @@ CELER_FUNCTION auto SimpleUnitTracker::normal(
             return result.value();
         },
         surf);
+    // Keep normalization outside the visitor so the plane path preserves its
+    // precomputed normal without forcing every surface through a square root.
     if (!is_normalized)
     {
         result = make_unit_vector(result);

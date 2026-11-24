@@ -125,6 +125,10 @@ TEST(QuantityTest, mixed_precision)
         DozenFlt demoted{4};
         demoted = DozenDbl{6.5};
         EXPECT_FLOAT_EQ(6.5f, demoted.value());
+
+        auto promoted = DozenFlt{2} * 0.5;
+        EXPECT_TRUE((std::is_same_v<decltype(promoted), DozenDbl>));
+        EXPECT_DOUBLE_EQ(1, promoted.value());
     }
     {
         using DoubleUnitDozenFlt = Quantity<DoubleDozenUnit, float>;

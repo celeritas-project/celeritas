@@ -21,7 +21,7 @@ namespace detail
  */
 struct Linear
 {
-    static constexpr int value() { return 1; }
+    static CELER_CONSTEXPR_FUNCTION int value() { return 1; }
     static constexpr char const* label() { return "linear"; }
 };
 
@@ -31,7 +31,7 @@ struct Linear
  */
 struct Quadratic
 {
-    static constexpr int value() { return 2; }
+    static CELER_CONSTEXPR_FUNCTION int value() { return 2; }
     static constexpr char const* label() { return "quadratic"; }
 };
 
@@ -41,7 +41,7 @@ struct Quadratic
  */
 struct Quartic
 {
-    static constexpr int value() { return 4; }
+    static CELER_CONSTEXPR_FUNCTION int value() { return 4; }
     static constexpr char const* label() { return "quartic"; }
 };
 
