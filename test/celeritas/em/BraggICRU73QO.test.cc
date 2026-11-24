@@ -243,7 +243,7 @@ TEST_F(BraggICRU73QOTest, min_energy)
             bragg_model_->host_ref().electron_mass);
         EXPECT_SOFT_NEAR((pdg == pdg::mu_minus() ? 5e-3 : 2.5e-4) * mass_ratio,
                          sample_low.min_secondary_energy().value(),
-                         1e-6);
+                         coarse_eps);
     }
 }
 
