@@ -260,6 +260,35 @@ TEST(RotateTest, neg_z)
     EXPECT_VEC_SOFT_EQ(expected, rotate(scatter, {0.0, 0.0, 1.0}));
 }
 
+TEST(RotateTest, near_z)
+{
+    // Incident directions close enough to +/-z to use the normalized x/y
+    // calculation, in all four x/y quadrants
+    for (Dbl3 const& v : {Dbl3{3e-3, 4e-3, 1},
+                          Dbl3{-3e-3, 4e-3, 1},
+                          Dbl3{-3e-3, -4e-3, 1},
+                          Dbl3{3e-3, -4e-3, 1},
+                          Dbl3{3e-3, -4e-3, -1},
+                          Dbl3{-3e-3, -4e-3, -1}})
+    {
+        Dbl3 const rot = make_unit_vector(v);
+        SCOPED_TRACE(rot);
+
+        // Unrotated direction maps onto the rotation axis
+        EXPECT_VEC_SOFT_EQ(rot, rotate(Dbl3{0, 0, 1}, rot));
+
+        // Polar angle with respect to the rotation axis is preserved
+        for (double costheta : {0.9, 0.0, -0.5})
+        {
+            for (double phi : {0.0, 1.0, 4.0})
+            {
+                auto result = rotate(from_spherical(costheta, phi), rot);
+                EXPECT_SOFT_EQ(costheta, dot_product(result, rot));
+            }
+        }
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
