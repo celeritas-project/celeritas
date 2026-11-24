@@ -7,7 +7,6 @@
 #include "celeritas/ext/detail/GeantScintillationLoader.hh"
 
 #include <string>
-#include <vector>
 #include <G4Material.hh>
 #include <G4MaterialPropertiesTable.hh>
 #include <G4Scintillation.hh>
@@ -44,9 +43,10 @@ class GeantScintillationLoaderTest : public ::celeritas::test::Test
 
     void add_component(char const* name)
     {
-        std::vector<double> energy{2 * eV, 3 * eV};
-        std::vector<double> value{1, 1};
-        mpt_->AddProperty(name, energy, value);
+        // Use the array overload, which is available for Geant4 10
+        double energy[] = {2 * eV, 3 * eV};
+        double value[] = {1, 1};
+        mpt_->AddProperty(name, energy, value, 2);
     }
 
     inp::ScintillationMaterial load(G4Material const* mat)
