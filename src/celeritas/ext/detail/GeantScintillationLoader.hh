@@ -50,7 +50,8 @@ class GeantScintillationLoader
     static std::optional<inp::ScintillationSpectrum> load_spectrum(
         GeantMaterialPropertyGetter const& get,
         std::string const& prefix,
-        std::string const& suffix);
+        std::string const& suffix,
+        double default_yield);
 };
 
 //---------------------------------------------------------------------------//
