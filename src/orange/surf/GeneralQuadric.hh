@@ -12,11 +12,13 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/Quantity.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
 #include "detail/QuadricSafetyCalculator.hh"
+#include "detail/Quantity.hh"
 
 namespace celeritas
 {
@@ -78,6 +80,7 @@ class GeneralQuadric
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 10>;
     using SpanConstReal3 = Span<real_type const, 3>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -90,12 +93,6 @@ class GeneralQuadric
 
     //! Safety is a lower bound on the distance to the surface
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
-
-    //! Gradient does not have unit length
-    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient()
-    {
-        return false;
-    }
 
   public:
     //// CONSTRUCTORS ////
@@ -146,7 +143,7 @@ class GeneralQuadric
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
     // Calculate a lower bound on the distance to the surface
     inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
@@ -241,22 +238,23 @@ CELER_FUNCTION auto GeneralQuadric::calc_intersections(
  */
 CELER_FUNCTION Real3 GeneralQuadric::calc_normal(Real3 const& pos) const
 {
-    return make_unit_vector(this->calc_gradient(pos));
+    return make_unit_vector(this->calc_gradient(pos).value());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the gradient at a point.
  */
-CELER_FUNCTION Real3 GeneralQuadric::calc_gradient(Real3 const& pos) const
+CELER_FUNCTION auto GeneralQuadric::calc_gradient(Real3 const& pos) const
+    -> Gradient
 {
     real_type const x = pos[to_int(Axis::x)];
     real_type const y = pos[to_int(Axis::y)];
     real_type const z = pos[to_int(Axis::z)];
 
-    return {2 * a_ * x + d_ * y + f_ * z + g_,
-            2 * b_ * y + d_ * x + e_ * z + h_,
-            2 * c_ * z + e_ * y + f_ * x + i_};
+    return Gradient{Real3{a_ * x + (d_ * y + f_ * z + g_) / 2,
+                          b_ * y + (d_ * x + e_ * z + h_) / 2,
+                          c_ * z + (e_ * y + f_ * x + i_) / 2}};
 }
 
 //---------------------------------------------------------------------------//
@@ -275,7 +273,8 @@ CELER_FUNCTION real_type GeneralQuadric::calc_safety(Real3 const& pos) const
     detail::QuadricSafetyCalculator calc_safety{
         celeritas::min(a_ - rx, celeritas::min(b_ - ry, c_ - rz)),
         celeritas::max(a_ + rx, celeritas::max(b_ + ry, c_ + rz))};
-    return calc_safety(this->calc_value(pos), this->calc_gradient(pos));
+    return calc_safety(this->calc_value(pos),
+                       native_value_from(this->calc_gradient(pos)));
 }
 
 //---------------------------------------------------------------------------//

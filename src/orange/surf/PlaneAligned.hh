@@ -16,6 +16,8 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
+#include "detail/Quantity.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -30,6 +32,7 @@ class PlaneAligned
     //! \name Type aliases
     using Intersections = Array<real_type, 1>;
     using StorageSpan = Span<real_type const, 1>;
+    using Gradient = detail::ScaledReal3<detail::Linear>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -39,9 +42,6 @@ class PlaneAligned
 
     //! Safety is intersection along surface normal
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
-
-    //! Gradient has unit length
-    static CELER_CONSTEXPR_FUNCTION bool normalized_gradient() { return true; }
 
   public:
     //// CONSTRUCTORS ////
@@ -89,7 +89,7 @@ class PlaneAligned
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
 
     // Evaluate the gradient at a point
-    inline CELER_FUNCTION Real3 calc_gradient(Real3 const& pos) const;
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
 
     // Calculate the distance to the nearest point on the surface
     inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
@@ -214,7 +214,7 @@ CELER_FUNCTION auto PlaneAligned<T>::calc_intersections(
 template<Axis T>
 CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(Real3 const&) const
 {
-    return this->calc_gradient({});
+    return this->calc_gradient({}).value();
 }
 
 //---------------------------------------------------------------------------//
@@ -222,9 +222,10 @@ CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal(Real3 const&) const
  * Calculate the gradient at a point.
  */
 template<Axis T>
-CELER_FUNCTION Real3 PlaneAligned<T>::calc_gradient(Real3 const&) const
+CELER_FUNCTION auto PlaneAligned<T>::calc_gradient(Real3 const&) const
+    -> Gradient
 {
-    return this->calc_normal();
+    return Gradient{this->calc_normal()};
 }
 
 //---------------------------------------------------------------------------//

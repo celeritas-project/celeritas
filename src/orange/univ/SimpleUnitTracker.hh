@@ -422,10 +422,14 @@ CELER_FUNCTION auto SimpleUnitTracker::normal(
     bool is_normalized{false};
     Real3 result = visit_surface(
         [&pos, &is_normalized](auto&& s) {
-            is_normalized = s.normalized_gradient();
-            return s.calc_gradient(pos);
+            auto result = s.calc_gradient(pos);
+            // Only planes have a unit factor: their gradient is pre-normalized
+            is_normalized = decltype(result)::unit_type::value() == 1;
+            return result.value();
         },
         surf);
+    // Keep normalization *outside* the visitor to share code path across
+    // quadric surfaces.
     if (!is_normalized)
     {
         result = make_unit_vector(result);
