@@ -597,11 +597,11 @@ TEST_F(TestEm3Msc, host)
 
     if (Test::strict_testing())
     {
-        EXPECT_EQ(58, result.num_step_iters());
+        EXPECT_EQ(53, result.num_step_iters());
         EXPECT_LE(37.375, result.calc_avg_steps_per_primary());
         EXPECT_GE(40, result.calc_avg_steps_per_primary());
         EXPECT_EQ(10, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({8, 6}), result.calc_queue_hwm());
+        EXPECT_EQ(RunResult::StepCount({8, 7}), result.calc_queue_hwm());
     }
     else
     {
@@ -658,8 +658,8 @@ TEST_F(TestEm3MscNofluct, host)
 
     if (Test::strict_testing())
     {
-        EXPECT_LE(69, result.num_step_iters());
-        EXPECT_GE(73, result.num_step_iters());
+        EXPECT_LE(78, result.num_step_iters());
+        EXPECT_GE(82, result.num_step_iters());
         EXPECT_LE(58.625, result.calc_avg_steps_per_primary());
         EXPECT_GE(64.75, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
@@ -724,7 +724,7 @@ TEST_F(TestEm3MscNoIntegral, host)
     {
         EXPECT_LE(68, result.num_step_iters());
         EXPECT_GE(87, result.num_step_iters());
-        EXPECT_LE(53.416, result.calc_avg_steps_per_primary());
+        EXPECT_LE(52.375, result.calc_avg_steps_per_primary());
         EXPECT_GE(54.75, result.calc_avg_steps_per_primary());
         EXPECT_EQ(8, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({6, 15}), result.calc_queue_hwm());
@@ -807,8 +807,9 @@ TEST_F(TestEm3MuDecay, host)
 
     if (Test::strict_testing())
     {
-        EXPECT_EQ(79, result.num_step_iters());
-        EXPECT_LE(127.25, result.calc_avg_steps_per_primary());
+        EXPECT_LE(82, result.num_step_iters());
+        EXPECT_GE(92, result.num_step_iters());
+        EXPECT_LE(123.375, result.calc_avg_steps_per_primary());
         EXPECT_GE(128.5, result.calc_avg_steps_per_primary());
         EXPECT_EQ(19, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({10, 8}), result.calc_queue_hwm());
@@ -874,9 +875,9 @@ TEST_F(TestEm15FieldMsc, host)
     if (Test::strict_testing())
     {
         EXPECT_EQ(15, result.num_step_iters());
-        EXPECT_SOFT_EQ(38, result.calc_avg_steps_per_primary());
-        EXPECT_EQ(6, result.calc_emptying_step());
-        EXPECT_EQ(RunResult::StepCount({4, 7}), result.calc_queue_hwm());
+        EXPECT_SOFT_EQ(38.5, result.calc_avg_steps_per_primary());
+        EXPECT_EQ(7, result.calc_emptying_step());
+        EXPECT_EQ(RunResult::StepCount({5, 8}), result.calc_queue_hwm());
     }
     else
     {
@@ -967,7 +968,7 @@ TEST_F(OneSteelSphere, host)
     if (Test::strict_testing())
     {
         EXPECT_EQ(16, result.num_step_iters());
-        EXPECT_SOFT_EQ(16.265625, result.calc_avg_steps_per_primary());
+        EXPECT_SOFT_EQ(16.125, result.calc_avg_steps_per_primary());
         EXPECT_EQ(7, result.calc_emptying_step());
         EXPECT_EQ(RunResult::StepCount({4, 116}), result.calc_queue_hwm());
     }

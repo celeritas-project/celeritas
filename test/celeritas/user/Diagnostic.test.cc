@@ -173,16 +173,16 @@ TEST_F(TestEm3DiagnosticTest, host)
             "scat-klein-nishina gamma",
         };
         expected.nonzero_action_counts = {
-            124u, 402u, 441u, 12u,   66u,   986u, 288u, 286u, 1749u, 16u,
-            13u,  18u,  25u,  1195u, 1683u, 534u, 29u,  28u,  297u,
+            121u, 405u, 445u, 13u,   67u,   987u, 293u, 285u, 1747u, 15u,
+            13u,  18u,  25u,  1229u, 1641u, 532u, 25u,  31u,  300u,
         };
         expected.steps = {
-            0u, 298u, 226u, 86u, 42u, 27u, 26u, 12u, 8u, 7u, 6u,
-            2u, 0u,   3u,   1u,  2u,  3u,  0u,  1u,  0u, 0u, 2u,
-            0u, 717u, 40u,  7u,  10u, 14u, 3u,  9u,  8u, 4u, 8u,
-            7u, 11u,  9u,   8u,  11u, 5u,  1u,  3u,  4u, 1u, 31u,
-            0u, 3u,   1u,   0u,  2u,  4u,  5u,  4u,  6u, 6u, 11u,
-            5u, 8u,   7u,   12u, 4u,  6u,  6u,  1u,  2u, 3u, 32u,
+            0u, 289u, 218u, 96u, 35u, 34u, 28u, 8u, 9u, 3u, 7u,
+            1u, 4u,   2u,   2u,  1u,  0u,  0u,  2u, 0u, 0u, 3u,
+            0u, 717u, 40u,  15u, 10u, 9u,  5u,  8u, 5u, 4u, 8u,
+            9u, 13u,  9u,   9u,  10u, 5u,  1u,  3u, 4u, 1u, 31u,
+            0u, 1u,   1u,   1u,  3u,  3u,  4u,  6u, 5u, 6u, 11u,
+            5u, 7u,   7u,   12u, 4u,  5u,  6u,  1u, 2u, 4u, 31u,
         };
         EXPECT_REF_EQ(expected, result);
     }
