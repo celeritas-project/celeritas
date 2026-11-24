@@ -46,6 +46,12 @@ G4VParticleChange& HadronicInteractor::operator()(G4Track& track)
     CELER_EXPECT(track.GetParticleDefinition() == &particle_);
 
     process_->StartTracking(&track);
+    // PostStepGetPhysicalInteractionLength has the side effect of evaluating
+    // the cross sections for this track. PostStepDoIt uses the most recently
+    // evaluated ones to sample the target element and, for charged particles,
+    // to reject interactions.
+    G4ForceCondition condition;
+    process_->PostStepGetPhysicalInteractionLength(track, 0.0, &condition);
     auto* result = process_->PostStepDoIt(track, *track.GetStep());
     CELER_ASSERT(result);
 
