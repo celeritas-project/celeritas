@@ -123,6 +123,17 @@ TEST_F(GroupVelocityCalculatorTest, host)
 }
 
 //---------------------------------------------------------------------------//
+// A refractive index needs at least two points to define dn/dE
+TEST_F(GroupVelocityCalculatorTest, single_point)
+{
+    inp::Grid rindex;
+    rindex.x = {3e-6};
+    rindex.y = {1.33};
+    rindex.interpolation.type = InterpolationType::linear;
+    EXPECT_THROW(this->make_material(std::move(rindex)), RuntimeError);
+}
+
+//---------------------------------------------------------------------------//
 // Test clamping at the lower endpoint of the refractive-index grid. Photon
 // energies below the grid are clamped to its first energy, and group velocity
 // is evaluated using the endpoint refractive index and the one-sided slope of

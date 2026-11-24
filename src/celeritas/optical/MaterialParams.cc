@@ -113,6 +113,10 @@ MaterialParams::MaterialParams(Input const& inp)
             ri,
             << "no refractive index data is defined for optical material "
             << opt_mat_idx);
+        CELER_VALIDATE(ri.x.size() >= 2,
+                       << "refractive index for optical material "
+                       << opt_mat_idx << " has " << ri.x.size()
+                       << " point(s) but at least 2 are required");
         CELER_VALIDATE(is_monotonic_increasing(make_span(ri.x)),
                        << "refractive index energy grid values are not "
                           "monotonically increasing");
