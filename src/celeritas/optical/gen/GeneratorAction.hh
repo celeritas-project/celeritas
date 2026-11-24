@@ -34,9 +34,7 @@ class CoreStateBase;
 template<MemSpace M, template<MemSpace> class GenerateState>
 auto make_state(StreamId stream, size_type size)
 {
-    auto result = std::make_unique<GenerateState<M>>();
-    using StoreT = decltype(result->store);
-    result->store = StoreT{stream, size};
+    auto result = std::make_unique<GenerateState<M>>(stream, size);
 
     CELER_ENSURE(*result);
     return result;

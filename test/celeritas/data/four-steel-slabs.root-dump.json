@@ -482,6 +482,13 @@
     "_typename" : "celeritas::inp::AtomicRelaxation",
     "atomic_xs" : []
   },
+  "decay_physics" : {
+    "_typename" : "celeritas::inp::DecayPhysics",
+    "muon" : {
+      "_typename" : "celeritas::inp::MuonDecay",
+      "parents" : []
+    }
+  },
   "mucf_physics" : {
     "_typename" : "celeritas::inp::MucfPhysics",
     "scalars" : {

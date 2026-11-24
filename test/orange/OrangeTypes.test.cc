@@ -70,7 +70,7 @@ TEST(Tolerance, single)
         auto const tol = TolT::from_default();
         EXPECT_TRUE(tol);
         EXPECT_SOFT_NEAR(
-            std::sqrt(std::numeric_limits<float>::epsilon()), tol.rel, 0.1);
+            std::sqrt(std::numeric_limits<float>::epsilon()), tol.rel, 0.1f);
         EXPECT_SOFT_EQ(tol.rel, tol.abs);
         EXPECT_SOFT_EQ(0.0003f, tol.rel);
     }

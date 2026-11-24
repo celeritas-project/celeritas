@@ -40,6 +40,12 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
         return this->host_ref().max_step_iters;
     }
 
+    //! Surface physics iterations per step for tracks crossing a surface
+    size_type surface_substeps() const
+    {
+        return this->host_ref().surface_substeps;
+    }
+
   private:
     // Host/device storage and reference
     ParamsDataStore<SimParamsData> data_;

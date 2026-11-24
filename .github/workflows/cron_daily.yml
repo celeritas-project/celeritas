@@ -17,6 +17,15 @@ permissions:
   packages: write
 
 jobs:
+  clear-pr-cache:
+    # Delete PR caches older than 48 hours
+    if: ${{ vars.CELER_CI || github.event_name == 'workflow_dispatch' }}
+    permissions:
+      actions: write
+    uses: ./.github/workflows/clear-cache.yml
+    with:
+      ref: "^refs/pull/"
+      age: 2
   build-vecgeom-master:
     # This variable should always be set for celeritas-project, but can also
     # be set by your fork if desired

@@ -51,6 +51,15 @@ class GeantSurfacePhysicsHelper
     // Populate Grid optical property from name, in [MeV, unitless]
     bool get_property(inp::Grid& dst, std::string const& name) const;
 
+    //! Write surface name and surface id to a stream
+    friend std::ostream& operator<<(std::ostream& os,
+                                    GeantSurfacePhysicsHelper const& h)
+    {
+        os << h.property_getter()
+           << " (surface id=" << h.surface_id().unchecked_get() << ")";
+        return os;
+    }
+
   private:
     SurfaceId sid_;
     G4OpticalSurface const* surface_;
@@ -114,18 +123,6 @@ bool GeantSurfacePhysicsHelper::get_property(inp::Grid& dst,
     auto loaded
         = get_property_(dst, name, {ImportUnits::mev, ImportUnits::unitless});
     return loaded;
-}
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-//! Write surface name and surface id to a stream
-inline std::ostream& operator<<(std::ostream& os,
-                                GeantSurfacePhysicsHelper const& helper)
-{
-    os << helper.property_getter()
-       << " (surface id=" << helper.surface_id().unchecked_get() << ")";
-    return os;
 }
 
 //---------------------------------------------------------------------------//

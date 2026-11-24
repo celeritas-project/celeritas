@@ -44,8 +44,9 @@ TrackingAction::TrackingAction(
 void TrackingAction::PreUserTrackingAction(G4Track const* track)
 {
     CELER_EXPECT(track);
-    CELER_EXPECT((params_->mode() == SharedParams::Mode::enabled)
-                 == static_cast<bool>(*transport_));
+    // The transporter may be uninitialized if local setup failed
+    CELER_EXPECT(params_->mode() == SharedParams::Mode::enabled
+                 || !*transport_);
 
     auto const mode = params_->mode();
     if (mode == SharedParams::Mode::disabled)
@@ -56,7 +57,7 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
             particles.begin(), particles.end(), track->GetParticleDefinition())
         != particles.end())
     {
-        if (mode == SharedParams::Mode::enabled)
+        if (mode == SharedParams::Mode::enabled && *transport_)
         {
             // Celeritas is transporting this track
             ExceptionConverter call_g4exception{"celer.track.push",

@@ -173,7 +173,6 @@ G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
@@ -205,7 +204,6 @@ G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
@@ -253,7 +251,6 @@ G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 excepti
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
   CELER_DISABLE_SIGNALS: '0',

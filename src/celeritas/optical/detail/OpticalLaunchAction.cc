@@ -129,20 +129,55 @@ void OpticalLaunchAction::execute_impl(CoreParams const&,
     auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
     CELER_ASSERT(state.size() > 0);
 
-    auto const core_counters = core_state.sync_get_counters();
-    auto const counters = state.sync_get_counters();
-
-    if ((counters.num_pending < data_.auto_flush
-         && (core_counters.num_alive > 0 || core_counters.num_initializers > 0))
-        || counters.num_pending == 0)
+    // Number of pending photons copied at the end of the previous step: the
+    // copy has completed unless the previous step result was not retrieved
+    auto const& counters = state.host_counters().wait();
+    if (counters.num_pending >= data_.auto_flush)
     {
-        // Don't launch the optical loop if the number of pending tracks is
-        // below the threshold and the core stepping loop hasn't completed yet
-        return;
+        // Transport pending optical tracks
+        (*transport_)(state);
     }
 
-    // Transport pending optical tracks
-    (*transport_)(state);
+    // Copy the counters, including the photons offloaded during this step
+    state.async_copy_counters();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport the remaining optical photons with host data.
+ */
+void OpticalLaunchAction::end_transport(CoreParams const&,
+                                        CoreStateHost& state) const
+{
+    this->end_transport_impl(state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport the remaining optical photons with device data.
+ */
+void OpticalLaunchAction::end_transport(CoreParams const&,
+                                        CoreStateDevice& state) const
+{
+    this->end_transport_impl(state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport any optical photons remaining at the end of core transport.
+ */
+template<MemSpace M>
+void OpticalLaunchAction::end_transport_impl(CoreState<M>& core_state) const
+{
+    auto& state = get<optical::CoreState<M>>(core_state.aux(), this->aux_id());
+
+    // The counters were copied at the end of the last step, after all the
+    // photons were offloaded, and the transporter keeps them up to date
+    if (state.host_counters().wait().num_pending > 0)
+    {
+        // Transport pending optical tracks
+        (*transport_)(state);
+    }
 }
 
 //---------------------------------------------------------------------------//

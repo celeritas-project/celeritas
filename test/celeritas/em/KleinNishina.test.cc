@@ -134,7 +134,6 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);
     EXPECT_VEC_SOFT_EQ(expected_costheta_electron, costheta_electron);
-    // PRINT_EXPECTED(energy_electron);
 
     // Next sample should fail because we're out of secondary buffer space
     {
@@ -187,7 +186,6 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
             double(rng_engine.count()) / double(num_particles_sampled));
     }
 
-    // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to RNG
     double const expected_avg_engine_samples[]
         = {10.99816894531, 9.483154296875, 8.295532226562, 8.00439453125};
@@ -236,8 +234,6 @@ TEST_F(KleinNishinaInteractorTest, distributions)
         }
     }
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
-    // PRINT_EXPECTED(eps_dist);
-    // PRINT_EXPECTED(costheta_dist);
     int const expected_eps_dist[]
         = {0, 0, 2010, 1365, 1125, 1067, 1077, 1066, 1123, 1167};
     int const expected_costheta_dist[]

@@ -158,7 +158,6 @@ debug@IntegrationTestBase.cc: Environment variables after setup: {
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
@@ -423,7 +422,7 @@ status@Transporter.cc: Transporting on host
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 info@DistOffloadMixin.cc: Total Geant4 steps: 0 optical, 200 other
 debug@IntegrationSingleton.cc: Destroying local state
-info@LocalOpticalGenOffload.cc: Finalizing Celeritas after 160455 optical steps (over 28 step iterations) from 104418 optical photons generated from 250 distributions
+info@LocalOpticalGenOffload.cc: Finalizing Celeritas after 160458 optical steps (over 28 step iterations) from 104418 optical photons generated from 250 distributions
 status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphereopticaloffload-run-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
@@ -449,7 +448,6 @@ debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }

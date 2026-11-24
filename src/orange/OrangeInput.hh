@@ -218,15 +218,15 @@ struct OrangeInput
         return !universes.empty() && tol && logic != LogicNotation::size_
                && static_cast<bool>(construction_opts);
     }
+
+    //// FRIENDS ////
+
+    // Helper to write the input to a file or stream
+    friend std::ostream& operator<<(std::ostream& os, OrangeInput const&);
+
+    // Helper to read the input from a file or stream
+    friend std::istream& operator>>(std::istream& is, OrangeInput&);
 };
-
-//---------------------------------------------------------------------------//
-// Helper to read the input from a file or stream
-std::istream& operator>>(std::istream& is, OrangeInput&);
-
-//---------------------------------------------------------------------------//
-// Helper to write the input to a file or stream
-std::ostream& operator<<(std::ostream& os, OrangeInput const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

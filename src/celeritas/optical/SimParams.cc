@@ -24,10 +24,16 @@ SimParams::SimParams(inp::OpticalTrackingLimits const& inp)
                    << "maximum step limit " << inp.steps
                    << " is out of range (should be in (0, "
                    << inp::TrackingLimits::unlimited << "])");
+    CELER_VALIDATE(inp.surface_substeps > 0
+                       && inp.surface_substeps < inp::TrackingLimits::unlimited,
+                   << "surface substep count " << inp.surface_substeps
+                   << " is out of range (should be in (0, "
+                   << inp::TrackingLimits::unlimited << "))");
 
     HostVal<SimParamsData> host_data;
     host_data.max_steps = inp.steps;
     host_data.max_step_iters = inp.step_iters;
+    host_data.surface_substeps = inp.surface_substeps;
 
     data_ = ParamsDataStore<SimParamsData>{std::move(host_data)};
     CELER_ENSURE(data_);

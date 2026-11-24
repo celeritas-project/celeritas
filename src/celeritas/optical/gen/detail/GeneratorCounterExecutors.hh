@@ -117,6 +117,27 @@ struct SetBufferSizeExecutor
 
 //---------------------------------------------------------------------------//
 /*!
+ * Increase the buffer size by the number of distributions appended to it.
+ *
+ * The appended distributions are counted as queued when the buffer is next
+ * scanned (see \c AccumulateBufferExecutor ).
+ */
+struct AddBufferSizeExecutor
+{
+    GenCountersPtr counters;
+    ObserverPtr<size_type const, MemSpace::native> count;
+
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        CELER_EXPECT(tid == ThreadId{0});
+        CELER_EXPECT(count);
+
+        counters->current.buffer_size += *count;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Set the number of pending photons from the total of a prefix sum.
  *
  * The increase in the number of pending photons is counted as queued. The

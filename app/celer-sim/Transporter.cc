@@ -160,8 +160,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     auto track_counts = step(primaries);
     append_track_counts(track_counts);
 
-    GeneratorCounters optical_counts;
-    while (track_counts || !optical_counts.empty())
+    while (track_counts)
     {
         if (CELER_UNLIKELY(--remaining_steps == 0))
         {
@@ -179,12 +178,12 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 
         track_counts = step();
         append_track_counts(track_counts);
+    }
 
-        if (optical_)
-        {
-            auto& aux = stepper_->sp_state()->aux();
-            optical_counts = optical_->buffer_counts(aux);
-        }
+    if (!track_counts)
+    {
+        // Complete deferred work such as transporting buffered optical photons
+        step.end_transport();
     }
 
     CELER_LOG(status) << "Run complete";
@@ -215,7 +214,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             << counters.step_iters << " step iterations over "
             << counters.flushes << " flushes";
 
-        auto const& buffer_counts = optical_->buffer_counts(aux);
+        auto const& buffer_counts = optical_->sync_buffer_counts(aux);
         if (!buffer_counts.empty())
         {
             CELER_LOG_LOCAL(warning)

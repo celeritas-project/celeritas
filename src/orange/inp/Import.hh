@@ -107,6 +107,15 @@ struct OrangeGeoFromGeant : public OrangeGeoFromCsg
     //! to improve acceleration. Keys are LV names.
     std::map<std::string, SquareMatrixReal3> universe_alignment;
 
+    //! The minimum number of daughters required for an LV to be a candidate
+    //! for automatic alignment (zero disables). This requirement is bypassed
+    //! for LVs that are entries in the user-supplied \c universe_alignment map.
+    unsigned int align_daughter_threshold{10};
+
+    //! Fraction of daughters that must share a rotation to automatically
+    //! align an LV. Must be > 0.5.
+    double align_daughter_fraction{0.8};
+
     //!@}
     //!@{
     //! \name Debug output
@@ -117,17 +126,19 @@ struct OrangeGeoFromGeant : public OrangeGeoFromCsg
     bool verbose_structure{false};
 
     //!@}
+
+    // NOTE: these are implemented in OptionsIO.json.cc
+    // Helper to read from a file or stream
+    friend std::istream& operator>>(std::istream& is, OrangeGeoFromGeant&);
+    // Helper to write to a file or stream
+    friend std::ostream& operator<<(std::ostream& os,
+                                    OrangeGeoFromGeant const&);
 };
 
 //---------------------------------------------------------------------------//
 // NOTE: these are implemented in OptionsIO.json.cc
 
 char const* to_cstring(InlineSingletons value);
-
-// Helper to read from a file or stream
-std::istream& operator>>(std::istream& is, OrangeGeoFromGeant&);
-// Helper to write to a file or stream
-std::ostream& operator<<(std::ostream& os, OrangeGeoFromGeant const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace inp

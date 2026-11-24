@@ -1,0 +1,40 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Deploy documentation separately from push-to-develop.
+#-----------------------------------------------------------------------------#
+
+name: force-update-pages
+run-name: >-
+  ${{github.ref_name}} (doc update)
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: force-update-pages-${{github.event_name}}-${{github.ref_name}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/build-pages.yml
+    secrets: inherit
+
+  deploy:
+    runs-on: ubuntu-24.04
+    needs: [build]
+    permissions:
+      contents: read
+      deployments: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+# vim: set nowrap tw=100:

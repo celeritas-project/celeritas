@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Units.hh"
 
@@ -68,8 +70,9 @@ auto ParticleInserter::operator()(inp::Particle const& inp) -> Id
 {
     CELER_VALIDATE(inp.mass >= zero_quantity(),
                    << "invalid particle mass " << inp.mass.value());
-    CELER_VALIDATE(inp.decay_constant >= 0,
-                   << "invalid particle decay constant " << inp.decay_constant);
+    CELER_VALIDATE(
+        inp.decay_constant >= 0 && std::isfinite(inp.decay_constant),
+        << "invalid particle decay constant " << inp.decay_constant);
 
     auto result = mass_.push_back(inp.mass);
     charge_.push_back(inp.charge);

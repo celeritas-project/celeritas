@@ -315,7 +315,9 @@ VolumeId GeantGeoTrackView::volume_id() const
 VolumeInstanceId GeantGeoTrackView::volume_instance_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return params_.vi_mapper->geant_to_id(*touch_handle_(), 0);
+    auto* touch = touch_handle_();
+    return params_.vi_mapper->geant_to_id(*touch->GetHistory(),
+                                          this->volume_level());
 }
 
 //---------------------------------------------------------------------------//
@@ -351,19 +353,19 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
  * Apply the function with the volume instance ID and level.
  *
  * This can be used to construct a unique volume instance ID or fill a vector
- * with volume levels. It is performed in local-to-global order.
+ * with volume levels. It is performed in global-to-local order.
  */
 template<class F>
 void GeantGeoTrackView::foreach_volume_path(F&& visit) const
 {
+    CELER_EXPECT(!this->is_outside());
+
     auto* touch = touch_handle_();
     auto const num_vol_levels
         = id_cast<VolumeLevelId>(touch->GetHistoryDepth());
     for (auto lev : range(num_vol_levels + 1))
     {
-        visit(lev,
-              params_.vi_mapper->geant_to_id(
-                  *touch, static_cast<int>(num_vol_levels - lev)));
+        visit(lev, params_.vi_mapper->geant_to_id(*touch->GetHistory(), lev));
     }
 }
 

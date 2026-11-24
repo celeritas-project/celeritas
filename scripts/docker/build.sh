@@ -1,76 +1,80 @@
-#!/bin/sh -ex
-# Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
-# See the top-level COPYRIGHT file for details.
+#!/bin/sh -e
+#-------------------------------- -*- sh -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build the GPU development and CI images with the Spack revisions pinned by
+# .github/actions/setup-spack and tag them with the date in REGISTRY
+# (default: ghcr.io/celeritas-project). The CI image is pushed only if PUSH=1
+# is set. SPACK_INSTALL_ARGS (e.g. "-p 8 -j 32") is
+# passed to 'spack install'.
+# Additional arguments are passed to each build command, e.g. --no-cache.
+# See scripts/docker/_container.sh for the container engine selection.
+#-----------------------------------------------------------------------------#
 
 if [ -z "$1" ]; then
-  echo "usage: $0 config"
+  echo "usage: $0 {cuda|rocm} [build args...]" >&2
   exit 2
 fi
-
-# Note: when changing spack version, UPDATE PATCHES in dev/Dockerfile
-SPACK_VERSION=develop-2024-12-22
 CONFIG=$1
-DOCKER=docker
-BUILDARGS=
-if ! hash ${DOCKER} 2>/dev/null; then
-  # see https://blog.christophersmart.com/2021/01/26/user-ids-and-rootless-containers-with-podman/
-  DOCKER=podman
-  BUILDARGS="--format docker"
-  if ! hash ${DOCKER} 2>/dev/null; then
-    echo "Docker (or podman) is not available"
-    exit 1
-  fi
-  # Make podman build containers inside /tmp rather than /var/lib
-  export TMPDIR=$(mktemp -d)
-fi
+shift
 
-case $CONFIG in
-  cuda )
-    # When updating: change here, dev/{name}.yaml, dev/launch-local-test.sh
-    CONFIG=rocky-cuda12
-    ;;
-  rocm )
-    CONFIG=ubuntu-rocm7
-    ;;
-esac
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+CELER_SOURCE_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 
-case $CONFIG in
-  rocky-cuda12)
-    # ***IMPORTANT***: update the following after modification
-    # - cuda external version in dev/rocky-cuda12
-    # - CI versions listed in README.md
-    DOCKERFILE_DISTRO=rocky
-    BASE_TAG=nvidia/cuda:12.6.3-devel-rockylinux9
+. "${SCRIPT_DIR}/_container.sh"
+
+# The base image sets the CUDA or ROCm version. When updating it, also update
+# the versions listed in README.md and the image tags in
+# .github/workflows/build-docker.yml
+case ${CONFIG} in
+  cuda)
+    BASE_IMAGE=docker.io/nvidia/cuda:13.5.0-devel-ubuntu24.04
     ;;
-  ubuntu-rocm7)
-    # ***IMPORTANT***: update hip external version in dev/ubuntu-rocm7!
-    DOCKERFILE_DISTRO=ubuntu
-    BASE_TAG=rocm/dev-ubuntu-24.04:7.1
+  rocm)
+    BASE_IMAGE=docker.io/rocm/dev-ubuntu-24.04:7.2.4
+    # Only the libraries Celeritas uses: the "complete" image is 6 GB larger
+    GPU_APT_PACKAGES="hipcub-dev hiprand-dev rocprim-dev rocrand-dev rocthrust-dev roctracer-dev"
     ;;
   *)
-    echo "Invalid configure type: $1"
+    log error "invalid configuration: ${CONFIG}"
     exit 1
     ;;
 esac
 
-${DOCKER} pull ${BASE_TAG}
-${DOCKER} tag ${BASE_TAG} base-${CONFIG}
+# Build a stage of the Dockerfile
+build() {
+  target=$1
+  shift
+  ${BUILD} \
+    --build-arg BASE_IMAGE="${BASE_IMAGE}" \
+    --build-arg CONFIG="${CONFIG}" \
+    --build-arg GPU_APT_PACKAGES="${GPU_APT_PACKAGES}" \
+    --build-arg SPACK_INSTALL_ARGS="${SPACK_INSTALL_ARGS}" \
+    --build-arg SPACK_REPO="${SPACK_REPO}" \
+    --build-arg SPACK_REF="${SPACK_REF}" \
+    --build-arg SPACK_PACKAGES_REPO="${SPACK_PACKAGES_REPO}" \
+    --build-arg SPACK_PACKAGES_REF="${SPACK_PACKAGES_REF}" \
+    --build-context spack-config="${CELER_SOURCE_DIR}/scripts/spack" \
+    --platform linux/amd64 \
+    --target "${target}" \
+    -t "${target}-${CONFIG}" \
+    "$@" \
+    "${SCRIPT_DIR}/gpu"
+}
 
-${DOCKER} build -t dev-${CONFIG} \
-  --build-arg CONFIG=${CONFIG} \
-  --build-arg SPACK_VERSION=${SPACK_VERSION} \
-  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
-  ${BUILDARGS} \
-  dev
+build dev "$@"
+build ci "$@"
 
-${DOCKER} build -t ci-${CONFIG} \
-  --build-arg CONFIG=${CONFIG} \
-  --build-arg DOCKERFILE_DISTRO=${DOCKERFILE_DISTRO} \
-  ${BUILDARGS} \
-  ci
-
-DATE=$(date '+%Y-%m-%d')
-${DOCKER} tag dev-${CONFIG} celeritas/dev-${CONFIG}:${DATE}
-${DOCKER} tag ci-${CONFIG} celeritas/ci-${CONFIG}:${DATE}
-${DOCKER} push celeritas/ci-${CONFIG}:${DATE}
+# Use UTC so the tag does not depend on the build host's time zone
+DATE=$(date -u '+%Y-%m-%d')
+REGISTRY=${REGISTRY:-ghcr.io/celeritas-project}
+CI_IMAGE="${REGISTRY}/ci-${CONFIG}:${DATE}"
+${CONTAINER_EXE} tag "dev-${CONFIG}" "${REGISTRY}/dev-${CONFIG}:${DATE}"
+${CONTAINER_EXE} tag "ci-${CONFIG}" "${CI_IMAGE}"
+if [ "${PUSH}" = 1 ]; then
+  ${CONTAINER_EXE} push "${CI_IMAGE}"
+else
+  log info "Built ${CI_IMAGE}: to publish it, run"
+  log info "  ${CONTAINER_EXE} push ${CI_IMAGE}"
+fi

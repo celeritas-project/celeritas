@@ -194,7 +194,6 @@ G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
@@ -223,7 +222,6 @@ G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
@@ -477,7 +475,7 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] status@Transporter.cc: Transporting on host
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
-G4WT0 > [1/1] info@LocalOpticalGenOffload.cc: Finalizing Celeritas after 161712 optical steps (over 28 step iterations) from 105138 optical photons generated from 240 distributions
+G4WT0 > [1/1] info@LocalOpticalGenOffload.cc: Finalizing Celeritas after 161710 optical steps (over 28 step iterations) from 105138 optical photons generated from 240 distributions
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M] info@DistOffloadMixin.cc: Total Geant4 steps: 0 optical, 176 other
 [M] status@IntegrationSingleton.cc: Finalizing Celeritas
@@ -507,7 +505,6 @@ G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 excepti
   ORANGE_BVH_MAX_LEAF_SIZE: '',
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }

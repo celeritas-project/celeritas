@@ -47,6 +47,10 @@ class OutputInterface
     // Write output to the given JSON object
     virtual void output(JsonPimpl*) const = 0;
 
+    // Stream the JSON representation of a single output
+    friend std::ostream& operator<<(std::ostream&,
+                                    OutputInterface const& output);
+
   protected:
     // Protected destructor prevents direct deletion of pointer-to-interface
     ~OutputInterface() = default;
@@ -61,9 +65,6 @@ char const* to_cstring(OutputInterface::Category value);
 
 // Get the JSON representation of a single output (mostly for testing)
 std::string to_string(OutputInterface const& output);
-
-// Stream the JSON representation of a single output
-std::ostream& operator<<(std::ostream&, OutputInterface const& output);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

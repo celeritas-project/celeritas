@@ -4,10 +4,9 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/detail/AsyncMemoryResource.cu
 //---------------------------------------------------------------------------//
-#include "AsyncMemoryResource.hh"
-
 #include "corecel/io/Logger.hh"
 
+#include "AsyncMemoryResource.device.hh"
 #include "../Device.hh"
 
 namespace celeritas
@@ -55,6 +54,25 @@ void free_async(void* ptr, DeviceStream_t s)
     {
         CELER_DEVICE_API_CALL(Free(ptr));
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a Thrust memory resource associated with a stream.
+ */
+UPAsyncMemoryResource make_async_memory_resource(DeviceStream_t s)
+{
+    return UPAsyncMemoryResource{new AsyncMemoryResource{s}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Delete a memory resource.
+ */
+void AsyncMemoryResourceDeleter::operator()(
+    AsyncMemoryResource* mr) const noexcept
+{
+    delete mr;
 }
 
 //---------------------------------------------------------------------------//

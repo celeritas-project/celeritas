@@ -218,7 +218,6 @@ TEST_F(EPlusGGInteractorTest, stress_test)
             real_type(rng_engine.count()) / real_type(num_particles_sampled));
     }
 
-    // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to RNG
     real_type const expected_avg_engine_samples[]
         = {4, 9.8341064453125, 7.19775390625, 6.960205078125, 6.5401611328125};

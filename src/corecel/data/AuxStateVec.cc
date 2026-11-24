@@ -19,7 +19,6 @@ namespace celeritas
  */
 AuxStateVec::AuxStateVec(
     AuxParamsRegistry const& registry, MemSpace m, StreamId sid, size_type size)
-    : stream_id_{sid}
 {
     CELER_EXPECT(m == MemSpace::host || m == MemSpace::device);
     CELER_EXPECT(sid);

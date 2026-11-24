@@ -66,6 +66,10 @@ class ActionSequence
     template<MemSpace M>
     void step(CoreParams const&, CoreState<M>& state);
 
+    // Complete buffered work once all tracks have been transported
+    template<MemSpace M>
+    void end_transport(CoreParams const&, CoreState<M>& state);
+
     // Get the accumulated action times
     MapStrDbl get_action_times(AuxStateVec const&) const;
 

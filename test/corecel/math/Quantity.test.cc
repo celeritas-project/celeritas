@@ -313,7 +313,7 @@ TEST(QuantityTest, ldg)
 TEST(QuantityTest, stream)
 {
     EXPECT_EQ("5 [dozen]", stream_to_string(Dozen{5}));
-    EXPECT_EQ("{1,2,3} [dozen]",
+    EXPECT_EQ("{1 [dozen],2 [dozen],3 [dozen]}",
               stream_to_string(make_quantity_array<Dozen>(1, 2, 3)));
 }
 

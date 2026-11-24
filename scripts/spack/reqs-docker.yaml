@@ -1,0 +1,35 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Requirements shared by the GPU docker image environments
+# (env-docker-{cuda,rocm}.yaml): see scripts/docker/README.md.
+#-----------------------------------------------------------------------------#
+
+config:
+  install_tree:
+    root: /opt/software
+
+view:
+  default:
+    root: /opt/view
+    # The system compiler provides the GCC runtime libraries: linking the
+    # spack copies into the view makes CMake warn that they may hide them
+    exclude:
+      - gcc-runtime
+
+concretizer:
+  unify: true
+  targets:
+    granularity: generic
+    host_compatible: true
+
+packages:
+  # Build dependencies with the system GCC, which nvcc uses as host compiler:
+  # only Celeritas itself is built with the ROCm clang
+  c:
+    require: gcc
+  cxx:
+    require: gcc
+  fortran:
+    require: gcc

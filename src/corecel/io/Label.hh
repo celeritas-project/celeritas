@@ -91,11 +91,10 @@ struct Label
     {
         return std::tie(lhs.name, lhs.ext) < std::tie(rhs.name, rhs.ext);
     }
-};
 
-//---------------------------------------------------------------------------//
-// Write a label to a stream
-std::ostream& operator<<(std::ostream&, Label const&);
+    // Write a label to a stream
+    friend std::ostream& operator<<(std::ostream&, Label const&);
+};
 
 //---------------------------------------------------------------------------//
 // Get the label as a string

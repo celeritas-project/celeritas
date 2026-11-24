@@ -11,6 +11,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/SimParams.hh"
 
 #include "SurfaceModel.hh"
 #include "SurfacePhysicsParams.hh"
@@ -52,16 +53,20 @@ void SurfaceSteppingAction::step(CoreParams const& params,
 /*!
  * Launch kernel in the given \c MemSpace.
  *
- * Loops over all sub-steps in order, launching actions from each sub-step.
- * Currently the loop is limited to a single iteration, but this may be changed
- * in the future.
+ * Each iteration loops over all surface physics sub-steps in order, launching
+ * the models for each sub-step. A track crossing a surface with interstitial
+ * layers interacts with one interface per iteration, so the number of
+ * iterations per step (\c inp::OpticalTrackingLimits::surface_substeps )
+ * sets how many interfaces a track can cross in a single step. Tracks that
+ * finish crossing or are absorbed in an earlier iteration are skipped in
+ * later ones.
  */
 template<MemSpace M>
 void SurfaceSteppingAction::step_impl(CoreParams const& params,
                                       CoreState<M>& state) const
 {
     auto const& physics = *params.surface_physics();
-    constexpr size_type num_iterations = 1;
+    size_type const num_iterations = params.sim()->surface_substeps();
 
     for ([[maybe_unused]] auto iteration : range(num_iterations))
     {

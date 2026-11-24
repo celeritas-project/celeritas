@@ -6,9 +6,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <iosfwd>
 #include <string>
 #include <vector>
 #include <G4VSensitiveDetector.hh>
+
+#include "celeritas/Types.hh"
+
+#include "AssertionHelper.hh"
 
 namespace celeritas
 {
@@ -17,6 +23,10 @@ namespace test
 //---------------------------------------------------------------------------//
 struct SimpleHitsResult
 {
+    static constexpr char class_str[] = "SimpleHitsResult";
+
+    using Real3 = Array<double, 3>;
+
     std::vector<double> energy_deposition;  // [MeV]
     std::vector<double> step_length;  // [cm]
     std::vector<std::string> particle;
@@ -25,17 +35,19 @@ struct SimpleHitsResult
     std::vector<int> parent_id;
     std::vector<double> pre_energy;  // [MeV]
     std::vector<double> pre_time;  // [ns]
-    std::vector<double> pre_pos;  // [cm]
-    std::vector<double> pre_dir;
+    std::vector<Real3> pre_pos;  // [cm]
+    std::vector<Real3> pre_dir;
     std::vector<std::string> pre_physvol;
     std::vector<double> post_time;  // [ns]
     std::vector<double> post_energy;  // [MeV]
-    std::vector<double> post_pos;  // [cm]
-    std::vector<double> post_dir;
+    std::vector<Real3> post_pos;  // [cm]
+    std::vector<Real3> post_dir;
     std::vector<std::string> post_physvol;
     std::vector<std::string> post_status;
 
-    void print_expected() const;
+    friend std::ostream& operator<<(std::ostream&, SimpleHitsResult const&);
+    friend bool is_ref_eq(
+        AssertionHelper&, SimpleHitsResult const&, SimpleHitsResult const&);
 };
 
 //---------------------------------------------------------------------------//

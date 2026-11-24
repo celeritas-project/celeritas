@@ -99,3 +99,10 @@ echo "::group::Run offload template"
 G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT \
   ./run-offload
 echo "::endgroup::"
+
+echo "::group::Run offload template without offloading"
+G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT CELER_DISABLE=1 \
+  ./run-offload
+G4FORCENUMBEROFTHREADS=4 G4RUN_MANAGER_TYPE=MT CELER_KILL_OFFLOAD=1 \
+  ./run-offload
+echo "::endgroup::"

@@ -187,6 +187,15 @@ class Array
         return result;
     }
 
+#if !CELER_DEVICE_COMPILE
+    //! Write to a stream
+    friend std::ostream& operator<<(std::ostream& os, Array const& a)
+    {
+        os << StreamableContainer{a.data(), a.size()};
+        return os;
+    }
+#endif
+
   private:
     T d_[N];  //!< Storage
 };
@@ -200,23 +209,6 @@ class Array
 template<class T, class... Us>
 CELER_CTAD_FUNCTION Array(T, Us...)
     -> Array<std::common_type_t<T, Us...>, 1 + sizeof...(Us)>;
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-
-#if !CELER_DEVICE_COMPILE
-//---------------------------------------------------------------------------//
-/*!
- * Write the elements of array \a a to stream \a os.
- */
-template<class T, std::size_t N>
-CELER_FORCEINLINE std::ostream& operator<<(std::ostream& os,
-                                           Array<T, N> const& a)
-{
-    os << StreamableContainer{a.data(), a.size()};
-    return os;
-}
-#endif
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

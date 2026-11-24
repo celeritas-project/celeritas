@@ -37,6 +37,7 @@ void to_json(nlohmann::json& j, OpticalTrackingLimits const& v)
     j = nlohmann::json{
         CELER_JSON_PAIR(v, steps),
         CELER_JSON_PAIR(v, step_iters),
+        CELER_JSON_PAIR(v, surface_substeps),
     };
 }
 
@@ -44,6 +45,7 @@ void from_json(nlohmann::json const& j, OpticalTrackingLimits& v)
 {
     CELER_JSON_LOAD_OPTION(j, v, steps);
     CELER_JSON_LOAD_OPTION(j, v, step_iters);
+    CELER_JSON_LOAD_OPTION(j, v, surface_substeps);
 }
 
 void to_json(nlohmann::json& j, Tracking const& v)

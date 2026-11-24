@@ -216,7 +216,6 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         HistogramSampler calc_histogram(16, {0, 0.2}, 10000);
         auto sampled
             = calc_histogram(to_mev, EnergyLossGaussianDistribution{helper});
-        // sampled.print_expected();
         SampledHistogram ref;
         ref.distribution = {
             0.32,

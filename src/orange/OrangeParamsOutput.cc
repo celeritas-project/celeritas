@@ -12,9 +12,10 @@
 #include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/Environment.hh"
-#include "geocel/BoundingBoxIO.json.hh"
+#include "geocel/BoundingBoxIO.json.hh"  // IWYU pragma: keep
 #include "orange/OrangeTypes.hh"
 
 #include "OrangeData.hh"
@@ -25,6 +26,7 @@
 
 #include "detail/BvhData.hh"
 #include "detail/BvhView.hh"
+#include "detail/UniverseIndexer.hh"
 
 namespace celeritas
 {
@@ -149,15 +151,11 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     };
     auto const& data = orange_->host_ref();
 
-#define OPO_PAIR(DATA, NAME) {#NAME, DATA.NAME}
-#define OPO_SIZE_PAIR(DATA, NAME) {#NAME, DATA.NAME.size()}
-
     // Save param scalars
     obj["scalars"] = {
-        OPO_PAIR(data.scalars, num_univ_levels),
-        OPO_PAIR(data.scalars, max_faces),
-        OPO_PAIR(data.scalars, max_intersections),
-        OPO_PAIR(data.scalars, tol),
+        CELER_JSON_PAIR(data.scalars, num_univ_levels),
+        CELER_JSON_PAIR(data.scalars, max_intersections),
+        CELER_JSON_PAIR(data.scalars, tol),
     };
     if (orange_tracking_logic != LogicNotation::infix)
     {
@@ -165,6 +163,8 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         // it always exists as member data in the scalars
         obj["scalars"]["max_csg_levels"] = data.scalars.max_csg_levels;
     }
+
+#define OPO_SIZE_PAIR(DATA, NAME) {#NAME, DATA.NAME.size()}
 
     // Save sizes
     obj["sizes"] = {
@@ -203,7 +203,6 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     }();
 
 #undef OPO_SIZE_PAIR
-#undef OPO_PAIR
 
     // Write BVH metadata as a struct of arrays
     {
@@ -256,21 +255,15 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         auto& num_surfaces = insert_array("num_surfaces");
         auto& num_volumes = insert_array("num_volumes");
 
-        // Calculate number of surface/volume using universe indexer offsets
-        using SizeId = OpaqueId<size_type>;
-        auto const& uidata = data.univ_indexer_data;
-        auto calc_local_size = [](auto const& offsets, UnivId uid) {
-            CELER_EXPECT(uid && uid.unchecked_get() + 1 < offsets.size());
-            return offsets[SizeId{uid.unchecked_get() + 1}]
-                   - offsets[SizeId{uid.unchecked_get()}];
-        };
+        // Calculate the number of surfaces and volumes with the indexer
+        detail::UniverseIndexer indexer{data.univ_indexer_data};
 
         for (auto uid : range(UnivId{data.univ_types.size()}))
         {
             type.push_back(to_cstring(data.univ_types[uid]));
             label.push_back(orange_->universes().at(uid));
-            num_surfaces.push_back(calc_local_size(uidata.surfaces, uid));
-            num_volumes.push_back(calc_local_size(uidata.volumes, uid));
+            num_surfaces.push_back(indexer.num_surfaces(uid));
+            num_volumes.push_back(indexer.num_volumes(uid));
         }
 
         // Include structure information if requested by the user

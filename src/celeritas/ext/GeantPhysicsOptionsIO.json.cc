@@ -98,6 +98,7 @@ void from_json(nlohmann::json const& j, GeantMuonPhysicsOptions& options)
     CELER_JSON_LOAD_OPTION(j, options, bremsstrahlung);
     CELER_JSON_LOAD_OPTION(j, options, coulomb);
     CELER_JSON_LOAD_OPTION(j, options, msc);
+    CELER_JSON_LOAD_OPTION(j, options, decay);
 }
 
 void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)
@@ -108,6 +109,7 @@ void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, bremsstrahlung),
         CELER_JSON_PAIR(inp, coulomb),
         CELER_JSON_PAIR(inp, msc),
+        CELER_JSON_PAIR(inp, decay),
     };
 }
 

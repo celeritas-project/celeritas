@@ -1,6 +1,9 @@
-#-------------------------------- -*- yaml -*- ---------------------------------#
+#------------------------------- -*- yaml -*- --------------------------------#
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Clear GitHub Actions caches on demand.
+# See https://docs.github.com/en/rest/actions/cache
 #-----------------------------------------------------------------------------#
 
 name: clear-cache
@@ -17,6 +20,21 @@ on:
         required: false
         default: 5
         type: number
+      key:
+        description: "Regular expression for cache keys to delete"
+        required: false
+        default: "^ccache-"
+        type: string
+      ref:
+        description: "Regular expression for refs to delete caches from"
+        required: false
+        default: ".*"
+        type: string
+      age:
+        description: "Minimum cache age in days (1 prevents deletion of anything in last 24h)"
+        required: false
+        default: 0
+        type: number
   workflow_call:
     inputs:
       initial_delay:
@@ -29,64 +47,120 @@ on:
         required: false
         default: 5
         type: number
+      key:
+        description: "Regular expression for cache keys to delete"
+        required: false
+        default: "^ccache-"
+        type: string
+      ref:
+        description: "Regular expression for refs to delete caches from"
+        required: false
+        default: ".*"
+        type: string
+      age:
+        description: "Minimum cache age in days"
+        required: false
+        default: 0
+        type: number
+
+permissions:
+  actions: write
 
 jobs:
   clear-cache:
     runs-on: ubuntu-24.04
     steps:
       - name: Clear ccache
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0, 9 Apr 2026
+        uses: actions/github-script@v9
+        env:
+          INITIAL_DELAY: ${{ inputs.initial_delay }}
+          MAX_RETRIES: ${{ inputs.max_retries }}
+          KEY: ${{ inputs.key }}
+          REF: ${{ inputs.ref }}
+          AGE: ${{ inputs.age }}
         with:
           script: |
             // Get configuration from inputs
-            const initialDelaySeconds = parseInt('${{ inputs.initial_delay || 30 }}');
-            const maxRetries = parseInt('${{ inputs.max_retries || 5 }}');
+            const delaySeconds = Number(process.env.INITIAL_DELAY);
+            const delayMs = delaySeconds * 1000;
+            const maxRetries = Number(process.env.MAX_RETRIES);
+            const ageDays = Number(process.env.AGE);
+            const keyFilter = new RegExp(process.env.KEY);
+            const refFilter = new RegExp(process.env.REF);
 
-            // Global backoff state shared across all operations
-            let globalBackoffUntil = 0;
-            let globalDelay = initialDelaySeconds * 1000; // Convert to milliseconds
+            if (!Number.isFinite(delayMs) || delaySeconds <= 0) {
+              throw new Error(`'initial_delay' must be a positive number, got: ${process.env.INITIAL_DELAY ?? 'undefined'}`);
+            }
+            if (!Number.isInteger(maxRetries) || maxRetries <= 0) {
+              throw new Error(`'max_retries' must be a positive integer, got: ${process.env.MAX_RETRIES ?? 'undefined'}`);
+            }
+            if (!Number.isFinite(ageDays) || ageDays < 0) {
+              throw new Error(`'age' must be a nonnegative number, got: ${process.env.AGE ?? 'undefined'}`);
+            }
 
-            async function deleteWithRetry(cache, maxRetries) {
-              for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                // Check if we need to wait due to global backoff
-                const now = Date.now();
-                if (now < globalBackoffUntil) {
-                  const waitTime = globalBackoffUntil - now;
-                  console.log(`Global backoff active. Waiting ${waitTime/1000} seconds before attempting to delete ${cache.key}...`);
+            console.log(`Configuration: initial delay ${delayMs / 1000}s, max retries ${maxRetries}, minimum age ${ageDays}d`);
+            core.debug(`Cache filters: key ${keyFilter}, ref ${refFilter}`);
+
+            class CacheDeleter {
+              constructor(delay, maxRetries) {
+                this.backoffUntil = 0;
+                this.delay = delay;
+                this.maxRetries = maxRetries;
+              }
+
+              async waitForBackoff(cache) {
+                const waitTime = this.backoffUntil - Date.now();
+                if (waitTime > 0) {
+                  core.debug(`Waiting ${waitTime / 1000} seconds before deleting ${cache.key}...`);
                   await new Promise(resolve => setTimeout(resolve, waitTime));
                 }
+              }
 
+              handleError(error, cache, attempt) {
+                if (!error.message?.includes("wait a few minutes")) {
+                  core.setFailed(`Failed to delete cache ${cache.key}: ${error}`);
+                  return "fail";
+                }
+
+                // Rate limits delay subsequent deletions as well as retries.
+                core.warning(`Rate limit hit for ${cache.key}; backing off for ${this.delay / 1000} seconds.`);
+                this.backoffUntil = Date.now() + this.delay;
+                this.delay *= 2;
+                if (attempt === this.maxRetries) {
+                  core.setFailed(`Max retries (${this.maxRetries}) reached for cache ${cache.key}`);
+                  return "abort";
+                }
+                return "retry";
+              }
+
+              async deleteAttempt(cache, attempt) {
+                core.debug(`Deleting cache entry ${cache.key} (attempt ${attempt})`);
                 try {
-                  console.log(`Deleting cache entry (attempt ${attempt}):`, cache.key);
                   await github.rest.actions.deleteActionsCacheById({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     cache_id: cache.id,
                   });
-                  return; // Success, exit retry loop
                 } catch (error) {
-                  if (error.message && error.message.includes("wait a few minutes")) {
-                    console.log(`Rate limit hit on attempt ${attempt} for ${cache.key}. Setting global backoff of ${globalDelay/1000} seconds...`);
+                  return this.handleError(error, cache, attempt);
+                }
+                return "deleted";
+              }
 
-                    // Set global backoff time that affects all operations
-                    globalBackoffUntil = Date.now() + globalDelay;
-
-                    if (attempt < maxRetries) {
-                      await new Promise(resolve => setTimeout(resolve, globalDelay));
-                      globalDelay *= 2; // Double the delay for next time
-                    } else {
-                      console.log(`Max retries (${maxRetries}) reached for cache ${cache.key}`);
-                      throw error;
-                    }
-                  } else {
-                    // Non-rate-limit error, don't retry
-                    throw error;
+              async delete(cache) {
+                for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+                  await this.waitForBackoff(cache);
+                  const result = await this.deleteAttempt(cache, attempt);
+                  core.debug(`${cache.key} -> ${result}`)
+                  if (result !== "retry") {
+                    return result;
                   }
                 }
               }
             }
 
-            console.log(`Configuration: initial delay ${initialDelaySeconds}s, max retries ${maxRetries}`);
+            const deleter = new CacheDeleter(delayMs, maxRetries);
+
             console.log("Getting action cache")
             const parameters = {
               owner: context.repo.owner,
@@ -100,10 +174,17 @@ jobs:
               parameters,
               (response) => response.data,
             )
+            const cutoff = Date.now() - ageDays * 24 * 60 * 60 * 1000;
+            const counters = { total: 0, matched: 0 };
             for (const cache of caches) {
-              if (cache.key.startsWith("ccache-")) {
-                await deleteWithRetry(cache, maxRetries);
+              if (keyFilter.test(cache.key) && refFilter.test(cache.ref) && Date.parse(cache.created_at) <= cutoff) {
+                const result = await deleter.delete(cache);
+                ++counters.matched;
+                counters[result] = (counters[result] ?? 0) + 1;
               }
+              ++counters.total;
             }
+
+            core.notice(`Cache results: ${JSON.stringify(counters)}`)
 
 # vim: set nowrap tw=100:

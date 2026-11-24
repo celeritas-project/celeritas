@@ -20,7 +20,7 @@ namespace celeritas
 /*!
  * Bremsstrahlung process for muons.
  */
-class MuBremsstrahlungProcess : public Process
+class MuBremsstrahlungProcess : public InteractionProcess
 {
   public:
     //!@{

@@ -1,0 +1,101 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": ".base",
+      "hidden": true,
+      "description": "Claude Code cloud VM with scripts/dev/claude-cloud-setup.sh spack view",
+      "inherits": [".nobuiltin", "default"],
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-${presetName}",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": { "type": "PATH", "value": "/opt/celeritas/view" },
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "/usr/bin/clang++-18"
+        },
+        "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/celeritas/view/bin/ccache",
+        "CMAKE_CXX_STANDARD": { "type": "STRING", "value": "20" },
+        "CMAKE_CXX_EXTENSIONS": { "type": "BOOL", "value": "OFF" },
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_CUDA": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_DD4hep": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_HIP": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_MPI": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_Perfetto": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_PNG": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" }
+      }
+    },
+    {
+      "name": ".no-vg",
+      "hidden": true,
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
+      "name": ".release-assert",
+      "hidden": true,
+      "description": "Optimized build with debug assertions (as in CI)",
+      "inherits": [".release"],
+      "cacheVariables": {
+        "CELERITAS_DEBUG": { "type": "BOOL", "value": "ON" }
+      }
+    },
+    {
+      "name": "base",
+      "displayName": "VecGeom+Geant4: optimized with assertions",
+      "inherits": [".release-assert", ".base"]
+    },
+    {
+      "name": "orange",
+      "displayName": "ORANGE+Geant4: optimized with assertions",
+      "inherits": [".no-vg", ".release-assert", ".base"]
+    },
+    {
+      "name": "debug",
+      "displayName": "VecGeom+Geant4: unoptimized debug build for gdb",
+      "inherits": [".debug", ".base"]
+    },
+    {
+      "name": "release",
+      "displayName": "VecGeom+Geant4: optimized without assertions",
+      "inherits": [".release", ".base"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "jobs": 4,
+      "nativeToolOptions": ["-k0"]
+    },
+    { "name": "orange", "configurePreset": "orange", "inherits": "base" },
+    { "name": "debug", "configurePreset": "debug", "inherits": "base" },
+    { "name": "release", "configurePreset": "release", "inherits": "base" }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": "base",
+      "output": { "outputOnFailure": true },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false,
+        "jobs": 4
+      }
+    },
+    { "name": "orange", "configurePreset": "orange", "inherits": "base" },
+    { "name": "debug", "configurePreset": "debug", "inherits": "base" },
+    { "name": "release", "configurePreset": "release", "inherits": "base" }
+  ]
+}

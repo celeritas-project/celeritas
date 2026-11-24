@@ -313,8 +313,9 @@ int main(int argc, char* argv[])
     }
 
     // Save output
-    celeritas::FileOrStdout ostream{output_filename, std::ios::out};
-    CELER_LOG(status) << "Saving output to " << ostream.filename();
+    celeritas::FileOrStdout ostream_wrap{output_filename, std::ios::out};
+    CELER_LOG(status) << "Saving output to " << ostream_wrap.filename();
+    auto& ostream = static_cast<std::ostream&>(ostream_wrap);
     if (!output)
     {
         CELER_LOG(warning) << "No output available";
@@ -323,7 +324,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        output->output(&static_cast<std::ostream&>(ostream));
+        output->output(&ostream);
     }
 
     // Delete streams before end of program (TODO: this is because of a static

@@ -8,7 +8,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 #include "celeritas/track/Utils.hh"
 
@@ -29,6 +31,7 @@ struct DirectGeneratorExecutor
     CRefPtr<CoreParamsData, MemSpace::native> params;
     RefPtr<CoreStateData, MemSpace::native> state;
     NativeRef<DirectGeneratorStateData> const data;
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 
     // Initialize optical photons
     inline CELER_FUNCTION void operator()(ThreadId tid) const;
@@ -44,14 +47,15 @@ CELER_FUNCTION void DirectGeneratorExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);
+    CELER_EXPECT(gen_counters);
 
     auto counters = state->init.counters.data();
+    size_type const num_pending = gen_counters->current.num_pending;
 
-    // Original code set the number of threads to the minimum between of number
-    // of vacancies and the number of pending in the auxiliary state. To avoid
-    // accessing the state counters to compute this min, we skip the extra
-    // threads if counters->num_vacancies < aux_state.counters.num_pending
-    if (!(tid < counters->num_vacancies))
+    // The kernel is launched over all track slots to avoid copying the
+    // counters to the host: skip threads beyond the number of vacancies or
+    // the number of photons left to generate
+    if (!(tid < min(counters->num_vacancies, num_pending)))
     {
         return;
     }
@@ -64,7 +68,7 @@ CELER_FUNCTION void DirectGeneratorExecutor::operator()(ThreadId tid) const
 
     // Get initializer from the back
     TrackInitializer const& init = data.initializers[ItemId<TrackInitializer>(
-        index_before(counters->num_pending, tid))];
+        index_before(num_pending, tid))];
 
     // Initialize track
     vacancy = init;

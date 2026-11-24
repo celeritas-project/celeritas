@@ -65,6 +65,10 @@ class OrangeParams final : public GeoParamsInterface,
     // Build from a JSON input
     static std::shared_ptr<OrangeParams> from_json(std::string const& filename);
 
+    // Build from a JSON input, matching volume names to canonical volumes
+    static std::shared_ptr<OrangeParams> from_json(std::string const& filename,
+                                                   SPConstVolumes volumes);
+
     //!@}
 
     // ADVANCED usage: construct from explicit host data

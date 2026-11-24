@@ -515,7 +515,7 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
         EXPECT_SOFT_NEAR(
             22.6292,
             rng.exchange_count() / static_cast<real_type>(num_photons),
-            1e-2);
+            1e-2_r);
     }
 
     real_type expected_lambda{0};
@@ -527,7 +527,7 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
         real_type yield = data.reals[s.yield_pdf[comp_idx]];
         expected_lambda += component.lambda_mean * yield;
     }
-    EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, 1e-4);
+    EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, 1e-4_r);
 }
 
 TEST_F(MaterialScintillationGaussianTest, specified_component)
@@ -566,7 +566,7 @@ TEST_F(MaterialScintillationGaussianTest, specified_component)
         }
 
         avg_lambda /= num_samples * nm;
-        EXPECT_SOFT_NEAR(expected_lambda[comp_idx], avg_lambda, 1e-3);
+        EXPECT_SOFT_NEAR(expected_lambda[comp_idx], avg_lambda, 1e-3_r);
     }
 }
 

@@ -477,6 +477,11 @@ TEST_F(MultiLevelTest, trace)
     this->impl().test_trace();
 }
 
+TEST_F(MultiLevelTest, unique_instance)
+{
+    this->impl().test_unique_instance();
+}
+
 TEST_F(MultiLevelTest, volume_level)
 {
     this->impl().test_volume_level();

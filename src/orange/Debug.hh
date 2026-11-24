@@ -18,10 +18,11 @@ class OrangeTrackView;
 struct StreamableOrangeTrack
 {
     OrangeTrackView const& track;
-};
 
-// Write the track to a stream
-std::ostream& operator<<(std::ostream&, StreamableOrangeTrack const&);
+    // Write the track to a stream
+    friend std::ostream& operator<<(std::ostream&,
+                                    StreamableOrangeTrack const&);
+};
 
 // Get a string JSON representation of an ORANGE track view
 std::string to_json_string(OrangeTrackView const&);

@@ -56,14 +56,21 @@ class GeantMaterialPropertyGetter
         return desc_;
     }
 
+    //! Write description or "[INVALID]" if the properties table is null.
+    friend std::ostream& operator<<(std::ostream& os,
+                                    GeantMaterialPropertyGetter const& g)
+    {
+        if (!g)
+        {
+            return os << "[INVALID]";
+        }
+        return os << g.c_str();
+    }
+
   private:
     MPT const* mpt_{nullptr};
     char const* desc_{nullptr};
 };
-
-// Write a description of the properties being queried
-inline std::ostream& operator<<(std::ostream&,
-                                GeantMaterialPropertyGetter const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -115,19 +122,6 @@ bool GeantMaterialPropertyGetter::operator()(
     }
     dst = import_physics_vector(*g4vector, q);
     return true;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write description or "[INVALID]" if the properties table is null.
- */
-std::ostream& operator<<(std::ostream& os, GeantMaterialPropertyGetter const& g)
-{
-    if (!g)
-    {
-        return os << "[INVALID]";
-    }
-    return os << g.c_str();
 }
 
 //---------------------------------------------------------------------------//

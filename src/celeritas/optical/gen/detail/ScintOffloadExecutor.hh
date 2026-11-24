@@ -8,10 +8,12 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/optical/MaterialData.hh"
 #include "celeritas/optical/gen/OffloadData.hh"
 #include "celeritas/optical/gen/ScintillationOffload.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 
 namespace celeritas
 {
@@ -37,7 +39,7 @@ struct ScintOffloadExecutor
     NativeRef<optical::GeneratorStateData> const offload;
     NativeRef<OffloadPreStateData> const pre_steps;
     NativeRef<OffloadPrePostStateData> const pre_post_steps;
-    size_type buffer_size;
+    ObserverPtr<GeneratorStateCounters const, MemSpace::native> gen_counters;
 };
 
 //---------------------------------------------------------------------------//
@@ -55,7 +57,11 @@ CELER_FUNCTION void ScintOffloadExecutor::operator()(CoreTrackView const& track)
 
     using DistId = ItemId<optical::GeneratorDistributionData>;
 
+    CELER_EXPECT(gen_counters);
+
+    // Distributions are stored in the track slots past the buffered data
     auto tsid = track.track_slot_id();
+    size_type const buffer_size = gen_counters->current.buffer_size;
     CELER_ASSERT(buffer_size + tsid.get() < offload.distributions.size());
     auto& dist = offload.distributions[DistId(buffer_size + tsid.get())];
 

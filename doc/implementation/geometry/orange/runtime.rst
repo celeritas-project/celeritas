@@ -37,6 +37,22 @@ distance to the next point on a surface on an outer boundary of the volume.
 3. Each universe may have a single "background" volume that is selected if a
    point is not inside any interior volume.
 
+Initialization
+^^^^^^^^^^^^^^
+
+A track is initialized by searching (using the acceleration structure) for the
+volume whose CSG logic is satisfied by the senses of its faces at the
+starting position. A point exactly on one of those surfaces has no sense of its
+own, so during initialization only, the sense is taken to be the side that the
+track is moving toward: *outside* if :math:`\hat{n} \cdot \hat{\Omega} > 0`
+and *inside* if :math:`\hat{n} \cdot \hat{\Omega} < 0`, where
+:math:`\hat{n}` is the outward normal of the surface at that point and
+:math:`\hat{\Omega}` is the track direction. The track is then logically on
+that surface (``boundary_out``), exactly as if it had just crossed it, so the
+next intersection search ignores that surface. A track starting exactly on a
+surface and moving exactly tangent to it cannot be placed on either side, and
+initialization fails.
+
 Interface
 ^^^^^^^^^
 

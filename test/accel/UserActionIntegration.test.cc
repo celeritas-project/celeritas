@@ -7,16 +7,20 @@
 #include "accel/UserActionIntegration.hh"
 
 #include <memory>
+#include <mutex>
 #include <G4OpticalPhoton.hh>
 #include <G4RunManager.hh>
 #include <G4Step.hh>
 #include <G4StepPoint.hh>
+#include <G4Version.hh>
 
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "accel/LocalOpticalGenOffload.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/detail/IntegrationSingleton.hh"
+#include "accel/gen/ScintillationOffload.hh"
 
 #include "DistOffloadMixin.hh"
 #include "IntegrationTestBase.hh"
@@ -140,6 +144,109 @@ TEST_F(LarSphereOpticalOffload, run)
 
     rm.Initialize();
     rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Count where offloaded scintillation is emitted, by the stepping particle.
+ *
+ * G4Scintillation emits the photons of a neutral particle's step at the
+ * post-step point and those of a charged particle's step uniformly along it.
+ */
+class CountingScintillationOffload final : public ScintillationOffload
+{
+  public:
+    struct Counts
+    {
+        size_type neutral_at_end{0};
+        size_type neutral_along{0};
+        size_type charged_at_end{0};
+        size_type charged_along{0};
+    };
+
+    static Counts& counts()
+    {
+        static Counts c;
+        return c;
+    }
+
+    G4VParticleChange* PostStepDoIt(G4Track const& aTrack,
+                                    G4Step const& aStep) final
+    {
+        auto* result = ScintillationOffload::PostStepDoIt(aTrack, aStep);
+        if (this->GetNumPhotons() > 0)
+        {
+            bool neutral = aTrack.GetDefinition()->GetPDGCharge() == 0;
+            bool at_end
+                = this->MakeDistribution(aTrack, aStep).continuous_edep_fraction
+                  == 0;
+            static std::mutex mu;
+            std::lock_guard scoped_lock{mu};
+            auto& c = counts();
+            ++(neutral ? (at_end ? c.neutral_at_end : c.neutral_along)
+                       : (at_end ? c.charged_at_end : c.charged_along));
+        }
+        return result;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Gammas in liquid argon, counting where their scintillation is emitted.
+ */
+class LarSphereGammaScintOffload : public DistOffloadMixin, public LarSphere
+{
+  public:
+    PrimaryInput make_primary_input() const override
+    {
+        auto result = LarSphere::make_primary_input();
+        result.pdg = {pdg::gamma()};
+        result.shape = inp::PointDistribution{
+            static_array_cast<double>(from_cm({0.1, 0.1, 0}))};
+        result.primaries_per_event = 10;
+        result.energy = inp::MonoenergeticDistribution{0.1};  // [MeV]
+        return result;
+    }
+
+    PhysicsInput make_physics_input() const override
+    {
+        auto result = DistOffloadMixin::make_physics_input();
+        result.optical->scintillation->custom_scintillation
+            = [] { return std::make_unique<CountingScintillationOffload>(); };
+        return result;
+    }
+
+    void EndOfRunAction(G4Run const* run) override
+    {
+        DistOffloadMixin::EndOfRunAction(run);
+        LarSphere::EndOfRunAction(run);
+    }
+};
+
+//---------------------------------------------------------------------------//
+TEST_F(LarSphereGammaScintOffload, run)
+{
+    if (this->test_offload() == TestOffload::g4)
+    {
+        GTEST_SKIP() << "Scintillation is not offloaded";
+    }
+    if (G4VERSION_NUMBER < 1100)
+    {
+        GTEST_SKIP() << "Geant4 before 11 does not read the scintillation "
+                        "properties of this material, so nothing scintillates";
+    }
+    CountingScintillationOffload::counts() = {};
+
+    auto& rm = this->run_manager();
+    UAI::Instance().SetOptions(this->make_setup_options());
+    rm.Initialize();
+    rm.BeamOn(2);
+
+    auto const& c = CountingScintillationOffload::counts();
+    EXPECT_GT(c.neutral_at_end, 0);
+    EXPECT_EQ(0, c.neutral_along);
+    EXPECT_EQ(0, c.charged_at_end);
+    EXPECT_GT(c.charged_along, 0);
 }
 
 //---------------------------------------------------------------------------//

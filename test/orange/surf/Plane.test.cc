@@ -65,7 +65,7 @@ TEST_F(PlaneTest, tracking)
     // Calc intersections
     Real3 dir = make_unit_vector(Real3{-0.70710678, -0.70710678, 0.0});
     EXPECT_SOFT_NEAR(
-        2.0, calc_intersection(p, x, dir, SurfaceState::off), 1.e-6);
+        2.0, calc_intersection(p, x, dir, SurfaceState::off), 1.e-6_r);
 
     // Pick a direction such that n\cdot\Omega > 0
     dir = make_unit_vector(Real3{1.0, 2.0, 3.0});
@@ -76,7 +76,7 @@ TEST_F(PlaneTest, tracking)
     dir = make_unit_vector(Real3{-1, 0.1, 3.0});
     EXPECT_SOFT_NEAR(9.9430476983098171,
                      calc_intersection(p, x, dir, SurfaceState::off),
-                     1.e-6);
+                     1.e-6_r);
 
     // Place a point on the negative sense
     x = {1.87867966, -2.12132034, 0.0};
@@ -91,12 +91,22 @@ TEST_F(PlaneTest, tracking)
     dir = make_unit_vector(Real3{1, 0.1, 3.0});
     EXPECT_SOFT_NEAR(12.202831266107504,
                      calc_intersection(p, x, dir, SurfaceState::off),
-                     1.e-6);
+                     1.e-6_r);
 
     // Place a point on the surface
     x = {2.0, 2.0, 0.0};
     EXPECT_EQ(no_intersection(),
               calc_intersection(p, x, dir, SurfaceState::on));
+}
+
+TEST_F(PlaneTest, safety)
+{
+    // Rotated plane through (2, 2, 0)
+    Plane p{{inv_sqrt_two, inv_sqrt_two, 0.0}, 2.0_r * constants::sqrt_two};
+
+    EXPECT_SOFT_EQ(2 * constants::sqrt_two, p.calc_safety(Real3{0, 0, 10}));
+    EXPECT_SOFT_EQ(constants::sqrt_two, p.calc_safety(Real3{3, 3, -1}));
+    EXPECT_SOFT_EQ(0.0, p.calc_safety(Real3{4, 0, 5}));
 }
 
 //---------------------------------------------------------------------------//

@@ -60,25 +60,13 @@ struct RZMapFieldInput
             && (field_r.size() == field_z.size());
         // clang-format on
     }
+
+    // Helper to read the field from a file or stream.
+    friend std::istream& operator>>(std::istream& is, RZMapFieldInput&);
+
+    // Helper to write the field to a file or stream.
+    friend std::ostream& operator<<(std::ostream& os, RZMapFieldInput const&);
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Helper to read the field from a file or stream.
- *
- * Example to read from a file:
- * \code
-   RZMapFieldInput inp;
-   std::ifstream("foo.json") >> inp;
- * \endcode
- */
-std::istream& operator>>(std::istream& is, RZMapFieldInput&);
-
-//---------------------------------------------------------------------------//
-/*!
- * Helper to write the field to a file or stream.
- */
-std::ostream& operator<<(std::ostream& os, RZMapFieldInput const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -13,6 +13,11 @@
 #include <mutex>
 #include <regex>
 #include <string_view>
+#include <G4Electron.hh>
+#include <G4Gamma.hh>
+#include <G4MuonMinus.hh>
+#include <G4MuonPlus.hh>
+#include <G4Positron.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 #include <G4UImanager.hh>
@@ -29,12 +34,14 @@
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/g4/StateDependent.hh"
 #include "celeritas/g4/Threading.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/DetectorData.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/PhysicsParams.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
@@ -155,7 +162,7 @@ class TMITestBase : virtual public IntegrationTestBase
         if (!check_runtime_errors_)
         {
             // Let the base class manage and fail on the caught error
-            return TMITestBase::caught_g4_runtime_error(e);
+            return IntegrationTestBase::caught_g4_runtime_error(e);
         }
         CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
 
@@ -760,7 +767,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(detector_x_positions_.size(), 0);
             EXPECT_GT(step_lengths_.size(), 0);
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
@@ -874,7 +881,7 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(accum_stats.flushes, 0);
 
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
@@ -1031,7 +1038,7 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
             }
 
             auto& aux_state = local_transporter.GetState().aux();
-            auto counts = optical_collector->buffer_counts(aux_state);
+            auto counts = optical_collector->sync_buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
             EXPECT_EQ(0, counts.num_pending);  //!< Photons pending generation
             EXPECT_GT(counts.num_generated, 0);  //!< Photons generated
@@ -1110,6 +1117,85 @@ TEST_F(TestEm3, max_step_iters_error)
 }
 
 //---------------------------------------------------------------------------//
+// TESTEM3 MUON DECAY
+//---------------------------------------------------------------------------//
+/*!
+ * Offload low-energy muons that stop and decay at rest.
+ */
+class TestEm3MuDecay : public TestEm3
+{
+    using Base = TestEm3;
+
+  protected:
+    PhysicsInput make_physics_input() const override
+    {
+        auto result = Base::make_physics_input();
+        result.muon.emplace();
+        return result;
+    }
+
+    UPPhysicsList make_physics_list() const override
+    {
+        // The tracking manager constructor reads the offloaded particles as
+        // soon as the physics list is given to the run manager, so the
+        // options must be set first
+        TMI::Instance().SetOptions(
+            const_cast<TestEm3MuDecay*>(this)->make_setup_options());
+        return Base::make_physics_list();
+    }
+
+    PrimaryInput make_primary_input() const override
+    {
+        auto result = Base::make_primary_input();
+        result.pdg = {pdg::mu_plus(), pdg::mu_minus()};
+        result.energy = inp::MonoenergeticDistribution{10};  // [MeV]
+        result.primaries_per_event = 2;
+        return result;
+    }
+
+    SetupOptions make_setup_options() override
+    {
+        auto result = Base::make_setup_options();
+        // Offload muons in addition to EM particles
+        result.offload_particles = SetupOptions::VecG4PD{
+            G4Electron::Definition(),
+            G4Positron::Definition(),
+            G4Gamma::Definition(),
+            G4MuonMinus::Definition(),
+            G4MuonPlus::Definition(),
+        };
+        return result;
+    }
+
+    void EndOfRunAction(G4Run const* run) override
+    {
+        auto& integration = detail::IntegrationSingleton::instance();
+        if (integration.mode() == OffloadMode::enabled)
+        {
+            // Problem setup built the decay process from the imported data
+            auto const& physics
+                = *integration.shared_params().Params()->physics();
+            EXPECT_TRUE(physics.decay_process());
+            EXPECT_EQ(1, physics.decay_channels().size());
+            ++num_checked_;
+        }
+        Base::EndOfRunAction(run);
+    }
+
+    int num_checked_{0};
+};
+
+TEST_F(TestEm3MuDecay, run)
+{
+    // Options are set when the physics list is constructed
+    auto& rm = this->run_manager();
+
+    rm.Initialize();
+    rm.BeamOn(2);
+    EXPECT_EQ(1, num_checked_);
+}
+
+//---------------------------------------------------------------------------//
 // WATERSPHERE
 //---------------------------------------------------------------------------//
 class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
@@ -1159,7 +1245,7 @@ class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
 };
 
 /*!
- * Check that the test runs.
+ * Test that we can safely flush and restore primaries multiple times per event.
  */
 TEST_F(WaterSphere, run_small_flush)
 {
@@ -1215,7 +1301,7 @@ TEST_F(WaterSphere, run_small_flush)
 }
 
 /*!
- * Check that a primary batch can exceed the initial initializer capacity.
+ * Test that primary batches can exceed the initial initializer capacity.
  */
 TEST_F(WaterSphere, run_small_initializers)
 {

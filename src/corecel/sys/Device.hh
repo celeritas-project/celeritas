@@ -130,6 +130,11 @@ class Device
     // Access the data transfer stream paired with an execution stream
     inline Stream& memcpy_stream(StreamId) const;
 
+    //// FRIENDS ////
+
+    // Print device info
+    friend std::ostream& operator<<(std::ostream&, Device const&);
+
   private:
     //// DATA ////
 
@@ -172,8 +177,6 @@ void activate_device_local();
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-// Print device info
-std::ostream& operator<<(std::ostream&, Device const&);
 
 // Increase CUDA stack size
 void set_cuda_stack_size(int limit);

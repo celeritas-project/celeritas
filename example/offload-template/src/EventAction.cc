@@ -9,6 +9,7 @@
 #include <G4Event.hh>
 #include <G4SystemOfUnits.hh>
 #include <accel/TrackingManagerIntegration.hh>
+#include <accel/Types.hh>
 #include <corecel/Assert.hh>
 #include <corecel/io/Logger.hh>
 #include <corecel/sys/TraceCounter.hh>
@@ -76,15 +77,22 @@ void EventAction::BeginOfEventAction(G4Event const* event)
  */
 void EventAction::EndOfEventAction(G4Event const* event)
 {
-    CELER_VALIDATE(step_diagnostic(), << "step diagnostic was not constructed");
-
     // End the range for the event
     profile_this_.reset();
+
+    auto& integration = celeritas::TrackingManagerIntegration::Instance();
+    if (integration.GetMode() != OffloadMode::enabled)
+    {
+        // The diagnostic and state are only built when offloading to Celeritas
+        return;
+    }
+
+    CELER_VALIDATE(step_diagnostic(), << "step diagnostic was not constructed");
 
     // Note that the diagnostic is *const* (unmodified, thread safe) and the
     // state data (thread local!) is mutable
     auto const& diagnostic = *step_diagnostic();
-    auto& state = celeritas::TrackingManagerIntegration::Instance().GetState();
+    auto& state = integration.GetState();
 
     // Get accumulated stats and prepare the state for the next event
     auto stats = diagnostic.GetAndReset(state);

@@ -160,6 +160,7 @@ class MultiLevelGeoTest
     MultiLevelGeoTest(GenericGeoTestInterface* geo_test) : test_{geo_test} {}
 
     void test_trace() const;
+    void test_unique_instance() const;
     void test_volume_level() const;
     void test_volume_stack() const;
 

@@ -30,7 +30,7 @@ jobs:
       matrix:
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "release"]
-        image: ["rocky-cuda", "ubuntu-rocm"]
+        image: ["ubuntu-cuda", "ubuntu-rocm"]
         exclude:
           - geometry: "vecgeom"
             buildtype: "debug" # Build is too large
@@ -48,9 +48,9 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: >-
-        docker.io/celeritas/${{
-             matrix.image == 'rocky-cuda' && 'ci-rocky-cuda12:2024-12-29'
-          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm7:2025-11-04'
+        ghcr.io/celeritas-project/${{
+             matrix.image == 'ubuntu-cuda' && 'ci-cuda:2026-11-12'
+          || matrix.image == 'ubuntu-rocm' && 'ci-rocm:2026-11-12'
         }}
     steps:
       - name: Set up environment
@@ -62,13 +62,6 @@ jobs:
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
         uses: actions/checkout@v7
-        with:
-          fetch-tags: true
-
-      # TODO: fix when we update docker images
-      - name: Update git config to allow running as root
-        run: |
-          git config --global --add safe.directory ${PWD}
 
       - name: Configure Celeritas
         uses: ./.github/actions/configure
@@ -78,9 +71,12 @@ jobs:
 
       - name: Build Celeritas
         id: build
-        working-directory: build
-        run: |
-          ninja -v -k0
+        uses: ./.github/actions/build-cached
+        with:
+          name: docker-${{matrix.image}}-${{env.CELER_CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          targets: all
+          ccache-max-size: 512Mi
 
       - name: Test Celeritas
         id: test

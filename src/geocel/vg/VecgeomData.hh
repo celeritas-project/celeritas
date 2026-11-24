@@ -138,6 +138,7 @@ struct VecgeomStateData
     // Physical state
     StateItems<Real3> pos;
     StateItems<Real3> dir;
+    StateItems<Real3> normal;
 
     // Logical volumetric state
     VgStateItems state;
@@ -151,6 +152,7 @@ struct VecgeomStateData
         // clang-format off
         return pos.size() > 0
             && dir.size() == pos.size()
+            && normal.size() == pos.size()
             && state.size() == pos.size()
             && next_state.size() == pos.size();
         // clang-format on
@@ -166,6 +168,7 @@ struct VecgeomStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
+        normal = other.normal;
         state = other.state;
         next_state = other.next_state;
         return *this;

@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iosfwd>
 #include <nlohmann/json.hpp>
 
 #include "VolumeParams.hh"
@@ -16,8 +15,5 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // Write volume hierarchy to JSON
 void to_json(nlohmann::json& j, VolumeParams const& vp);
-
-// Write volume hierarchy to a stream
-std::ostream& operator<<(std::ostream& os, VolumeParams const& vp);
 
 }  // namespace celeritas

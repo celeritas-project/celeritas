@@ -6,15 +6,18 @@
 //---------------------------------------------------------------------------//
 #include "RunnerResults.hh"
 
+#include <iostream>
 #include <larcoreobj/SimpleTypesAndConstants/geo_vectors.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Repr.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 
 #include "AssertionHelper.hh"
-#include "testdetail/TestMacrosImpl.hh"
+#include "RefComparer.hh"
+#include "TestMacros.hh"
 
 namespace celeritas
 {
@@ -39,28 +42,17 @@ RunResult RunResult::from_btr(
 
 //---------------------------------------------------------------------------//
 
-void RunResult::print_expected() const
+std::ostream& operator<<(std::ostream& os, RunResult const& ref)
 {
-    std::cout << "RunResult ref;\n"
-              << "ref.num_hits = " << repr(num_hits) << ";\n"
-              << "EXPECT_REF_EQ(ref, result);\n";
+    return os << '{' << CELER_REPR_ATTR(ref, num_hits) << '}';
 }
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   RunResult const& val1,
-                                   RunResult const& val2)
+bool is_ref_eq(
+    AssertionHelper& helper, RunResult const& val1, RunResult const& val2)
 {
-    AssertionHelper helper{expr1, expr2};
-
-    if (auto r = ::celeritas::testdetail::IsVecEq(
-            expr1, "num_hits", val1.num_hits, val2.num_hits);
-        !static_cast<bool>(r))
-    {
-        helper.fail() << r.message();
-    }
-
-    return helper;
+    RefComparer<RunResult> compare{helper, val1, val2};
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, RunResult, num_hits);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//
@@ -73,115 +65,101 @@ DepHitResult DepHitResult::from_sdp(std::vector<sim::SDP> const& sdps)
         result.track_id.push_back(sdp.trackID);
         result.num_photons.push_back(sdp.numPhotons);
         result.energy.push_back(sdp.energy);
-        result.x.push_back(sdp.x);
-        result.y.push_back(sdp.y);
-        result.z.push_back(sdp.z);
+        result.pos.push_back(Real3{sdp.x, sdp.y, sdp.z});
     }
     return result;
 }
 
 //---------------------------------------------------------------------------//
 
-void DepHitResult::print_expected() const
+std::ostream& operator<<(std::ostream& os, DepHitResult const& ref)
 {
-    std::cout << "DepHitResult ref;\n"
-              << "ref.track_id = " << repr(track_id) << ";\n"
-              << "ref.num_photons = " << repr(num_photons) << ";\n"
-              << "ref.energy = " << repr(energy) << ";\n"
-              << "ref.x = " << repr(x) << ";\n"
-              << "ref.y = " << repr(y) << ";\n"
-              << "ref.z = " << repr(z) << ";\n"
-              << "EXPECT_REF_EQ(ref, result);\n";
+    return os << '{' << CELER_REPR_ATTR(ref, track_id) << ", "
+              << CELER_REPR_ATTR(ref, num_photons) << ", "
+              << CELER_REPR_ATTR(ref, energy) << ", "
+              << CELER_REPR_ATTR(ref, pos) << '}';
 }
 
 //---------------------------------------------------------------------------//
 
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   DepHitResult const& val1,
-                                   DepHitResult const& val2)
+bool is_ref_eq(AssertionHelper& helper,
+               DepHitResult const& val1,
+               DepHitResult const& val2)
 {
-    AssertionHelper helper{expr1, expr2};
+    RefComparer<DepHitResult> compare{helper, val1, val2};
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DepHitResult, track_id);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, DepHitResult, num_photons);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, DepHitResult, energy);
+    CELER_INVOKE_TYPE_ATTR(compare.is_soft_eq, DepHitResult, pos);
+    return static_cast<bool>(compare);
+}
 
-    if (auto r = ::celeritas::testdetail::IsVecEq(
-            expr1, "track_id", val1.track_id, val2.track_id);
-        !static_cast<bool>(r))
-    {
-        helper.fail() << r.message();
-    }
+//---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, OpticalDistributionResult const& ref)
+{
+    return os << '{' << CELER_REPR_ATTR(ref, num_photons) << ", "
+              << CELER_REPR_ATTR(ref, components) << ", "
+              << CELER_REPR_ATTR(ref, primaries) << ",}";
+}
 
-    if (helper.equal_size(val1.num_photons.size(), val2.num_photons.size()))
-    {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.num_photons, val2.num_photons);
-        if (!softeq_result)
-        {
-            helper.fail() << "  num_photons: " << softeq_result.message();
-        }
-    }
-    else
-    {
-        helper.fail() << "  num_photons: " << expr2 << " = "
-                      << repr(val2.num_photons);
-    }
+bool is_ref_eq(AssertionHelper& helper,
+               OpticalDistributionResult const& expected,
+               OpticalDistributionResult const& actual)
+{
+    RefComparer<OpticalDistributionResult> compare{helper, expected, actual};
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_eq, OpticalDistributionResult, num_photons);
+    CELER_INVOKE_TYPE_ATTR(
+        compare.is_eq, OpticalDistributionResult, components);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, OpticalDistributionResult, primaries);
+    return static_cast<bool>(compare);
+}
 
-    if (helper.equal_size(val1.energy.size(), val2.energy.size()))
+//---------------------------------------------------------------------------//
+void DiagnosticResult::append(CounterAccumStats const& stats)
+{
+    flushes.push_back(stats.flushes);
+    num_cut.push_back(stats.num_cut);
+    num_errored.push_back(stats.num_errored);
+    step_iters.push_back(stats.step_iters);
+    steps.push_back(stats.steps);
+    gen_size.push_back(stats.generators.size());
+    for (auto const& gen : stats.generators)
     {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.energy, val2.energy);
-        if (!softeq_result)
-        {
-            helper.fail() << "  energy: " << softeq_result.message();
-        }
+        buffer_size.push_back(gen.buffer_size);
+        num_generated.push_back(gen.num_generated);
+        num_pending.push_back(gen.num_pending);
     }
-    else
-    {
-        helper.fail() << "  energy: " << expr2 << " = " << repr(val2.energy);
-    }
+}
 
-    if (helper.equal_size(val1.x.size(), val2.x.size()))
-    {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.x, val2.x);
-        if (!softeq_result)
-        {
-            helper.fail() << "  x: " << softeq_result.message();
-        }
-    }
-    else
-    {
-        helper.fail() << "  x: " << expr2 << " = " << repr(val2.x);
-    }
+std::ostream& operator<<(std::ostream& os, DiagnosticResult const& ref)
+{
+    return os << '{' << CELER_REPR_ATTR(ref, flushes) << ", "
+              << CELER_REPR_ATTR(ref, num_cut) << ", "
+              << CELER_REPR_ATTR(ref, num_errored) << ", "
+              << CELER_REPR_ATTR(ref, step_iters) << ", "
+              << CELER_REPR_ATTR(ref, steps) << ", "
+              << CELER_REPR_ATTR(ref, gen_size) << ", "
+              << CELER_REPR_ATTR(ref, buffer_size) << ", "
+              << CELER_REPR_ATTR(ref, num_generated) << ", "
+              << CELER_REPR_ATTR(ref, num_pending) << ",}";
+}
 
-    if (helper.equal_size(val1.y.size(), val2.y.size()))
-    {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.y, val2.y);
-        if (!softeq_result)
-        {
-            helper.fail() << "  y: " << softeq_result.message();
-        }
-    }
-    else
-    {
-        helper.fail() << "  y: " << expr2 << " = " << repr(val2.y);
-    }
-
-    if (helper.equal_size(val1.z.size(), val2.z.size()))
-    {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.z, val2.z);
-        if (!softeq_result)
-        {
-            helper.fail() << "  z: " << softeq_result.message();
-        }
-    }
-    else
-    {
-        helper.fail() << "  z: " << expr2 << " = " << repr(val2.z);
-    }
-
-    return helper;
+bool is_ref_eq(AssertionHelper& helper,
+               DiagnosticResult const& expected,
+               DiagnosticResult const& actual)
+{
+    RefComparer<DiagnosticResult> compare{helper, expected, actual};
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, flushes);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, num_cut);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, num_errored);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, step_iters);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, steps);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, gen_size);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, buffer_size);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, num_generated);
+    CELER_INVOKE_TYPE_ATTR(compare.is_eq, DiagnosticResult, num_pending);
+    return static_cast<bool>(compare);
 }
 
 //---------------------------------------------------------------------------//

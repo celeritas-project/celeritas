@@ -193,7 +193,7 @@ and the full list of packages used by Celeritas is:
 With this environment (with CUDA enabled), all Celeritas tests should be
 enabled and all should pass.
 Celeritas is build-compatible with older versions of some dependencies (e.g.,
-Geant4@10.6 and VecGeom@1.2.7), but some tests may fail, indicating a change in
+Geant4@10.6), but some tests may fail, indicating a change in
 behavior or a bug fix in that package.
 
 Once the Celeritas Spack environment has been installed, set your shell's

@@ -31,11 +31,12 @@ void DirectGeneratorAction::generate(CoreParams const& params,
         *state.aux(), this->aux_id());
 
     // Generate optical photons in vacant track slots
-    detail::DirectGeneratorExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), aux_state.store.ref()};
+    detail::DirectGeneratorExecutor execute{params.ptr<MemSpace::native>(),
+                                            state.ptr(),
+                                            aux_state.store.ref(),
+                                            aux_state.device_counters()};
     static ActionLauncher<decltype(execute)> const launch(*this);
-    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
-    launch(num_gen, state.stream_id(), execute);
+    launch(state, execute);
 }
 
 //---------------------------------------------------------------------------//

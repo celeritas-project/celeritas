@@ -11,6 +11,8 @@
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
+#include "GeneratorCounterState.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -57,11 +59,17 @@ struct DirectGeneratorStateData
  * Store direct optical generation states in aux data.
  */
 template<MemSpace M>
-struct DirectGeneratorState : public GeneratorStateBase
+struct DirectGeneratorState : public GeneratorCounterState<M>
 {
     StateDataStore<DirectGeneratorStateData, M> store;
 
-    //! Access valid range of track initializers
+    //! Construct with stream and buffer capacity
+    DirectGeneratorState(StreamId stream, size_type capacity)
+        : GeneratorCounterState<M>{stream}, store{stream, capacity}
+    {
+    }
+
+    //! Access the initializers counted by the host copy of the counters
     auto initializers()
     {
         return this->store.ref().initializers[ItemRange<TrackInitializer>(

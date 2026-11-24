@@ -5,6 +5,7 @@
 //! \file orange/orangeinp/IntersectTestResult.hh
 //---------------------------------------------------------------------------//
 #pragma once
+#include <cstddef>
 #include <string>
 #include <vector>
 #include <gtest/gtest.h>
@@ -14,6 +15,11 @@
 
 namespace celeritas
 {
+namespace test
+{
+class AssertionHelper;
+}
+
 namespace orangeinp
 {
 namespace test
@@ -25,12 +31,13 @@ namespace test
  * It embeds all the meaningful output from constructing an intersect region:
  * the logical definition, surfaces, and bounding boxes.
  *
- * Use \c print_expected to generate output to copy-paste into a test; this
- * output defines a \c IntersectTestResult that can be compared using \c
- * EXPECT_REF_EQ.
+ * Use the imported \c print_expected function to generate a copy-pastable
+ * \c IntersectTestResult that can be compared using \c EXPECT_REF_EQ.
  */
 struct IntersectTestResult
 {
+    static constexpr char class_str[] = "IntersectTestResult";
+
     std::string node;
     std::vector<std::string> surfaces;
     BBox interior;
@@ -40,14 +47,13 @@ struct IntersectTestResult
     // comparison
     NodeId node_id;
 
-    void print_expected() const;
-};
+    friend std::ostream& operator<<(std::ostream&, IntersectTestResult const&);
 
-// Compare with EXPECT_REF_EQ
-::testing::AssertionResult IsRefEq(char const* expr1,
-                                   char const* expr2,
-                                   IntersectTestResult const& val1,
-                                   IntersectTestResult const& val2);
+    // Compare with EXPECT_REF_EQ
+    friend bool is_ref_eq(::celeritas::test::AssertionHelper& helper,
+                          IntersectTestResult const& expected,
+                          IntersectTestResult const& actual);
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -65,6 +65,14 @@ void set_buffer_size(GenCountersObserver<MemSpace::device>,
                      ObserverPtr<size_type const, MemSpace::device>,
                      StreamId);
 
+// Increase the buffer size by the number of appended distributions
+void add_buffer_size(GenCountersObserver<MemSpace::host>,
+                     ObserverPtr<size_type const, MemSpace::host>,
+                     StreamId);
+void add_buffer_size(GenCountersObserver<MemSpace::device>,
+                     ObserverPtr<size_type const, MemSpace::device>,
+                     StreamId);
+
 // Set the number of pending photons from a total, counting the new photons
 void update_pending(GenCountersObserver<MemSpace::host>,
                     ObserverPtr<size_type const, MemSpace::host>,

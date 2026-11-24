@@ -64,10 +64,18 @@ TEST(ConeAlignedTest, sense)
 
 TEST(ConeAlignedTest, normal)
 {
-    ConeX cone{{2, 3, 4}, 0.5};
+    {
+        ConeX cone{{2, 3, 4}, 0.5};
 
-    EXPECT_VEC_SOFT_EQ(make_unit_vector(Real3{-1, 2, 0}),
-                       cone.calc_normal({2 + 2, 3 + 1, 4 + 0}));
+        EXPECT_VEC_SOFT_EQ(make_unit_vector(Real3{-1, 2, 0}),
+                           cone.calc_normal({2 + 2, 3 + 1, 4 + 0}));
+    }
+    {
+        ConeZ cone{{2, 3, 4}, 0.5};
+
+        EXPECT_VEC_SOFT_EQ(make_unit_vector(Real3{2, 0, -1}),
+                           cone.calc_normal({2 + 1, 3 + 0, 4 + 2}));
+    }
 }
 
 TEST(ConeAlignedTest, intersection_typical)
@@ -121,7 +129,7 @@ TEST(ConeAlignedTest, intersection_along_surface)
 
         auto distances
             = calc_intersections(cone, pos, tempdir, SurfaceState::off);
-        EXPECT_SOFT_NEAR(1e-10, distances[0], 0.1);
+        EXPECT_SOFT_NEAR(1e-10, distances[0], 0.1_r);
         EXPECT_SOFT_EQ(2.1633307647466964, distances[1]);
     }
 
@@ -213,6 +221,26 @@ TEST(ConeAlignedTest, degenerate_boundary)
             EXPECT_EQ(no_intersection(), distances[1]);
         }
     }
+}
+
+TEST(ConeAlignedTest, safety)
+{
+    // Opening angle with tan = 0.5, so that cos = 1 / sqrt(1.25)
+    ConeZ cone{{1, 2, 3}, 0.5};
+    real_type const inv_sec = 1 / std::sqrt(real_type(1.25));
+
+    // On the surface
+    EXPECT_SOFT_EQ(0, cone.calc_safety({2, 2, 5}));
+    // Outside, far from the axis
+    EXPECT_SOFT_EQ(3 * inv_sec, cone.calc_safety({5, 2, 5}));
+    // Outside, nearly level with the vanishing point
+    EXPECT_SOFT_EQ(2.75 * inv_sec, cone.calc_safety({4, 2, 3.5}));
+    // Inside the lower sheet
+    EXPECT_SOFT_EQ(1 * inv_sec, cone.calc_safety({1, 3, -1}));
+    // On the axis, where the normal is undefined
+    EXPECT_SOFT_EQ(2 * inv_sec, cone.calc_safety({1, 2, 7}));
+    // At the vanishing point
+    EXPECT_SOFT_EQ(0, cone.calc_safety({1, 2, 3}));
 }
 
 //---------------------------------------------------------------------------//

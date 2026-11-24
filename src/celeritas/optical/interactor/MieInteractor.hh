@@ -126,8 +126,8 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
         UniformRealDist sample_phi(0, real_type(2 * constants::pi));
         real_type phi = sample_phi(rng);
 
-        // Creating new direction
-        new_dir = from_spherical(costheta, phi);
+        // Creating new direction, relative to the incident direction
+        new_dir = rotate(from_spherical(costheta, phi), inc_dir_);
 
         // Project polarization onto plane perpendicular to new direction
         new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));

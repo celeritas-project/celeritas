@@ -21,10 +21,10 @@ struct CleanedProvenance
 {
     std::string_view filename;
     int line{};
-};
 
-// Write abbreviated filename to output
-std::ostream& operator<<(std::ostream&, CleanedProvenance);
+    // Write abbreviated filename to output
+    friend std::ostream& operator<<(std::ostream&, CleanedProvenance);
+};
 
 //---------------------------------------------------------------------------//
 //! Stream wrapper for color-annotated message
@@ -33,10 +33,10 @@ struct ColorfulLogMessage
     LogProvenance const& prov;
     LogLevel lev;
     std::string const& msg;
-};
 
-// Write color-annotated message
-std::ostream& operator<<(std::ostream&, ColorfulLogMessage);
+    // Write color-annotated message
+    friend std::ostream& operator<<(std::ostream&, ColorfulLogMessage);
+};
 
 //---------------------------------------------------------------------------//
 /*!

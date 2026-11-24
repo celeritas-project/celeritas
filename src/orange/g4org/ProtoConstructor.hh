@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
@@ -48,6 +49,12 @@ namespace g4org
  * daughters, and applying the inverse rotation to its placement in its parent
  * parent. Note that this operation does not change the physical geometry, only
  * how it is represented computationally.
+ *
+ * Volumes can also be aligned automatically. If a volume has at least \c
+ * align_daughter_threshold daughters, and at least the fraction \c
+ * align_daughter_fraction of them have the same rotation (and that rotation is
+ * not already axis-aligned) the inverse of that rotation is then used for
+ * alignment. Explicit entries in \c universe_alignment take precedence.
  */
 class ProtoConstructor
 {
@@ -87,14 +94,21 @@ class ProtoConstructor
 
     VolumeParams const& volumes_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
+    //! Volumes that have been checked and are not aligned
+    std::unordered_set<VolumeId> not_aligned_;
+    //! Explicit or automatically detected alignments
     std::unordered_map<VolumeId, Alignment> alignment_;
     int depth_{0};
     Input const& opts_;
 
     //// HELPER FUNCTIONS ////
 
-    // Get the alignment for a volume
-    Alignment const* find_alignment(VolumeId) const;
+    // Get the alignment for an LV (if applicable), calculating it on first use
+    Alignment const* cached_alignment(LogicalVolume const&);
+
+    // Find a rotation shared by the majority of an LV's daughters
+    std::optional<SquareMatrixReal3> find_common_rotation(
+        LogicalVolume const&) const;
 
     // Whether we should inline a volume based on its pv's transform
     bool can_inline_transform(VariantTransform const&) const;

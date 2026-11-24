@@ -208,12 +208,12 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
         data.continuous_edep_fraction = 1;
         data.points[StepPoint::pre].time
             = convert_from_larsoft<LarsoftTime>(edepi.StartT());
-        data.points[StepPoint::pre].pos
-            = convert_from_larsoft<LarsoftLen>(edepi.Start());
+        data.points[StepPoint::pre].pos = static_array_cast<real_type>(
+            convert_from_larsoft<LarsoftLen>(edepi.Start()));
         data.points[StepPoint::post].time
             = convert_from_larsoft<LarsoftTime>(edepi.EndT());
-        data.points[StepPoint::post].pos
-            = convert_from_larsoft<LarsoftLen>(edepi.End());
+        data.points[StepPoint::post].pos = static_array_cast<real_type>(
+            convert_from_larsoft<LarsoftLen>(edepi.End()));
         data.primary = id_cast<PrimaryId>(step_md_.size());
 
         auto insert_component

@@ -45,6 +45,9 @@ using GeantTouchableBase = G4VTouchable;
 struct StreamableNavHistory
 {
     G4NavigationHistory const* nav{nullptr};
+
+    // Print detailed information about the touchable history.
+    friend std::ostream& operator<<(std::ostream&, StreamableNavHistory const&);
 };
 
 //---------------------------------------------------------------------------//
@@ -52,13 +55,10 @@ struct StreamableNavHistory
 struct StreamableLV
 {
     G4LogicalVolume const* lv{nullptr};
+
+    // Print the logical volume name, ID, and address.
+    friend std::ostream& operator<<(std::ostream&, StreamableLV const&);
 };
-
-// Print detailed information about the touchable history.
-std::ostream& operator<<(std::ostream&, StreamableNavHistory const&);
-
-// Print the logical volume name, ID, and address.
-std::ostream& operator<<(std::ostream&, StreamableLV const&);
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

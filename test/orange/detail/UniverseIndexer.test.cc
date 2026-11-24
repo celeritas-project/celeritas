@@ -32,10 +32,16 @@ class UniverseIndexerTest : public Test
         UniverseIndexerData<Ownership::value, MemSpace::host> data;
 
         auto cb_s = make_builder(&data.surfaces);
-        cb_s.insert_back(surfaces.begin(), surfaces.end());
+        for (size_type value : surfaces)
+        {
+            cb_s.push_back(ImplSurfaceId{value});
+        }
 
         auto cb_v = make_builder(&data.volumes);
-        cb_v.insert_back(volumes.begin(), volumes.end());
+        for (size_type value : volumes)
+        {
+            cb_v.push_back(ImplVolumeId{value});
+        }
 
         data_ = ParamsDataStore<UniverseIndexerData>{std::move(data)};
     }
@@ -54,6 +60,8 @@ TEST_F(UniverseIndexerTest, single)
     EXPECT_EQ(1, indexer.num_universes());
     EXPECT_EQ(4, indexer.num_surfaces());
     EXPECT_EQ(10, indexer.num_volumes());
+    EXPECT_EQ(4, indexer.num_surfaces(UnivId{0}));
+    EXPECT_EQ(10, indexer.num_volumes(UnivId{0}));
 
     EXPECT_EQ(ImplSurfaceId(0),
               indexer.global_surface(UnivId{0}, LocalSurfaceId{0}));
@@ -113,6 +121,12 @@ TEST_F(UniverseIndexerTest, multi)
     EXPECT_EQ(6, indexer.num_surfaces());
     EXPECT_EQ(5, indexer.num_volumes());
     EXPECT_EQ(4, indexer.num_universes());
+
+    for (auto u : range(id_cast<UnivId>(surfaces_per_uni.size())))
+    {
+        EXPECT_EQ(surfaces_per_uni[*u], indexer.num_surfaces(u));
+        EXPECT_EQ(cells_per_uni[*u], indexer.num_volumes(u));
+    }
 
     unsigned int global_surface = 0;
     for (auto u : range(surfaces_per_uni.size()))

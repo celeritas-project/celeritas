@@ -7,88 +7,50 @@
 #include "OffloadAlgorithms.hh"
 
 #include <algorithm>
-#include <numeric>
 
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
-
-using namespace celeritas::literals;
 
 namespace celeritas
 {
 namespace detail
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-
-struct AccumNumPhotons
-{
-    // Accumulate the number of optical photons from the distribution data
-    size_type operator()(size_type count,
-                         GeneratorDistributionData const& data) const
-    {
-        return count + data.num_photons;
-    }
-};
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
- * Remove all invalid distributions from the buffer.
+ * Append the valid distributions created in this step to the buffer.
  *
- * \return Total number of valid distributions in the buffer
+ * The distributions written by each track slot past the buffered data are
+ * stably compacted, the buffer size is increased by the number of valid
+ * distributions, and their photons are added to the number of pending tracks.
  */
-template<class T>
-size_type remove_if_invalid(ItemsRef<T, MemSpace::host> const& buffer,
-                            size_type offset,
-                            size_type size,
-                            StreamId)
-{
-    auto* start = buffer.data().get();
-    auto* stop = std::remove_if(start + offset, start + size, LogicalNot{});
-    return stop - start;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Count the number of optical photons in the distributions and add these to
- * the number of pending tracks.
- */
-void add_pending_photon_count(
+void append_distributions(
     optical::CoreState<MemSpace::host>& state,
     ItemsRef<GeneratorDistributionData, MemSpace::host> const& buffer,
-    size_type offset,
-    size_type size,
+    ObserverPtr<GeneratorStateCounters, MemSpace::host> counters,
+    size_type num_slots,
     StreamId)
 {
-    auto* start = buffer.data().get();
-    size_type count = std::accumulate(
-        start + offset, start + size, 0_sz, AccumNumPhotons{});
+    CELER_EXPECT(counters);
+
+    auto& buffer_size = counters->current.buffer_size;
+    CELER_EXPECT(buffer_size + num_slots <= buffer.size());
+
+    auto* start = buffer.data().get() + buffer_size;
+    auto* stop = std::remove_if(start, start + num_slots, LogicalNot{});
+
+    size_type count = 0;
+    for (auto* d = start; d != stop; ++d)
+    {
+        count += d->num_photons;
+    }
+    buffer_size += stop - start;
+
     // If there are more photons, update the number of pending optical photons
     if (count > 0)
     {
         state.add_pending(count);
     }
-    return;
 }
-
-//---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
-//---------------------------------------------------------------------------//
-
-template size_type remove_if_invalid(
-    ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
-    size_type,
-    size_type,
-    StreamId);
-template size_type remove_if_invalid(
-    ItemsRef<WlsDistributionData, MemSpace::host> const&,
-    size_type,
-    size_type,
-    StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

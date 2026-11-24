@@ -17,12 +17,6 @@ concurrency:
 env:
   CELER_CMAKE_PRESET: ultralite
   CXXSTD: 20
-  CELER_VERSION_STRING: >-
-    ${{
-      github.event.pull_request
-      && format('-pr.{0}', github.event.pull_request.number)
-      || format('-{0}', github.ref_name)
-    }}
 
 jobs:
   ultralite:
@@ -60,7 +54,6 @@ jobs:
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-${{matrix.platform}}-github.json
-          version-string: ${{env.CELER_VERSION_STRING}}
 
       - name: Build
         id: build
@@ -69,7 +62,6 @@ jobs:
           name: ultralite-${{matrix.platform}}
           preset: ${{env.CELER_CMAKE_PRESET}}
           ccache-max-size: 128Mi
-          ccache-debug: ${{matrix.platform == 'ubuntu' && '1' || '0'}}
 
       - name: Test
         id: test

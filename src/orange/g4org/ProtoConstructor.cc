@@ -6,8 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "ProtoConstructor.hh"
 
+#include <cmath>
 #include <iostream>
+#include <optional>
 
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "geocel/VolumeParams.hh"
 #include "orange/MatrixUtils.hh"
@@ -15,6 +18,7 @@
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Transformed.hh"
+#include "orange/transform/RotationCounter.hh"
 #include "orange/transform/TransformIO.hh"
 
 #include "Volume.hh"
@@ -68,6 +72,11 @@ ProtoConstructor::ProtoConstructor(VolumeParams const& vols,
     : volumes_{vols}, opts_{options}
 {
     CELER_EXPECT(opts_.tol);
+    CELER_VALIDATE(opts_.align_daughter_fraction > 0.5
+                       && opts_.align_daughter_fraction <= 1,
+                   << "invalid daughter alignment fraction "
+                   << opts_.align_daughter_fraction
+                   << " [must be in (0.5, 1]]");
 
     for (auto const& [name, rot] : opts_.universe_alignment)
     {
@@ -91,6 +100,9 @@ ProtoConstructor::ProtoConstructor(VolumeParams const& vols,
         align.inverse = align.rotation.calc_inverse();
         alignment_.insert({vol_id, std::move(align)});
     }
+
+    // The world volume is never aligned
+    not_aligned_.insert(volumes_.world());
 }
 
 //---------------------------------------------------------------------------//
@@ -110,7 +122,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 
     // Rotation applied to the boundary and daughters of an aligned volume
     VariantTransform rotation{NoTransformation{}};
-    if (Alignment const* align = this->find_alignment(lv.id))
+    if (Alignment const* align = this->cached_alignment(lv))
     {
         rotation = align->rotation;
     }
@@ -181,14 +193,94 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the alignment for a volume.
+ * Get the alignment for an LV (if applicable), calculating it on first use.
  *
- * If the volume in not aligned, a nullptr is returned.
+ * The alignment is either 1) explicitly defined by the user, 2) calculated
+ * automatically if a sufficient number of daughters share a non-axis-aligned
+ * rotation, or 3) not aligned. The result is cached so that the daughters of
+ * each LV are searched only once. If the volume is not aligned, a nullptr
+ * is returned.
  */
-auto ProtoConstructor::find_alignment(VolumeId vol_id) const -> Alignment const*
+auto ProtoConstructor::cached_alignment(LogicalVolume const& lv)
+    -> Alignment const*
 {
-    auto iter = alignment_.find(vol_id);
-    return (iter == alignment_.end()) ? nullptr : &(iter->second);
+    // If LV has already been determined to be not aligned, return nullptr
+    if (not_aligned_.count(lv.id))
+    {
+        return nullptr;
+    }
+
+    // If the LV has already been determined to be aligned, return the
+    // alignment
+    if (auto iter = alignment_.find(lv.id); iter != alignment_.end())
+    {
+        return &iter->second;
+    }
+
+    // First encounter: search the daughters for a common rotation. If one is
+    // found, return an alignment
+    if (auto rot = this->find_common_rotation(lv))
+    {
+        Real3 origin{0, 0, 0};
+
+        Alignment align;
+        align.rotation = Transformation{make_transpose(*rot), origin};
+        align.inverse = Transformation{*rot, origin};
+        auto iter = alignment_.emplace(lv.id, std::move(align)).first;
+        return &iter->second;
+    }
+
+    // A common rotation not found, cache this result and return a nullptr
+    not_aligned_.insert(lv.id);
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find a rotation shared by the majority of an LV's daughters.
+ *
+ * The volume must have at least \c align_daughter_threshold daughters, and at
+ * least the fraction \c align_daughter_fraction of them must have the same
+ * rotation. A rotation that is already axis-aligned (a signed permutation) is
+ * not returned, since nothing would be gained by aligning to it.
+ */
+auto ProtoConstructor::find_common_rotation(LogicalVolume const& lv) const
+    -> std::optional<SquareMatrixReal3>
+{
+    size_type const num_daughters = lv.children.size();
+
+    // Early return if we are prohibited from doing universe alignment
+    if (opts_.align_daughter_threshold == 0
+        || num_daughters < opts_.align_daughter_threshold || is_union(lv.solid))
+    {
+        return {};
+    }
+
+    // Process all rotations
+    RotationCounter rc;
+    for (PhysicalVolume const& pv : lv.children)
+    {
+        rc.count(pv.transform);
+    }
+
+    // Find most common rotation
+    auto result = rc.calc_most_common();
+
+    // Early return if we don't meet \c align_daughter_fraction or the most
+    // common rotation is already axis aligned.
+    auto const num_req_daughters = static_cast<size_type>(
+        std::ceil(opts_.align_daughter_fraction * num_daughters));
+    if (result.count < num_req_daughters
+        || is_signed_permutation(result.rotation, opts_.tol.rel))
+    {
+        return {};
+    }
+
+    CELER_LOG(info) << "Aligning volume '"
+                    << volumes_.volume_labels().at(lv.id)
+                    << "' to the rotation shared by " << result.count << " of "
+                    << num_daughters << " daughters";
+    return result.rotation;
 }
 
 //---------------------------------------------------------------------------//
@@ -237,7 +329,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     auto transform = apply_transform(parent_transform, pv.transform);
 
     // Get alignment and check that it is applicable
-    Alignment const* align = this->find_alignment(pv.lv->id);
+    Alignment const* align = this->cached_alignment(*pv.lv);
     if (align)
     {
         auto const& label = volumes_.volume_labels().at(pv.lv->id);

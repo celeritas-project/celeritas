@@ -52,7 +52,6 @@ if(NOT DEFINED Geant4_VERSION OR NOT DEFINED Celeritas_VERSION)
 endif()
 
 celeritas_get_g4env(_celer_g4_test_env)
-celeritas_get_disable_device(_disable_device)
 
 if(CELERITAS_USE_MPI)
   list(APPEND _celer_g4_test_env "CELER_DISABLE_PARALLEL=1")
@@ -80,8 +79,9 @@ set(CELERITASTEST_G4NT "2" CACHE STRING
 mark_as_advanced(CELERITASTEST_G4NT)
 
 # Set up a single G4 ctest with correct environment variables and labels.
+# 'dwf' = "DISABLED", "WILL_FAIL", or empty
 # Extra arguments are passed to set_tests_properties.
-function(celeritas_g4_set_tests_properties test_names label_list offload rmtype)
+function(celeritas_g4_set_tests_properties test_names label_list offload rmtype dwf)
   if(NOT DEFINED _rm_${rmtype})
     message(SEND_ERROR "Invalid run manager type '${rmtype}'")
   endif()
@@ -97,6 +97,10 @@ function(celeritas_g4_set_tests_properties test_names label_list offload rmtype)
   elseif(offload STREQUAL "gpu")
     list(APPEND _extra_props RESOURCE_LOCK gpu)
     list(APPEND label_list gpu)
+    celeritas_get_disable_device(_disable_device)
+    if(_disable_device)
+      set(dwf DISABLED)
+    endif()
   elseif(offload STREQUAL "g4")
     list(APPEND _env "CELER_DISABLE=1")
   elseif(offload STREQUAL "ko")
@@ -107,6 +111,9 @@ function(celeritas_g4_set_tests_properties test_names label_list offload rmtype)
   if(NOT rmtype STREQUAL "serial")
     list(APPEND _env "G4FORCENUMBEROFTHREADS=${CELERITASTEST_G4NT}")
     list(APPEND _extra_props PROCESSORS ${CELERITASTEST_G4NT})
+  endif()
+  if(dwf)
+    list(APPEND _extra_props "${dwf}" TRUE)
   endif()
 
   set_tests_properties(${test_names} PROPERTIES
@@ -136,18 +143,15 @@ function(celeritas_g4_add_tests target)
   foreach(_offload IN LISTS PARSE_OFFLOAD)
     foreach(_rmtype IN LISTS PARSE_RMTYPE)
       set(_disable ${PARSE_DISABLE})
-      if(_offload STREQUAL "gpu" AND _disable_device)
-        set(_disable TRUE)
-      endif()
       if(NOT _rm_avail_${_rmtype})
         set(_disable TRUE)
       endif()
       if(_disable)
-        set(_args DISABLED TRUE)
+        set(_dwf DISABLED)
       elseif(PARSE_WILL_FAIL)
-        set(_args WILL_FAIL TRUE)
+        set(_dwf WILL_FAIL)
       else()
-        set(_args)
+        set(_dwf)
       endif()
 
       set(_test_name "${PARSE_NAME}:${_offload}:${_rmtype}")
@@ -155,7 +159,7 @@ function(celeritas_g4_add_tests target)
       celeritas_g4_set_tests_properties(
         "${_test_name}"
         "${PARSE_LABELS}" "${_offload}" "${_rmtype}"
-        ${_args}
+        "${_dwf}" # DISABLED or WILL_FAIL
       )
       if(PARSE_WRAP)
         set_property(TEST "${_test_name}"

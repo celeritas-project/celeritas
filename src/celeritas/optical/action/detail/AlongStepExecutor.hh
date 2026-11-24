@@ -21,9 +21,9 @@ namespace detail
 /*!
  * Complete end-of-step activity for a track.
  *
+ * - Update number of steps
  * - Calculate the group velocity in the material
  * - Update track time based on step length and group velocity
- * - Update number of steps
  * - Update remaining MFPs to interaction
  */
 struct AlongStepExecutor
@@ -35,19 +35,7 @@ struct AlongStepExecutor
 CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
 {
     auto sim = track.sim();
-
     CELER_ASSERT(sim.status() == TrackStatus::alive);
-    CELER_ASSERT(sim.step_length() > 0);
-    CELER_ASSERT(sim.post_step_action());
-
-    // Look up the precomputed group velocity
-    auto calc_group_velocity
-        = track.material_record().make_group_velocity_calculator();
-    auto group_vel = calc_group_velocity(
-        value_as<units::MevEnergy>(track.particle().energy()));
-
-    // Update time
-    sim.add_time(sim.step_length() / group_vel);
 
     // Increment the step counter
     sim.increment_num_steps();
@@ -63,7 +51,25 @@ CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
         return;
     }
 
+    if (track.surface_physics().is_crossing_boundary())
+    {
+        // The track is partway through a surface crossing. The step count is
+        // updated, but the track has not moved
+        return;
+    }
+
+    // Look up the precomputed group velocity
+    auto calc_group_velocity
+        = track.material_record().make_group_velocity_calculator();
+    auto group_vel = calc_group_velocity(
+        value_as<units::MevEnergy>(track.particle().energy()));
+
+    // Update time
+    CELER_ASSERT(sim.step_length() > 0);
+    sim.add_time(sim.step_length() / group_vel);
+
     // Update remaining MFPs to interaction
+    CELER_ASSERT(sim.post_step_action());
     auto phys = track.physics();
     if (sim.post_step_action() != phys.discrete_action())
     {

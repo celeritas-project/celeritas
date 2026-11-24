@@ -37,10 +37,10 @@ void validate_geant_threading(size_type num_streams);
 struct StreamablePD
 {
     G4ParticleDefinition const* pd{nullptr};
-};
 
-// Print the particle definition name and PDG
-std::ostream& operator<<(std::ostream& os, StreamablePD const& pd);
+    // Print the particle definition name and PDG
+    friend std::ostream& operator<<(std::ostream& os, StreamablePD const& pd);
+};
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

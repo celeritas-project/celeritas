@@ -8,8 +8,8 @@
 
 #include <string>
 #include <G4LogicalVolume.hh>
+#include <G4NavigationHistory.hh>
 #include <G4ReplicaNavigation.hh>
-#include <G4TouchableHistory.hh>
 #include <G4VPVParameterisation.hh>
 #include <G4VPhysicalVolume.hh>
 
@@ -18,6 +18,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "geocel/Types.hh"
 #include "geocel/VolumeVisitor.hh"
 
 namespace celeritas
@@ -54,6 +55,7 @@ class GeantVolumeAccessor final
         return result;
     }
 };
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -181,18 +183,21 @@ VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv,
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the volume instance at a depth in a touchable.
+ * Get the volume instance at a level in the navigation history.
  *
- * Depth zero is the touchable's current (deepest) volume. The replica number
- * recorded in the touchable is used rather than the PV's copy number, since
- * replica PV state is shared by all tracks and navigators on a thread.
+ * Level zero is the world volume, matching \c VolumeLevelId . The replica
+ * number recorded in the history is used rather than the PV's copy number,
+ * since replica PV state is shared by all tracks and navigators on a thread.
+ * The history \em cannot be "outside" (where num_volume_levels is 0).
  */
 VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
-    GeantTouchableBase const& touch, int depth) const
+    G4NavigationHistory const& navpath, VolumeLevelId level) const
 {
-    G4PV const* pv = touch.GetVolume(depth);
-    CELER_EXPECT(pv);
-    return this->geant_to_id(*pv, touch.GetReplicaNumber(depth));
+    CELER_EXPECT(level < get_num_volume_levels(navpath));
+    G4int g4_level = static_cast<G4int>(*level);
+    G4VPhysicalVolume const* vol = navpath.GetVolume(g4_level);
+    CELER_ASSERT(vol);
+    return this->geant_to_id(*vol, navpath.GetReplicaNo(g4_level));
 }
 
 //---------------------------------------------------------------------------//
@@ -258,6 +263,29 @@ void GeantVolumeInstanceMapper::update_replica(G4PV& pv,
         CELER_ASSERT_UNREACHABLE();
     }
     pv.SetCopyNo(copy_no);
+}
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+/*!
+ * Get the navigation depth of a G4 navigation path.
+ *
+ * The nav path is "outside" if and only if the depth is zero and the top
+ * volume is nullptr. Otherwise, the number of levels (the depth of the
+ * location in the navigation tree) is one greater than the reported nav path
+ * depth.
+ */
+VolumeLevelId get_num_volume_levels(G4NavigationHistory const& navpath)
+{
+    auto nav_depth = navpath.GetDepth();
+    if (CELER_UNLIKELY(nav_depth <= 0 && navpath.GetTopVolume() == nullptr))
+    {
+        // G4 history represents an "outside" volume as depth-1 with nullptr
+        return VolumeLevelId{0};
+    }
+    return id_cast<VolumeLevelId>(nav_depth + 1);
 }
 
 //---------------------------------------------------------------------------//

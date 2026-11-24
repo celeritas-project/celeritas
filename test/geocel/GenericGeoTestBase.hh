@@ -67,7 +67,7 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
 
     // Get a host track view
     WrappedGeoTrack make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});
-    //! Get and initialize a single-thread host track view
+    // Get and initialize a single-thread host track view
     WrappedGeoTrack make_geo_track_view(Real3 const& pos_cm, Real3 dir);
 
     //// GenericGeoTestInterface ////

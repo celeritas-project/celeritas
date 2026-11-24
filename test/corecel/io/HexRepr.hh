@@ -21,15 +21,14 @@ template<class T>
 struct HexRepr
 {
     T value;
-};
 
-template<class T>
-inline std::ostream& operator<<(std::ostream& os, HexRepr<T> const& h)
-{
-    ScopedStreamFormat save_fmt(&os);
-    os << std::hexfloat << std::hex << h.value;
-    return os;
-}
+    friend std::ostream& operator<<(std::ostream& os, HexRepr const& h)
+    {
+        ScopedStreamFormat save_fmt(&os);
+        os << std::hexfloat << std::hex << h.value;
+        return os;
+    }
+};
 
 //! Print an integer or float (or array thereof) as a hexadecimal
 template<class T>

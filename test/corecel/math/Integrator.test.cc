@@ -121,7 +121,7 @@ TEST(IntegratorTest, DISABLED_nasty)
         EXPECT_SOFT_NEAR(-0.21782054493256212, integrate(0.1, 1), eps);
         EXPECT_EQ(516, f.exchange_count());
         // Results are numerically unstable
-        EXPECT_SOFT_NEAR(0, integrate(0.01, 0.1), 0.01);
+        EXPECT_SOFT_NEAR(0, integrate(0.01, 0.1), 0.01_r);
         EXPECT_EQ(1048577, f.exchange_count());
     }
 }

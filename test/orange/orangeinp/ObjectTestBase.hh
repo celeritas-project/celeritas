@@ -64,9 +64,6 @@ class ObjectTestBase : public ::celeritas::test::Test
     // Construct a volume
     LocalVolumeId build_volume(ObjectInterface const& s);
 
-    // Print the unit we've constructed
-    void print_expected() const;
-
     // Print for ORANGE CSG-to-dot
     void print_csg() const;
 

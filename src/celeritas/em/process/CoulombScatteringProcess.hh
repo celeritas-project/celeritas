@@ -22,7 +22,7 @@ namespace celeritas
 /*!
  * Coulomb scattering process for electrons off of atoms.
  */
-class CoulombScatteringProcess : public Process
+class CoulombScatteringProcess : public InteractionProcess
 {
   public:
     //!@{

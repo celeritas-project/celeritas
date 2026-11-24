@@ -86,6 +86,7 @@ list(APPEND SOURCES
   surf/VariantSurface.cc
   surf/detail/SurfaceTransformer.cc
   surf/detail/SurfaceTranslator.cc
+  transform/RotationCounter.cc
   transform/SignedPermutation.cc
   transform/TransformHasher.cc
   transform/TransformIO.cc

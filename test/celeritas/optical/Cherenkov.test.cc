@@ -441,12 +441,14 @@ TEST_F(CherenkovWaterTest, generator)
             = {3869, 4048, 3777, 3886, 3970, 3898, 3862, 3944, 3965, 3893, 3899, 3863, 3937, 3911, 3997, 3871,};
         // clang-format on
 
+        sample(pre_step, particle, sim, pos, num_samples);
+
+        // With single precision, pre- and post-step speed are both equal to 1.
+        // The distribution should be valid with equal speeds
+        EXPECT_GT(total_num_photons, 0);
+
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            // Only test with double precision: with single precision, pre- and
-            // post-step speed are both equal to 1
-            sample(pre_step, particle, sim, pos, num_samples);
-
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
@@ -561,6 +563,49 @@ TEST_F(CherenkovWaterTest, generator)
         {
             EXPECT_SOFT_EQ(0.296875, total_num_photons / num_samples);
             EXPECT_SOFT_EQ(25.894736842105, avg_engine_samples);
+        }
+    }
+
+    // 500 keV e- with no energy loss over the step: pre- and post-step speeds
+    // are equal
+    {
+        // Post-step values
+        auto particle
+            = this->make_particle_track_view(Energy(0.5), pdg::electron());
+        auto sim = this->make_sim_track_view(0.15);
+        Real3 pos = {sim.step_length(), 0, 0};
+
+        // Pre-step values
+        OffloadPreStepData pre_step;
+        pre_step.pos = {0, 0, 0};
+        pre_step.speed = particle.speed();
+        pre_step.time = 0;
+        pre_step.material = material_id;
+
+        // clang-format off
+        static size_type const expected_costheta_dist[]
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5702, 51,};
+        static size_type const expected_energy_dist[]
+            = {318, 308, 307, 314, 313, 316, 349, 350, 381, 365, 353, 387, 402, 434, 401, 455,};
+        static size_type const expected_displacement_dist[]
+            = {366, 362, 345, 366, 335, 384, 348, 409, 387, 368, 368, 335, 372, 306, 374, 328,};
+        // clang-format on
+
+        sample(pre_step, particle, sim, pos, num_samples);
+
+        // Distribution is valid with equal speeds
+        EXPECT_GT(total_num_photons, 0);
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+            EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
+            EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
+            EXPECT_SOFT_EQ(0.8453317343771, avg_costheta);
+            EXPECT_SOFT_EQ(4.1509771456753e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.074338211904586, avg_displacement);
+            EXPECT_SOFT_EQ(89.890625, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(11.427429167391, avg_engine_samples);
         }
     }
 }

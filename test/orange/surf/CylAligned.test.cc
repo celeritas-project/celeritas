@@ -438,6 +438,17 @@ TEST_F(CylZTest, TEST_IF_CELERITAS_DOUBLE(degenerate_boundary))
     }
 }
 
+TEST_F(CylXTest, safety)
+{
+    CylX cyl({1234.5, 1, -2}, 2.0);
+
+    EXPECT_SOFT_EQ(0.5, cyl.calc_safety(Real3{100, 2.5, -2}));
+    EXPECT_SOFT_EQ(3.0, cyl.calc_safety(Real3{-100, 4, -6}));
+    EXPECT_SOFT_EQ(0.0, cyl.calc_safety(Real3{1, 1, 0}));
+    // The normal is undefined on the axis
+    EXPECT_SOFT_EQ(2.0, cyl.calc_safety(Real3{5, 1, -2}));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

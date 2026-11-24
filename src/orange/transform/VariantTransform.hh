@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <variant>
-
 #include "corecel/cont/VariantUtils.hh"
 
 #include "NoTransformation.hh"

@@ -152,6 +152,19 @@ CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
         return *this;
     }
 
+    if (CELER_UNLIKELY(!this->material_record(geo)))
+    {
+        // Track started in a volume without optical properties (e.g., a
+        // point on a boundary that rounds into a neighboring volume): it
+        // can't be transported, and physics views can't be constructed
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error)
+            << "Track started in a volume without an optical material";
+#endif
+        this->apply_errored();
+        return *this;
+    }
+
     // Initialize the particle state
     this->particle()
         = ParticleTrackView::Initializer{init.energy, init.polarization};

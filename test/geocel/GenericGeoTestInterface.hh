@@ -15,6 +15,7 @@
 #include "geocel/Types.hh"
 #include "geocel/UnitLength.hh"
 
+#include "GenericGeoResults.hh"
 #include "LazyGeantGeoManager.hh"
 
 class G4VPhysicalVolume;
@@ -26,11 +27,7 @@ class VolumeParams;
 namespace test
 {
 //---------------------------------------------------------------------------//
-struct GenericGeoTrackingResult;
-struct GenericGeoTrackingTolerance;
-struct GenericGeoVolumeStackResult;
 
-//---------------------------------------------------------------------------//
 /*!
  * Access capabilities from any templated GenericGeo test.
  *

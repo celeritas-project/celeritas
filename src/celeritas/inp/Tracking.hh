@@ -49,6 +49,8 @@ struct CoreTrackingLimits : TrackingLimits
  */
 struct OpticalTrackingLimits : TrackingLimits
 {
+    //! Surface physics iterations per step for tracks crossing a surface
+    size_type surface_substeps{1};
 };
 
 //---------------------------------------------------------------------------//

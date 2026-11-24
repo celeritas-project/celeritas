@@ -15,10 +15,8 @@
 #include "corecel/io/Repr.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/g4/Convert.hh"
-#include "geocel/g4/Repr.hh"
+#include "geocel/g4/Repr.hh"  // IWYU pragma: keep
 #include "celeritas/user/DetectorSteps.hh"
-
-#include "../GeantUnits.hh"
 
 namespace celeritas
 {
