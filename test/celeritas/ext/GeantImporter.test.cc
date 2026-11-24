@@ -1798,20 +1798,21 @@ TEST_F(LarSphere, optical)
         components.push_back(to_sec(comp.rise_time));
         components.push_back(to_sec(comp.fall_time));
     }
+    // Rise times are ignored since finite rise time is disabled by default
     static double const expected_components[] = {
         0.6,
         1.28e-05,
         1e-06,
-        1e-08,
+        0,
         6e-09,
         0.2,
         1.28e-05,
         1e-06,
-        1e-08,
+        0,
         1.5e-06,
         0.2,
         51,
-        1e-08,
+        0,
         3e-06,
     };
     EXPECT_VEC_NEAR(expected_components, components, tol);

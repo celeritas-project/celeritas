@@ -340,12 +340,13 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 //! Load optical scintillation
 size_type GeantPhysicsLoader::scintillation(G4VProcess const& p)
 {
-    CELER_VALIDATE(dynamic_cast<G4Scintillation const*>(&p),
+    auto const* g4scint = dynamic_cast<G4Scintillation const*>(&p);
+    CELER_VALIDATE(g4scint,
                    << "process " << TypeDemangler<G4VProcess>{}(p)
                    << " is not actually scintillation");
 
     inp::ScintillationProcess s;
-    GeantScintillationLoader load_material{s};
+    GeantScintillationLoader load_material{s, *g4scint};
 
     MultiExceptionHandler handle;
 
