@@ -12,11 +12,29 @@
 ARG BASE_IMAGE
 
 #-----------------------------------------------------------------------------#
+# Image metadata shared by both images: see
+# https://github.com/opencontainers/image-spec/blob/main/annotations.md
+# The build script adds the labels that change with each build (created,
+# revision, version) so that they do not invalidate cached layers.
+#-----------------------------------------------------------------------------#
+FROM ${BASE_IMAGE} AS base
+
+ARG BASE_IMAGE
+LABEL org.opencontainers.image.authors="Celeritas contributors" \
+      maintainer="Celeritas contributors" \
+      org.opencontainers.image.vendor="Celeritas Project" \
+      org.opencontainers.image.url="https://celeritas-project.github.io/celeritas/" \
+      org.opencontainers.image.source="https://github.com/celeritas-project/celeritas" \
+      org.opencontainers.image.documentation="https://github.com/celeritas-project/celeritas/blob/develop/scripts/docker/README.md" \
+      org.opencontainers.image.base.name="${BASE_IMAGE}"
+
+#-----------------------------------------------------------------------------#
 # Development image: Spack and the installed environment
 #-----------------------------------------------------------------------------#
-FROM ${BASE_IMAGE} AS dev
+FROM base AS dev
 
-LABEL description="Celeritas GPU prerequisites built with Spack"
+LABEL org.opencontainers.image.title="Celeritas GPU development image" \
+      org.opencontainers.image.description="Celeritas GPU prerequisites built with Spack"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8
@@ -104,9 +122,10 @@ RUN spack -e /opt/spack-environment gc -y \
 #-----------------------------------------------------------------------------#
 # CI image: base toolkit image plus the installed Spack environment
 #-----------------------------------------------------------------------------#
-FROM ${BASE_IMAGE} AS ci
+FROM base AS ci
 
-LABEL description="Celeritas GPU CI build"
+LABEL org.opencontainers.image.title="Celeritas GPU CI image" \
+      org.opencontainers.image.description="GPU toolkit and Celeritas prerequisites for CI builds"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8

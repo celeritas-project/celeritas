@@ -8,6 +8,8 @@
 # (default: ghcr.io/celeritas-project). The CI image is pushed only if PUSH=1
 # is set. SPACK_INSTALL_ARGS (e.g. "-p 8 -j 32") is
 # passed to 'spack install'.
+# The images are labeled with the Celeritas git revision: set REVISION when
+# building from a source directory that is not a git checkout.
 # Additional arguments are passed to each build command, e.g. --no-cache.
 # See scripts/docker/_container.sh for the container engine selection.
 #-----------------------------------------------------------------------------#
@@ -42,6 +44,17 @@ case ${CONFIG} in
     ;;
 esac
 
+# Use UTC so the tag does not depend on the build host's time zone
+CREATED=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+DATE=${CREATED%%T*}
+
+# Full commit hash of the source, with a suffix for uncommitted changes
+if [ -z "${REVISION}" ]; then
+  REVISION=$(git -C "${CELER_SOURCE_DIR}" describe --always --abbrev=40 \
+    --exclude='*' --dirty) \
+    || log warning "no git revision available: set REVISION to label the images"
+fi
+
 # Build a stage of the Dockerfile
 build() {
   target=$1
@@ -56,6 +69,9 @@ build() {
     --build-arg SPACK_PACKAGES_REPO="${SPACK_PACKAGES_REPO}" \
     --build-arg SPACK_PACKAGES_REF="${SPACK_PACKAGES_REF}" \
     --build-context spack-config="${CELER_SOURCE_DIR}/scripts/spack" \
+    --label org.opencontainers.image.created="${CREATED}" \
+    --label org.opencontainers.image.revision="${REVISION}" \
+    --label org.opencontainers.image.version="${DATE}" \
     --platform linux/amd64 \
     --target "${target}" \
     -t "${target}-${CONFIG}" \
@@ -66,8 +82,6 @@ build() {
 build dev "$@"
 build ci "$@"
 
-# Use UTC so the tag does not depend on the build host's time zone
-DATE=$(date -u '+%Y-%m-%d')
 REGISTRY=${REGISTRY:-ghcr.io/celeritas-project}
 CI_IMAGE="${REGISTRY}/ci-${CONFIG}:${DATE}"
 ${CONTAINER_EXE} tag "dev-${CONFIG}" "${REGISTRY}/dev-${CONFIG}:${DATE}"
