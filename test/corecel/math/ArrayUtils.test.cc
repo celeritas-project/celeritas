@@ -6,7 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "corecel/math/ArrayUtils.hh"
 
+#include <cmath>
 #include <limits>
+#include <type_traits>
+#include <vector>
 
 #include "corecel/Constants.hh"
 #include "corecel/io/StreamUtils.hh"
@@ -285,6 +288,162 @@ TEST(RotateTest, near_z)
                 auto result = rotate(from_spherical(costheta, phi), rot);
                 EXPECT_SOFT_EQ(costheta, dot_product(result, rot));
             }
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Rotate with an independently constructed, branch-free rotation matrix.
+ *
+ * The columns are the images of the x, y, and z unit vectors: \f$ (\cos\theta
+ * \cos\phi, \cos\theta \sin\phi, -\sin\theta) \f$, \f$ (-\sin\phi, \cos\phi,
+ * 0) \f$, and \c rot itself. The angles come from \c atan2 so the result is
+ * accurate arbitrarily close to the z axis.
+ */
+Dbl3 reference_rotate(Dbl3 const& dir, Dbl3 const& rot)
+{
+    double const theta = std::atan2(std::hypot(rot[X], rot[Y]), rot[Z]);
+    double const phi = std::atan2(rot[Y], rot[X]);
+    Dbl3 const ex{std::cos(theta) * std::cos(phi),
+                  std::cos(theta) * std::sin(phi),
+                  -std::sin(theta)};
+    Dbl3 const ey{-std::sin(phi), std::cos(phi), 0.0};
+
+    Dbl3 result;
+    for (int i = 0; i != 3; ++i)
+    {
+        result[i] = dir[X] * ex[i] + dir[Y] * ey[i] + dir[Z] * rot[i];
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check that rotation about \c rot is a proper rotation that maps z to \c rot.
+ *
+ * These checks target the failure modes of past bugs in \c rotate:
+ * - z must map onto \c rot (the incident direction, and hence momentum, is
+ *   preserved);
+ * - the images of x and y must complete a right-handed frame (a proper
+ *   rotation, not a reflection);
+ * - the polar angle about \c rot must equal the scattering angle, including
+ *   its sign;
+ * - the result must match a branch-free reference, including its length and
+ *   azimuth.
+ */
+template<class T>
+void check_rotate(Array<T, 3> const& rot, double tol)
+{
+    using ArrT = Array<T, 3>;
+    auto rotate_dbl = [&rot](ArrT const& dir) {
+        return static_array_cast<double>(rotate(dir, rot));
+    };
+    Dbl3 const drot = static_array_cast<double>(rot);
+
+    Dbl3 const ex = rotate_dbl(ArrT{1, 0, 0});
+    Dbl3 const ey = rotate_dbl(ArrT{0, 1, 0});
+    Dbl3 const ez = rotate_dbl(ArrT{0, 0, 1});
+    EXPECT_LE(distance(drot, ez), tol) << ez;
+    EXPECT_LE(distance(ez, cross_product(ex, ey)), tol) << ex << ey;
+
+    for (double costheta : {1.0, 0.9, 0.0, -0.5, -1.0})
+    {
+        for (double phi : {0.0, 1.0, 4.0})
+        {
+            ArrT const dir
+                = static_array_cast<T>(from_spherical(costheta, phi));
+            Dbl3 const actual = rotate_dbl(dir);
+            EXPECT_NEAR(costheta, dot_product(actual, drot), tol);
+            EXPECT_LE(distance(reference_rotate(static_array_cast<double>(dir),
+                                                drot),
+                               actual),
+                      tol)
+                << "costheta=" << costheta << ", phi=" << phi;
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+//! Rotation axes at a given distance from +/-z in all x/y quadrants
+std::vector<Dbl3> near_z_axes(double sintheta)
+{
+    double const costheta = std::sqrt(1 - ipow<2>(sintheta));
+    std::vector<Dbl3> result;
+    for (double zsign : {1.0, -1.0})
+    {
+        for (double ysign : {1.0, -1.0})
+        {
+            for (double xsign : {1.0, -1.0})
+            {
+                result.push_back({xsign * 0.6 * sintheta,
+                                  ysign * 0.8 * sintheta,
+                                  zsign * costheta});
+            }
+        }
+    }
+    return result;
+}
+
+template<class T>
+class RotateTypedTest : public ::testing::Test
+{
+  protected:
+    using ArrT = Array<T, 3>;
+
+    //! Tolerance: just above the threshold, sqrt(1 - z^2) loses about
+    //! eps / sin^2(theta) relative precision (measured ~1e-5 and ~2e-11)
+    static constexpr double tol = std::is_same_v<T, float> ? 1e-4 : 1e-9;
+    //! Polar sine below which the hypot-normalized branch is used
+    static constexpr double threshold
+        = detail::RealVecTraits<T>::min_accurate_sintheta;
+};
+
+using RealTypes = ::testing::Types<float, double>;
+TYPED_TEST_SUITE(RotateTypedTest, RealTypes, );
+
+TYPED_TEST(RotateTypedTest, axes)
+{
+    using ArrT = typename TestFixture::ArrT;
+    for (Dbl3 const& rot : {Dbl3{1, 0, 0},
+                            Dbl3{-1, 0, 0},
+                            Dbl3{0, 1, 0},
+                            Dbl3{0, -1, 0},
+                            Dbl3{0, 0, 1},
+                            Dbl3{0, 0, -1},
+                            make_unit_vector(Dbl3{-1.1, 2.3, 0.9}),
+                            make_unit_vector(Dbl3{1.1, -2.3, -0.9})})
+    {
+        SCOPED_TRACE(rot);
+        check_rotate(static_array_cast<TypeParam>(rot), TestFixture::tol);
+    }
+    // Exactly along z, the result is just the scattered direction (+z) or the
+    // scattered direction rotated by pi about y (-z)
+    ArrT const dir
+        = static_array_cast<TypeParam>(make_unit_vector(Dbl3{-1.1, 2.3, 0.9}));
+    EXPECT_VEC_SOFT_EQ(dir, rotate(dir, ArrT{0, 0, 1}));
+    EXPECT_VEC_SOFT_EQ((ArrT{-dir[X], dir[Y], -dir[Z]}),
+                       rotate(dir, ArrT{0, 0, -1}));
+}
+
+TYPED_TEST(RotateTypedTest, near_z)
+{
+    // Polar sines straddling the threshold between the two branches (so the
+    // result is continuous across it), and approaching the z axis
+    double const thresh = TestFixture::threshold;
+    for (double sintheta : {0.5,
+                            2 * thresh,
+                            1.001 * thresh,
+                            0.999 * thresh,
+                            0.5 * thresh,
+                            1e-2 * thresh,
+                            1e-4 * thresh,
+                            1e-12})
+    {
+        for (Dbl3 const& rot : near_z_axes(sintheta))
+        {
+            SCOPED_TRACE(rot);
+            check_rotate(static_array_cast<TypeParam>(rot), TestFixture::tol);
         }
     }
 }
