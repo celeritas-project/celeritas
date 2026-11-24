@@ -37,11 +37,11 @@ class ResponseTallyTest : public ::celeritas::test::Test
     }
 
     //! Combine start and end bins, returning -1 for a null result
-    long long bin(Real3 const& pos, size_type det, real_type time) const
+    ResponseBinId bin(Real3 const& pos, size_type det, real_type time) const
     {
         ResponseTallyView view(params_.host_ref());
         auto result = view.end_bin(view.start_bin(pos), DetectorId{det}, time);
-        return result ? static_cast<long long>(result.get()) : -1;
+        return result;
     }
 
     ParamsDataStore<ResponseTallyParamsData> params_;
@@ -76,16 +76,17 @@ TEST_F(ResponseTallyTest, start_bin)
 TEST_F(ResponseTallyTest, end_bin)
 {
     // First bin
-    EXPECT_EQ(0, this->bin({0.5, 0.5, 0.5}, 0, 0.5));
+    EXPECT_EQ(ResponseBinId(0), this->bin({0.5, 0.5, 0.5}, 0, 0.5));
     // Time changes fastest
-    EXPECT_EQ(1, this->bin({0.5, 0.5, 0.5}, 0, 2.5));
-    EXPECT_EQ(4, this->bin({0.5, 0.5, 0.5}, 0, 9.5));
+    EXPECT_EQ(ResponseBinId(1), this->bin({0.5, 0.5, 0.5}, 0, 2.5));
+    EXPECT_EQ(ResponseBinId(4), this->bin({0.5, 0.5, 0.5}, 0, 9.5));
     // Detector is second fastest
-    EXPECT_EQ(5, this->bin({0.5, 0.5, 0.5}, 1, 0.5));
+    EXPECT_EQ(ResponseBinId(5), this->bin({0.5, 0.5, 0.5}, 1, 0.5));
     // Last bin
-    EXPECT_EQ(354, this->bin({1.5, 2.5, 3.5}, 1, 9.5));
+    EXPECT_EQ(ResponseBinId(354), this->bin({1.5, 2.5, 3.5}, 1, 9.5));
     // Contributions add
-    EXPECT_EQ(180 + 60 + 15 + 5 + 3, this->bin({1.5, 1.5, 1.5}, 1, 6.5));
+    EXPECT_EQ(ResponseBinId(180 + 60 + 15 + 5 + 3),
+              this->bin({1.5, 1.5, 1.5}, 1, 6.5));
 }
 
 TEST_F(ResponseTallyTest, out_of_range)
@@ -93,11 +94,11 @@ TEST_F(ResponseTallyTest, out_of_range)
     ResponseTallyView view(params_.host_ref());
 
     // Bad start
-    EXPECT_EQ(-1, this->bin({-0.1, 0.5, 0.5}, 0, 0.5));
-    EXPECT_EQ(-1, this->bin({0.5, 0.5, 4.0}, 0, 0.5));
+    EXPECT_FALSE(this->bin({-0.1, 0.5, 0.5}, 0, 0.5));
+    EXPECT_FALSE(this->bin({0.5, 0.5, 4.0}, 0, 0.5));
     // Bad time
-    EXPECT_EQ(-1, this->bin({0.5, 0.5, 0.5}, 0, -1));
-    EXPECT_EQ(-1, this->bin({0.5, 0.5, 0.5}, 0, 10));
+    EXPECT_FALSE(this->bin({0.5, 0.5, 0.5}, 0, -1));
+    EXPECT_FALSE(this->bin({0.5, 0.5, 0.5}, 0, 10));
 
     // A null starting bin is never scored
     EXPECT_FALSE(view.end_bin(ResponseBinId{}, DetectorId{0}, 0.5));
