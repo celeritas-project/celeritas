@@ -57,6 +57,9 @@ class UniformGrid
     //! \internal Access the data used to construct this class
     CELER_FUNCTION UniformGridData const& data() const { return data_; }
 
+    //! Returns whether the given position is within the grid.
+    inline CELER_FUNCTION bool contains(value_type value) const;
+
   private:
     UniformGridData const& data_;
 };
@@ -93,6 +96,15 @@ CELER_FUNCTION size_type UniformGrid::find(value_type value) const
     auto bin = static_cast<size_type>((value - data_.front) / data_.delta);
     CELER_ENSURE(bin + 1 < this->size());
     return bin;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return whether the given value is within the grid.
+ */
+CELER_FUNCTION bool UniformGrid::contains(value_type value) const
+{
+    return value >= this->front() && value < this->back();
 }
 
 //---------------------------------------------------------------------------//

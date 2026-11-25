@@ -5,11 +5,13 @@
 //! \file celeritas/optical/detail/Filler.cu
 //---------------------------------------------------------------------------//
 #include "corecel/data/Filler.device.t.hh"
+#include "celeritas/optical/ResponseTallyData.hh"
 #include "celeritas/optical/WavelengthShiftData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template class Filler<optical::ResponseBinId, MemSpace::device>;
 template class Filler<optical::WlsDistributionData, MemSpace::device>;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
