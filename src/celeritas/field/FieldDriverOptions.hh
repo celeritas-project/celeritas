@@ -64,6 +64,9 @@ struct FieldDriverOptions
     //! Maximum number of substeps in the field propagator
     short int max_substeps = 10;
 
+    //! Propagate steps inside the start-of-step safety without searches
+    bool use_safety_sphere = false;
+
     //! Initial step tolerance
     static constexpr real_type initial_step_tol = 1e-6;
 
@@ -111,6 +114,7 @@ constexpr bool operator==(FieldDriverOptions const& a,
            && a.max_stepping_decrease == b.max_stepping_decrease
            && a.max_nsteps == b.max_nsteps
            && a.max_substeps == b.max_substeps
+           && a.use_safety_sphere == b.use_safety_sphere
            && a.initial_step_tol == b.initial_step_tol
            && a.dchord_tol == b.dchord_tol
            && a.min_chord_shrink == b.min_chord_shrink;

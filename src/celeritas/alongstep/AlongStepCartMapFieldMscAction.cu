@@ -17,8 +17,8 @@
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/AlongStepKernels.hh"
-#include "detail/FieldTrackPropagator.hh"
-#include "detail/PropagationApplier.hh"
+#include "detail/FieldPropagationLauncher.device.hh"
+#include "detail/SafetyApplier.hh"
 
 namespace celeritas
 {
@@ -29,6 +29,14 @@ namespace celeritas
 void AlongStepCartMapFieldMscAction::step(CoreParams const& params,
                                           CoreStateDevice& state) const
 {
+    if (this->has_msc()
+        || field_->ref<MemSpace::native>().options.use_safety_sphere)
+    {
+        detail::launch_safety(*this,
+                              detail::get_msc_ref<MemSpace::native>(msc_.get()),
+                              params,
+                              state);
+    }
     if (this->has_msc())
     {
         detail::launch_limit_msc_step(
@@ -36,19 +44,18 @@ void AlongStepCartMapFieldMscAction::step(CoreParams const& params,
     }
     {
         ScopedProfiling profile_this{"propagate"};
-        auto execute_thread = make_along_step_track_executor(
-            params.ptr<MemSpace::native>(),
-            state.ptr(),
-            this->action_id(),
-            detail::PropagationApplier{
-                detail::FieldTrackPropagator<CartMapField>{
-                    field_->ref<MemSpace::native>()}});
-        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            *this, "propagate-cartmap");
-        launch_kernel(*this, params, state, execute_thread);
+        detail::launch_field_propagation<CartMapField>(
+            *this,
+            field_->ref<MemSpace::native>(),
+            IsAlongStepActionEqual{this->action_id()},
+            "propagate-cartmap",
+            params,
+            state);
     }
     if (this->has_msc())
     {
+        detail::launch_scatter_safety(
+            *this, msc_->ref<MemSpace::native>(), params, state);
         detail::launch_apply_msc(
             *this, msc_->ref<MemSpace::native>(), params, state);
     }

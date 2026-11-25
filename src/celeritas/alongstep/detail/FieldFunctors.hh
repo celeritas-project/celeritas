@@ -75,5 +75,62 @@ struct IsAlongStepLinear
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Whether the whole step of a track fits inside its safety sphere.
+ *
+ * The sphere is centered on the track's position at the start of the step
+ * (see \c SafetyApplier ), so the check uses the center rather than the
+ * current position. It therefore has the same answer after the track has been
+ * propagated, which lets one kernel skip the tracks another has already moved.
+ */
+template<class T>
+CELER_FUNCTION bool is_step_in_safety_sphere(T const& track,
+                                             real_type tolerance)
+{
+    auto const& sphere = track.physics_step().safety_sphere();
+    return sphere.contains(sphere.center,
+                           track.sim().step_length() + tolerance);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply to tracks satisfying a condition whose step fits in the sphere.
+ */
+template<class C>
+struct IsStepInSafetySphere
+{
+    C condition;
+    real_type tolerance;
+
+    template<class T>
+    CELER_FUNCTION bool operator()(T const& track) const
+    {
+        return condition(track) && is_step_in_safety_sphere(track, tolerance);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply to tracks satisfying a condition that don't use the sphere.
+ *
+ * If the safety sphere is disabled, this applies to all tracks that satisfy
+ * the condition.
+ */
+template<class C>
+struct IsStepOutsideSafetySphere
+{
+    C condition;
+    real_type tolerance;
+    bool use_sphere;
+
+    template<class T>
+    CELER_FUNCTION bool operator()(T const& track) const
+    {
+        return condition(track)
+               && !(use_sphere && is_step_in_safety_sphere(track, tolerance));
+    }
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
