@@ -153,8 +153,9 @@ CELER_FUNCTION void InteractionApplierBaseImpl<F>::operator()(
             {
                 // Secondary is an electron, positron or gamma with energy
                 // below the production cut -- deposit the energy locally
-                // and clear the secondary
-                deposition += value_as<Energy>(secondary.energy) * sim.weight();
+                // and clear the secondary. Like all energy deposition, this
+                // is unweighted: the track weight is applied during scoring.
+                deposition += value_as<Energy>(secondary.energy);
                 auto sec_par = track.particle_record(secondary.particle_id);
                 if (sec_par.is_antiparticle())
                 {
