@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/Secondary.hh"
@@ -99,10 +102,11 @@ CELER_FUNCTION Interaction IoniFinalStateHelper::operator()(Engine& rng)
     // Calculate the polar angle of the exiting electron
     real_type momentum = std::sqrt(
         electron_energy_ * (electron_energy_ + 2 * electron_mass_));
-    real_type costheta = electron_energy_
-                         * (inc_energy_ + inc_mass_ + electron_mass_)
-                         / (momentum * inc_momentum_);
-    CELER_ASSERT(costheta <= 1);
+    // (clamp roundoff error when nearly all the energy is transferred)
+    real_type costheta
+        = min(electron_energy_ * (inc_energy_ + inc_mass_ + electron_mass_)
+                  / (momentum * inc_momentum_),
+              real_type{1});
 
     // Sample and save outgoing secondary data
     secondary_->energy = Energy{electron_energy_};
@@ -113,8 +117,22 @@ CELER_FUNCTION Interaction IoniFinalStateHelper::operator()(Engine& rng)
     // Construct interaction for change to parent (incoming) particle
     Interaction result;
     result.energy = Energy{inc_energy_ - electron_energy_};
-    result.direction = calc_exiting_direction(
-        {inc_momentum_, inc_direction_}, {momentum, secondary_->direction});
+    {
+        // Calculate exiting direction via conservation of momentum
+        Real3 exit_momentum = inc_momentum_ * inc_direction_
+                              - momentum * secondary_->direction;
+        real_type exit_norm = norm(exit_momentum);
+        if (exit_norm > 0)
+        {
+            result.direction = (1 / exit_norm) * exit_momentum;
+        }
+        else
+        {
+            // All the momentum was transferred to the electron (to within
+            // roundoff): keep the incident direction
+            result.direction = inc_direction_;
+        }
+    }
     result.secondaries = {secondary_, 1};
 
     return result;

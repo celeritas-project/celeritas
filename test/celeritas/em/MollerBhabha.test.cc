@@ -4,10 +4,14 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/em/MollerBhabha.test.cc
 //---------------------------------------------------------------------------//
+#include <cmath>
+#include <limits>
+
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/interactor/MollerBhabhaInteractor.hh"
+#include "celeritas/em/interactor/detail/IoniFinalStateHelper.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
@@ -383,6 +387,54 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                                                          22.3027};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+}
+
+TEST_F(MollerBhabhaInteractorTest, full_energy_transfer)
+{
+    // Bhabha scattering can transfer (almost) all of the positron's kinetic
+    // energy to the electron, where the exiting electron's polar cosine is
+    // analytically 1 but can round to slightly larger
+    constexpr real_type eps = std::numeric_limits<real_type>::epsilon();
+    Real3 const inc_dir = make_unit_vector(Real3{1, 2, 3});
+    this->set_inc_direction(inc_dir);
+    RandomEngine& rng = this->rng();
+
+    for (int i = 0; i <= 60; ++i)
+    {
+        MevEnergy const inc_energy{
+            real_type(1e-3) * std::pow(real_type(10), i / real_type(10))};
+        this->set_inc_particle(pdg::positron(), inc_energy);
+        for (real_type frac : {1 - 4 * eps, 1 - 2 * eps, 1 - eps, real_type(1)})
+        {
+            MevEnergy const sec_energy{frac * inc_energy.value()};
+            SCOPED_TRACE(::testing::Message() << "E=" << inc_energy.value()
+                                              << ", frac=1-" << (1 - frac));
+            this->resize_secondaries(1);
+            Secondary* secondary = this->secondary_allocator()(1);
+            ASSERT_TRUE(secondary);
+
+            detail::IoniFinalStateHelper sample_interaction(
+                inc_energy,
+                inc_dir,
+                this->particle_track().momentum(),
+                data_.electron_mass,
+                sec_energy,
+                data_.electron_mass,
+                data_.ids.electron,
+                secondary);
+            Interaction result = sample_interaction(rng);
+
+            // Electron is emitted along the incident direction
+            EXPECT_EQ(sec_energy.value(), secondary->energy.value());
+            EXPECT_SOFT_EQ(1, norm(secondary->direction));
+            EXPECT_SOFT_EQ(1, dot_product(inc_dir, secondary->direction));
+
+            // Positron keeps the remaining energy and a valid direction
+            EXPECT_EQ(inc_energy.value() - sec_energy.value(),
+                      result.energy.value());
+            EXPECT_SOFT_EQ(1, norm(result.direction));
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
