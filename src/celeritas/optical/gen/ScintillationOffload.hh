@@ -34,6 +34,11 @@ namespace celeritas
  * continuous slowing down but before the particle loses energy in a discrete
  * interaction.
  *
+ * If no energy is deposited along the step, all photons are emitted at the
+ * post-step point. The pre-step speed is then left unset so that the generator
+ * uses the post-step time rather than adding the time of flight over the step:
+ * with Woodcock tracking the pre-step point is at the \em end of the flight.
+ *
  * The mean number of photons is a product of the energy deposition and a
  * material-dependent yield fraction (photons per MeV). The actual number of
  * photons sampled is determined by sampling:
@@ -156,7 +161,10 @@ ScintillationOffload::operator()(Generator& rng)
         result.charge = charge_;
         result.material = pre_step_.material;
         result.continuous_edep_fraction = continuous_edep_fraction_;
-        result.points[StepPoint::pre].speed = pre_step_.speed;
+        if (continuous_edep_fraction_ > 0)
+        {
+            result.points[StepPoint::pre].speed = pre_step_.speed;
+        }
         result.points[StepPoint::pre].time = pre_step_.time;
         result.points[StepPoint::pre].pos = pre_step_.pos;
         result.points[StepPoint::post] = post_step_;

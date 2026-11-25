@@ -33,7 +33,8 @@ namespace optical
  *
  * The post-step time is only needed as a fallback to sample the scintillation
  * photon emission time when the particle speed is not available (e.g. when
- * generating photons from the LArSoft \c SimEnergyDeposit).
+ * generating photons from the LArSoft \c SimEnergyDeposit) or when all photons
+ * are emitted at the post-step point.
  */
 struct GeneratorStepData
 {
