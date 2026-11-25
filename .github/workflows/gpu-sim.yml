@@ -1,0 +1,121 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Run the GPU-labeled tests on a simulated NVIDIA H100.
+#
+# The docker jobs in build-docker.yml set CELER_DISABLE_DEVICE because the
+# hosted runners have no GPU, so no test runs on a device. This optional job
+# builds a minimal CUDA configuration (no Geant4, ROOT, HepMC3, VecGeom or
+# OpenMP) on the host and runs the ctest "gpu" label under PantheonSim
+# (https://github.com/pantheongpu/pantheonsim), a functional GPU simulator. It
+# cannot reproduce hardware timing or hardware-specific behavior, so it
+# complements real-GPU testing and does not replace it.
+#-----------------------------------------------------------------------------#
+
+name: gpu-sim
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - "src/**"
+      - "test/**"
+      - "app/**"
+      - "cmake/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/gpu-sim.yml"
+
+concurrency:
+  group: gpu-sim-${{github.event.number || github.ref_name}}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cuda-h100:
+    name: "cuda-13.0-simulated-h100"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      CCACHE_DIR: ${{github.workspace}}/.ccache
+      CCACHE_MAXSIZE: 1Gi
+      CCACHE_NOINODECACHE: true
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up the simulated H100 and CUDA toolkit
+        uses: pantheongpu/setup-pantheonsim@656f502ef4782d94d34d8ddd368e333960609639 # v0.1.8
+        with:
+          gpu: nvidia/h100
+          cuda-toolkit: "13.0"
+
+      # The action installs only part of the toolkit: add the NVTX and
+      # Thrust/CUB (CCCL) headers that corecel includes when CUDA is enabled.
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ccache ninja-build cuda-nvtx-13-0 cuda-cccl-13-0
+
+      - name: Restore ccache
+        id: restore
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-gpu-sim-h100-${{github.run_id}}
+          restore-keys: ccache-gpu-sim-h100
+
+      # The simulator runs PTX (90-virtual embeds PTX only) and needs a
+      # shared CUDA runtime. CELER_DISABLE_DEVICE must stay unset at configure
+      # time so that the "gpu" tests are allowed to use the device.
+      # CUDA 13 moved Thrust/CUB under include/cccl, which nvcc adds by itself
+      # but the host compiler does not, so pass it for the .cc files.
+      - name: Configure Celeritas
+        run: |
+          cmake --preset=minimal -B build \
+            -DCELERITAS_USE_CUDA=ON \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_UNITY_BUILD=ON \
+            -DCMAKE_CXX_FLAGS="-isystem /usr/local/cuda-13.0/targets/x86_64-linux/include/cccl" \
+            -DCMAKE_CUDA_COMPILER=/usr/local/cuda-13.0/bin/nvcc \
+            -DCUDAToolkit_ROOT=/usr/local/cuda-13.0 \
+            -DCMAKE_CUDA_ARCHITECTURES=90-virtual \
+            -DCMAKE_CUDA_RUNTIME_LIBRARY=Shared \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CUDA_COMPILER_LAUNCHER=ccache
+
+      - name: Build Celeritas
+        id: build
+        run: |
+          ccache -z
+          cmake --build build -j3 -- -k0
+          ccache -s
+
+      - name: Save ccache
+        if: ${{ !cancelled() && steps.restore.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-gpu-sim-h100-${{github.run_id}}
+
+      # Without a device the test harness prints "Disabling tests with
+      # 'device' in the name" and skips them, so fail if that happens.
+      - name: Test Celeritas on the simulated H100
+        run: |
+          vgpu run --gpu nvidia/h100 \
+            ctest --test-dir build -L gpu \
+              -j2 --timeout 600 --output-on-failure --no-tests=error
+          if grep -q "Disabling tests with 'device'" \
+              build/Testing/Temporary/LastTest.log; then
+            echo "::error::device tests were skipped (no device seen)"
+            exit 1
+          fi
+
+# vim: set nowrap tw=100:
