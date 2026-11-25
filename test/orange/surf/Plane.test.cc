@@ -58,6 +58,10 @@ TEST_F(PlaneTest, tracking)
     // Make a rotated plane in the xy axis
     Plane p{{inv_sqrt_two, inv_sqrt_two, 0.0}, 2.0_r * constants::sqrt_two};
 
+    auto gradient = p.calc_gradient({});
+    EXPECT_EQ(1, decltype(gradient)::unit_type::value());
+    EXPECT_VEC_SOFT_EQ(p.normal(), native_value_from(gradient));
+
     // Get a point that should have positive sense
     Real3 x{{5.41421356, 1.41421356, 0.0}};
     EXPECT_EQ(SignedSense::outside, p.calc_sense(x));
@@ -97,6 +101,16 @@ TEST_F(PlaneTest, tracking)
     x = {2.0, 2.0, 0.0};
     EXPECT_EQ(no_intersection(),
               calc_intersection(p, x, dir, SurfaceState::on));
+}
+
+TEST_F(PlaneTest, safety)
+{
+    // Rotated plane through (2, 2, 0)
+    Plane p{{inv_sqrt_two, inv_sqrt_two, 0.0}, 2.0_r * constants::sqrt_two};
+
+    EXPECT_SOFT_EQ(2 * constants::sqrt_two, p.calc_safety(Real3{0, 0, 10}));
+    EXPECT_SOFT_EQ(constants::sqrt_two, p.calc_safety(Real3{3, 3, -1}));
+    EXPECT_SOFT_EQ(0.0, p.calc_safety(Real3{4, 0, 5}));
 }
 
 //---------------------------------------------------------------------------//

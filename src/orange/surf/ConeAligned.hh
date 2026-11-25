@@ -6,14 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/Types.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/Quantity.hh"
 
 namespace celeritas
 {
@@ -52,6 +56,7 @@ class ConeAligned
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 4>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
   private:
@@ -64,8 +69,8 @@ class ConeAligned
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type();
 
-    //! Safety is intersection along surface normal
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+    //! Safety is the exact distance to the cone surface
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
     //!@{
     //! Axes
@@ -103,12 +108,21 @@ class ConeAligned
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the cone expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Location of the vanishing point
@@ -162,11 +176,21 @@ CELER_FUNCTION ConeAligned<T>::ConeAligned(Span<R, StorageSpan::extent> data)
 template<Axis T>
 CELER_FUNCTION SignedSense ConeAligned<T>::calc_sense(Real3 const& pos) const
 {
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the cone expression at a point.
+ */
+template<Axis T>
+CELER_FUNCTION real_type ConeAligned<T>::calc_value(Real3 const& pos) const
+{
     real_type const x = pos[to_int(T)] - origin_[to_int(T)];
     real_type const y = pos[to_int(U)] - origin_[to_int(U)];
     real_type const z = pos[to_int(V)] - origin_[to_int(V)];
 
-    return real_to_sense((-tsq_ * ipow<2>(x)) + ipow<2>(y) + ipow<2>(z));
+    return (-tsq_ * ipow<2>(x)) + ipow<2>(y) + ipow<2>(z);
 }
 
 //---------------------------------------------------------------------------//
@@ -206,14 +230,50 @@ CELER_FUNCTION auto ConeAligned<T>::calc_intersections(
 template<Axis T>
 CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
 {
-    Real3 norm;
+    return make_unit_vector(this->calc_gradient(pos).value());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+template<Axis T>
+CELER_FUNCTION auto ConeAligned<T>::calc_gradient(Real3 const& pos) const
+    -> Gradient
+{
+    Real3 result;
     for (auto i = to_int(Axis::x); i < to_int(Axis::size_); ++i)
     {
-        norm[i] = pos[i] - origin_[i];
+        result[i] = pos[i] - origin_[i];
     }
-    norm[to_int(T)] *= -tsq_;
+    result[to_int(T)] *= -tsq_;
+    return Gradient{result};
+}
 
-    return make_unit_vector(norm);
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * In a plane containing the cone axis and the point, the surface consists of
+ * two lines intersecting at the apex. The shortest distance is the
+ * perpendicular distance to the nearer line:
+ * \f[
+   d = \frac{|\rho - t |h||}{\sqrt{1 + t^2}}
+   \f]
+ * where \f$\rho\f$ is the radial distance from the axis, \f$h\f$ is the axial
+ * displacement from the apex, and \f$t\f$ is the magnitude of the tangent of
+ * the opening angle.
+ */
+template<Axis T>
+CELER_FUNCTION real_type ConeAligned<T>::calc_safety(Real3 const& pos) const
+{
+    real_type const h = pos[to_int(T)] - origin_[to_int(T)];
+    real_type const u = pos[to_int(U)] - origin_[to_int(U)];
+    real_type const v = pos[to_int(V)] - origin_[to_int(V)];
+
+    real_type const rho = std::sqrt(ipow<2>(u) + ipow<2>(v));
+    return std::fabs(rho - std::sqrt(tsq_) * std::fabs(h))
+           / std::sqrt(1 + tsq_);
 }
 
 //---------------------------------------------------------------------------//

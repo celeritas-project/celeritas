@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -14,6 +16,7 @@
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/Quantity.hh"
 
 namespace celeritas
 {
@@ -43,6 +46,7 @@ class CylCentered
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 1>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
   private:
@@ -91,12 +95,21 @@ class CylCentered
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the cylinder expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     //! Square of cylinder radius
@@ -174,10 +187,20 @@ CELER_FUNCTION CylCentered<T>::CylCentered(Span<R, StorageSpan::extent> data)
 template<Axis T>
 CELER_FUNCTION SignedSense CylCentered<T>::calc_sense(Real3 const& pos) const
 {
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the cylinder expression at a point.
+ */
+template<Axis T>
+CELER_FUNCTION real_type CylCentered<T>::calc_value(Real3 const& pos) const
+{
     real_type const u = pos[to_int(U)];
     real_type const v = pos[to_int(V)];
 
-    return real_to_sense(ipow<2>(u) + ipow<2>(v) - radius_sq_);
+    return ipow<2>(u) + ipow<2>(v) - radius_sq_;
 }
 
 //---------------------------------------------------------------------------//
@@ -221,12 +244,41 @@ CELER_FUNCTION auto CylCentered<T>::calc_intersections(
 template<Axis T>
 CELER_FUNCTION Real3 CylCentered<T>::calc_normal(Real3 const& pos) const
 {
+    return make_unit_vector(this->calc_gradient(pos).value());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+template<Axis T>
+CELER_FUNCTION auto CylCentered<T>::calc_gradient(Real3 const& pos) const
+    -> Gradient
+{
     Real3 norm{0, 0, 0};
 
     norm[to_int(U)] = pos[to_int(U)];
     norm[to_int(V)] = pos[to_int(V)];
 
-    return make_unit_vector(norm);
+    return Gradient{norm};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * This is the magnitude of the radial displacement from the surface:
+ * \f$ | |\mathbf{x} - \mathbf{x}_0| - R | \f$ in the plane perpendicular to
+ * the axis.
+ */
+template<Axis T>
+CELER_FUNCTION real_type CylCentered<T>::calc_safety(Real3 const& pos) const
+{
+    real_type const u = pos[to_int(U)];
+    real_type const v = pos[to_int(V)];
+
+    return std::fabs(
+        std::sqrt(ipow<2>(u) + ipow<2>(v)) - std::sqrt(radius_sq_));
 }
 
 //---------------------------------------------------------------------------//

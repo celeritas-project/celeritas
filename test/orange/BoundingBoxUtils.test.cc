@@ -254,6 +254,30 @@ TEST_F(BoundingBoxUtilsTest, bbox_overlap_fraction)
     }
 }
 
+TEST_F(BoundingBoxUtilsTest, squared_distance)
+{
+    BBox const bbox{{-1, -2, -3}, {1, 2, 3}};
+
+    // Inside and on the boundary
+    EXPECT_SOFT_EQ(0, calc_squared_distance(bbox, Real3{0, 0, 0}));
+    EXPECT_SOFT_EQ(0, calc_squared_distance(bbox, Real3{1, -2, 3}));
+
+    // Beyond a face, an edge, and a corner
+    EXPECT_SOFT_EQ(4, calc_squared_distance(bbox, Real3{3, 0, 0}));
+    EXPECT_SOFT_EQ(0.25, calc_squared_distance(bbox, Real3{0, -2.5, 1}));
+    EXPECT_SOFT_EQ(4 + 9, calc_squared_distance(bbox, Real3{-3, 5, 0}));
+    EXPECT_SOFT_EQ(1 + 4 + 9, calc_squared_distance(bbox, Real3{2, 4, -6}));
+
+    // Every point is inside an infinite box
+    EXPECT_SOFT_EQ(
+        0, calc_squared_distance(BBox::from_infinite(), Real3{1e10, 0, -5}));
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(calc_squared_distance(BBox{}, Real3{0, 0, 0}), DebugError);
+    }
+}
+
 class IntersectsSegmentTest : public Test
 {
   public:
@@ -314,7 +338,6 @@ TEST_F(IntersectsSegmentTest, degenerate)
     Real3 plus_x{1, 0, 0};
     {
         auto inf_bbox = BBox::from_infinite();
-        constexpr real_type infr = std::numeric_limits<real_type>::infinity();
         EXPECT_TRUE(
             intersects_segment(inf_bbox, Real3{0, 0, 0}, plus_x, 0.2_r));
         EXPECT_TRUE(

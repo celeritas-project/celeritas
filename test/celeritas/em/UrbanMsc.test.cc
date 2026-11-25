@@ -471,7 +471,7 @@ TEST_F(UrbanMscTest, step_limit)
                              0.07706894630323,
                              0.90591081547834,
                              8.8845468955896},
-                            {inf, inf, inf, inf, inf},
+                            {infr, infr, infr, infr, infr},
                             {0.2, 0.2, 0.2, 0.2, 0.2},
                             {1e-08, 1e-08, 1e-08, 1e-08, 1e-08}};
         EXPECT_REF_NEAR(ref, result, tol);

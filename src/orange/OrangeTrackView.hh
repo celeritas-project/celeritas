@@ -41,6 +41,12 @@ namespace celeritas
  * track is currently in. On the boundary this is determined by the sense
  * of the track rather than its direction.
  *
+ * Initialization may start exactly on a surface: the track is placed in the
+ * volume on the side of the surface that its direction points toward, and its
+ * status is \c GeoStatus::boundary_out as though it had just crossed into
+ * that volume. Starting on a surface while moving exactly tangent to it is an
+ * error, since neither side is preferred.
+ *
  * \todo \c move_internal with a position \em should depend on the safety
  * distance, but that check is not yet implemented.
  */
@@ -252,6 +258,12 @@ CELER_FUNCTION OrangeTrackView::OrangeTrackView(
  * Expensive. This function should only be called to initialize an event from a
  * starting location and direction. Secondaries will initialize their states
  * from a copy of the parent.
+ *
+ * If the starting point is exactly on a surface, the track is placed in the
+ * volume it is heading into and marked as being on the boundary
+ * (\c GeoStatus::boundary_out). Only the outermost universe level with such
+ * a surface stores it. Starting on a surface while moving tangent to it is an
+ * error.
  */
 CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
     Initializer_t const& init)
@@ -295,18 +307,18 @@ CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
         auto tinit = visit_tracker(
             [&local](auto&& t) { return t.initialize(local); }, univ_id);
 
-        if (CELER_UNLIKELY(!tinit.volume || tinit.surface))
+        if (CELER_UNLIKELY(!tinit.volume))
         {
 #if !CELER_DEVICE_COMPILE
             auto msg = CELER_LOG_LOCAL(error);
             msg << "Failed to initialize geometry state: ";
-            if (!tinit.volume)
+            if (!tinit.surface)
             {
                 msg << "could not find associated volume";
             }
             else
             {
-                msg << "started on a surface ("
+                msg << "started on and moving tangent to a surface ("
                     << tinit.surface.id().unchecked_get() << ")";
             }
             msg << " in universe " << univ_id.unchecked_get()
@@ -316,6 +328,14 @@ CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
             // and preserve diagnostic state
             this->geo_status(GeoStatus::error);
             tinit.volume = orange_exterior_volume;
+        }
+        else if (tinit.surface && !this->is_on_boundary())
+        {
+            // Started exactly on a surface, logically on the side that the
+            // track is heading toward: the state is as though it just
+            // crossed the surface into the new volume
+            this->surface(ulev_id, tinit.surface);
+            this->geo_status(GeoStatus::boundary_out);
         }
 
         auto lsa = this->make_lsa(ulev_id);
@@ -720,31 +740,32 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
  * universe levels, since surface deduplication can potentionally elide
  * bounding surfaces at more deeply embedded universe levels.
  *
- * Since we currently support only "simple" safety distances, we can't
- * eliminate anything by checking only nearby surfaces.
+ * The result is no larger than the maximum step. The smallest distance found
+ * so far limits the search at each universe level, which allows a universe to
+ * check only nearby volumes.
  */
-CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
+CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type max_step)
 {
     CELER_EXPECT(!this->is_on_boundary());
+    CELER_EXPECT(max_step > 0);
 
     TrackerVisitor visit_tracker{params_};
-    // If we're intersecting a surface, the safety cannot be more than that.
-    // Use that as a bound for degenerate cases such as starting in the exact
-    // center of a sphere (where the safety can't correctly be calculated).
-    // This fixes incorrectly large safety when a next step has been found,
-    // necessary for CheckedGeoTrackView::find_next_step and more consistent in
-    // general .
-    real_type min_safety_dist = this->has_next_surface()
-                                    ? this->next_step()
-                                    : NumericLimits<real_type>::infinity();
+    real_type min_safety_dist = max_step;
 
     for (auto ulev_id : range(this->univ_level() + 1))
     {
         auto lsa = this->make_lsa(ulev_id);
         auto local_safety = visit_tracker(
-            [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
+            [&lsa, min_safety_dist](auto&& t) {
+                return t.safety(lsa.pos(), lsa.vol(), min_safety_dist);
+            },
             lsa.univ());
         min_safety_dist = celeritas::min(min_safety_dist, local_safety);
+        if (min_safety_dist == 0)
+        {
+            // No deeper level can reduce the safety further
+            break;
+        }
     }
     return min_safety_dist;
 }

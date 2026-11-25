@@ -303,24 +303,24 @@ TEST_F(RectArrayTrackerTest, safety)
     {
         auto vol_id = LocalVolumeId{0};
 
-        EXPECT_SOFT_EQ(2.5, tracker.safety({0.11, 0.5, 0.5}, vol_id));
-        EXPECT_SOFT_EQ(0.08, tracker.safety({2.92, 0.5, 0.5}, vol_id));
-        EXPECT_SOFT_EQ(2.5, tracker.safety({0.5, 0.11, 0.5}, vol_id));
-        EXPECT_SOFT_EQ(0.08, tracker.safety({0.5, 2.92, 0.5}, vol_id));
-        EXPECT_SOFT_EQ(2.5, tracker.safety({0.5, 0.11, 0.01}, vol_id));
-        EXPECT_SOFT_EQ(0.02, tracker.safety({0.5, 2.92, 4.98}, vol_id));
+        EXPECT_SOFT_EQ(2.5, tracker.safety({0.11, 0.5, 0.5}, vol_id, inf));
+        EXPECT_SOFT_EQ(0.08, tracker.safety({2.92, 0.5, 0.5}, vol_id, inf));
+        EXPECT_SOFT_EQ(2.5, tracker.safety({0.5, 0.11, 0.5}, vol_id, inf));
+        EXPECT_SOFT_EQ(0.08, tracker.safety({0.5, 2.92, 0.5}, vol_id, inf));
+        EXPECT_SOFT_EQ(2.5, tracker.safety({0.5, 0.11, 0.01}, vol_id, inf));
+        EXPECT_SOFT_EQ(0.02, tracker.safety({0.5, 2.92, 4.98}, vol_id, inf));
     }
 
     SCOPED_TRACE("In volume {2, 2, 1}");
     {
         auto vol_id = LocalVolumeId{21};
 
-        EXPECT_SOFT_EQ(0.04, tracker.safety({6.04, 6.5, 5.5}, vol_id));
-        EXPECT_SOFT_EQ(0.02, tracker.safety({11.98, 6.5, 5.02}, vol_id));
-        EXPECT_SOFT_EQ(0.04, tracker.safety({6.5, 6.04, 5.5}, vol_id));
-        EXPECT_SOFT_EQ(0.02, tracker.safety({6.5, 8.98, 5.5}, vol_id));
-        EXPECT_SOFT_EQ(0.01, tracker.safety({6.5, 6.04, 5.01}, vol_id));
-        EXPECT_SOFT_EQ(0.01, tracker.safety({6.01, 8.98, 9.99}, vol_id));
+        EXPECT_SOFT_EQ(0.04, tracker.safety({6.04, 6.5, 5.5}, vol_id, inf));
+        EXPECT_SOFT_EQ(0.02, tracker.safety({11.98, 6.5, 5.02}, vol_id, inf));
+        EXPECT_SOFT_EQ(0.04, tracker.safety({6.5, 6.04, 5.5}, vol_id, inf));
+        EXPECT_SOFT_EQ(0.02, tracker.safety({6.5, 8.98, 5.5}, vol_id, inf));
+        EXPECT_SOFT_EQ(0.01, tracker.safety({6.5, 6.04, 5.01}, vol_id, inf));
+        EXPECT_SOFT_EQ(0.01, tracker.safety({6.01, 8.98, 9.99}, vol_id, inf));
     }
 }
 

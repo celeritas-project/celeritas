@@ -320,8 +320,9 @@ inline CELER_FUNCTION Array<T, 3> rotate(Array<T, 3> const& dir,
     else if (rot[X] != 0 || rot[Y] != 0)
     {
         // Avoid catastrophic roundoff error by normalizing x/y components
-        cosphi = rot[X] / hypot(rot[X], rot[Y]);
-        sinphi = std::sqrt(1 - ipow<2>(cosphi));
+        T const inv_hypot = 1 / hypot(rot[X], rot[Y]);
+        cosphi = rot[X] * inv_hypot;
+        sinphi = rot[Y] * inv_hypot;
     }
     else
     {

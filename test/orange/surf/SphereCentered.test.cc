@@ -50,6 +50,10 @@ TEST_F(SphereCenteredTest, maths)
 
     Real3 const on_surface{
         radius * sqrt_third, radius * sqrt_third, radius * sqrt_third};
+    auto gradient = s.calc_gradient(on_surface);
+    EXPECT_EQ(2, decltype(gradient)::unit_type::value());
+    EXPECT_VEC_SOFT_EQ(2 * on_surface, native_value_from(gradient));
+
     Intersections distances;
 
     // On surface, inward
@@ -87,6 +91,16 @@ TEST_F(SphereCenteredTest, TEST_IF_CELERITAS_DOUBLE(degenerate))
         = calc_intersections(s, on_surface, inward, SurfaceState::off);
     EXPECT_SOFT_EQ(1e-16, distances[0]);
     EXPECT_SOFT_EQ(2 * radius, distances[1]);
+}
+
+TEST_F(SphereCenteredTest, safety)
+{
+    SphereCentered s{2.0};
+
+    EXPECT_SOFT_EQ(0.5, s.calc_safety(Real3{0, 1.5, 0}));
+    EXPECT_SOFT_EQ(3.0, s.calc_safety(Real3{3, 0, -4}));
+    EXPECT_SOFT_EQ(0.0, s.calc_safety(Real3{0, 0, -2}));
+    EXPECT_SOFT_EQ(2.0, s.calc_safety(Real3{0, 0, 0}));
 }
 
 //---------------------------------------------------------------------------//

@@ -12,10 +12,13 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/Quantity.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/QuadricSafetyCalculator.hh"
+#include "detail/Quantity.hh"
 
 namespace celeritas
 {
@@ -46,6 +49,12 @@ class Sphere;
  * In most non-pathological cases, the scale of the second-order components
  * should be unity, as is the case when promoting spheres, cones, and
  * cylinders.
+ *
+ * \par Safety distance
+ * The safety is a conservative lower bound on the distance to the surface
+ * calculated by \c detail::QuadricSafetyCalculator. The quadratic coefficient
+ * matrix is diagonal, so its eigenvalues are exactly \f$ a \f$, \f$ b \f$,
+ * and \f$ c \f$.
  */
 class SimpleQuadric
 {
@@ -55,6 +64,7 @@ class SimpleQuadric
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 7>;
     using SpanConstReal3 = Span<real_type const, 3>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -65,8 +75,8 @@ class SimpleQuadric
         return SurfaceType::sq;
     }
 
-    //! Safety is *not* the intersection along surface normal
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+    //! Safety is a lower bound on the distance to the surface
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return true; }
 
   public:
     //// CONSTRUCTORS ////
@@ -111,12 +121,21 @@ class SimpleQuadric
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the quadric expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
+
+    // Calculate a lower bound on the distance to the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Second-order terms (a, b, c)
@@ -151,12 +170,21 @@ CELER_FUNCTION SimpleQuadric::SimpleQuadric(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense SimpleQuadric::calc_sense(Real3 const& pos) const
 {
+    return real_to_sense(this->calc_value(pos));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the quadric expression at a point.
+ */
+CELER_FUNCTION real_type SimpleQuadric::calc_value(Real3 const& pos) const
+{
     real_type const x = pos[to_int(Axis::x)];
     real_type const y = pos[to_int(Axis::y)];
     real_type const z = pos[to_int(Axis::z)];
 
-    return real_to_sense((a_ * ipow<2>(x) + b_ * ipow<2>(y) + c_ * ipow<2>(z))
-                         + (d_ * x + e_ * y + f_ * z) + (g_));
+    return (a_ * ipow<2>(x) + b_ * ipow<2>(y) + c_ * ipow<2>(z))
+           + (d_ * x + e_ * y + f_ * z) + (g_);
 }
 
 //---------------------------------------------------------------------------//
@@ -190,12 +218,34 @@ CELER_FUNCTION auto SimpleQuadric::calc_intersections(
  */
 CELER_FUNCTION Real3 SimpleQuadric::calc_normal(Real3 const& pos) const
 {
+    return make_unit_vector(this->calc_gradient(pos).value());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FUNCTION auto SimpleQuadric::calc_gradient(Real3 const& pos) const
+    -> Gradient
+{
     real_type const x = pos[to_int(Axis::x)];
     real_type const y = pos[to_int(Axis::y)];
     real_type const z = pos[to_int(Axis::z)];
 
-    Real3 norm{2 * a_ * x + d_, 2 * b_ * y + e_, 2 * c_ * z + f_};
-    return make_unit_vector(norm);
+    return Gradient{Real3{a_ * x + d_ / 2, b_ * y + e_ / 2, c_ * z + f_ / 2}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate a lower bound on the distance to the surface.
+ */
+CELER_FUNCTION real_type SimpleQuadric::calc_safety(Real3 const& pos) const
+{
+    detail::QuadricSafetyCalculator calc_safety{
+        celeritas::min(a_, celeritas::min(b_, c_)),
+        celeritas::max(a_, celeritas::max(b_, c_))};
+    return calc_safety(this->calc_value(pos),
+                       native_value_from(this->calc_gradient(pos)));
 }
 
 //---------------------------------------------------------------------------//

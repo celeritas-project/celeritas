@@ -59,6 +59,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # GCC 13 and 14 have *lots* of false positives, and not just on our project
     # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107532
     celer_silence_flag(CXX dangling-reference)
+    # Spurious warning from inlined std::vector moves of ORANGE UnitInput
+    # (OrangeInputIO.json.cc, single precision)
+    celer_silence_flag(CXX maybe-uninitialized)
   endif()
   if(CMAKE_UNITY_BUILD)
     # With Unity build enabled GCC will complain about linkage issue when
@@ -106,10 +109,13 @@ celeritas_add_interface_library(ExtDeviceApi)
 if(CELERITAS_USE_CUDA)
   target_link_libraries(ExtDeviceApi INTERFACE CUDA::toolkit)
 
-  # NVTX requires `-ldl`
-  # This does not appears to be needed anymore with
-  # CMake 3.26.5 and CUDA sdk 12.6.
-  target_link_libraries(ExtDeviceApi INTERFACE ${CMAKE_DL_LIBS})
+  # The NVIDIA HPC SDK installs math library headers separately: add the
+  # cuRAND include directories without linking the (unused) host library
+  if(TARGET CUDA::curand)
+    get_target_property(_dirs CUDA::curand INTERFACE_INCLUDE_DIRECTORIES)
+    target_include_directories(ExtDeviceApi SYSTEM INTERFACE ${_dirs})
+    unset(_dirs)
+  endif()
 elseif(CELERITAS_USE_HIP)
   if(CMAKE_HIP_COMPILER_ROCM_ROOT)
     # Undocumented CMake variable
@@ -162,7 +168,9 @@ endif()
 
 celer_add_ext_library(Thrust)
 if(CELERITAS_USE_CUDA)
-  # Perlmutter with RDC enabled complains about missing dlclose
+  # Thrust is only included by device code, which gets the CCCL headers from
+  # the CUDA compiler. Thrust and CUB annotate their algorithms with NVTX,
+  # which uses dlopen and requires `-ldl` before glibc 2.34
   target_link_libraries(ExtThrust INTERFACE ${CMAKE_DL_LIBS})
 endif()
 

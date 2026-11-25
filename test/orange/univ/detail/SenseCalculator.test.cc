@@ -7,6 +7,9 @@
 
 #include "orange/univ/detail/SenseCalculator.hh"
 
+#include <cstddef>
+#include <type_traits>
+#include <utility>
 #include <vector>
 #include <gtest/gtest.h>
 
@@ -52,6 +55,25 @@ TEST(Types, OnFace)
 }
 
 //---------------------------------------------------------------------------//
+// Constructor arguments select (at compile time) whether to use a direction
+template<class... Args>
+using SenseCalcFrom = decltype(SenseCalculator(std::declval<Args>()...));
+
+static_assert(std::is_same_v<SenseCalcFrom<LocalSurfaceVisitor const&,
+                                           LocalVolumeView const&,
+                                           Real3 const&,
+                                           OnFace&>,
+                             SenseCalculator<std::nullptr_t>>);
+static_assert(std::is_same_v<SenseCalcFrom<LocalSurfaceVisitor const&,
+                                           LocalVolumeView const&,
+                                           Real3 const&,
+                                           Real3 const&,
+                                           OnFace&>,
+                             SenseCalculator<Real3 const*>>);
+static_assert(!SenseCalculator<>::use_direction);
+static_assert(SenseCalculator<Real3 const*>::use_direction);
+
+//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
@@ -71,10 +93,11 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
         return LocalSurfaceVisitor(this->host_params(), SimpleUnitId{0});
     }
 
-    SenseCalculator construct_sense_calculator(LocalSurfaceVisitor const& visit,
-                                               LocalVolumeView const& vol,
-                                               Real3 const& pos,
-                                               OnFace& face)
+    SenseCalculator<> construct_sense_calculator(
+        LocalSurfaceVisitor const& visit,
+        LocalVolumeView const& vol,
+        Real3 const& pos,
+        OnFace& face)
     {
         return SenseCalculator(visit, vol, pos, face);
     }
@@ -156,6 +179,47 @@ TEST_F(SenseCalculatorTest, two_volumes)
             EXPECT_EQ(Sense::inside, result);
             EXPECT_EQ(FaceId{0}, face.id());
             EXPECT_EQ(Sense::inside, face.sense());
+        }
+    }
+    {
+        // Point is on the boundary: direction determines the sense
+        Real3 pos{1.5, 0, 0};
+        auto calc_with_dir = [&](Real3 const& dir, OnFace& face) {
+            return SenseCalculator(
+                this->make_surf_visitor(), inner, pos, dir, face)(FaceId{0});
+        };
+        {
+            SCOPED_TRACE("heading inward");
+            OnFace face;
+            EXPECT_EQ(Sense::inside, calc_with_dir({-1, 0, 0}, face));
+            EXPECT_EQ(FaceId{0}, face.id());
+            EXPECT_EQ(Sense::inside, face.sense());
+        }
+        {
+            SCOPED_TRACE("heading outward");
+            OnFace face;
+            EXPECT_EQ(Sense::outside, calc_with_dir({1, 0, 0}, face));
+            EXPECT_EQ(FaceId{0}, face.id());
+            EXPECT_EQ(Sense::outside, face.sense());
+        }
+        {
+            SCOPED_TRACE("tangent: same as without direction");
+            OnFace face;
+            EXPECT_EQ(Sense::outside, calc_with_dir({0, 0, 1}, face));
+            EXPECT_EQ(FaceId{0}, face.id());
+            EXPECT_EQ(Sense::outside, face.sense());
+        }
+        {
+            SCOPED_TRACE("off the surface: direction is ignored");
+            OnFace face;
+            Real3 dir{1, 0, 0};
+            Real3 inner_pos{0, 0.5, 0};
+            EXPECT_EQ(
+                Sense::inside,
+                SenseCalculator(
+                    this->make_surf_visitor(), inner, inner_pos, dir, face)(
+                    FaceId{0}));
+            EXPECT_FALSE(face);
         }
     }
     {

@@ -64,8 +64,8 @@ fi
 # BEGIN_DOC_FNALSPACK
 # Latest release of FNAL-Spack and DUNESW spack environment
 export SPACK_ROOT="/cvmfs/dune.opensciencegrid.org/spack/v1.2.2"
-CELER_SPACK_ENV="dunesw-10_23_00d01-justin-01_06_05-prototype"
-CELER_SPACK_PACKAGES="gcc cmake larsim googletest cuda"
+CELER_SPACK_ENV="dunesw-10_31_00d00-justin-01_06_05-prototype"
+CELER_SPACK_PACKAGES="gcc@12 cmake larsim googletest cuda"
 # END_DOC_FNALSPACK
 
 # Remove cuda home and compiler in case they exist in parent environment
@@ -82,6 +82,14 @@ if ! command -v spack >/dev/null 2>&1 ; then
     celerlog error "Failed to set up spack"
     return ${_errcode}
   fi
+fi
+
+if [ -n "${CELER_SPACK_ENV_LOADED}" ]; then
+  if [ "${CELER_SPACK_ENV}" != "${CELER_SPACK_ENV_LOADED}" ]; then
+    celerlog warning "Loaded environment '${CELER_SPACK_ENV_LOADED}' does not match expected '${CELER_SPACK_ENV}'"
+  fi
+  celerlog info "Skipping environment setup: CELER_SPACK_ENV_LOADED=${CELER_SPACK_ENV_LOADED}"
+  return 0
 fi
 
 # Set up the environment variables necessary to load Celeritas build requirements.
@@ -129,12 +137,8 @@ if [ -z "${CELER_SPACK_ENV_LOADED}" ]; then
     mv "${_spack_src_file}" "${_spack_src_file}.old"
     return ${_errcode}
   fi
-elif [ "${CELER_SPACK_ENV}" != "${CELER_SPACK_ENV_LOADED}" ]; then
-  celerlog warning "Loaded environment '${CELER_SPACK_ENV_LOADED}' does not match expected '${CELER_SPACK_ENV}'"
-  celerlog warning "Skipping spack build environment: '${_spack_src_file}'"
-else
-  celerlog info "Spack build environment ${CELER_SPACK_ENV_LOADED} already loaded"
 fi
+  celerlog info "Loaded spack environment: '${CELER_SPACK_ENV_LOADED}'"
 
 if [ ! command -v lar >/dev/null 2>&1 ]; then
   celerlog error "Incorrect spack environment: see ${_spack_src_file}.old"

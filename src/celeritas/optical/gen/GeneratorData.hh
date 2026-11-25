@@ -84,7 +84,7 @@ struct GeneratorDistributionData
                         >= points[StepPoint::post].speed))
                    || (type == GeneratorType::scintillation
                        && points[StepPoint::post].time
-                              > points[StepPoint::pre].time));
+                              >= points[StepPoint::pre].time));
     }
 
 #if !CELER_DEVICE_COMPILE

@@ -8,6 +8,7 @@
 
 #include "corecel/io/ScopedStreamRedirect.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/g4/SupportedDecayPhysics.hh"
 #include "celeritas/g4/SupportedEmStandardPhysics.hh"
 #include "celeritas/g4/SupportedOpticalPhysics.hh"
 
@@ -35,6 +36,12 @@ EmPhysicsList::EmPhysicsList(Options const& options)
     {
         // Celeritas-supported EM Physics
         detail::emplace_physics<SupportedEmStandardPhysics>(*this, options);
+    }
+
+    if (options.muon && options.muon->decay)
+    {
+        // Celeritas-supported decay physics
+        detail::emplace_physics<SupportedDecayPhysics>(*this, options);
     }
 
     if (options.optical)

@@ -44,7 +44,7 @@ set(_optical_args "RMTYPE" "serial")
 if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
   list(APPEND _optical_args "mt")
 endif()
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2)
   # VecGeom < 2.2 does not provide surface normals: required for optical
   # (hack the run manager
   list(APPEND _optical_args "DISABLE")
@@ -224,6 +224,13 @@ add_integration_tests(
   RMTYPE serial
 )
 
+# Test muon offloading with decay
+add_integration_tests(
+  TrackingManagerIntegration TestEm3MuDecay run
+  OFFLOAD cpu gpu
+  RMTYPE serial
+)
+
 foreach(_test_case IN ITEMS run_small_flush run_small_initializers)
   add_integration_tests(
     TrackingManagerIntegration WaterSphere ${_test_case}
@@ -235,6 +242,14 @@ endforeach()
 #-------------------------------------#
 # UserActionIntegration
 
+# Test without g4 baseline (requires offload)
+add_integration_tests(
+  UserActionIntegration LarSphereGammaScintOffload run
+  OFFLOAD cpu gpu
+  ${_optical_args}
+)
+
+# Test with optical physics offloading distributions
 foreach(_test_suite IN ITEMS LarSphereOpticalOffload LarSphereOpticalTrackOffload)
   add_integration_tests(
     UserActionIntegration ${_test_suite} run

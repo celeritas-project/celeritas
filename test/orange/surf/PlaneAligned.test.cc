@@ -47,6 +47,10 @@ TEST_F(PlaneAlignedTest, x_plane)
 {
     PlaneX p(1.0);
 
+    auto gradient = p.calc_gradient({});
+    EXPECT_EQ(1, decltype(gradient)::unit_type::value());
+    EXPECT_VEC_SOFT_EQ(p.calc_normal(), native_value_from(gradient));
+
     EXPECT_EQ((Real3{1.0, 0.0, 0.0}), p.calc_normal(Real3{1.0, 0.1, -4.2}));
     EXPECT_EQ((Real3{1.0, 0.0, 0.0}), p.calc_normal());
 
@@ -121,6 +125,15 @@ TEST_F(PlaneAlignedTest, plane_z)
     EXPECT_SOFT_EQ(0.01, calc_intersection(p, {0.0, 0.0, -0.01}, pz));
     EXPECT_SOFT_EQ(0.01, calc_intersection(p, {0.0, 0.0, 0.01}, mz));
     EXPECT_EQ(no_intersection(), calc_intersection(p, {-1.01, 0.0, 0.0}, px));
+}
+
+TEST_F(PlaneAlignedTest, safety)
+{
+    PlaneY p(-1.0);
+
+    EXPECT_SOFT_EQ(3.5, p.calc_safety(Real3{10.0, 2.5, -4.2}));
+    EXPECT_SOFT_EQ(0.25, p.calc_safety(Real3{10.0, -1.25, -4.2}));
+    EXPECT_SOFT_EQ(0.0, p.calc_safety(Real3{10.0, -1.0, -4.2}));
 }
 
 //---------------------------------------------------------------------------//

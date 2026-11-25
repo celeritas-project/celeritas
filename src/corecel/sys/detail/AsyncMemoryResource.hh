@@ -3,17 +3,19 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/detail/AsyncMemoryResource.hh
+//! \brief Host-compatible declarations for stream-ordered device allocation
 //---------------------------------------------------------------------------//
+// NOTE: the memory resource class depends on Thrust and is defined in
+// AsyncMemoryResource.device.hh .
 #pragma once
 
-#include "corecel/Macros.hh"
-
-#if CELER_USE_DEVICE
-#    include <thrust/mr/memory_resource.h>
-#endif
-#include <cstdlib>
+#include <cstddef>
+#include <memory>
 
 #include "corecel/DeviceRuntimeApi.hh"
+
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {
@@ -27,42 +29,26 @@ using DeviceStream_t = CELER_DEVICE_API_SYMBOL(Stream_t);
 using DeviceStream_t = std::nullptr_t;
 #endif
 
+class AsyncMemoryResource;
+
+//! Delete a memory resource without requiring its complete type
+struct AsyncMemoryResourceDeleter
+{
+    void operator()(AsyncMemoryResource*) const noexcept;
+};
+
+//! Owning pointer to a Thrust memory resource
+using UPAsyncMemoryResource
+    = std::unique_ptr<AsyncMemoryResource, AsyncMemoryResourceDeleter>;
+
+#if CELER_USE_DEVICE
 //! Allocate memory asynchronously if supported
 void* malloc_async(std::size_t bytes, DeviceStream_t s);
 //! Free memory asynchronously if supported
 void free_async(void* ptr, DeviceStream_t s);
-
-#if CELER_USE_DEVICE || defined(__DOXYGEN__)
-//---------------------------------------------------------------------------//
-/*!
- * Thrust async memory resource associated with a CUDA/HIP stream.
- */
-class AsyncMemoryResource final : public thrust::mr::memory_resource<void*>
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using pointer = void*;
-    using StreamT = DeviceStream_t;
-    //!@}
-
-    // Construct memory resource for the stream
-    explicit AsyncMemoryResource(StreamT stream) : stream_{stream} {}
-
-    // Construct with default Stream
-    AsyncMemoryResource() = default;
-
-    // Allocate device memory
-    pointer do_allocate(std::size_t bytes, std::size_t) final;
-
-    // Deallocate device memory
-    void do_deallocate(pointer p, std::size_t, std::size_t) final;
-
-  private:
-    StreamT stream_{nullptr};
-};
+//! Create a Thrust memory resource associated with a stream
+UPAsyncMemoryResource make_async_memory_resource(DeviceStream_t s);
 #else
-class AsyncMemoryResource;
 inline void* malloc_async(std::size_t, DeviceStream_t)
 {
     CELER_ASSERT_UNREACHABLE();
@@ -71,7 +57,14 @@ inline void free_async(void*, DeviceStream_t)
 {
     CELER_ASSERT_UNREACHABLE();
 }
-
+inline UPAsyncMemoryResource make_async_memory_resource(DeviceStream_t)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+inline void AsyncMemoryResourceDeleter::operator()(
+    AsyncMemoryResource*) const noexcept
+{
+}
 #endif
 
 //---------------------------------------------------------------------------//

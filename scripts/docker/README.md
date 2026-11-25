@@ -2,8 +2,8 @@
 
 ## GPU images
 
-The `gpu` subdirectory builds CUDA and ROCm images for the `build-docker` and
-`build-codecov` workflows. They install Celeritas dependencies with
+The `gpu` subdirectory builds CUDA and ROCm images for the `build-docker`
+workflow. They install Celeritas dependencies with
 [Spack](https://github.com/spack/spack), using the Spack and spack-packages
 commits pinned in `.github/actions/setup-spack/action.yml` and the shared
 configuration in `scripts/spack`. The multi-stage `gpu/Dockerfile` has two targets:
@@ -28,7 +28,7 @@ Run `build.sh cuda` or `build.sh rocm`. It builds the `dev` and `ci` targets,
 tags them `ghcr.io/celeritas-project/{dev,ci}-<config>:<date>` (set `REGISTRY`
 to change the prefix), and prints the command to push the CI image (set
 `PUSH=1` to push it directly). After pushing, update the
-image tags in `.github/workflows/build-docker.yml` and `build-codecov.yml`.
+image tags in `.github/workflows/build-docker.yml`.
 Like the buildcache image, the build uses the container engine in
 `_container.sh` and needs an `x86_64_v3` (AVX2) Linux host: CPU emulation is
 far too slow to build these dependencies.

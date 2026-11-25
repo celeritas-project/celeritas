@@ -336,8 +336,7 @@ void fixup_background_volume(LocalSurfaceId::size_type num_surfaces,
     v.faces.resize(num_surfaces);
     std::iota(v.faces.begin(), v.faces.end(), LocalSurfaceId{0});
     v.zorder = ZOrder::background;
-    v.flags = LocalVolumeRecord::implicit_vol
-              | LocalVolumeRecord::simple_safety;
+    v.flags = LocalVolumeRecord::implicit_vol;
     v.logic = nowhere_logic;
     v.bbox = {};
     v.obz = {};

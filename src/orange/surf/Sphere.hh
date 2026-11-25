@@ -6,14 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/Types.hh"
 #include "orange/SenseUtils.hh"
 
 #include "detail/QuadraticSolver.hh"
+#include "detail/Quantity.hh"
 
 namespace celeritas
 {
@@ -35,6 +39,7 @@ class Sphere
     //! Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 4>;
+    using Gradient = detail::ScaledReal3<detail::Quadratic>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -80,12 +85,21 @@ class Sphere
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
 
+    // Calculate the sphere expression at a point
+    inline CELER_FUNCTION real_type calc_value(Real3 const& pos) const;
+
     // Calculate all possible straight-line intersections with this surface
     inline CELER_FUNCTION Intersections calc_intersections(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position
     inline CELER_FUNCTION Real3 calc_normal(Real3 const& pos) const;
+
+    // Evaluate the gradient at a point
+    inline CELER_FUNCTION Gradient calc_gradient(Real3 const& pos) const;
+
+    // Calculate the distance to the nearest point on the surface
+    inline CELER_FUNCTION real_type calc_safety(Real3 const& pos) const;
 
   private:
     // Spatial position
@@ -125,9 +139,20 @@ CELER_FUNCTION Sphere::Sphere(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Sphere::calc_sense(Real3 const& pos) const
 {
-    Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
+    return real_to_sense(this->calc_value(pos));
+}
 
-    return real_to_sense(dot_product(tpos, tpos) - radius_sq_);
+//---------------------------------------------------------------------------//
+/*!
+ * Evaluate the sphere expression at a point.
+ */
+CELER_FUNCTION real_type Sphere::calc_value(Real3 const& pos) const
+{
+    // Calculate the position relative to the origin of the quadric
+    auto rpos_sq = [&](Axis ax) {
+        return ipow<2>(pos[to_int(ax)] - origin_[to_int(ax)]);
+    };
+    return rpos_sq(Axis::x) + rpos_sq(Axis::y) + rpos_sq(Axis::z) - radius_sq_;
 }
 
 //---------------------------------------------------------------------------//
@@ -159,8 +184,32 @@ CELER_FUNCTION auto Sphere::calc_intersections(
  */
 CELER_FUNCTION Real3 Sphere::calc_normal(Real3 const& pos) const
 {
-    return make_unit_vector(
-        Real3{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]});
+    return make_unit_vector(this->calc_gradient(pos).value());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the gradient at a point.
+ */
+CELER_FUNCTION auto Sphere::calc_gradient(Real3 const& pos) const -> Gradient
+{
+    return Gradient{
+        Real3{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance to the nearest point on the surface.
+ *
+ * This is the magnitude of the radial displacement from the surface:
+ * \f$ | |\mathbf{x} - \mathbf{x}_0| - R | \f$.
+ */
+CELER_FUNCTION real_type Sphere::calc_safety(Real3 const& pos) const
+{
+    Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
+
+    return std::fabs(
+        std::sqrt(dot_product(tpos, tpos)) - std::sqrt(radius_sq_));
 }
 
 //---------------------------------------------------------------------------//

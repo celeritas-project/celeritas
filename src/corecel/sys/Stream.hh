@@ -62,11 +62,11 @@ class AsyncMemoryResource;
  * Because the CUDA/HIP stream type are only defined when those paths are
  * included and available (which isn't true for all Celeritas code) we hide the
  * stream unless DeviceRuntimeApi has been included or the file is being
- * compiled by a CUDA/HIP compiler. Worse, our stream class has to manage a
- * Thrust memory resource, and in newer versions of rocthrust, its headers
- * cannot be included at all by a non-HIP compiler. Because this class forward
- * declares the memory resource, downstream uses must include \c
- * corecel/sys/detail/AsyncMemoryResource.device.hh .
+ * compiled by a CUDA/HIP compiler. The stream also manages a Thrust memory
+ * resource, but Thrust headers (in particular newer versions of rocThrust)
+ * cannot be included by a host compiler, so the resource is only forward
+ * declared. Device code that uses it must include \c
+ * corecel/sys/Thrust.device.hh .
  */
 class Stream
 {

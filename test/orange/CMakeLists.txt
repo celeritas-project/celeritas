@@ -57,6 +57,7 @@ celeritas_add_test(detail/UniverseIndexer.test.cc)
 celeritas_add_test(detail/BvhBuilder.test.cc)
 celeritas_add_test(detail/BvhEnclosingVolFinder.test.cc)
 celeritas_add_test(detail/BvhIntersectingVolFinder.test.cc)
+celeritas_add_test(detail/BvhSafetyCalculator.test.cc)
 celeritas_add_test(detail/BvhUtils.test.cc)
 
 # Oriented Bounding Zone
@@ -115,6 +116,7 @@ celeritas_add_test(surf/Sphere.test.cc)
 celeritas_add_test(surf/SphereCentered.test.cc)
 celeritas_add_test(surf/Involute.test.cc)
 celeritas_add_test(surf/Toroid.test.cc)
+celeritas_add_test(surf/Tri.test.cc)
 
 # Surface utilities
 celeritas_add_test(surf/FaceNamer.test.cc)
@@ -128,6 +130,7 @@ celeritas_add_device_test(surf/LocalSurfaceVisitor)
 celeritas_add_test(surf/detail/InvolutePoint.test.cc)
 celeritas_add_test(surf/detail/InvoluteSolver.test.cc)
 celeritas_add_test(surf/detail/QuadraticSolver.test.cc)
+celeritas_add_test(surf/detail/QuadricSafetyCalculator.test.cc)
 celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
 celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 

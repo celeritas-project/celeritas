@@ -40,7 +40,7 @@ if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
 
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2.2)
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND VecGeom_VERSION VERSION_LESS 2)
   set(_needs_surf_norm DISABLE)
 endif()
 
@@ -154,6 +154,8 @@ celeritas_add_test(Json.test.cc LINK_LIBRARIES nlohmann_json::nlohmann_json)
 #-----------------------------------------------------------------------------#
 # Decay
 
+celeritas_add_test(decay/DecayProcess.test.cc)
+
 # Muon
 celeritas_add_test(decay/MuDecay.test.cc ${_needs_double})
 
@@ -215,6 +217,7 @@ set(_import_filter
   "FourSteelSlabs*"
   "LarSphere.*"
   "LarSphereExtramat.*"
+  "MuDecaySlabs.*"
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
   "Solids.*"
@@ -243,6 +246,9 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES testcel_celeritas_g4 ${_g4_run_lib}
     ENVIRONMENT "${CELER_G4ENV}")
   celeritas_add_test(ext/GeantTrackReconstruction.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    ENVIRONMENT "${CELER_G4ENV}")
+  celeritas_add_test(ext/HadronicInteractor.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
 
@@ -348,6 +354,7 @@ if(CELERITAS_USE_Geant4)
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
     "TestEm3MscNoIntegral.*"
+    "TestEm3MuDecay.*"
     "TestEm15FieldMsc.*"
   )
   if(Geant4_VERSION VERSION_LESS 11.0)

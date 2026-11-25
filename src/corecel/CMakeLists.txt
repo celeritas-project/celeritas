@@ -363,13 +363,26 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  # Note: we currently assume the CUDA install includes the nvtx header
   list(APPEND SOURCES
+    sys/ScopedLimitSaver.cuda.cc
+  )
+
+  # NVTX is header-only and only used by these sources: add its include
+  # directory privately so that downstream projects don't need to find it
+  celeritas_add_object_library(corecel_nvtx_obj
     sys/detail/NvtxUtils.cc
     sys/detail/TraceCounterImpl.cuda.cc
-    sys/ScopedLimitSaver.cuda.cc
     sys/ScopedProfiling.cuda.cc
   )
+  target_include_directories(corecel_nvtx_obj
+    SYSTEM PRIVATE ${NVTX_INCLUDE_DIRS}
+  )
+  # NVTX uses dlopen, which requires `-ldl` before glibc 2.34
+  celeritas_target_link_libraries(corecel_nvtx_obj
+    PRIVATE Celeritas::ExtDeviceApi Celeritas::BuildFlags ${CMAKE_DL_LIBS}
+  )
+  list(APPEND SOURCES $<TARGET_OBJECTS:corecel_nvtx_obj>)
+  list(APPEND PRIVATE_DEPS corecel_nvtx_obj)
 endif()
 
 if(CELERITAS_USE_HIP)
@@ -379,11 +392,6 @@ if(CELERITAS_USE_HIP)
   if(roctracer_FOUND)
     list(APPEND PRIVATE_DEPS roctracer::roctx)
   endif()
-  # Build some files as HIP due to rocThrust
-  set_source_files_properties(
-    sys/Stream.cc
-    PROPERTIES LANGUAGE HIP
-  )
 endif()
 
 #-----------------------------------------------------------------------------#

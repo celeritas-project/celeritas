@@ -23,8 +23,12 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "orange/OrangeGeoTestBase.hh"
+#include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/detail/UniverseIndexer.hh"
+#include "orange/surf/Sphere.hh"
+#include "orange/surf/Toroid.hh"
+#include "orange/univ/detail/LocalVolumeView.hh"
 
 #include "AssertionHelper.hh"
 #include "SimpleUnitTracker.test.hh"
@@ -143,6 +147,47 @@ class FieldLayersTest : public SimpleUnitTrackerTest
 class FiveVolumesTest : public SimpleUnitTrackerTest
 {
     void SetUp() override { this->build_geometry("five-volumes.org.json"); }
+};
+
+//! Torus (not a "simple safety" surface) in a background-filled sphere
+class BackgroundTorusTest : public SimpleUnitTrackerTest
+{
+    void SetUp() override
+    {
+        if (!CELERITAS_ORANGE_TORUS)
+        {
+            // Every other runtime surface type supports simple safety
+            GTEST_SKIP() << "Runtime toroid support is disabled";
+        }
+
+        UnitInput input;
+        input.label = "background torus";
+        input.bbox = {{-4, -4, -4}, {4, 4, 4}};
+        input.surfaces = {Sphere({0, 0, 0}, 4), Toroid({0, 0, 0}, 2, 0.5, 0.5)};
+        input.surface_labels = {Label("world"), Label("torus")};
+
+        VolumeInput exterior;
+        exterior.label = "exterior";
+        exterior.faces = {LocalSurfaceId{0}};
+        exterior.logic = {0};
+        exterior.bbox = BBox::from_infinite();
+        exterior.zorder = ZOrder::exterior;
+
+        VolumeInput torus;
+        torus.label = "torus";
+        torus.faces = {LocalSurfaceId{1}};
+        torus.logic = {1, logic::lnot};
+        torus.bbox = {{-2.5, -2.5, -0.5}, {2.5, 2.5, 0.5}};
+        torus.zorder = ZOrder::media;
+
+        VolumeInput background;
+        background.label = "background";
+        background.flags = VolumeInput::Flags::implicit_vol;
+        background.zorder = ZOrder::background;
+
+        input.volumes = {exterior, torus, background};
+        this->build_geometry(std::move(input));
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -407,7 +452,8 @@ TEST_F(OneVolumeTest, safety)
     EXPECT_SOFT_EQ(
         inf,
         tracker.safety({1, 2, 3},
-                       ui.local_volume(this->find_volume("infinite")).volume));
+                       ui.local_volume(this->find_volume("infinite")).volume,
+                       inf));
 }
 
 TEST_F(OneVolumeTest, heuristic_init)
@@ -445,10 +491,34 @@ TEST_F(TwoVolumeTest, initialize)
     }
     {
         // Test rejection
-        SCOPED_TRACE("On the boundary but not crossing a surface");
+        SCOPED_TRACE("On the boundary and moving tangent to it");
         auto init
             = tracker.initialize(this->make_state({1.5, 0, 0}, {0, 0, 1}));
         EXPECT_FALSE(init);
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+    }
+    {
+        SCOPED_TRACE("On the boundary heading in");
+        auto init
+            = tracker.initialize(this->make_state({1.5, 0, 0}, {-1, 0, 0}));
+        EXPECT_EQ("inside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::inside, init.surface.sense());
+
+        // Next intersection is the far side of the sphere
+        auto state = this->make_state(
+            {1.5, 0, 0}, {-1, 0, 0}, "inside", "sphere", '-');
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("sphere", this->id_to_label(isect.surface.id()));
+        EXPECT_SOFT_EQ(3.0, isect.distance);
+    }
+    {
+        SCOPED_TRACE("On the boundary heading out");
+        auto init
+            = tracker.initialize(this->make_state({0, 1.5, 0}, {0, 0.6, 0.8}));
+        EXPECT_EQ("outside", this->id_to_label(init.volume));
+        EXPECT_EQ("sphere", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
     }
     {
         SCOPED_TRACE("Outside the sphere");
@@ -595,18 +665,13 @@ TEST_F(TwoVolumeTest, safety)
         = ui.local_volume(this->find_volume("outside")).volume;
     LocalVolumeId inside = ui.local_volume(this->find_volume("inside")).volume;
 
-    EXPECT_SOFT_EQ(1.9641016151377535, tracker.safety({2, 2, 2}, outside));
-    EXPECT_SOFT_EQ(1.3284271247461905, tracker.safety({2, 0, 2}, outside));
-    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 2}, outside));
-    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 1}, inside));
-    EXPECT_SOFT_EQ(1.5 - 1e-10, tracker.safety({1e-10, 0, 0}, inside));
-#if 0
-    // Correct result but there is a singularity at zero
-    EXPECT_SOFT_EQ(1.5, tracker.safety({0, 0, 0}, inside)); // degenerate!
-#else
-    // Actual result
-    EXPECT_SOFT_EQ(inf, tracker.safety({0, 0, 0}, inside));  // degenerate!
-#endif
+    EXPECT_SOFT_EQ(1.9641016151377535, tracker.safety({2, 2, 2}, outside, inf));
+    EXPECT_SOFT_EQ(1.3284271247461905, tracker.safety({2, 0, 2}, outside, inf));
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 2}, outside, inf));
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 1}, inside, inf));
+    EXPECT_SOFT_EQ(1.5 - 1e-10, tracker.safety({1e-10, 0, 0}, inside, inf));
+    // At the center of the sphere, where the normal is undefined
+    EXPECT_SOFT_EQ(1.5, tracker.safety({0, 0, 0}, inside, inf));
 }
 
 TEST_F(TwoVolumeTest, normal)
@@ -736,6 +801,32 @@ TEST_F(FieldLayersTest, intersect)
     }
 }
 
+TEST_F(FieldLayersTest, safety)
+{
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
+    LocalVolumeId bg = ui.local_volume(this->find_volume("world.bg")).volume;
+
+    // All surfaces in the unit are planes
+    detail::LocalVolumeView vol{this->host_params(), tracker.unit_record(), bg};
+    EXPECT_TRUE(vol.implicit_vol());
+    EXPECT_TRUE(vol.simple_safety());
+
+    // Halfway between two layers
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, -3, 0}, bg, inf));
+    // Past the layers in y and z: the world boundary is nearest, not the
+    // extension of the layers' +z face
+    EXPECT_SOFT_EQ(0.75, tracker.safety({0, 10, 9.25}, bg, inf));
+    // Nothing within the search distance
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 10, 9.25}, bg, 0.5));
+    // Diagonally off the edge of a layer: (0.3, 0.5) from its bounding box,
+    // which is slightly larger than the layer
+    real_type const tol
+        = CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-6 : 1e-2;
+    EXPECT_SOFT_NEAR(
+        std::sqrt(0.34), tracker.safety({9.3, -3, 0}, bg, inf), tol);
+}
+
 TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 8192;
@@ -804,11 +895,26 @@ TEST_F(FiveVolumesTest, initialize)
         EXPECT_FALSE(init.surface);
     }
     {
-        // Triple point between a, c, d
-        SCOPED_TRACE("On the boundary but not crossing a surface");
-        auto init
-            = tracker.initialize(this->make_state({0, 0.75, 0}, {1, 1, 0}));
-        EXPECT_FALSE(init);
+        // Triple point between a, c, d: on the alpha.px plane (x = 0) and
+        // the gamma sphere (r = 0.75); both "on" tests and normals are exact
+        // since 0.75 and 0.75^2 are exactly representable. The direction is
+        // outward from both, which selects 'd'. The stored surface is the
+        // first face of 'd' that the point is on.
+        SCOPED_TRACE("On the boundary heading into d");
+        auto state = this->make_state({0, 0.75, 0}, {1, 1, 0});
+        auto init = tracker.initialize(state);
+        EXPECT_EQ("d", this->id_to_label(init.volume));
+        EXPECT_EQ("alpha.px", this->id_to_label(init.surface.id()));
+        EXPECT_EQ(Sense::outside, init.surface.sense());
+
+        // The next intersection must be the outer sphere, a nonzero distance
+        // away: neither surface the point is on can be hit at zero distance
+        state.volume = init.volume;
+        state.surface = init.surface;
+        auto isect = tracker.intersect(state);
+        EXPECT_EQ("outer.s", this->id_to_label(isect.surface.id()));
+        EXPECT_EQ(Sense::inside, isect.surface.unchecked_sense());
+        EXPECT_SOFT_EQ(99.46826365422226, isect.distance);
     }
 }
 
@@ -928,10 +1034,11 @@ TEST_F(FiveVolumesTest, safety)
     LocalVolumeId a = ui.local_volume(this->find_volume("a")).volume;
     LocalVolumeId d = ui.local_volume(this->find_volume("d")).volume;
 
-    EXPECT_SOFT_EQ(0.15138781886599728, tracker.safety({-0.75, 0.5, 0}, a));
+    EXPECT_SOFT_EQ(0.15138781886599728,
+                   tracker.safety({-0.75, 0.5, 0}, a, inf));
 
     // Note: distance with "d" surfaces is conservatively to internal planes
-    EXPECT_SOFT_EQ(0.5, tracker.safety({-5, 20, 0}, d));
+    EXPECT_SOFT_EQ(0.5, tracker.safety({-5, 20, 0}, d, inf));
 }
 
 TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
@@ -952,6 +1059,33 @@ TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
         auto result = this->run_heuristic_init_device(num_tracks);
         EXPECT_REF_EQ(expected, result);
     }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(BackgroundTorusTest, safety)
+{
+    SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
+    detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
+    LocalVolumeId bg = ui.local_volume(this->find_volume("background")).volume;
+
+    // The background does not claim simple safety when the unit has a
+    // non-simple surface
+    detail::LocalVolumeView vol{this->host_params(), tracker.unit_record(), bg};
+    EXPECT_TRUE(vol.implicit_vol());
+    EXPECT_FALSE(vol.simple_safety());
+
+    // Nearest is the bounding box of the torus, which is slightly larger
+    // than the torus: exact beyond a face, conservative beyond an edge
+    real_type const tol
+        = CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-6 : 1e-2;
+    EXPECT_SOFT_NEAR(0.5, tracker.safety({0, 3, 0}, bg, inf), tol);
+    EXPECT_SOFT_EQ(0.25, tracker.safety({0, 3, 0}, bg, 0.25));
+    EXPECT_SOFT_NEAR(0.5, tracker.safety({2.8, 0, 0.9}, bg, inf), tol);
+    // Nearest is the world sphere
+    EXPECT_SOFT_EQ(0.5, tracker.safety({0, 0, 3.5}, bg, inf));
+    // In the hole of the torus but inside its bounding box
+    EXPECT_SOFT_EQ(0.0, tracker.safety({0, 0, 0}, bg, inf));
 }
 
 //---------------------------------------------------------------------------//
