@@ -65,6 +65,9 @@ class WentzelHelper
         return screening_coefficient_;
     }
 
+    //! Whether the Mott correction applies (electrons and positrons)
+    CELER_FUNCTION bool use_mott() const { return use_mott_; }
+
     //! Get the Mott factor (maximum, used for rejection)
     CELER_FUNCTION real_type mott_factor() const { return mott_factor_; }
 
@@ -95,6 +98,7 @@ class WentzelHelper
     //// DATA ////
 
     AtomicNumber const target_z_;
+    bool use_mott_;
     real_type screening_coefficient_;
     real_type kin_factor_;
     real_type mott_factor_;
@@ -143,6 +147,7 @@ CELER_FUNCTION WentzelHelper::WentzelHelper(
     CoulombIds const& ids,
     Energy cutoff)
     : target_z_(target_z)
+    , use_mott_(!particle.is_heavy())
     , screening_coefficient_(this->calc_screening_coefficient(particle, ids)
                              * wentzel.params.screening_factor)
     , kin_factor_(this->calc_kin_factor(particle, wentzel.electron_mass))

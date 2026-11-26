@@ -579,7 +579,7 @@ TEST_F(CoulombScatteringTest, distribution)
     std::vector<real_type> avg_angles;
     std::vector<real_type> avg_engine_samples;
 
-    for (auto pdg : {pdg::electron(), pdg::positron()})
+    for (auto pdg : {pdg::electron(), pdg::positron(), pdg::proton()})
     {
         for (real_type energy : {1, 50, 100, 200, 1000, 13000})
         {
@@ -628,8 +628,20 @@ TEST_F(CoulombScatteringTest, distribution)
         0.999999978902978,
         0.999999999271879,
         0.999999999996316,
+        0.99998540696551,
+        0.99999997404595,
+        0.99999998634415,
+        0.99999999703221,
+        0.9999999996197,
+        0.99999999999428,
     };
     static double const expected_avg_engine_samples[] = {
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
         6,
         6,
         6,
@@ -645,6 +657,62 @@ TEST_F(CoulombScatteringTest, distribution)
     };
     EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+}
+
+TEST_F(CoulombScatteringTest, heavy_rejection)
+{
+    // Disable the form factor so only the spin correction rejects samples
+    auto wentzel = this->make_wentzel_params(NuclearFormFactorType::none);
+
+    auto const material = this->material_track().material_record();
+    IsotopeView const isotope
+        = material.element_record(elcomp_id_).isotope_record(isocomp_id_);
+    MevEnergy const cutoff
+        = this->cutoff_params()->get(mat_id_).energy(ParticleId{0});
+
+    this->set_inc_particle(pdg::proton(), MevEnergy{100});
+    WentzelHelper helper(this->particle_track(),
+                         material,
+                         isotope.atomic_number(),
+                         wentzel->host_ref(),
+                         model_->host_ref().ids,
+                         cutoff);
+    EXPECT_FALSE(helper.use_mott());
+    EXPECT_EQ(1, helper.mott_factor());
+
+    // Sample only large angles, where scattering off electrons is
+    // kinematically forbidden, so every sample is off the nucleus
+    real_type const cos_thetamin = 0;
+    real_type const cos_thetamax = -1;
+    EXPECT_EQ(0, helper.calc_xs_electron(cos_thetamin, cos_thetamax));
+    WentzelDistribution sample_angle(wentzel->host_ref(),
+                                     helper,
+                                     this->particle_track(),
+                                     isotope,
+                                     el_id_,
+                                     cos_thetamin,
+                                     cos_thetamax);
+
+    // Rejected samples have no change in direction
+    RandomEngine& rng = this->rng();
+    int const num_samples = 100000;
+    int num_accepted = 0;
+    for ([[maybe_unused]] int i : range(num_samples))
+    {
+        real_type cos_theta = sample_angle(rng);
+        if (cos_theta != 1)
+        {
+            EXPECT_LE(cos_theta, cos_thetamin);
+            ++num_accepted;
+        }
+    }
+
+    // Expected acceptance from integrating min(1, R) over the (screened
+    // Rutherford) proposal distribution, where R is the heavy-particle
+    // correction in G4WentzelOKandVIxSection::SampleSingleScattering. R
+    // ranges from about 0.80 at 180 degrees to just above 1 near 90 degrees,
+    // so both rejection and saturation are exercised.
+    EXPECT_NEAR(0.9323, real_type(num_accepted) / num_samples, 0.003);
 }
 
 //---------------------------------------------------------------------------//
