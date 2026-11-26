@@ -18,6 +18,7 @@
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/inp/Control.hh"
+#include "celeritas/inp/TrackingIO.json.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 
 namespace celeritas
@@ -124,6 +125,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_OPTION(field_file);
     RI_LOAD_OPTION(field);
     RI_LOAD_OPTION(field_options);
+    RI_LOAD_OPTION(woodcock);
 
     if (auto iter = j.find("enable_sd"); iter != j.end())
     {
@@ -233,6 +235,11 @@ void to_json(nlohmann::json& j, RunInput const& v)
     {
         RI_SAVE(field);
         RI_SAVE(field_options);
+    }
+
+    if (v.woodcock)
+    {
+        RI_SAVE(woodcock);
     }
 
     RI_SAVE(sd_type);

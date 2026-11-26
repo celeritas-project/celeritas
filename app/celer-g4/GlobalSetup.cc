@@ -158,6 +158,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
     options_->auto_flush = input_.auto_flush;
 
     options_->max_field_substeps = input_.field_options.max_substeps;
+    options_->woodcock = input_.woodcock;
 
     options_->interpolation.type = input_.interpolation;
     options_->interpolation.order = input_.poly_spline_order;

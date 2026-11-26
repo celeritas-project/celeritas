@@ -120,6 +120,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
         tl.field_substeps = so.max_field_substeps;
         return tl;
     }();
+    p.tracking.woodcock = so.woodcock;
 
     if (so.optical)
     {

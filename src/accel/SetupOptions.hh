@@ -241,6 +241,13 @@ struct SetupOptions
     size_type max_field_substeps{10};
     //!@}
 
+    //!@{
+    //! \name Photon tracking options
+
+    //! Use Woodcock tracking for photons in the given Geant4 regions
+    inp::WoodcockTracking woodcock;
+    //!@}
+
     //! Sensitive detector options
     SDSetupOptions sd;
 
