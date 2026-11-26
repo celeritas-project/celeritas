@@ -292,16 +292,17 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 
     // Sample polar angle cosine
     real_type costheta = [this, &rng] {
+        if (tau_ >= shared_.params.tau_big)
+        {
+            // Many mean free paths traveled (theta0 is not calculated):
+            // exiting direction is isotropic
+            UniformRealDistribution<real_type> sample_isotropic(-1, 1);
+            return sample_isotropic(rng);
+        }
         if (theta0_ <= 0)
         {
             // Very small outgoing angular distribution
             return 1_r;
-        }
-        if (tau_ >= shared_.params.tau_big)
-        {
-            // Long mean free path: exiting direction is isotropic
-            UniformRealDistribution<real_type> sample_isotropic(-1, 1);
-            return sample_isotropic(rng);
         }
         if (2 * end_energy_ < inc_energy_ || theta0_ > constants::pi / 6)
         {

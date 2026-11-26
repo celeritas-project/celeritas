@@ -293,38 +293,38 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 
     if (Test::is_reference_rng)
     {
-        EXPECT_EQ(228154,
+        EXPECT_EQ(229929,
                   result.cherenkov.total_num_photons
                       + result.scintillation.total_num_photons);
 
-        EXPECT_EQ(21304, result.cherenkov.total_num_photons);
+        EXPECT_EQ(21360, result.cherenkov.total_num_photons);
         static unsigned int const expected_cherenkov_num_photons[] = {
             371u, 539u,  1609u, 1582u, 1095u, 530u, 1251u, 481u, 892u, 355u,
             757u, 1129u, 239u,  376u,  428u,  441u, 610u,  698u, 589u, 222u,
             482u, 159u,  38u,   236u,  345u,  822u, 303u,  108u, 17u,  631u,
-            211u, 62u,   502u,  28u,   392u,  281u, 119u,  7u,   11u,  194u,
-            19u,  372u,  270u,  118u,  32u,   4u,   533u,  395u, 268u, 151u,
+            211u, 62u,   502u,  28u,   392u,  281u, 119u,  5u,   16u,  185u,
+            22u,  475u,  354u,  225u,  67u,   24u,  485u,  317u, 224u, 31u,
         };
         EXPECT_VEC_EQ(expected_cherenkov_num_photons,
                       result.cherenkov.num_photons);
 
-        EXPECT_EQ(206850, result.scintillation.total_num_photons);
+        EXPECT_EQ(208569, result.scintillation.total_num_photons);
         static unsigned int const expected_scintillation_num_photons[] = {
             2678u, 3867u, 11346u, 11391u, 7849u, 3835u, 8938u, 3409u, 6309u,
             2820u, 5504u, 8457u,  1923u,  2355u, 3423u, 3099u, 4546u, 5263u,
             4175u, 1929u, 3525u,  1106u,  341u,  2307u, 2879u, 5919u, 2679u,
             1900u, 219u,  4698u,  2228u,  1695u, 1796u, 3696u, 1798u, 1303u,
-            3008u, 960u,  974u,   2403u,  644u,  1932u, 109u,  1765u, 243u,
-            11u,   200u,  1251u,  519u,   384u,  15u,   654u,  560u,  1060u,
-            180u,  64u,   167u,   117u,   19u,   116u,  149u,  599u,  29u,
-            15u,   1626u, 16u,    310u,   1785u, 316u,  15u,   618u,  215u,
-            348u,  1782u, 610u,   2210u,  728u,  368u,  1797u, 18u,   68u,
-            888u,  38u,   109u,   1709u,  77u,   87u,   2958u, 20u,   19u,
-            2376u, 255u,  154u,   1997u,  369u,  54u,   1775u, 1812u, 13u,
-            120u,  1027u, 59u,    18u,    43u,   487u,  9u,    21u,   12u,
-            273u,  643u,  137u,   1795u,  66u,   116u,  607u,  11u,   199u,
-            20u,   147u,  106u,   11u,    45u,   248u,  492u,  3951u, 1176u,
-            3068u, 4u,    2446u,  212u,   2039u, 350u,
+            3008u, 960u,  974u,   2403u,  644u,  1932u, 109u,  1720u, 243u,
+            11u,   183u,  1251u,  519u,   384u,  15u,   654u,  560u,  1060u,
+            219u,  64u,   16u,    117u,   19u,   717u,  61u,   599u,  36u,
+            1167u, 108u,  1821u,  4u,     306u,  64u,   622u,  263u,  1u,
+            1788u, 54u,   18u,    813u,   117u,  307u,  13u,   2189u, 300u,
+            47u,   1795u, 439u,   16u,    1708u, 872u,  830u,  66u,   3397u,
+            612u,  19u,   2889u,  18u,    157u,  2136u, 2u,    308u,  1830u,
+            25u,   157u,  13u,    1224u,  324u,  21u,   397u,  16u,   161u,
+            1777u, 60u,   863u,   765u,   3480u, 13u,   2824u, 125u,  2256u,
+            34u,   11u,   1830u,  271u,   543u,  1238u, 1243u, 18u,   14u,
+            263u,  83u,   343u,   706u,   440u,  252u,
         };
         EXPECT_VEC_EQ(expected_scintillation_num_photons,
                       result.scintillation.num_photons);
@@ -450,7 +450,7 @@ TEST_F(LArSphereOffloadTest, scintillation_distributions)
 
     if (Test::is_reference_rng)
     {
-        EXPECT_EQ(167469, result.scintillation.total_num_photons);
+        EXPECT_EQ(167499, result.scintillation.total_num_photons);
         EXPECT_EQ(48, result.scintillation.num_photons.size());
 
         // No steps ran

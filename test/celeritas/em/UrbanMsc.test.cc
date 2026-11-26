@@ -553,6 +553,61 @@ TEST_F(UrbanMscTest, step_limit)
 constexpr int num_samples = 10000;
 constexpr real_type step_is_range = -1;
 
+TEST_F(UrbanMscTest, long_step)
+{
+    int const num_samples = 10000;
+    RandomEngine& rng = this->rng();
+    auto const& msc_params = msc_params_->host_ref();
+
+    for (real_type energy : {0.01, 0.1})
+    {
+        auto par = this->make_par_view(pdg::electron(), MevEnergy{energy});
+        SCOPED_TRACE((StreamableParticle{par, *this->particle()}));
+        auto phys = this->make_phys_view(
+            par, "G4_STAINLESS-STEEL", this->physics()->host_ref());
+        auto geo = this->make_geo_view(from_cm(1));
+        MaterialView mat = this->material()->get(phys.material_id());
+        UrbanMscHelper helper(msc_params, par, phys);
+
+        // Step over most of the range (but not range-limited) for a
+        // low-energy electron: many transport MFPs
+        real_type const true_path = real_type(0.95) * phys.dedx_range();
+        {
+            real_type const lambda = helper.msc_mfp();
+            real_type const lambda_end
+                = helper.calc_msc_mfp(helper.calc_end_energy(true_path));
+            real_type const tau = true_path * std::log(lambda / lambda_end)
+                                  / (lambda - lambda_end);
+            ASSERT_GT(tau, msc_params.params.tau_big);
+        }
+        MscStepToGeo calc_geom_path(msc_params,
+                                    helper,
+                                    par.energy(),
+                                    helper.msc_mfp(),
+                                    phys.dedx_range());
+        auto gp = calc_geom_path(true_path);
+        MscStep step;
+        step.true_path = true_path;
+        step.geom_path = gp.step;
+        step.alpha = gp.alpha;
+        step.is_displaced = false;
+
+        UrbanMscScatter scatter(
+            msc_params, helper, par, phys, mat, geo.dir(), 0, step);
+
+        // Exiting direction should be isotropic
+        real_type avg_costheta = 0;
+        for ([[maybe_unused]] int i : range(num_samples))
+        {
+            MscInteraction interaction = scatter(rng);
+            EXPECT_EQ(Action::scattered, interaction.action);
+            avg_costheta += dot_product(geo.dir(), interaction.direction);
+        }
+        avg_costheta /= num_samples;
+        EXPECT_NEAR(0, avg_costheta, 0.03);
+    }
+}
+
 TEST_F(UrbanMscTest, msc_scattering)
 {
     // Test energies (MeV)

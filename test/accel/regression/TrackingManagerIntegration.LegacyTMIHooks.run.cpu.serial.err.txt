@@ -119,11 +119,11 @@ debug@LocalTransporter.cc: Reconstituted 96 hits for event 0
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 1
 debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
-debug@LocalTransporter.cc: Reconstituted 110 hits for event 1
+debug@LocalTransporter.cc: Reconstituted 160 hits for event 1
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug: Destroying local state
-info@LocalTransporter.cc: Finalizing Celeritas after 663 steps from 2 flushes with 20 offloaded tracks over 2 events, generating 206 hits
+info@LocalTransporter.cc: Finalizing Celeritas after 716 steps from 2 flushes with 20 offloaded tracks over 2 events, generating 256 hits
 debug: Deallocating host core state (stream 0)
 debug: Deallocating track reconstruction
 status@TrackingManagerIntegration.test.cc: Beam on (second run)

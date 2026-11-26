@@ -152,14 +152,14 @@ debug@PGPrimaryGeneratorAction.cc: Generated 1 primaries for event 0
 debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 status@LocalTransporter.cc: Executing the first Celeritas stepping loop
-debug@LocalTransporter.cc: Reconstituted 70 hits for event 0
+debug@LocalTransporter.cc: Reconstituted 49 hits for event 0
 debug@PGPrimaryGeneratorAction.cc: Generated 1 primaries for event 1
 debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
-debug@LocalTransporter.cc: Reconstituted 58 hits for event 1
+debug@LocalTransporter.cc: Reconstituted 57 hits for event 1
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Destroying local state
-info@LocalTransporter.cc: Finalizing Celeritas after 1345 steps from 2 flushes with 2 offloaded tracks over 2 events, generating 128 hits
+info@LocalTransporter.cc: Finalizing Celeritas after 1307 steps from 2 flushes with 2 offloaded tracks over 2 events, generating 106 hits
 debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 status@IntegrationSingleton.cc: Finalizing Celeritas
