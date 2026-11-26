@@ -259,6 +259,69 @@ TEST_F(CoulombScatteringTest, helper)
     EXPECT_VEC_SOFT_EQ(expected_xs_nuc, result.xs_nuc);
 }
 
+// Deflections near zero can't be represented as cosines in single precision
+TEST_F(CoulombScatteringTest, TEST_IF_CELERITAS_DOUBLE(cos_thetamax_electron))
+{
+    auto wentzel = this->make_wentzel_params();
+
+    auto const material = this->material_track().material_record();
+    AtomicNumber const target_z
+        = this->material_params()->get(el_id_).atomic_number();
+    MevEnergy const cutoff
+        = this->cutoff_params()->get(mat_id_).energy(ParticleId{0});
+
+    // Calculate the maximum deflection 1 - cos(theta) off electrons, and
+    // the cross section for scattering off electrons over all angles
+    std::vector<real_type> deflection;
+    std::vector<real_type> xs_elec;
+    auto calc = [&](PDGNumber pdg, real_type energy) {
+        this->set_inc_particle(pdg, MevEnergy{energy});
+        WentzelHelper helper(this->particle_track(),
+                             material,
+                             target_z,
+                             wentzel->host_ref(),
+                             model_->host_ref().ids,
+                             cutoff);
+        deflection.push_back(1 - helper.cos_thetamax_electron());
+        xs_elec.push_back(helper.calc_xs_electron(1, -1) / units::barn);
+    };
+
+    // Reference values from G4WentzelOKandVIxSection with a 0.5 MeV cut,
+    // calculated as min(cut, tmax) m_e / p^2 to avoid cancellation. The
+    // tolerance accounts for recovering a small deflection from a cosine.
+    for (real_type energy : {10, 100, 1000, 13000})
+    {
+        calc(pdg::proton(), energy);
+    }
+    static double const expected_proton[] = {
+        5.925529089626828e-07,
+        5.92491074377484e-07,
+        8.882118678212865e-08,
+        1.3211256916404578e-09,
+    };
+    EXPECT_VEC_NEAR(expected_proton, deflection, 1e-6);
+
+    // No scattering off electrons if the outgoing positron would have no
+    // kinetic energy
+    deflection.clear();
+    xs_elec.clear();
+    for (real_type energy : {0.25, 0.5, 1.0, 10.0})
+    {
+        calc(pdg::positron(), energy);
+    }
+    static double const expected_positron[] = {
+        0.0,
+        0.0,
+        0.18497988777806718,
+        0.0024311964170518063,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_positron, deflection);
+    EXPECT_EQ(0, xs_elec[0]);
+    EXPECT_EQ(0, xs_elec[1]);
+    EXPECT_LT(0, xs_elec[2]);
+    EXPECT_LT(0, xs_elec[3]);
+}
+
 TEST_F(CoulombScatteringTest, mott_ratio)
 {
     auto wentzel = this->make_wentzel_params();
@@ -465,31 +528,35 @@ TEST_F(CoulombScatteringTest, simple_scattering)
     }
 
     static double const expected_cos_theta[] = {
-        0.30959693518702, 0.30362801736357, 0.34400141555852, 0.27468879706731,
-        0.96386966095849, 0.96315701193745, 0.95385031468713, 0.96058261257009,
-        0.99947380591936, 0.99903504822288, 0.99955489342985, 0.99962786618013,
-        0.99999941717203, 0.99999990332905, 0.99999995040553, 0.99999993537485,
-        0.99999999999292, 0.99999999999046, 0.99999999999287, 0.9999999999951,
-        0.21467076189019, 0.22333217702059, 0.19782535179014, 0.19180477684422,
-        0.95348944411602, 0.95231010283708, 0.95499925870039, 0.95810237285708,
-        0.99972525491626, 0.99947505610692, 0.99967163248489, 0.99969994907305,
-        0.99999992659793, 0.99999994637187, 0.99999993733887, 0.99999995223927,
-        0.99999999995776, 0.99999999999134, 0.99999999999354, 0.99999999998984,
+        0.30959693518702,  0.30362801736357,  0.34400141555852,
+        0.27468879706731,  0.96386966095849,  0.96315701193745,
+        0.95385031468713,  0.96058261257009,  0.99947380591936,
+        0.99903504822288,  0.99955489342985,  0.99962786618013,
+        0.99999941717203,  0.99999990332905,  0.99999995040553,
+        0.99999993537485,  0.99999999999292,  0.99999999999046,
+        0.99999999999287,  0.9999999999951,   0.184355818928065,
+        0.204137610860193, 0.222098263256828, 0.186508965803965,
+        0.950426598719422, 0.949405592077471, 0.953525702698668,
+        0.955532979383001, 0.999728556975144, 0.999468642398949,
+        0.999670432508763, 0.999698837408697, 0.999999929086333,
+        0.999999944030555, 0.999999937007971, 0.999999954782215,
+        0.99999999995776,  0.99999999999134,  0.99999999999354,
+        0.99999999998984,
     };
     static double const expected_eloss_frac[] = {
-        1.2038042397826e-05, 1.2142117225683e-05, 1.1438161896383e-05,
-        1.264670859096e-05,  6.3608414025622e-07, 6.4863054261043e-07,
-        8.1247582681175e-07, 6.9395307116373e-07, 1.815056819112e-08,
-        3.3285038144324e-08, 1.5353566031615e-08, 1.2836452633258e-08,
-        1.0044336467164e-09, 1.6660085756705e-10, 8.5470164257716e-11,
-        1.113737352126e-10,  1.2077655498974e-12, 1.627270800747e-12,
-        1.2157304243171e-12, 8.3538709803876e-13, 1.3693201535358e-05,
-        1.3542181923804e-05, 1.3986924425419e-05, 1.4091901422063e-05,
-        8.1883052876781e-07, 8.395920386762e-07,  7.9225056037789e-07,
-        7.3761848967387e-07, 9.4771081645328e-09, 1.810747388164e-08,
-        1.1326769579559e-08, 1.035001138234e-08,  1.2649970914519e-10,
-        9.2421692261119e-11, 1.0798899632587e-10, 8.230992927169e-11,
-        7.2070335810359e-12, 1.4779506828447e-12, 1.1019583683047e-12,
+        1.2038042397826e-05,  1.2142117225683e-05,  1.1438161896383e-05,
+        1.264670859096e-05,   6.3608414025622e-07,  6.4863054261043e-07,
+        8.1247582681175e-07,  6.9395307116373e-07,  1.815056819112e-08,
+        3.3285038144324e-08,  1.5353566031615e-08,  1.2836452633258e-08,
+        1.0044336467164e-09,  1.6660085756705e-10,  8.5470164257716e-11,
+        1.113737352126e-10,   1.2077655498974e-12,  1.627270800747e-12,
+        1.2157304243171e-12,  8.3538709803876e-13,  1.42217779699411e-05,
+        1.38768593216808e-05, 1.35636955522459e-05, 1.41842388060459e-05,
+        8.72751631664963e-07, 8.90727033126329e-07, 8.18192012323879e-07,
+        7.82853682646336e-07, 9.36320629330804e-09, 1.83287095383879e-08,
+        1.13681617845435e-08, 1.03883573559799e-08, 1.22211248716406e-10,
+        9.64566687156401e-11, 1.08559254142528e-10, 7.79274632019614e-11,
+        7.24236024884223e-12, 1.46071110936064e-12, 1.1019583683047e-12,
         1.7337795695654e-12,
     };
 
