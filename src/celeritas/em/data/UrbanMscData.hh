@@ -153,8 +153,6 @@ struct UrbanMscData
 
     //! Particle IDs
     CoulombIds ids;
-    //! Mass of of electron in MeV
-    units::MevMass electron_mass;
     //! User-assignable options
     UrbanMscParameters params;
     //! Material-dependent data
@@ -180,10 +178,10 @@ struct UrbanMscData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > zero_quantity() && !material_data.empty()
-               && num_particles >= 2 && num_par_mat >= 2
-               && !pid_to_pmdata.empty() && !pid_to_xs.empty()
-               && !par_mat_data.empty() && !xs.empty() && !reals.empty();
+        return ids && !material_data.empty() && num_particles >= 2
+               && num_par_mat >= 2 && !pid_to_pmdata.empty()
+               && !pid_to_xs.empty() && !par_mat_data.empty() && !xs.empty()
+               && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -192,7 +190,6 @@ struct UrbanMscData
     {
         CELER_EXPECT(other);
         ids = other.ids;
-        electron_mass = other.electron_mass;
         params = other.params;
         material_data = other.material_data;
         num_particles = other.num_particles;

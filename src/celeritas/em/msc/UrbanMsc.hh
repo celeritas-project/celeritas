@@ -167,11 +167,8 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
     // necessarily limited. This transformation will be reversed in
     // `apply_step` below.
     auto gp = [&] {
-        detail::MscStepToGeo calc_geom_path(shared_,
-                                            msc_helper,
-                                            par.energy(),
-                                            msc_helper.msc_mfp(),
-                                            phys.dedx_range());
+        detail::MscStepToGeo calc_geom_path(
+            shared_, msc_helper, par, msc_helper.msc_mfp(), phys.dedx_range());
         auto result = calc_geom_path(true_path);
 
         // Limit geometrical step to 1 MSC MFP

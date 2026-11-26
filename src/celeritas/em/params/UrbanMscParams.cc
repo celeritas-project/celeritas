@@ -68,9 +68,6 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     helper.build_ids(&host_data.ids, &host_data.pid_to_xs);
     helper.build_xs(&host_data.xs, &host_data.reals);
 
-    // Save electron mass
-    host_data.electron_mass = particles.get(host_data.ids.electron).mass();
-
     // Number of applicable particles
     host_data.num_particles = helper.particle_ids().size();
     CELER_ASSERT(host_data.num_particles >= 2);
