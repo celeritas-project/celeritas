@@ -553,6 +553,103 @@ void CheckedGeoTrackView::cross_boundary()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find the distance to exit an enclosing volume.
+ *
+ * \pre Cannot call from outside or if failed, distance is positive
+ * \post State was unaffected
+ */
+Propagation CheckedGeoTrackView::find_exit_step(VolumeLevelId ancestor,
+                                                real_type max_step)
+{
+    CGTV_LOG(debug) << "Finding exit from level " << ancestor.unchecked_get()
+                    << " up to " << full_precision << max_step;
+    CELER_VALIDATE(max_step > 0,
+                   << "invalid step maximum " << repr(max_step)
+                   << NativeLength{});
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
+    CELER_VALIDATE(!this->is_outside(), << "cannot find exit from outside");
+    CELER_VALIDATE(ancestor <= this->volume_level(),
+                   << "invalid ancestor level " << ancestor.unchecked_get());
+
+    ImplVolumeId const impl_vol = t_->impl_volume_id();
+    bool const started_on_boundary = t_->is_on_boundary();
+    auto result = t_->find_exit_step(ancestor, max_step);
+    CGTV_VALIDATE_NOT_FAILED(*this, "find_exit_step");
+    CGTV_VALIDATE(*this,
+                  result.distance >= 0 && result.distance <= max_step,
+                  << "return distance " << repr(result.distance)
+                  << NativeLength{} << " out of bounds " << repr(max_step)
+                  << NativeLength{});
+    CGTV_VALIDATE(*this,
+                  t_->impl_volume_id() == impl_vol
+                      && t_->is_on_boundary() == started_on_boundary,
+                  << "state changed during find_exit_step");
+    CGTV_LOG(status) << (result.boundary ? "Found" : "No") << " exit at "
+                     << StreamableLength{result.distance, unit_length_};
+
+    next_step_.reset();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move to the boundary of the enclosing volume.
+ *
+ * \post On boundary
+ */
+void CheckedGeoTrackView::move_to_exit()
+{
+    CGTV_LOG(debug) << "Moving to exit";
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
+    CELER_VALIDATE(!this->is_outside(), << "invalid call while outside");
+
+    t_->move_to_exit();
+    CGTV_VALIDATE_NOT_FAILED(*this, "move_to_exit");
+    checked_internal_ = false;
+    next_step_.reset();
+    next_is_boundary_ = false;
+
+    CGTV_VALIDATE(*this,
+                  t_->is_on_boundary() && !t_->is_outside(),
+                  << "moving to exit did not leave track on a boundary");
+    CGTV_LOG(status) << "Moved to exit: " << *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move inside the enclosing volume and relocate.
+ *
+ * \post Inside the enclosing volume, not on boundary
+ */
+void CheckedGeoTrackView::move_relocate(VolumeLevelId ancestor, real_type dist)
+{
+    CGTV_LOG(debug) << "Relocating after " << full_precision
+                    << StreamableLength{dist, unit_length_};
+    CELER_VALIDATE(dist > 0,
+                   << "invalid distance " << repr(dist) << NativeLength{});
+    CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
+    CELER_VALIDATE(!this->is_outside(), << "cannot move while outside");
+    CELER_VALIDATE(ancestor <= this->volume_level(),
+                   << "invalid ancestor level " << ancestor.unchecked_get());
+
+    t_->move_relocate(ancestor, dist);
+    CGTV_VALIDATE_NOT_FAILED(*this, "move_relocate");
+    checked_internal_ = false;
+    next_step_.reset();
+    next_is_boundary_ = false;
+
+    CGTV_VALIDATE(*this,
+                  !t_->is_on_boundary() && !t_->is_outside(),
+                  << "not internal after relocating by " << repr(dist)
+                  << NativeLength{});
+    CGTV_VALIDATE(*this,
+                  ancestor <= this->volume_level(),
+                  << "relocated outside the enclosing volume");
+    CGTV_LOG(status) << "Relocated: " << *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Output the state of a checked track view.
  */
 std::ostream& operator<<(std::ostream& os, CheckedGeoTrackView const& geo)

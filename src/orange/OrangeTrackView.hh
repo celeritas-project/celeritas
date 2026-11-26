@@ -130,6 +130,17 @@ class OrangeTrackView
     // Cross from one side of the current surface to the other
     inline CELER_FUNCTION void cross_boundary();
 
+    // Find the distance to exit an enclosing volume (not implemented)
+    inline CELER_FUNCTION Propagation find_exit_step(VolumeLevelId ancestor,
+                                                     real_type max_step);
+
+    // Move to the exit of the enclosing volume (not implemented)
+    inline CELER_FUNCTION void move_to_exit();
+
+    // Move inside the enclosing volume and relocate (not implemented)
+    inline CELER_FUNCTION void move_relocate(VolumeLevelId ancestor,
+                                             real_type dist);
+
     // Change direction
     inline CELER_FUNCTION void set_dir(Real3 const& newdir);
 
@@ -987,6 +998,41 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     CELER_ENSURE(this->geo_status() == GeoStatus::boundary_out
                  || this->geo_status() == GeoStatus::error);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to exit an enclosing volume.
+ *
+ * This is not yet implemented for ORANGE: see
+ * \c GeoTraits<OrangeParams>::has_ancestor_exit .
+ */
+CELER_FUNCTION Propagation OrangeTrackView::find_exit_step(VolumeLevelId,
+                                                           real_type)
+{
+    CELER_NOT_IMPLEMENTED("exiting an enclosing volume with ORANGE");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move to the exit of the enclosing volume.
+ *
+ * This is not yet implemented for ORANGE.
+ */
+CELER_FUNCTION void OrangeTrackView::move_to_exit()
+{
+    CELER_NOT_IMPLEMENTED("exiting an enclosing volume with ORANGE");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move inside the enclosing volume and relocate.
+ *
+ * This is not yet implemented for ORANGE.
+ */
+CELER_FUNCTION void OrangeTrackView::move_relocate(VolumeLevelId, real_type)
+{
+    CELER_NOT_IMPLEMENTED("relocating inside an enclosing volume with ORANGE");
 }
 
 //---------------------------------------------------------------------------//

@@ -6,8 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestInterface.hh"
 
+#include <algorithm>
 #include <memory>
+#include <random>
 #include <variant>
+#include <vector>
 #include <gtest/gtest.h>
 
 #include "corecel/Types.hh"
@@ -66,6 +69,56 @@ struct StreamableActionException
         return os;
     }
 };
+
+//---------------------------------------------------------------------------//
+//! Get the volume instances in the track's path
+std::vector<VolumeInstanceId> get_path(GeoTrackInterface<real_type> const& geo)
+{
+    std::vector<VolumeInstanceId> result;
+    if (!geo.is_outside())
+    {
+        geo.foreach_volume_path([&result](VolumeLevelId, VolumeInstanceId vi) {
+            result.push_back(vi);
+        });
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+//! Distance and path when leaving an ancestor
+struct AncestorExit
+{
+    real_type distance{0};
+    std::vector<VolumeInstanceId> path;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Track from volume to volume until leaving an ancestor.
+ */
+AncestorExit track_to_exit(
+    CheckedGeoTrackView& geo, VolumeLevelId level, real_type max_distance)
+{
+    AncestorExit result;
+    auto const start = get_path(geo);
+    CELER_ASSERT(level < start.size());
+    auto in_ancestor = [&](std::vector<VolumeInstanceId> const& path) {
+        return path.size() > *level
+               && std::equal(
+                   start.begin(), start.begin() + *level + 1, path.begin());
+    };
+
+    int remaining{10000};
+    do
+    {
+        result.distance += geo.find_next_step(max_distance).distance;
+        geo.move_to_boundary();
+        geo.cross_boundary();
+        result.path = get_path(geo);
+        CELER_VALIDATE(--remaining > 0, << "track is stuck: " << geo);
+    } while (in_ancestor(result.path));
+    return result;
+}
 
 }  // namespace
 
@@ -224,6 +277,129 @@ auto GenericGeoTestInterface::track(
     Real3 const& pos_cm, Real3 const& dir, int max_steps) -> TrackingResult
 {
     return this->track(pos_cm, dir, this->tracking_tol(), max_steps);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check exiting and relocating inside every enclosing volume.
+ *
+ * Start random tracks in the geometry and compare against tracking from volume
+ * to volume.
+ */
+void GenericGeoTestInterface::check_ancestor_exit(size_type num_tracks)
+{
+    auto const& bbox = this->geometry_interface()->bbox();
+    real_type const max_distance = 2 * distance(bbox.lower(), bbox.upper());
+    real_type const tol = 1e-6 * this->unit_length().value;
+
+    std::mt19937 rng{12345};
+    std::uniform_real_distribution<real_type> sample_01{0, 1};
+    auto sample_init = [&] {
+        GeoTrackInitializer result;
+        for (auto i : range(3))
+        {
+            // Stay off planes of symmetry and the world boundary
+            result.pos[i]
+                = bbox.lower()[i]
+                  + (bbox.upper()[i] - bbox.lower()[i])
+                        * (real_type(0.01) + real_type(0.98) * sample_01(rng));
+            result.dir[i] = 2 * sample_01(rng) - 1;
+        }
+        result.dir = make_unit_vector(result.dir);
+        return result;
+    };
+
+    // NOTE: track views created by this test share a track slot
+    auto geo = this->make_checked_track_view();
+    geo.check_normal(false);
+
+    size_type num_daughter{0};
+    for (auto i : range(num_tracks))
+    {
+        auto const init = sample_init();
+        try
+        {
+            geo = init;
+        }
+        catch (CheckedGeoError const&)
+        {
+            // Inside the bounding box but outside the world
+            continue;
+        }
+        auto const start_path = get_path(geo);
+        for (auto lev : range(VolumeLevelId(start_path.size())))
+        {
+            SCOPED_TRACE(::testing::Message{}
+                         << "track " << i << " in level " << lev.get()
+                         << " at " << init.pos << " along " << init.dir);
+
+            // Find the reference solution, including one step past the exit
+            geo = init;
+            auto const expected = track_to_exit(geo, lev, max_distance);
+            AncestorExit expected_next;
+            if (!geo.is_outside())
+            {
+                expected_next.distance
+                    = geo.find_next_step(max_distance).distance;
+                geo.move_to_boundary();
+                geo.cross_boundary();
+                expected_next.path = get_path(geo);
+            }
+
+            // Limit by a step that doesn't reach the boundary
+            geo = init;
+            auto next = geo.find_exit_step(lev, expected.distance / 2);
+            EXPECT_FALSE(next.boundary);
+            EXPECT_REAL_EQ(expected.distance / 2, next.distance);
+
+            // Relocate inside the ancestor
+            std::vector<AncestorExit> relocated;
+            real_type moved{0};
+            for (real_type frac : {0.05, 0.31, 0.5, 0.74, 0.93})
+            {
+                geo.move_relocate(lev, frac * expected.distance - moved);
+                moved = frac * expected.distance;
+                relocated.push_back({moved, get_path(geo)});
+
+                next = geo.find_exit_step(lev, max_distance);
+                EXPECT_TRUE(next.boundary);
+                EXPECT_NEAR(expected.distance - moved, next.distance, tol);
+            }
+
+            // Move to the ancestor boundary
+            geo.move_to_exit();
+            EXPECT_TRUE(geo.is_on_boundary());
+            auto path = get_path(geo);
+            ASSERT_EQ(*lev + 1, path.size());
+            EXPECT_TRUE(
+                std::equal(path.begin(), path.end(), start_path.begin()));
+            EXPECT_NEAR(expected.distance, distance(geo.pos(), init.pos), tol);
+
+            // Leave the ancestor and take another step
+            geo.cross_boundary();
+            EXPECT_EQ(expected.path, get_path(geo));
+            if (!geo.is_outside())
+            {
+                EXPECT_TRUE(geo.is_on_boundary());
+                EXPECT_NEAR(expected_next.distance,
+                            geo.find_next_step(max_distance).distance,
+                            tol);
+                geo.move_to_boundary();
+                geo.cross_boundary();
+                EXPECT_EQ(expected_next.path, get_path(geo));
+            }
+
+            // Check that the relocated states match an initialized state
+            for (auto const& r : relocated)
+            {
+                geo = {init.pos + r.distance * init.dir, init.dir};
+                EXPECT_EQ(get_path(geo), r.path) << geo;
+                num_daughter += (r.path.size() > *lev + 1);
+            }
+        }
+    }
+    // Make sure we tested nontrivial cases
+    EXPECT_GT(num_daughter, 0);
 }
 
 //---------------------------------------------------------------------------//

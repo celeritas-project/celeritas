@@ -10,6 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
@@ -89,6 +90,7 @@ struct GeantGeoStateData
     StateItems<real_type> next_step;  //!< Negative if no step is cached
     StateItems<real_type> safety_radius;
     StateItems<GeoStatus> status;
+    StateItems<char> exiting;  //!< Whether at the exit of an enclosing volume
 
     // Wrapper for G4TouchableHistory and G4Navigator
     detail::GeantGeoNavCollection<W, M> nav_state;
@@ -103,6 +105,7 @@ struct GeantGeoStateData
                && next_step.size() == this->size()
                && safety_radius.size() == this->size()
                && status.size() == this->size()
+               && exiting.size() == this->size()
                && nav_state.size() == this->size();
     }
 
@@ -123,6 +126,7 @@ struct GeantGeoStateData
         next_step = other.next_step;
         safety_radius = other.safety_radius;
         status = other.status;
+        exiting = other.exiting;
         nav_state = other.nav_state;
         return *this;
     }
@@ -148,6 +152,8 @@ inline void resize(GeantGeoStateData<Ownership::value, MemSpace::host>* data,
     resize(&data->next_step, size);
     resize(&data->safety_radius, size);
     resize(&data->status, size);
+    resize(&data->exiting, size);
+    fill(char{0}, &data->exiting);
     data->nav_state.resize(params, stream_id, size);
 
     CELER_ENSURE(data);

@@ -62,6 +62,9 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     // Obtain the "touchable history" at a point
     VolumeStackResult volume_stack(Real3 const& pos_cm);
 
+    // Check exiting and relocating inside every enclosing volume
+    void check_ancestor_exit(size_type num_tracks);
+
     //// BASE INTERFACE ////
 
     // Default to using test suite name

@@ -9,10 +9,12 @@
 
 #include <algorithm>
 #include <G4LogicalVolume.hh>
+#include <G4NavigationHistory.hh>
 #include <G4Navigator.hh>
 #include <G4TouchableHandle.hh>
 #include <G4TouchableHistory.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4VSolid.hh>
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
@@ -136,6 +138,16 @@ class GeantGeoTrackView
     // Change direction
     inline void set_dir(Real3 const& newdir);
 
+    // Find the distance to exit an enclosing volume, ignoring daughters
+    inline Propagation find_exit_step(VolumeLevelId ancestor,
+                                      real_type max_step);
+
+    // Move to the boundary of the enclosing volume
+    inline void move_to_exit();
+
+    // Move inside the enclosing volume and relocate
+    inline void move_relocate(VolumeLevelId ancestor, real_type dist);
+
     //// IMPLEMENTATION ////
 
     // Get the Geant4 navigation state
@@ -176,6 +188,7 @@ class GeantGeoTrackView
     G4ThreeVector g4pos_;
     G4ThreeVector g4dir_;  // [mm]
     real_type g4safety_;  // [mm]
+    VolumeLevelId exit_level_;
 
     //// HELPER FUNCTIONS ////
 
@@ -190,6 +203,18 @@ class GeantGeoTrackView
 
     // Set the geometry tracking status
     inline void geo_status(GeoStatus);
+
+    // Set whether the track is at the exit of an enclosing volume
+    inline void exiting(bool);
+
+    // Whether the track is at the exit of an enclosing volume
+    inline bool exiting() const;
+
+    // Relocate from the state of an enclosing volume
+    inline void relocate_from(G4TouchableHistory const&);
+
+    // Construct the navigation history of an enclosing volume
+    inline G4NavigationHistory make_ancestor_history(VolumeLevelId) const;
 
     //! Get a pointer to the current volume; null if outside
     inline G4LogicalVolume const* volume() const;
@@ -244,6 +269,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     g4pos_ = native_to_geant<ClhepLength>(pos_);
     g4dir_ = to_g4vector(dir_);
     g4safety_ = -1;
+    this->exiting(false);
 
     navi_.LocateGlobalPointAndUpdateTouchable(g4pos_,
                                               g4dir_,
@@ -286,6 +312,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
             g4dir_,
             dynamic_cast<G4TouchableHistory&>(*touch_handle_()));
         this->geo_status(state_.status[init.parent]);
+        this->exiting(other.exiting());
     }
 
     // Set up the next state and initialize the direction
@@ -448,6 +475,16 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
         return {0, true};
     }
 
+    if (CELER_UNLIKELY(this->exiting()))
+    {
+        // The direction changed at the exit of an enclosing volume, so the
+        // track stays inside it: update the navigator state
+        CELER_ASSERT(this->geo_status() == GeoStatus::boundary_out);
+        this->relocate_from(
+            dynamic_cast<G4TouchableHistory&>(*touch_handle_()));
+        this->exiting(false);
+    }
+
     if (this->geo_status() == GeoStatus::boundary_out)
     {
         if (!this->is_dir_exiting())
@@ -579,6 +616,18 @@ void GeantGeoTrackView::cross_boundary()
         // volume/surface. This is logically equivalent to a reflection.
         return;
     }
+    if (this->exiting())
+    {
+        // The navigator has not been updated since the track was logically
+        // moved to the enclosing volume
+        this->relocate_from(
+            dynamic_cast<G4TouchableHistory&>(*touch_handle_()));
+        this->exiting(false);
+        this->geo_status(GeoStatus::boundary_out);
+
+        CELER_ENSURE(this->is_on_boundary());
+        return;
+    }
     if (!this->is_dir_exiting())
     {
         // Reentering after leaving volume but not moving: we have to search
@@ -689,6 +738,110 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find the distance to exit an enclosing volume, ignoring daughters.
+ *
+ * The distance is zero if the enclosing volume is a replica or is
+ * parameterized, since the logical volume's solid may not describe its extents.
+ */
+Propagation GeantGeoTrackView::find_exit_step(VolumeLevelId ancestor,
+                                              real_type max_step)
+{
+    CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(ancestor <= this->volume_level());
+    CELER_EXPECT(max_step > 0);
+
+    auto const& hist = *this->nav_history();
+    auto const depth = static_cast<G4int>(*ancestor);
+
+    real_type distance{0};
+    if (hist.GetVolumeType(depth) == kNormal)
+    {
+        auto const& trans = hist.GetTransform(depth);
+        auto const& solid
+            = *hist.GetVolume(depth)->GetLogicalVolume()->GetSolid();
+        distance = native_value_from(ClhepLength{solid.DistanceToOut(
+            trans.TransformPoint(g4pos_), trans.TransformAxis(g4dir_))});
+        distance = max(distance, real_type{0});
+    }
+
+    Propagation result;
+    result.boundary = distance <= max_step;
+    result.distance = min(distance, max_step);
+
+    // Save the next step and exit level
+    next_step_ = result.boundary ? result.distance : -1;
+    exit_level_ = ancestor;
+
+    CELER_ENSURE(result.distance >= 0 && result.distance <= max_step);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move to the boundary of the enclosing volume.
+ *
+ * The \em navigator will not be updated until the boundary is crossed.
+ */
+void GeantGeoTrackView::move_to_exit()
+{
+    CELER_EXPECT(this->has_next_step());
+    CELER_EXPECT(next_step_ > 0);
+    CELER_EXPECT(exit_level_);
+
+    axpy(next_step_, dir_, &pos_);
+    axpy(native_to_geant<ClhepLength>(next_step_), g4dir_, &g4pos_);
+    next_step_ = -1;
+    safety_radius_ = 0;
+    g4safety_ = 0;
+
+    // Update the logical state to the enclosing volume
+    auto hist = this->make_ancestor_history(exit_level_);
+    touch_handle_ = new G4TouchableHistory(hist);
+
+    // Calculate the normal, which must be outgoing
+    auto const& trans = hist.GetTopTransform();
+    auto const& solid = *hist.GetTopVolume()->GetLogicalVolume()->GetSolid();
+    G4ThreeVector g4norm = trans.InverseTransformAxis(
+        solid.SurfaceNormal(trans.TransformPoint(g4pos_)));
+    normal_ = to_array(g4norm);
+    if (CELER_UNLIKELY(!this->is_dir_exiting()))
+    {
+        // Edge, corner, or tangent
+        normal_ = dir_;
+    }
+
+    this->exiting(true);
+    this->geo_status(GeoStatus::boundary_inc);
+
+    CELER_ENSURE(this->is_on_boundary());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move inside the enclosing volume and relocate.
+ */
+void GeantGeoTrackView::move_relocate(VolumeLevelId ancestor, real_type dist)
+{
+    CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(ancestor <= this->volume_level());
+    CELER_EXPECT(dist > 0);
+
+    axpy(dist, dir_, &pos_);
+    axpy(native_to_geant<ClhepLength>(dist), g4dir_, &g4pos_);
+    next_step_ = -1;
+    safety_radius_ = -1;
+    g4safety_ = 0;
+
+    this->relocate_from(
+        G4TouchableHistory{this->make_ancestor_history(ancestor)});
+    this->exiting(false);
+    this->geo_status(this->is_outside() || this->volume_level() < ancestor
+                         ? GeoStatus::error
+                         : GeoStatus::interior);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the navigation state.
  */
 G4NavigationHistory const* GeantGeoTrackView::nav_history() const
@@ -727,6 +880,56 @@ bool GeantGeoTrackView::is_dir_exiting() const
 void GeantGeoTrackView::geo_status(GeoStatus gs)
 {
     state_.status[tid_] = gs;
+}
+
+//---------------------------------------------------------------------------//
+//! Set whether the track is at the exit of an enclosing volume
+void GeantGeoTrackView::exiting(bool value)
+{
+    state_.exiting[tid_] = value;
+}
+
+//---------------------------------------------------------------------------//
+//! Whether the track is at the exit of an enclosing volume
+bool GeantGeoTrackView::exiting() const
+{
+    return state_.exiting[tid_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Relocate at the current position from the state of an enclosing volume.
+ *
+ * The navigator and touchable are both updated. If the position is on the
+ * boundary of the enclosing volume then the direction determines whether it's
+ * inside or outside.
+ */
+void GeantGeoTrackView::relocate_from(G4TouchableHistory const& start)
+{
+    G4VPhysicalVolume* pv
+        = navi_.ResetHierarchyAndLocate(g4pos_, g4dir_, start);
+    touch_handle_ = navi_.CreateTouchableHistory();
+    if (!pv)
+    {
+        // Left the world
+        touch_handle_()->UpdateYourself(nullptr, this->nav_history());
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct the navigation history of an enclosing volume.
+ */
+G4NavigationHistory GeantGeoTrackView::make_ancestor_history(
+    VolumeLevelId level) const
+{
+    CELER_EXPECT(level <= this->volume_level());
+    G4NavigationHistory result{*this->nav_history()};
+    result.BackLevel(
+        static_cast<G4int>(result.GetDepth()) - static_cast<G4int>(*level));
+    CELER_ENSURE(static_cast<VolumeLevelId::size_type>(result.GetDepth())
+                 == *level);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

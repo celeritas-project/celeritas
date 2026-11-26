@@ -177,6 +177,17 @@ class VecgeomTrackView
     // Change direction
     inline CELER_FUNCTION void set_dir(Real3 const& newdir);
 
+    // Find the distance to exit an enclosing volume, ignoring daughters
+    inline CELER_FUNCTION Propagation find_exit_step(VolumeLevelId ancestor,
+                                                     real_type max_step);
+
+    // Move to the boundary of the enclosing volume
+    inline CELER_FUNCTION void move_to_exit();
+
+    // Move inside the enclosing volume and relocate
+    inline CELER_FUNCTION void move_relocate(VolumeLevelId ancestor,
+                                             real_type dist);
+
   private:
     //// TYPES ////
 
@@ -212,6 +223,12 @@ class VecgeomTrackView
 
     // Whether the next distance-to-boundary is to a surface
     inline CELER_FUNCTION bool is_next_boundary() const;
+
+    // Calculate the normal when moving from the current to the next state
+    inline CELER_FUNCTION void update_normal();
+
+    // Get the navigation state of an enclosing volume
+    inline CELER_FUNCTION VgNavState make_ancestor_state(VolumeLevelId) const;
 
     // Get a reference to the current volume instance
     inline CELER_FUNCTION VgPlacedVol const& physical_volume() const;
@@ -554,20 +571,7 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     if (CELERITAS_VECGEOM_VERSION >= 0x020000 && !is_push_)
     {
         // Don't recalculate normal if bumping on a reentrant surface
-        VgReal3 normal;
-        bool success = Navigator::ComputeNextNormal(
-            to_vgvector(pos_), vgstate_, vgnext_, normal);
-
-        if (CELER_UNLIKELY(!success))
-        {
-#if !CELER_DEVICE_COMPILE
-            auto msg = CELER_LOG_LOCAL(error);
-            msg << "Failed to get surface normal at " << repr(pos_) << ' '
-                << lengthunits::native_label;
-#endif
-            failed_ = true;
-        }
-        normal_ = to_array(normal);
+        this->update_normal();
     }
 
     next_step_ = 0;
@@ -653,6 +657,81 @@ CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Find the distance to exit an enclosing volume, ignoring daughters.
+ *
+ * If the result is boundary-limited, the cached "next" state is the \em
+ * ancestor, to be exited by \c move_to_exit .
+ */
+CELER_FUNCTION Propagation VecgeomTrackView::find_exit_step(
+    VolumeLevelId ancestor, real_type max_step)
+{
+    CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(ancestor <= this->volume_level());
+    CELER_EXPECT(max_step > 0);
+
+    vgnext_ = this->make_ancestor_state(ancestor);
+    next_step_ = Navigator::ComputeExitStep(
+        to_vgvector(pos_), to_vgvector(dir_), vgnext_);
+    is_push_ = false;
+
+    Propagation result;
+    result.boundary = next_step_ <= max_step;
+    if (!result.boundary)
+    {
+        next_step_ = max_step;
+    }
+    vgnext_.SetBoundaryState(result.boundary);
+    result.distance = next_step_;
+
+    CELER_ENSURE(result.distance >= 0 && result.distance <= max_step);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move to the boundary of the enclosing volume.
+ *
+ * This must immediately follow a boundary-limited \c find_exit_step .
+ */
+CELER_FUNCTION void VecgeomTrackView::move_to_exit()
+{
+    CELER_EXPECT(this->has_next_step());
+    CELER_EXPECT(this->is_next_boundary());
+
+    axpy(next_step_, dir_, &pos_);
+    vgstate_ = vgnext_;
+    vgstate_.SetBoundaryState(true);
+    Navigator::ExitToParent(
+        to_vgvector(pos_), to_vgvector(dir_), vgstate_, vgnext_);
+
+    this->update_normal();
+    next_step_ = 0;
+
+    CELER_ENSURE(this->is_on_boundary());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move inside the enclosing volume and relocate.
+ */
+CELER_FUNCTION void VecgeomTrackView::move_relocate(VolumeLevelId ancestor,
+                                                    real_type dist)
+{
+    CELER_EXPECT(!this->is_outside());
+    CELER_EXPECT(ancestor <= this->volume_level());
+    CELER_EXPECT(dist > 0);
+
+    axpy(dist, dir_, &pos_);
+    vgstate_ = this->make_ancestor_state(ancestor);
+    Navigator::LocatePointBelow(to_vgvector(pos_), vgstate_);
+    next_step_ = 0;
+
+    CELER_ENSURE(!this->is_outside());
+    CELER_ENSURE(!this->is_on_boundary());
+}
+
+//---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -671,6 +750,46 @@ CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
 {
     CELER_EXPECT(this->has_next_step() || this->is_on_boundary());
     return vgnext_.IsOnBoundary();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the normal when moving from the current to the next state.
+ */
+CELER_FUNCTION void VecgeomTrackView::update_normal()
+{
+    VgReal3 normal;
+    bool success = Navigator::ComputeNextNormal(
+        to_vgvector(pos_), vgstate_, vgnext_, normal);
+
+    if (CELER_UNLIKELY(!success))
+    {
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(error);
+        msg << "Failed to get surface normal at " << repr(pos_) << ' '
+            << lengthunits::native_label;
+#endif
+        failed_ = true;
+    }
+    normal_ = to_array(normal);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the navigation state of an enclosing volume.
+ */
+CELER_FUNCTION VgNavState VecgeomTrackView::make_ancestor_state(
+    VolumeLevelId level) const
+{
+    CELER_EXPECT(level <= this->volume_level());
+
+    VgNavState result{vgstate_};
+    while (id_cast<VolumeLevelId>(result.GetLevel()) > level)
+    {
+        result.Pop();
+    }
+    CELER_ENSURE(result.Top());
+    return result;
 }
 
 //---------------------------------------------------------------------------//
