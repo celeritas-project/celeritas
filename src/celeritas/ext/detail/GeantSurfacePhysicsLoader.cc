@@ -385,7 +385,13 @@ void GeantSurfacePhysicsLoader::insert_unified(
 
 //---------------------------------------------------------------------------//
 /*!
- * Insert both grid and analytic reflectivity modes into \c models_ .
+ * Insert grid or analytic reflectivity into \c models_ .
+ *
+ * As in Geant4's \c G4OpBoundaryProcess, a missing \c REFLECTIVITY property
+ * means unit reflectivity: every photon proceeds to the surface interaction,
+ * so \c TRANSMITTANCE and \c EFFICIENCY have no effect. This is equivalent
+ * to the analytic (Fresnel) reflectivity model. A missing \c TRANSMITTANCE
+ * defaults to zero.
  */
 void GeantSurfacePhysicsLoader::insert_reflectivity(
     GeantSurfacePhysicsHelper const& helper)
@@ -393,34 +399,39 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
     auto& reflectivity = models_.reflectivity;
     inp::GridReflection refl_grid;
 
-    bool has_refl = helper.get_property(refl_grid.reflectivity, "REFLECTIVITY");
-    bool has_trans
-        = helper.get_property(refl_grid.transmittance, "TRANSMITTANCE");
-    bool has_eff = helper.get_property(refl_grid.efficiency, "EFFICIENCY");
-
-    if (has_refl || has_trans || has_eff)
+    if (helper.get_property(refl_grid.reflectivity, "REFLECTIVITY"))
     {
-        // Create default grids for reflectivity / transmittance
-        if (has_refl && !has_trans)
+        if (!helper.get_property(refl_grid.transmittance, "TRANSMITTANCE"))
         {
             refl_grid.transmittance = inp::Grid::from_constant(0);
         }
-        else if (has_trans && !has_refl)
-        {
-            refl_grid.reflectivity = inp::Grid::from_constant(0);
-        }
-        else if (!has_trans && !has_refl)
-        {
-            refl_grid.reflectivity = inp::Grid::from_constant(0);
-            refl_grid.transmittance = inp::Grid::from_constant(0);
-        }
-
+        helper.get_property(refl_grid.efficiency, "EFFICIENCY");
         this->emplace(reflectivity.grid, std::move(refl_grid));
+        return;
     }
-    else
+
+    inp::Grid temp;
+    for (char const* name : {"TRANSMITTANCE", "EFFICIENCY"})
     {
-        this->emplace(reflectivity.fresnel, inp::FresnelReflection{});
+        if (helper.get_property(temp, name))
+        {
+            CELER_LOG(warning)
+                << "Ignoring optical surface property '" << name << "' for "
+                << helper << ": it has no effect without REFLECTIVITY";
+        }
     }
+    for (char const* name : {"REALRINDEX", "IMAGINARYRINDEX"})
+    {
+        if (helper.get_property(temp, name))
+        {
+            CELER_LOG(warning)
+                << "Ignoring unsupported optical surface property '" << name
+                << "' for " << helper
+                << ": reflectivity from a complex refractive index is not "
+                   "implemented";
+        }
+    }
+    this->emplace(reflectivity.fresnel, inp::FresnelReflection{});
 }
 
 //---------------------------------------------------------------------------//

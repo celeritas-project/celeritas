@@ -12,6 +12,8 @@
     <matrix name="SSC" coldim="2" values="1e-06 0.1 1e-05 0.3"/>
     <matrix name="SLC" coldim="2" values="1e-06 0.2 1e-05 0.2"/>
     <matrix name="BSC" coldim="2" values="1e-06 0.3 1e-05 0.1"/>
+    <matrix name="EFF" coldim="2" values="1e-06 0.5 1e-05 0.5"/>
+    <matrix name="TRANS" coldim="2" values="1e-06 0.4 1e-05 0.4"/>
   </define>
 
 
@@ -80,6 +82,14 @@
       <property name="BACKSCATTERCONSTANT" ref="BSC"/>
     </opticalsurface>
 
+    <!-- Without REFLECTIVITY, Geant4 uses unit reflectivity -->
+    <opticalsurface name="unified_dd_polished_efficiency" model="unified" finish="polished" type="dielectric_dielectric" value="1.0">
+      <property name="EFFICIENCY" ref="EFF"/>
+    </opticalsurface>
+    <opticalsurface name="unified_dm_polished_transmittance" model="unified" finish="polished" type="dielectric_metal" value="1.0">
+      <property name="TRANSMITTANCE" ref="TRANS"/>
+    </opticalsurface>
+
   </solids>
 
   <structure>
@@ -140,6 +150,14 @@
         <volumeref ref="box"/>
         <position name="pos" unit="cm" x="6" y="4" z="0"/>
       </physvol>
+      <physvol name="box_pv_13">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="0" y="6" z="0"/>
+      </physvol>
+      <physvol name="box_pv_14">
+        <volumeref ref="box"/>
+        <position name="pos" unit="cm" x="2" y="6" z="0"/>
+      </physvol>
     </volume>
 
     <volume name="world">
@@ -197,6 +215,14 @@
     </bordersurface>
     <bordersurface name="surface_12" surfaceproperty="unified_dm_ground">
       <physvolref ref="box_pv_12"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_13" surfaceproperty="unified_dd_polished_efficiency">
+      <physvolref ref="box_pv_13"/>
+      <physvolref ref="container_pv"/>
+    </bordersurface>
+    <bordersurface name="surface_14" surfaceproperty="unified_dm_polished_transmittance">
+      <physvolref ref="box_pv_14"/>
       <physvolref ref="container_pv"/>
     </bordersurface>
 

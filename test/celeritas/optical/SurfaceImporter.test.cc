@@ -323,6 +323,23 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
     }
     {
         ++surf;
+        // UNIFIED dielectric-dielectric polished with only efficiency:
+        // reflectivity defaults to unity as in Geant4
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(fresnel, FresnelReflection{});
+        INTERACTION(dielectric, from_dielectric(from_spike()));
+    }
+    {
+        ++surf;
+        // UNIFIED dielectric-metal polished with only transmittance
+        MATERIALS({});
+        ROUGHNESS(polished, NoRoughness{});
+        REFLECTIVITY(fresnel, FresnelReflection{});
+        INTERACTION(dielectric, from_metal(from_spike()));
+    }
+    {
+        ++surf;
         // Default Surface
         MATERIALS({});
         ROUGHNESS(polished, NoRoughness{});
