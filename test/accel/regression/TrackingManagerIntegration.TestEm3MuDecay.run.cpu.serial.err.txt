@@ -176,7 +176,7 @@ debug@IntegrationTestBase.cc: Environment variables after setup: {
 debug@PGPrimaryGeneratorAction.cc: Generated 2 primaries for event 0
 debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 status@LocalTransporter.cc: Executing the first Celeritas stepping loop
-debug@LocalTransporter.cc: Reconstituted 57 hits for event 0
+debug@LocalTransporter.cc: Reconstituted 61 hits for event 0
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@PGPrimaryGeneratorAction.cc: Generated 2 primaries for event 1
 debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
@@ -184,7 +184,7 @@ debug@LocalTransporter.cc: Reconstituted 74 hits for event 1
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Destroying local state
-info@LocalTransporter.cc: Finalizing Celeritas after 897 steps from 2 flushes with 4 offloaded tracks over 2 events, generating 131 hits
+info@LocalTransporter.cc: Finalizing Celeritas after 947 steps from 2 flushes with 4 offloaded tracks over 2 events, generating 135 hits
 debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 debug@PersistentSP.hh: Clearing persistent run manager 'testem3'

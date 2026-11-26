@@ -213,13 +213,13 @@ debug: EventAction::BeginOfEventAction
 status: Executing the first Celeritas stepping loop
 debug: Reconstituted 26 hits for event 0
 debug: Reconstituted 44 hits for event 0
-debug: Reconstituted 88 hits for event 0
-debug: Reconstituted 126 hits for event 0
-debug: Reconstituted 45 hits for event 0
+debug: Reconstituted 40 hits for event 0
+debug: Reconstituted 52 hits for event 0
+debug: Reconstituted 34 hits for event 0
 debug: EventAction::EndOfEventAction
 debug: RunAction::EndOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
-info: Finalizing Celeritas after 5102 steps from 8 flushes with 128 offloaded tracks over 1 events, generating 329 hits
+info: Finalizing Celeritas after 4803 steps from 8 flushes with 128 offloaded tracks over 1 events, generating 196 hits
 G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
 G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 debug: RunAction::EndOfRunAction
@@ -288,41 +288,41 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 G4WT0 > [1/1] status@LocalTransporter.cc: Executing the first Celeritas stepping loop
 G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 26 hits for event 0
 G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 44 hits for event 0
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 88 hits for event 0
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 126 hits for event 0
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 45 hits for event 0
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 40 hits for event 0
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 52 hits for event 0
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 34 hits for event 0
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 128 primaries for event 1
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 70 hits for event 1
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 89 hits for event 1
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 6 hits for event 1
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 11 hits for event 1
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 49 hits for event 1
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 34 hits for event 1
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 58 hits for event 1
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 53 hits for event 1
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 44 hits for event 1
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 46 hits for event 1
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 28 hits for event 1
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 128 primaries for event 2
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 97 hits for event 2
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 55 hits for event 2
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 9 hits for event 2
 G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 53 hits for event 2
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 80 hits for event 2
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 51 hits for event 2
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 73 hits for event 2
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 88 hits for event 2
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 44 hits for event 2
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 54 hits for event 2
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 69 hits for event 2
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 4 hits for event 2
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 128 primaries for event 3
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 10 hits for event 3
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 113 hits for event 3
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 119 hits for event 3
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 2 hits for event 3
-G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 37 hits for event 3
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 20 hits for event 3
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 61 hits for event 3
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 24 hits for event 3
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 44 hits for event 3
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 18 hits for event 3
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 65 hits for event 3
+G4WT0 > [1/1] debug@LocalTransporter.cc: Reconstituted 4 hits for event 3
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
-G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 19668 steps from 32 flushes with 512 offloaded tracks over 4 events, generating 1370 hits
+G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 18998 steps from 32 flushes with 512 offloaded tracks over 4 events, generating 970 hits
 G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
 G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction

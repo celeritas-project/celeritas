@@ -217,16 +217,14 @@ info: Growing track initializer buffer from 32 to 64
 info: Growing track initializer buffer from 64 to 128
 debug: Reconstituted 10 hits for event 0
 debug: Reconstituted 83 hits for event 0
-debug: Reconstituted 31 hits for event 0
-debug: Reconstituted 66 hits for event 0
-debug: Reconstituted 3 hits for event 0
-debug: Reconstituted 57 hits for event 0
-debug: Reconstituted 52 hits for event 0
-debug: Reconstituted 1 hits for event 0
+debug: Reconstituted 6 hits for event 0
+debug: Reconstituted 25 hits for event 0
+debug: Reconstituted 91 hits for event 0
+info: Growing track initializer buffer from 128 to 256
 debug: EventAction::EndOfEventAction
 debug: RunAction::EndOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
-info: Finalizing Celeritas after 4872 steps from 16 flushes with 128 offloaded tracks over 1 events, generating 303 hits
+info: Finalizing Celeritas after 4745 steps from 16 flushes with 128 offloaded tracks over 1 events, generating 215 hits
 G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
 G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 debug: RunAction::EndOfRunAction

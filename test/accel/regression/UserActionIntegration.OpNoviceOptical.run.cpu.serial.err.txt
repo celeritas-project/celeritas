@@ -172,7 +172,7 @@ debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 status@Transporter.cc: Transporting on host
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Destroying local state
-info@LocalTransporter.cc: Finalizing Celeritas after 1169 steps and 1697 optical steps (over 5 step iterations) from 2 flushes with 20 offloaded tracks over 2 events, generating 0 hits
+info@LocalTransporter.cc: Finalizing Celeritas after 1168 steps and 1659 optical steps (over 5 step iterations) from 2 flushes with 20 offloaded tracks over 2 events, generating 0 hits
 debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 status@IntegrationSingleton.cc: Finalizing Celeritas

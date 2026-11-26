@@ -288,9 +288,9 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 G4WT0 > [1/1] status@Transporter.cc: Transporting on host
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
-G4WT0 > [1/1] info@TrackingManagerIntegration.test.cc: Ran 8759 over 27 step iterations from 10 flushes
+G4WT0 > [1/1] info@TrackingManagerIntegration.test.cc: Ran 8725 over 27 step iterations from 10 flushes
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
-G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 5875 steps and 8759 optical steps (over 27 step iterations) from 10 flushes with 100 offloaded tracks over 10 events, generating 0 hits
+G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 5874 steps and 8725 optical steps (over 27 step iterations) from 10 flushes with 100 offloaded tracks over 10 events, generating 0 hits
 G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
 G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
