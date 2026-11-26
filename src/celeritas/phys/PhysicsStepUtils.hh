@@ -88,7 +88,7 @@ inline CELER_FUNCTION ParticleProcessId find_ppid(
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate physics step limits based on cross sections and range limiters.
+ * Calculate and save the cross sections of all processes.
  *
  * Processes with integral cross section rejection calculate an estimated
  * "maximum" over the step: see PhysicsTrackView.calc_max_xs .
@@ -97,20 +97,16 @@ inline CELER_FUNCTION ParticleProcessId find_ppid(
  * particle's mean decay length as its "cross section." It is zero for a
  * stopped particle, which instead decays through the at-rest process.
  *
- * \todo For neutral particles that haven't changed material since the last
- * step, we can reuse the previously calculated cross section (but may not want
- * to if it's expensive).
+ * \return Total macroscopic cross section [1/len]
  */
-inline CELER_FUNCTION StepLimit calc_physics_step_limit(
+inline CELER_FUNCTION real_type calc_macro_xs(
     MaterialTrackView const& material,
     ParticleTrackView const& particle,
-    PhysicsTrackView& physics,
+    PhysicsTrackView const& physics,
     PhysicsStepView& pstep)
 {
-    CELER_EXPECT(physics.has_interaction_mfp());
-
     // Loop over all processes that apply to this track (based on particle
-    // type) and calculate cross section and particle range.
+    // type) and calculate the cross section
     real_type total_macro_xs = 0;
     for (auto ppid : range(ParticleProcessId{physics.num_particle_processes()}))
     {
@@ -142,6 +138,27 @@ inline CELER_FUNCTION StepLimit calc_physics_step_limit(
         pstep.per_process_xs(ppid) = process_xs;
     }
     pstep.macro_xs(total_macro_xs);
+    return total_macro_xs;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate physics step limits based on cross sections and range limiters.
+ *
+ * \todo For neutral particles that haven't changed material since the last
+ * step, we can reuse the previously calculated cross section (but may not want
+ * to if it's expensive).
+ */
+inline CELER_FUNCTION StepLimit calc_physics_step_limit(
+    MaterialTrackView const& material,
+    ParticleTrackView const& particle,
+    PhysicsTrackView& physics,
+    PhysicsStepView& pstep)
+{
+    CELER_EXPECT(physics.has_interaction_mfp());
+
+    real_type const total_macro_xs
+        = calc_macro_xs(material, particle, physics, pstep);
     CELER_ASSERT(total_macro_xs > 0 || !particle.is_stopped()
                  || physics.at_rest_process());
 
