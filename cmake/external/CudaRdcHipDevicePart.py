@@ -7,6 +7,8 @@ point to (kernel handles, host shadows of device variables) become undefined ref
 the output carries the device code and its registration without any host code: linked into a shared library with
 `-fgpu-rdc --hip-link`, it registers the kernels of host code living in another shared library.
 
+This is a workaround for the missing nvcc-like separate device link in clang/ROCm; replace it once one exists.
+
 Usage:
   CudaRdcHipDevicePart.py <object.o> <output.s>
       writes the device part of one object as assembly (no file if the object has no device code)
