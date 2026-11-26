@@ -42,6 +42,8 @@ struct GeoTraits<OrangeParams>
     //! ORANGE implementation uses surfaces
     static constexpr bool has_impl_surface = true;
     static constexpr bool has_impl_volume_instance = false;
+    //! Exiting an enclosing volume is not yet implemented
+    static constexpr bool has_ancestor_exit = false;
 
     //! Descriptive name for the geometry
     static constexpr char const name[] = "ORANGE";

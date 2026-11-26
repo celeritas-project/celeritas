@@ -44,6 +44,8 @@ struct GeoTraits<GeantGeoParams>
 
     //! Geant4 uses real volume instances
     static constexpr bool has_impl_volume_instance = false;
+    //! Tracks can exit an enclosing volume while ignoring its daughters
+    static constexpr bool has_ancestor_exit = true;
 
     //! Descriptive name for the geometry
     static constexpr char const name[] = "Geant4";

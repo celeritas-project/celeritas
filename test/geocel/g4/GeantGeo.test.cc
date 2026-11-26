@@ -241,6 +241,11 @@ TEST_F(CmsEeBackDeeTest, model)
     EXPECT_REF_EQ(ref, result);
 }
 
+TEST_F(CmsEeBackDeeTest, ancestor_exit)
+{
+    this->check_ancestor_exit(40);
+}
+
 TEST_F(CmsEeBackDeeTest, trace)
 {
     this->impl().test_trace();
@@ -381,6 +386,11 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
     this->impl().test_small_steps();
 }
 
+TEST_F(FourLevelsTest, ancestor_exit)
+{
+    this->check_ancestor_exit(100);
+}
+
 TEST_F(FourLevelsTest, trace)
 {
     this->impl().test_trace();
@@ -470,6 +480,11 @@ TEST_F(MultiLevelTest, sd_creation)
     auto* sd2 = lv2->GetSensitiveDetector();
     ASSERT_TRUE(sd2);
     EXPECT_EQ(sd, sd2);
+}
+
+TEST_F(MultiLevelTest, ancestor_exit)
+{
+    this->check_ancestor_exit(100);
 }
 
 TEST_F(MultiLevelTest, trace)
@@ -579,6 +594,11 @@ TEST_F(PolyhedraTest, volumes)
         stream_to_string(*volumes));
 }
 
+TEST_F(PolyhedraTest, ancestor_exit)
+{
+    this->check_ancestor_exit(60);
+}
+
 TEST_F(PolyhedraTest, trace)
 {
     TestImpl(this).test_trace();
@@ -615,6 +635,25 @@ TEST_F(ReplicaTest, volumes)
 "world": 16
 })json",
         stream_to_string(*volumes));
+}
+
+TEST_F(ReplicaTest, ancestor_exit)
+{
+    // Replicas cannot be exited directly: distance is always zero
+    auto geo = this->make_checked_track_view();
+    geo = this->make_initializer({-400, 0.1, 650}, {0, 0, -1});
+    auto const* nav_hist
+        = this->make_geo_track_view().track_view().nav_history();
+    size_type num_replica{0};
+    for (auto lev : range(geo.volume_level() + 1))
+    {
+        bool is_normal = nav_hist->GetVolumeType(*lev) == kNormal;
+        auto next = geo.find_exit_step(lev, from_cm(10000));
+        EXPECT_EQ(is_normal, next.distance > 0) << lev.get();
+        EXPECT_TRUE(next.boundary);
+        num_replica += !is_normal;
+    }
+    EXPECT_GT(num_replica, 0);
 }
 
 TEST_F(ReplicaTest, trace)
@@ -700,6 +739,11 @@ TEST_F(SimpleCmsTest, model)
     ref.detector.labels = {"si_tracker_sd", "em_calorimeter_sd"};
     ref.detector.volumes = {{1}, {2}};
     EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(SimpleCmsTest, ancestor_exit)
+{
+    this->check_ancestor_exit(60);
 }
 
 TEST_F(SimpleCmsTest, trace)

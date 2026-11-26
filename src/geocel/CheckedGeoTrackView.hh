@@ -190,6 +190,16 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     // Cross from one side of the current surface to the other
     void cross_boundary() final;
 
+    // Find the distance to exit an enclosing volume
+    Propagation find_exit_step(VolumeLevelId ancestor,
+                               real_type max_step) final;
+
+    // Move to the boundary of the enclosing volume
+    void move_to_exit() final;
+
+    // Move inside the enclosing volume and relocate
+    void move_relocate(VolumeLevelId ancestor, real_type dist) final;
+
     friend std::ostream& operator<<(std::ostream&, CheckedGeoTrackView const&);
 
   private:

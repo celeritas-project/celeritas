@@ -47,6 +47,8 @@ namespace
 {
 constexpr auto vecgeom_version
     = celeritas::Version::from_hex_xxyyzz(CELERITAS_VECGEOM_VERSION);
+constexpr bool has_ancestor_exit
+    = celeritas::GeoTraits<celeritas::VecgeomParams>::has_ancestor_exit;
 
 }  // namespace
 
@@ -196,6 +198,15 @@ TEST_F(CmsEeBackDeeTest, accessors)
     this->impl().test_accessors();
 }
 
+TEST_F(CmsEeBackDeeTest, ancestor_exit)
+{
+    if (!has_ancestor_exit)
+    {
+        GTEST_SKIP() << "Not implemented for VecGeom " << vecgeom_version;
+    }
+    this->check_ancestor_exit(40);
+}
+
 TEST_F(CmsEeBackDeeTest, trace)
 {
     this->impl().test_trace();
@@ -311,6 +322,15 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
     this->impl().test_small_steps();
 }
 
+TEST_F(FourLevelsTest, ancestor_exit)
+{
+    if (!has_ancestor_exit)
+    {
+        GTEST_SKIP() << "Not implemented for VecGeom " << vecgeom_version;
+    }
+    this->check_ancestor_exit(100);
+}
+
 TEST_F(FourLevelsTest, trace)
 {
     this->impl().test_trace();
@@ -378,6 +398,15 @@ TEST_F(LarSphereTest, volume_stack)
 using MultiLevelTest
     = GenericGeoParameterizedTest<VecgeomTestBase, MultiLevelGeoTest>;
 
+TEST_F(MultiLevelTest, ancestor_exit)
+{
+    if (!has_ancestor_exit)
+    {
+        GTEST_SKIP() << "Not implemented for VecGeom " << vecgeom_version;
+    }
+    this->check_ancestor_exit(100);
+}
+
 TEST_F(MultiLevelTest, trace)
 {
     TestImpl(this).test_trace();
@@ -404,6 +433,15 @@ TEST_F(MultiLevelTest, volume_stack)
 using PolyhedraTest
     = GenericGeoParameterizedTest<GeantVecgeomTest, PolyhedraGeoTest>;
 
+TEST_F(PolyhedraTest, ancestor_exit)
+{
+    if (!has_ancestor_exit)
+    {
+        GTEST_SKIP() << "Not implemented for VecGeom " << vecgeom_version;
+    }
+    this->check_ancestor_exit(60);
+}
+
 TEST_F(PolyhedraTest, trace)
 {
     TestImpl(this).test_trace();
@@ -424,6 +462,15 @@ class ReplicaTest
         return result;
     }
 };
+
+TEST_F(ReplicaTest, ancestor_exit)
+{
+    if (!has_ancestor_exit)
+    {
+        GTEST_SKIP() << "Not implemented for VecGeom " << vecgeom_version;
+    }
+    this->check_ancestor_exit(100);
+}
 
 TEST_F(ReplicaTest, trace)
 {
@@ -524,6 +571,15 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_CUDA(device))
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);
     EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
+}
+
+TEST_F(SimpleCmsTest, ancestor_exit)
+{
+    if (!has_ancestor_exit)
+    {
+        GTEST_SKIP() << "Not implemented for VecGeom " << vecgeom_version;
+    }
+    this->check_ancestor_exit(60);
 }
 
 TEST_F(SimpleCmsTest, trace)
