@@ -58,6 +58,10 @@ TEST_F(PlaneTest, tracking)
     // Make a rotated plane in the xy axis
     Plane p{{inv_sqrt_two, inv_sqrt_two, 0.0}, 2.0_r * constants::sqrt_two};
 
+    auto gradient = p.calc_gradient({});
+    EXPECT_EQ(1, decltype(gradient)::unit_type::value());
+    EXPECT_VEC_SOFT_EQ(p.normal(), native_value_from(gradient));
+
     // Get a point that should have positive sense
     Real3 x{{5.41421356, 1.41421356, 0.0}};
     EXPECT_EQ(SignedSense::outside, p.calc_sense(x));

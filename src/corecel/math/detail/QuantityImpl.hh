@@ -16,9 +16,31 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 template<class UnitT, class ValueT>
 class Quantity;
+class Constant;
 
 namespace detail
 {
+//---------------------------------------------------------------------------//
+//! True for arithmetic values or types containing arithmetic values.
+template<class T>
+inline constexpr bool is_arithmetic_or_constant_v
+    = std::is_arithmetic_v<T> || std::is_same_v<T, ::celeritas::Constant>;
+
+template<class T, class = void>
+struct IsArithmeticOrArray : std::bool_constant<is_arithmetic_or_constant_v<T>>
+{
+};
+
+template<class T>
+struct IsArithmeticOrArray<T, std::void_t<typename T::value_type>>
+    : std::bool_constant<is_arithmetic_or_constant_v<T>
+                         || is_arithmetic_or_constant_v<typename T::value_type>>
+{
+};
+
+template<class T>
+inline constexpr bool is_arithmetic_or_array_v = IsArithmeticOrArray<T>::value;
+
 //---------------------------------------------------------------------------//
 //! Helper tag for special unitless values
 enum class QConstant

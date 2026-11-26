@@ -12,11 +12,22 @@
 ARG BASE_IMAGE
 
 #-----------------------------------------------------------------------------#
-# Development image: Spack and the installed environment
+# Metadata, environment, and system packages shared by both images. Changes to
+# this stage rebuild the Spack environment: add CI tools to the CI stage.
 #-----------------------------------------------------------------------------#
-FROM ${BASE_IMAGE} AS dev
+FROM ${BASE_IMAGE} AS base
 
-LABEL description="Celeritas GPU prerequisites built with Spack"
+# See https://github.com/opencontainers/image-spec/blob/main/annotations.md
+# The build script adds the labels that change with each build (created,
+# revision, version) so that they do not invalidate cached layers.
+ARG BASE_IMAGE
+LABEL org.opencontainers.image.authors="Celeritas contributors" \
+      maintainer="Celeritas contributors" \
+      org.opencontainers.image.vendor="Celeritas Project" \
+      org.opencontainers.image.url="https://celeritas-project.github.io/celeritas/" \
+      org.opencontainers.image.source="https://github.com/celeritas-project/celeritas" \
+      org.opencontainers.image.documentation="https://github.com/celeritas-project/celeritas/blob/develop/scripts/docker/README.md" \
+      org.opencontainers.image.base.name="${BASE_IMAGE}"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8
@@ -24,14 +35,30 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Extra GPU toolkit packages (e.g. ROCm libraries used by Celeritas)
 ARG GPU_APT_PACKAGES=""
 
-# System externals must match the versions in scripts/spack/ext-ubuntu24.yaml
+# Compilers and Spack externals needed to build both the environment and
+# Celeritas
 RUN apt-get -qq update \
  && apt-get -qq install -y --no-install-recommends \
-    autoconf bash build-essential bzip2 ca-certificates curl file flex \
-    gfortran git gzip libfl-dev m4 make patch perl python3 tar unzip \
-    xz-utils zstd ${GPU_APT_PACKAGES} \
+    bash build-essential ca-certificates curl file git perl python3 zstd \
+    ${GPU_APT_PACKAGES} \
  && rm -rf /var/lib/apt/lists/* \
  && git config --system --add safe.directory '*'
+
+#-----------------------------------------------------------------------------#
+# Development image: Spack and the installed environment
+#-----------------------------------------------------------------------------#
+FROM base AS dev
+
+LABEL org.opencontainers.image.title="Celeritas GPU development image" \
+      org.opencontainers.image.description="Celeritas GPU prerequisites built with Spack"
+
+# Build-only packages for Spack. System externals, including those installed
+# in the base stage, must match the versions in scripts/spack/ext-ubuntu24.yaml
+RUN apt-get -qq update \
+ && apt-get -qq install -y --no-install-recommends \
+    autoconf bzip2 flex gfortran gzip libfl-dev m4 make patch tar unzip \
+    xz-utils \
+ && rm -rf /var/lib/apt/lists/*
 
 ARG SPACK_REPO
 ARG SPACK_REF
@@ -102,25 +129,18 @@ RUN spack -e /opt/spack-environment gc -y \
  && find /opt/software /opt/view/ -name '.spack*' -prune -exec rm -rf {} +
 
 #-----------------------------------------------------------------------------#
-# CI image: base toolkit image plus the installed Spack environment
+# CI image: base stage plus the installed Spack environment
 #-----------------------------------------------------------------------------#
-FROM ${BASE_IMAGE} AS ci
+FROM base AS ci
 
-LABEL description="Celeritas GPU CI build"
+LABEL org.opencontainers.image.title="Celeritas GPU CI image" \
+      org.opencontainers.image.description="GPU toolkit and Celeritas prerequisites for CI builds"
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    LANG=C.UTF-8
-
-ARG GPU_APT_PACKAGES=""
-
-# Spack externals (compilers, perl, git) and tools for the CI actions
-# (gnupg is used by the codecov uploader)
+# Tools for the CI actions (gnupg is used by the codecov uploader)
 RUN apt-get -qq update \
  && apt-get -qq install -y --no-install-recommends \
-    bash build-essential ca-certificates curl file git gnupg \
-    libc6-dbg perl python3 python3-pip ssh vim zstd ${GPU_APT_PACKAGES} \
- && rm -rf /var/lib/apt/lists/* \
- && git config --system --add safe.directory '*'
+    gnupg libc6-dbg python3-pip ssh vim \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=export /opt/spack-environment /opt/spack-environment
 COPY --from=export /opt/software /opt/software

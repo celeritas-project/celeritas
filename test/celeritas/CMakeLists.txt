@@ -248,6 +248,9 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(ext/GeantTrackReconstruction.test.cc
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
+  celeritas_add_test(ext/HadronicInteractor.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    ENVIRONMENT "${CELER_G4ENV}")
 
   celeritas_add_test(ext/detail/LevelTouchableUpdater.test.cc
     LINK_LIBRARIES testcel_celeritas_g4)
@@ -487,6 +490,7 @@ celeritas_add_test(optical/OpticalCollector.test.cc
   GPU ${_needs_geant4} ${_needs_surf_norm})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
 celeritas_add_test(optical/Rayleigh.test.cc)
+celeritas_add_test(optical/ResponseTally.test.cc)
 celeritas_add_test(optical/RayleighMfpCalculator.test.cc)
 celeritas_add_test(optical/RoughnessCalculator.test.cc)
 celeritas_add_test(optical/Scintillation.test.cc)
@@ -527,6 +531,7 @@ celeritas_add_device_test(phys/Particle
   LINK_LIBRARIES Celeritas::ExtThrust)
 celeritas_add_device_test(phys/Physics
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
+celeritas_add_test(phys/InteractionApplier.test.cc)
 celeritas_add_test(phys/InteractionUtils.test.cc)
 celeritas_add_test(phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(phys/PrimaryGenerator.test.cc

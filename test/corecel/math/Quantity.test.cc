@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/StreamUtils.hh"
+#include "corecel/math/ArrayOperators.hh"  // IWYU pragma: keep
 #include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/QuantityIO.json.hh"  // IWYU pragma: keep
 #include "corecel/math/Turn.hh"
@@ -34,6 +35,12 @@ using Revolution = Quantity<TwoPi, double>;
 struct DozenUnit
 {
     static constexpr int value() { return 12; }
+    static constexpr char const* label() { return "dozen"; }
+};
+
+struct DoubleDozenUnit
+{
+    static constexpr double value() { return 12; }
     static constexpr char const* label() { return "dozen"; }
 };
 
@@ -118,6 +125,36 @@ TEST(QuantityTest, mixed_precision)
         DozenFlt demoted{4};
         demoted = DozenDbl{6.5};
         EXPECT_FLOAT_EQ(6.5f, demoted.value());
+
+        auto promoted = DozenFlt{2} * 0.5;
+        EXPECT_TRUE((std::is_same_v<decltype(promoted), DozenDbl>));
+        EXPECT_DOUBLE_EQ(1, promoted.value());
+
+        auto same = DozenFlt{2} * 0.5f;
+        EXPECT_TRUE((std::is_same_v<decltype(same), DozenFlt>));
+        EXPECT_FLOAT_EQ(1, same.value());
+    }
+    {
+        using DoubleUnitDozenFlt = Quantity<DoubleDozenUnit, float>;
+        auto two_dozen_flt = native_value_from(DoubleUnitDozenFlt{2});
+        EXPECT_TRUE((std::is_same_v<decltype(two_dozen_flt), float>));
+        EXPECT_FLOAT_EQ(24, two_dozen_flt);
+
+        auto promoted = DoubleUnitDozenFlt{2} * 0.5;
+        EXPECT_TRUE((std::is_same_v<decltype(promoted),
+                                    Quantity<DoubleDozenUnit, double>>));
+        EXPECT_DOUBLE_EQ(1, promoted.value());
+
+        auto same = DoubleUnitDozenFlt{2} * 2;
+        EXPECT_TRUE((std::is_same_v<decltype(same), DoubleUnitDozenFlt>));
+        EXPECT_FLOAT_EQ(4, same.value());
+    }
+    {
+        using Float3 = Array<float, 3>;
+        using DoubleUnitDozen3 = Quantity<DoubleDozenUnit, Float3>;
+        auto two_dozen = native_value_from(DoubleUnitDozen3{Float3{2, 3, 4}});
+        EXPECT_TRUE((std::is_same_v<decltype(two_dozen), Float3>));
+        EXPECT_EQ((Float3{24, 36, 48}), two_dozen);
     }
 }
 
@@ -247,6 +284,20 @@ TEST(QuantityTest, swappiness)
     }
     EXPECT_EQ(12, native_value_from(dozen));
     EXPECT_EQ(144, native_value_from(gross));
+}
+
+TEST(QuantityTest, vector_value)
+{
+    using Dozen3 = Quantity<DozenUnit, Real3>;
+
+    Dozen3 const dozens{Real3{1, 2, 3}};
+    EXPECT_TRUE(
+        (std::is_same_v<Real3, std::decay_t<decltype(dozens.value())>>));
+    EXPECT_EQ((Real3{1, 2, 3}), dozens.value());
+
+    auto native = native_value_from(dozens);
+    EXPECT_TRUE((std::is_same_v<Real3, decltype(native)>));
+    EXPECT_EQ((Real3{12, 24, 36}), native);
 }
 
 TEST(QuantityTest, array)
