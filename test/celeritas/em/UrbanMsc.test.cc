@@ -297,7 +297,7 @@ TEST_F(UrbanMscTest, step_conversion)
         real_type range = phys.dedx_range();
         real_type lambda = helper.calc_msc_mfp(energy);
         MscStepToGeo calc_geom_path(
-            msc_params_->host_ref(), helper, energy, lambda, range);
+            msc_params_->host_ref(), helper, par, lambda, range);
 
         LogInterp calc_pstep({0, 0.9_r * params.min_step},
                              {static_cast<real_type>(pstep_points), range});
@@ -673,11 +673,8 @@ TEST_F(UrbanMscTest, msc_scattering)
 
         // Convert physical step limit to geometrical step
         MscStep step_result = [&] {
-            MscStepToGeo calc_geom_path(msc_params,
-                                        helper,
-                                        par.energy(),
-                                        helper.msc_mfp(),
-                                        phys.dedx_range());
+            MscStepToGeo calc_geom_path(
+                msc_params, helper, par, helper.msc_mfp(), phys.dedx_range());
             // Note: alpha units are 1/len, so we multiply by mfp
             auto gp = calc_geom_path(true_path);
             gstep_frac.push_back(gp.step / true_path);

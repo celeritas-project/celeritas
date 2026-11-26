@@ -15,6 +15,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
 #include "UrbanMscHelper.hh"
 
@@ -108,7 +109,7 @@ class MscStepToGeo
     // Construct from MSC data
     inline CELER_FUNCTION MscStepToGeo(UrbanMscRef const& shared,
                                        UrbanMscHelper const& helper,
-                                       Energy energy,
+                                       ParticleTrackView const& particle,
                                        real_type lambda,
                                        real_type range);
 
@@ -119,6 +120,7 @@ class MscStepToGeo
     UrbanMscRef const& shared_;
     UrbanMscHelper const& helper_;
     real_type energy_;
+    real_type mass_;
     real_type lambda_;
     real_type range_;
 };
@@ -131,12 +133,13 @@ class MscStepToGeo
  */
 CELER_FUNCTION MscStepToGeo::MscStepToGeo(UrbanMscRef const& shared,
                                           UrbanMscHelper const& helper,
-                                          Energy energy,
+                                          ParticleTrackView const& particle,
                                           real_type lambda,
                                           real_type range)
     : shared_(shared)
     , helper_(helper)
-    , energy_(energy.value())
+    , energy_(value_as<Energy>(particle.energy()))
+    , mass_(value_as<Mass>(particle.mass()))
     , lambda_(lambda)
     , range_(range)
 {
@@ -177,7 +180,7 @@ CELER_FUNCTION auto MscStepToGeo::operator()(real_type tstep) const
                 // MFP at rest (endpoint) is zero
                 return 0_r;
             }
-            if (energy_ < value_as<Mass>(shared_.electron_mass))
+            if (energy_ < mass_)
             {
                 // Low-energy step: set alpha = 1 / range
                 // Equivalently: the small-step case has no change in xs,
