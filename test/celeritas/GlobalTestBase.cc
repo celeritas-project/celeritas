@@ -261,6 +261,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.volume = this->volume();
     inp.detectors = this->detector();
     inp.wentzel = this->wentzel();
+    inp.woodcock = this->build_woodcock();
 
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();

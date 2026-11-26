@@ -44,6 +44,7 @@ struct WoodcockTracking;
  * macroscopic cross section of every material that can be found inside the
  * root.
  *
+ * \sa detail::WoodcockExecutor for a description of the method
  * \sa detail::MajorantBuilder
  */
 class WoodcockParams final : public ParamsDataInterface<WoodcockParamsData>

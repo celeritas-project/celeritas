@@ -45,6 +45,8 @@
 #include "celeritas/track/SimParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/SortTracksAction.hh"
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
+#include "celeritas/woodcock/WoodcockAction.hh"
+#include "celeritas/woodcock/WoodcockParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
 #include "CoreSizesIO.json.hh"
@@ -90,6 +92,10 @@ CoreParamsData<Ownership::const_reference, M> build_params_refs(
     {
         ref.wentzel = get_ref<M>(*p.wentzel);
     }
+    if (p.woodcock)
+    {
+        ref.woodcock = get_ref<M>(*p.woodcock);
+    }
 
     CELER_ENSURE(ref);
     return ref;
@@ -132,7 +138,7 @@ class PropagationLimitAction final : public StaticConcreteAction
 /*!
  * Construct always-required actions and set IDs.
  */
-CoreScalars build_actions(ActionRegistry* reg)
+CoreScalars build_actions(ActionRegistry* reg, bool woodcock)
 {
     using std::make_shared;
 
@@ -199,6 +205,20 @@ CoreScalars build_actions(ActionRegistry* reg)
     // Construct extend from secondaries action
     reg->insert(make_shared<ExtendFromSecondariesAction>(reg->next_id()));
 
+    //// OPTIONAL ACTIONS ////
+
+    if (woodcock)
+    {
+        // NOTE: due to ordering by {start, ID}, this will be after the physics
+        // pre-step
+        scalars.along_step_woodcock_action = reg->next_id();
+        reg->insert(
+            make_shared<WoodcockAction>(scalars.along_step_woodcock_action));
+        scalars.woodcock_null_action = reg->next_id();
+        reg->insert(
+            make_shared<WoodcockNullAction>(scalars.woodcock_null_action));
+    }
+
     return scalars;
 }
 
@@ -251,7 +271,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CELER_ASSERT(primaries);
 
     // Construct always-on actions and save their IDs
-    CoreScalars scalars = build_actions(input_.action_reg.get());
+    CoreScalars scalars = build_actions(input_.action_reg.get(),
+                                        static_cast<bool>(input_.woodcock));
 
     // Construct optional track-sorting actions
     auto insert_sort_tracks_action = [this](TrackOrder const track_order) {

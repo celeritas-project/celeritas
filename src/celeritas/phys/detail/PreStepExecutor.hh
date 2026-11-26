@@ -94,9 +94,20 @@ CELER_FUNCTION void PreStepExecutor::operator()(
         phys.interaction_mfp(sample_exponential(rng));
     }
 
+    auto particle = track.particle();
+    if (track.woodcock().is_applicable(particle.particle_id(),
+                                       particle.energy())
+        && track.woodcock().can_be_inside(track.geometry().volume_id()))
+    {
+        // Cross sections and the step limit will be calculated by the
+        // Woodcock action
+        sim.reset_step_limit();
+        sim.along_step_action(track.core_scalars().along_step_woodcock_action);
+        return;
+    }
+
     // Calculate physics step limits and total macro xs
     auto mat = track.material();
-    auto particle = track.particle();
     sim.reset_step_limit(calc_physics_step_limit(mat, particle, phys, step));
 
     // Initialize along-step action based on particle charge:
