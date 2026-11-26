@@ -133,6 +133,12 @@ else()
   set(CELER_LDVAR LD_LIBRARY_PATH)
 endif()
 
+if(CELERITAS_USE_OpenMP)
+  set(CELER_USE_OPENMP 1)
+else()
+  set(CELER_USE_OPENMP 0)
+endif()
+
 set(_filename "larceler-env")
 # Configure to run from build directory
 set(CELER_INSTALL_PREFIX "${PROJECT_BINARY_DIR}")
@@ -146,6 +152,7 @@ configure_file(
 install(CODE "
   set(CELER_INSTALL_PREFIX \"\$(cd \\\"\$(dirname \\\"$0\\\")\\\"/.. && pwd)\")
   set(CELER_LDVAR \"${CELER_LDVAR}\")
+  set(CELER_USE_OPENMP \"${CELER_USE_OPENMP}\")
   set(CMAKE_INSTALL_LIBDIR \"${CMAKE_INSTALL_LIBDIR}\")
   set(CELERITAS_INSTALL_FHICLDIR \"${CELERITAS_INSTALL_FHICLDIR}\")
   message(STATUS \"Configuring: \${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${_filename}\")

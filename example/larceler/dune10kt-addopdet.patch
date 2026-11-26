@@ -1,14 +1,14 @@
---- zwires/dune10kt_v6_refactored_1x2x6_optical.gdml	2026-06-08 15:27:18
+--- optical/dune10kt_v6_refactored_1x2x6_optical.gdml	2026-06-08 15:27:18
 +++ opdet/dune10kt_v6_refactored_1x2x6_optical.gdml	2026-06-09 08:33:48
-@@ -7,6 +7,7 @@
+@@ -6,6 +6,7 @@
+   0. DUNE: https://github.com/DUNE/dunecore/blob/develop/dunecore/Geometry/gdml/dune10kt_v6_refactored_1x2x6.gdml
    1. Remove GDML extension
    2. Add optical properties
-   3. Remove Z wire volumes
-+  4. Add sensitive detector tags to arapucas
++  3. Add sensitive detector tags to arapucas
  -->
  
  <define>
-@@ -92982,1922 +92983,2882 @@
+@@ -93017,1922 +93018,2882 @@
      </volume>
     <volume name="volOpDetSensitive_0-0-0">
       <materialref ref="LAr"/>

@@ -31,14 +31,12 @@ This example uses a script to download and patch an official DUNE gdml file:
    :language: sh
    :start-at: # Download and patch
 
-the patches add optical properties:
+the first patch adds optical properties:
 
 .. literalinclude:: ../../example/larceler/dune10kt-optical.patch
    :language: diff
 
-and as a performance expedient delete the non-axis-aligned U,V wires in the TPC plane.
-
-The third patch tags the ``volOpDetSensitive`` volumes as Geant4 sensitive detectors.
+The second patch tags the ``volOpDetSensitive`` volumes as Geant4 sensitive detectors.
 
 Overview
 --------
@@ -87,7 +85,7 @@ Generating GENIE samples
 Running LArG4 + IonAndScint
 ---------------------------
 
-- Use local ``larg4_dune10k_1x2x6.fcl`` file.
+- Use local ``larg4_dune10kt_1x2x6.fcl`` file.
 - To loop over a subset of events, replace ``-s`` by
   ``-n [num_events]``.
 - The GDML input geometry in ``LArG4`` should **not** tag Arapucas as
@@ -111,22 +109,20 @@ Fast simulation
 
 .. code:: console
 
-   $ lar -c dune10k_optical_1x2x6.fcl -s larg4-output.root -o fastsim-output.root
+   $ lar -c opticalsim_dune10kt_1x2x6.fcl -s larg4-output.root -o fastsim-output.root
 
 Celeritas
 ^^^^^^^^^
 
 .. code:: console
 
-   $ lar -c dune10k_optical_celeritas_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
+   $ lar -c opticalsim_celeritas_dune10kt_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
 
 By default, Celeritas will run on CPU. See documentation in the
-``dune10k_optical_celeritas_1x2x6.fcl`` file to toggle GPU execution.
+``opticalsim_celeritas_dune10kt_1x2x6.fcl`` file to toggle GPU execution.
 
 Celeritas geometry requires correct optical material information and correct
 ``SensDet`` data assigned to the Arapucas.
-The geometry has also been modified to remove the U and V wires as an expedient
-to improve runtime performance for smoke testing.
 
 Generating analysis files from the optical simulation
 -----------------------------------------------------
