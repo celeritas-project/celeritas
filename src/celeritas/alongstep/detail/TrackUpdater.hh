@@ -8,9 +8,7 @@
 
 #include "celeritas/global/CoreTrackView.hh"
 
-#if !CELER_DEVICE_COMPILE
-#    include "corecel/io/Logger.hh"
-#endif
+#include "StepCounter.hh"
 
 namespace celeritas
 {
@@ -40,28 +38,15 @@ CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView& track)
     if (sim.status() == TrackStatus::errored)
         return;
 
-    // Increment the step counter
-    sim.increment_num_steps();
-
-    if (sim.status() == TrackStatus::alive)
+    CELER_ASSERT(sim.status() != TrackStatus::alive || sim.step_length() > 0
+                 || track.particle().is_stopped());
+    if (StepCounter{}(track))
     {
-        CELER_ASSERT(sim.step_length() > 0 || track.particle().is_stopped());
-        CELER_ASSERT(sim.post_step_action());
         auto phys = track.physics();
 
-        if (sim.num_steps() == sim.max_steps()
-            && sim.post_step_action() != track.tracking_cut_action())
-        {
-#if !CELER_DEVICE_COMPILE
-            CELER_LOG_LOCAL(debug) << "Track " << track.track_slot_id()
-                                   << " exceeded maximum step count";
-#endif
-            track.apply_cut();
-            return;
-        }
-        else if (sim.post_step_action() != phys.scalars().discrete_action()
-                 && (!CELERITAS_DEBUG
-                     || sim.post_step_action() != track.tracking_cut_action()))
+        if (sim.post_step_action() != phys.scalars().discrete_action()
+            && (!CELERITAS_DEBUG
+                || sim.post_step_action() != track.tracking_cut_action()))
         {
             // Reduce remaining mean free paths to travel. The 'discrete
             // action' case is launched separately and resets the
