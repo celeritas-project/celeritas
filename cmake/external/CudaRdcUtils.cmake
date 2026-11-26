@@ -1479,10 +1479,16 @@ function(cuda_rdc_hip_dependency_archives OUTVAR target)
   set(${OUTVAR} "${_targets}" PARENT_SCOPE)
 endfunction()
 
-# Device-part archive of a static archive target, generated once per build tree
+# Device-part archive of a static archive target, generated once per build tree (and configuration)
 function(cuda_rdc_hip_device_part_archive OUTFILE OUTTARGET static)
   string(MAKE_C_IDENTIFIER "${static}" _id)
-  set(_file "${CMAKE_BINARY_DIR}/CudaRdcHip/lib${_id}_device.a")
+  # One archive per configuration: multi-config generators build each from its own static archive
+  get_property(_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  set(_dir "${CMAKE_BINARY_DIR}/CudaRdcHip")
+  if(_multi)
+    string(APPEND _dir "/$<CONFIG>")
+  endif()
+  set(_file "${_dir}/lib${_id}_device.a")
   set(_custom cuda_rdc_hip_${_id}_device)
   get_property(_known GLOBAL PROPERTY CUDA_RDC_HIP_DEVICE_PARTS)
   if(NOT _id IN_LIST _known)
@@ -1495,7 +1501,7 @@ function(cuda_rdc_hip_device_part_archive OUTFILE OUTTARGET static)
       list(APPEND _depends ${static})
     endif()
     add_custom_command(OUTPUT "${_file}"
-      COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_BINARY_DIR}/CudaRdcHip"
+      COMMAND "${CMAKE_COMMAND}" -E make_directory "${_dir}"
       COMMAND "${Python3_EXECUTABLE}" "${_CUDA_RDC_HIP_DEVICE_PART}" --archive "$<TARGET_FILE:${static}>" "${_file}"
         "${CMAKE_HIP_COMPILER}" "${CMAKE_AR}"
       DEPENDS ${_depends}
