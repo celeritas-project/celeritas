@@ -344,6 +344,12 @@ CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
         lsa.dir() = local.dir;
         lsa.univ() = univ_id;
 
+        if (CELER_UNLIKELY(this->failed()))
+        {
+            // Don't descend into a daughter of the placeholder volume
+            break;
+        }
+
         daughter_id = visit_tracker(
             [&tinit](auto&& t) { return t.daughter(tinit.volume); }, univ_id);
 
@@ -945,8 +951,12 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     // Starting with the current level (i.e., next_univ_level), iterate
     // down into the deepest level: *initializing* not *crossing*
-    auto daughter_id = visit_tracker(
-        [volume](auto&& t) { return t.daughter(volume); }, univ);
+    DaughterId daughter_id;
+    if (!this->failed())
+    {
+        daughter_id = visit_tracker(
+            [volume](auto&& t) { return t.daughter(volume); }, univ);
+    }
     while (daughter_id)
     {
         ++ulev_id;
@@ -968,12 +978,15 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
         if (CELER_UNLIKELY(!volume))
         {
-            // Print message, change state, prepare to end loop
+            // Print message, change state, and end the loop
             fail();
             daughter_id = {};
         }
-        daughter_id = visit_tracker(
-            [volume](auto&& t) { return t.daughter(volume); }, univ);
+        else
+        {
+            daughter_id = visit_tracker(
+                [volume](auto&& t) { return t.daughter(volume); }, univ);
+        }
 
         auto lsa = make_lsa(ulev_id);
         lsa.vol() = volume;

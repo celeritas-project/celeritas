@@ -663,6 +663,35 @@ TEST_F(NestedRectArraysTest, leaving)
     EXPECT_SOFT_EQ(16, next.distance);
 }
 
+TEST_F(NestedRectArraysTest, failed_initialize)
+{
+    // Initializing exactly on an internal plane of the inner array fails: the
+    // failed state must not descend into the placeholder volume's daughter
+    auto geo = this->make_geo_track_view();
+    geo = Initializer_t{{1.0, 0.5, 0.5}, {1, 0, 0}};
+    EXPECT_TRUE(geo.failed());
+    EXPECT_JSON_EQ(
+        R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[1.0,0.5,0.5],"universe":"global","volume":{"impl":"arrfill@global","local":1}},{"dir":[1.0,0.0,0.0],"pos":[1.0,0.5,0.5],"universe":"parent","volume":{"impl":"parent+@parent","local":1}},{"dir":[1.0,0.0,0.0],"pos":[1.0,0.5,0.5],"universe":"parent+","volume":{"impl":"{0,0,0}@parent+","local":0}},{"dir":[1.0,0.0,0.0],"pos":[1.0,0.5,0.5],"universe":"arr","volume":{"impl":"arr+@arr","local":1}},{"dir":[1.0,0.0,0.0],"pos":[1.0,0.5,0.5],"universe":"arr+","volume":{"impl":"{0,0,0}@arr+","local":0}}],"surface":null})json",
+        StringSimplifier{3}(to_json_string(geo.track_view())));
+}
+
+TEST_F(NestedRectArraysTest, failed_crossing)
+{
+    // Entering the array along an internal plane of the inner array fails
+    // when initializing the daughter universes
+    auto geo = this->make_geo_track_view();
+    geo = Initializer_t{{-1.0, 1.0, 0.5}, {1, 0, 0}};
+    EXPECT_EQ("interior", this->volume_name(geo));
+    auto next = geo.find_next_step(this->max_step());
+    EXPECT_SOFT_EQ(1, next.distance);
+    geo.move_to_boundary();
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.failed());
+    EXPECT_JSON_EQ(
+        R"json({"levels":[{"dir":[1.0,0.0,0.0],"pos":[0.0,1.0,0.5],"universe":"global","volume":{"impl":"arrfill@global","local":1}},{"dir":[1.0,0.0,0.0],"pos":[0.0,1.0,0.5],"universe":"parent","volume":{"impl":"parent+@parent","local":1}},{"dir":[1.0,0.0,0.0],"pos":[0.0,1.0,0.5],"universe":"parent+","volume":{"impl":"{0,0,0}@parent+","local":0}},{"dir":[1.0,0.0,0.0],"pos":[0.0,1.0,0.5],"universe":"arr","volume":{"impl":"arr+@arr","local":1}},{"dir":[1.0,0.0,0.0],"pos":[0.0,1.0,0.5],"universe":"arr+","volume":{"impl":"{0,0,0}@arr+","local":0}}],"surface":"arrfill.mx@global"})json",
+        StringSimplifier{3}(to_json_string(geo.track_view())));
+}
+
 TEST_F(NestedRectArraysTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
     OrangeParamsOutput out(this->geometry());
