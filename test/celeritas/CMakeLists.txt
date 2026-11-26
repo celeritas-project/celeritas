@@ -591,6 +591,13 @@ celeritas_add_test(user/StepCollector.test.cc
 )
 
 #-----------------------------------------------------------------------------#
+# Woodcock
+celeritas_add_test(woodcock/Woodcock.test.cc
+  NT 1 ${_needs_geant4}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
+)
+
+#-----------------------------------------------------------------------------#
 # DATA UPDATE
 #-----------------------------------------------------------------------------#
 

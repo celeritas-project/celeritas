@@ -22,6 +22,9 @@ void from_json(nlohmann::json const& j, CoreTrackingLimits&);
 void to_json(nlohmann::json& j, OpticalTrackingLimits const&);
 void from_json(nlohmann::json const& j, OpticalTrackingLimits&);
 
+void to_json(nlohmann::json& j, WoodcockTracking const&);
+void from_json(nlohmann::json const& j, WoodcockTracking&);
+
 void to_json(nlohmann::json& j, Tracking const&);
 void from_json(nlohmann::json const& j, Tracking&);
 

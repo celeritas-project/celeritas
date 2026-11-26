@@ -183,6 +183,8 @@ list(APPEND SOURCES
   user/StepDiagnosticBase.cc
   user/StepTimes.cc
   user/detail/StepParams.cc
+  woodcock/WoodcockParams.cc
+  woodcock/detail/MajorantBuilder.cc
 )
 
 #-----------------------------------------------------------------------------#
