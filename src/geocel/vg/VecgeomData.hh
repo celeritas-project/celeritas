@@ -22,7 +22,11 @@
 // IWYU errors from navindex/tuple
 #    include <VecGeom/base/Cuda.h>
 #    include <VecGeom/base/Global.h>
-#    include <VecGeom/management/CudaManager.h>
+#    if VECGEOM_VERSION >= 0x020300
+#        include <VecGeom/management/DeviceManager.h>
+#    else
+#        include <VecGeom/management/CudaManager.h>
+#    endif
 #endif
 
 #if CELER_VGNAV == CELER_VGNAV_PATH

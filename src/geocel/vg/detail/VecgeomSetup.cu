@@ -41,7 +41,7 @@ struct BvhGetter
     __device__ void operator()(ThreadId tid)
     {
         CELER_EXPECT(tid == ThreadId{0});
-        *dest = vecgeom::cuda::BVHManager::GetBVH(0);
+        *dest = vgdevice::BVHManager::GetBVH(0);
     }
 };
 
@@ -65,7 +65,7 @@ struct NavIndexGetter
 //! Copy the logical volume pointer table
 struct LogicalVolumesGetter
 {
-    using pointer_type = vecgeom::cuda::LogicalVolume const*;
+    using pointer_type = VgLogicalVolume<MemSpace::device> const*;
     static constexpr char const label[] = "logical-volumes";
 
     pointer_type* dest{nullptr};
@@ -85,7 +85,7 @@ struct LogicalVolumesGetter
 //! Copy the placed volume pointer table
 struct PlacedVolumesGetter
 {
-    using pointer_type = vecgeom::cuda::VPlacedVolume const*;
+    using pointer_type = VgPlacedVolume<MemSpace::device> const*;
     static constexpr char const label[] = "placed-volumes";
 
     pointer_type* dest{nullptr};
@@ -147,11 +147,11 @@ CudaPointers<CudaBVH_t const> bvh_pointers_device()
     CELER_DEVICE_API_CALL(
         MemcpyFromSymbol(static_cast<void*>(&result.symbol),
 #if VECGEOM_VERSION >= 0x020000
-                         vecgeom::cuda::dBVH<vgbvh_real_type>,
-                         sizeof(vecgeom::cuda::dBVH<vgbvh_real_type>),
+                         vgdevice::dBVH<vgbvh_real_type>,
+                         sizeof(vgdevice::dBVH<vgbvh_real_type>),
 #else
-                         vecgeom::cuda::dBVH,
-                         sizeof(vecgeom::cuda::dBVH),
+                         vgdevice::dBVH,
+                         sizeof(vgdevice::dBVH),
 #endif
                          0,
                          CELER_DEVICE_API_SYMBOL(MemcpyDeviceToHost)));
