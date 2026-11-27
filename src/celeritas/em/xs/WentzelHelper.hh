@@ -65,6 +65,9 @@ class WentzelHelper
         return screening_coefficient_;
     }
 
+    //! Whether the Mott correction applies (electrons and positrons)
+    CELER_FUNCTION bool use_mott() const { return use_mott_; }
+
     //! Get the Mott factor (maximum, used for rejection)
     CELER_FUNCTION real_type mott_factor() const { return mott_factor_; }
 
@@ -95,6 +98,7 @@ class WentzelHelper
     //// DATA ////
 
     AtomicNumber const target_z_;
+    bool use_mott_;
     real_type screening_coefficient_;
     real_type kin_factor_;
     real_type mott_factor_;
@@ -143,6 +147,7 @@ CELER_FUNCTION WentzelHelper::WentzelHelper(
     CoulombIds const& ids,
     Energy cutoff)
     : target_z_(target_z)
+    , use_mott_(!particle.is_heavy())
     , screening_coefficient_(this->calc_screening_coefficient(particle, ids)
                              * wentzel.params.screening_factor)
     , kin_factor_(this->calc_kin_factor(particle, wentzel.electron_mass))
@@ -310,7 +315,10 @@ CELER_FUNCTION real_type WentzelHelper::calc_cos_thetamax_electron(
 {
     using namespace celeritas::literals;
 
-    real_type result = 0;
+    // Following G4WentzelOKandVIxSection::ComputeMaxElectronScattering, there
+    // is no scattering off electrons if the outgoing particle would have no
+    // kinetic energy
+    real_type result = 1;
     real_type inc_energy = value_as<Energy>(particle.energy());
     real_type mass = value_as<Mass>(particle.mass());
 
@@ -338,9 +346,10 @@ CELER_FUNCTION real_type WentzelHelper::calc_cos_thetamax_electron(
         real_type max_energy
             = 2 * value_as<Mass>(electron_mass) * tau * (tau + 2)
               / (1 + 2 * mass_ratio * (tau + 1) + ipow<2>(mass_ratio));
-        result = -min(value_as<Energy>(cutoff), max_energy)
-                 * value_as<Mass>(electron_mass)
-                 / value_as<MomentumSq>(particle.momentum_sq());
+        result = 1
+                 - min(value_as<Energy>(cutoff), max_energy)
+                       * value_as<Mass>(electron_mass)
+                       / value_as<MomentumSq>(particle.momentum_sq());
     }
     CELER_ENSURE(result >= 0 && result <= 1);
     return result;

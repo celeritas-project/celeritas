@@ -26,15 +26,16 @@ namespace celeritas
  * Sample the polar scattering angle cosine for Wentzel Coulomb scattering.
  *
  * This chooses between sampling scattering off an electron or nucleus based on
- * the relative cross sections. Electron scattering angle imposes a maximum
- * scattering angle, and nuclear
- * sattering rejects an angular change based on the Mott cross section (see
- * MottRatioCalculator). Nuclear scattering depends on the electronic and
- * nuclear cross sections (calculated by \c WentzelHelper) and nuclear form
- * factors (see \c ExpNuclearFormFactor, \c GaussianNuclearFormFactor, and \c
- * UUNuclearFormFactor ) that describe an approximate spatial charge
- * distribution of the nucleus. The class is used by \c
- * CoulombScatteringInteractor .
+ * the relative cross sections. Electron scattering imposes a maximum
+ * scattering angle. As in \c G4WentzelOKandVIxSection::SampleSingleScattering,
+ * both electron and nuclear scattering reject an angular change based on a
+ * spin correction to the Rutherford cross section (the Mott cross section for
+ * electrons and positrons, see \c MottRatioCalculator). Nuclear scattering
+ * additionally depends on nuclear form factors (see \c ExpNuclearFormFactor,
+ * \c GaussianNuclearFormFactor, and \c UUNuclearFormFactor ) that describe an
+ * approximate spatial charge distribution of the nucleus. The electronic and
+ * nuclear cross sections are calculated by \c WentzelHelper . The class is
+ * used by \c CoulombScatteringInteractor .
  *
  * The polar angle distribution is given in
  * \citet{fernandez-msc-1993, https://doi.org/10.1016/0168-583X(93)95827-R}
@@ -114,6 +115,9 @@ class WentzelDistribution
     inline CELER_FUNCTION real_type calculate_form_factor(
         real_type cos_t) const;
 
+    // Calculate the spin (e.g., Mott) correction to the Rutherford xs
+    inline CELER_FUNCTION real_type calc_spin_correction(real_type cos_t) const;
+
     // Calculate the nuclear form momentum scale
     inline CELER_FUNCTION real_type nuclear_form_momentum_scale() const;
 
@@ -172,12 +176,13 @@ CELER_FUNCTION WentzelDistribution::WentzelDistribution(
 template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
-    real_type cos_theta = 1;
+    real_type cos_theta;
+    real_type form_factor_sq = 1;
     if (BernoulliDistribution(
             helper_.calc_xs_electron(cos_thetamin_, cos_thetamax_),
             helper_.calc_xs_nuclear(cos_thetamin_, cos_thetamax_))(rng))
     {
-        // Scattered off of electrons
+        // Scattered off of electrons: no nuclear form factor
         real_type const cos_thetamax_elec = helper_.cos_thetamax_electron();
         real_type cos_thetamin = max(cos_thetamin_, cos_thetamax_elec);
         real_type cos_thetamax = max(cos_thetamax_, cos_thetamax_elec);
@@ -188,19 +193,66 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
     {
         // Scattered off of nucleus
         cos_theta = this->sample_costheta(cos_thetamin_, cos_thetamax_, rng);
+        form_factor_sq = ipow<2>(this->calculate_form_factor(cos_theta));
+    }
 
-        // Calculate rejection for false scattering
-        MottRatioCalculator calc_mott_ratio(mott_coeffs_,
-                                            std::sqrt(particle_.beta_sq()));
-        real_type xs = calc_mott_ratio(cos_theta)
-                       * ipow<2>(this->calculate_form_factor(cos_theta));
-        if (RejectionSampler<real_type>{helper_.mott_factor()}(xs, rng))
-        {
-            // Reject scattering event: no change in direction
-            cos_theta = 1;
-        }
+    // Reject "false" scattering due to the form factor and spin effects
+    real_type xs = this->calc_spin_correction(cos_theta) * form_factor_sq;
+    if (!helper_.use_mott())
+    {
+        // The heavy-particle correction can exceed the maximum, in which
+        // case Geant4 always accepts
+        xs = min(xs, helper_.mott_factor());
+    }
+    if (RejectionSampler<real_type>{helper_.mott_factor()}(xs, rng))
+    {
+        // Reject scattering event: no change in direction
+        cos_theta = 1;
     }
     return cos_theta;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the ratio of the spin-corrected to the Rutherford cross section.
+ *
+ * For electrons and positrons this is the Mott ratio (see \c
+ * MottRatioCalculator). For heavier particles, this is the approximation in
+ * \c G4WentzelOKandVIxSection::SampleSingleScattering,
+ * \f[
+   \frac{1 - s \beta^2 (1 - \cos\theta) + \frac{\pi \alpha}{2} Z
+   \sqrt{s \beta^2 (1 - \cos\theta)} (1 + \cos\theta)}
+   {1 + (1 - \cos\theta) p / M} \,,
+ * \f]
+ * with spin \f$ s \f$, momentum \f$ p \f$ and target mass \f$ M \f$.
+ *
+ * \todo The particle spin isn't available, so this assumes spin 1/2 (muons,
+ * protons), which is wrong for spin-0 hadrons such as pions.
+ */
+CELER_FUNCTION real_type WentzelDistribution::calc_spin_correction(
+    real_type cos_t) const
+{
+    using namespace celeritas::literals;
+
+    if (helper_.use_mott())
+    {
+        return MottRatioCalculator(mott_coeffs_,
+                                   std::sqrt(particle_.beta_sq()))(cos_t);
+    }
+
+    constexpr real_type spin = 0.5_r;
+    constexpr real_type half_pi_alpha = static_cast<real_type>(
+        0.5 * constants::pi * constants::alpha_fine_structure);
+
+    real_type one_minus_costheta = 1 - cos_t;
+    real_type spin_term = spin * particle_.beta_sq() * one_minus_costheta;
+    real_type recoil = one_minus_costheta
+                       * value_as<units::MevMomentum>(particle_.momentum())
+                       / value_as<Mass>(target_.nuclear_mass());
+    real_type coulomb_term = half_pi_alpha * helper_.atomic_number().get()
+                             * std::sqrt(spin_term) * (1 + cos_t);
+
+    return (1 - spin_term + coulomb_term) / (1 + recoil);
 }
 
 //---------------------------------------------------------------------------//
