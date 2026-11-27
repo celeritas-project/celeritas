@@ -26,15 +26,15 @@ namespace celeritas
  * Sample the polar scattering angle cosine for Wentzel Coulomb scattering.
  *
  * This chooses between sampling scattering off an electron or nucleus based on
- * the relative cross sections. Electron scattering angle imposes a maximum
- * scattering angle, and nuclear
- * sattering rejects an angular change based on the Mott cross section (see
- * MottRatioCalculator). Nuclear scattering depends on the electronic and
- * nuclear cross sections (calculated by \c WentzelHelper) and nuclear form
- * factors (see \c ExpNuclearFormFactor, \c GaussianNuclearFormFactor, and \c
- * UUNuclearFormFactor ) that describe an approximate spatial charge
- * distribution of the nucleus. The class is used by \c
- * CoulombScatteringInteractor .
+ * the relative cross sections. Electron scattering imposes a maximum
+ * scattering angle. As in \c G4WentzelOKandVIxSection::SampleSingleScattering,
+ * both electron and nuclear scattering reject an angular change based on the
+ * Mott cross section (see \c MottRatioCalculator). Nuclear scattering
+ * additionally depends on nuclear form factors (see \c ExpNuclearFormFactor,
+ * \c GaussianNuclearFormFactor, and \c UUNuclearFormFactor ) that describe an
+ * approximate spatial charge distribution of the nucleus. The electronic and
+ * nuclear cross sections are calculated by \c WentzelHelper . The class is
+ * used by \c CoulombScatteringInteractor .
  *
  * The polar angle distribution is given in
  * \citet{fernandez-msc-1993, https://doi.org/10.1016/0168-583X(93)95827-R}
@@ -172,12 +172,13 @@ CELER_FUNCTION WentzelDistribution::WentzelDistribution(
 template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
-    real_type cos_theta = 1;
+    real_type cos_theta;
+    real_type form_factor_sq = 1;
     if (BernoulliDistribution(
             helper_.calc_xs_electron(cos_thetamin_, cos_thetamax_),
             helper_.calc_xs_nuclear(cos_thetamin_, cos_thetamax_))(rng))
     {
-        // Scattered off of electrons
+        // Scattered off of electrons: no nuclear form factor
         real_type const cos_thetamax_elec = helper_.cos_thetamax_electron();
         real_type cos_thetamin = max(cos_thetamin_, cos_thetamax_elec);
         real_type cos_thetamax = max(cos_thetamax_, cos_thetamax_elec);
@@ -188,17 +189,17 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
     {
         // Scattered off of nucleus
         cos_theta = this->sample_costheta(cos_thetamin_, cos_thetamax_, rng);
+        form_factor_sq = ipow<2>(this->calculate_form_factor(cos_theta));
+    }
 
-        // Calculate rejection for false scattering
-        MottRatioCalculator calc_mott_ratio(mott_coeffs_,
-                                            std::sqrt(particle_.beta_sq()));
-        real_type xs = calc_mott_ratio(cos_theta)
-                       * ipow<2>(this->calculate_form_factor(cos_theta));
-        if (RejectionSampler<real_type>{helper_.mott_factor()}(xs, rng))
-        {
-            // Reject scattering event: no change in direction
-            cos_theta = 1;
-        }
+    // Reject "false" scattering due to the form factor and spin effects
+    MottRatioCalculator calc_mott_ratio(mott_coeffs_,
+                                        std::sqrt(particle_.beta_sq()));
+    real_type xs = calc_mott_ratio(cos_theta) * form_factor_sq;
+    if (RejectionSampler<real_type>{helper_.mott_factor()}(xs, rng))
+    {
+        // Reject scattering event: no change in direction
+        cos_theta = 1;
     }
     return cos_theta;
 }
