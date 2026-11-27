@@ -11,6 +11,8 @@
 #include <G4MaterialPropertiesTable.hh>
 #include <G4SystemOfUnits.hh>
 
+#include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/ext/detail/GeantOpticalMatHelper.hh"
 
@@ -80,9 +82,37 @@ TEST_F(GeantScintillationLoaderTest, default_zero_yield)
     mpt_->AddConstProperty("SCINTILLATIONTIMECONSTANT2", 100 * ns);
     this->add_component("SCINTILLATIONCOMPONENT2");
 
+    ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                                   LogLevel::warning};
     auto scint = this->load(mat);
     ASSERT_EQ(1, scint.components.size());
     EXPECT_SOFT_EQ(100, scint.components[0].yield);
+
+    static char const* const expected_log_messages[] = {
+        "Scintillation component 2 has a spectrum but no SCINTILLATIONYIELD2: "
+        "it will emit no photons",
+    };
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+}
+
+//---------------------------------------------------------------------------//
+// Components above 2 are loaded and renormalized like the others
+TEST_F(GeantScintillationLoaderTest, third_component)
+{
+    auto* mat = this->make_material("three_components");
+    mpt_->AddConstProperty("SCINTILLATIONYIELD1", 1.);
+    mpt_->AddConstProperty("SCINTILLATIONYIELD3", 3.);
+    mpt_->AddConstProperty("SCINTILLATIONTIMECONSTANT3", 1000 * ns);
+    this->add_component("SCINTILLATIONCOMPONENT3");
+
+    ::celeritas::test::ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                                   LogLevel::warning};
+    auto scint = this->load(mat);
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    ASSERT_EQ(2, scint.components.size());
+    EXPECT_SOFT_EQ(25, scint.components[0].yield);
+    EXPECT_SOFT_EQ(75, scint.components[1].yield);
+    EXPECT_SOFT_EQ(1000 * units::nanosecond, scint.components[1].fall_time);
 }
 
 //---------------------------------------------------------------------------//

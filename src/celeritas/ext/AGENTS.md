@@ -27,8 +27,9 @@ code tied to the one kind of Geant4 object it reads.
   rise times are cleared unless `G4Scintillation::GetFiniteRiseTime()`.
 - Defaults that Geant4 applies to missing material properties belong in the
   material-property loader, with a comment citing the Geant4 behavior.
-- Code must build with all supported Geant4 versions, including 10.x: guard
-  newer APIs with `G4VERSION_NUMBER`.
+- Code must build with all supported Geant4 versions (10.5 and higher: see the
+  top-level README, `.github/workflows/build-spack.yml`, or
+  `scripts/spack/reqs-celer.yaml`): guard newer APIs with `G4VERSION_NUMBER`.
 - Tests: material-property loaders are unit-tested on hand-built
   `G4Material`s under `test/celeritas/ext/detail/`; full import (including
   process overrides) is checked by `test/celeritas/ext/GeantImporter.test.cc`.

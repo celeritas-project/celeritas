@@ -192,7 +192,7 @@ std::optional<inp::NormalDistribution> GeantScintillationLoader::load_gaussian(
  *
  * Returns an optional spectrum. If no spectrum data is found, returns nullopt.
  * If the spectrum is present but its yield is not, the yield is set to the
- * given default.
+ * given default, with a warning if a numbered component defaults to zero.
  */
 std::optional<inp::ScintillationSpectrum>
 GeantScintillationLoader::load_spectrum(GeantMaterialPropertyGetter const& get,
@@ -215,8 +215,8 @@ GeantScintillationLoader::load_spectrum(GeantMaterialPropertyGetter const& get,
     s.yield = default_yield;
 
     // Component yields are dimensionless relative weights
-    bool has_props = false;
-    has_props = get(s.yield, prop("YIELD"), IU::unitless) || has_props;
+    bool const has_yield = get(s.yield, prop("YIELD"), IU::unitless);
+    bool has_props = has_yield;
     has_props = get(s.rise_time, prop("RISETIME"), IU::time) || has_props;
     has_props = get(s.fall_time, prop("TIMECONSTANT"), IU::time) || has_props;
 
@@ -248,6 +248,14 @@ GeantScintillationLoader::load_spectrum(GeantMaterialPropertyGetter const& get,
     else
     {
         return std::nullopt;
+    }
+
+    if (!has_yield && default_yield == 0 && !suffix.empty())
+    {
+        // Geant4 silently gives components 2 and 3 a zero default yield
+        CELER_LOG(warning) << "Scintillation component " << suffix
+                           << " has a spectrum but no " << prop("YIELD")
+                           << ": it will emit no photons";
     }
 
     return s;
