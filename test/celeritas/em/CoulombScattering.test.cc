@@ -299,7 +299,7 @@ TEST_F(CoulombScatteringTest, TEST_IF_CELERITAS_DOUBLE(cos_thetamax_electron))
         8.882118678212865e-08,
         1.3211256916404578e-09,
     };
-    EXPECT_VEC_NEAR(expected_proton, deflection, 1e-6);
+    EXPECT_VEC_NEAR(expected_proton, deflection, 1e-6_r);
 
     // No scattering off electrons if the outgoing positron would have no
     // kinetic energy
