@@ -137,7 +137,7 @@ relocatable device code and most importantly linking against those libraries.
 
 #]=======================================================================]
 
-set(_CUDA_RDC_VERSION 14)
+set(_CUDA_RDC_VERSION 15)
 if(CUDA_RDC_VERSION GREATER _CUDA_RDC_VERSION)
   # A newer version has already been loaded
   message(VERBOSE "Ignoring CUDA_RDC_VERSION ${_CUDA_RDC_VERSION}: "
@@ -199,6 +199,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     "LINKER:--pop-state"
     CACHE INTERNAL ""
   )
+  # Same for targets linked by the HIP language
+  set(CMAKE_HIP_LINK_LIBRARY_USING_rdc_no_as_needed_SUPPORTED TRUE CACHE INTERNAL "")
+  set(CMAKE_HIP_LINK_LIBRARY_USING_rdc_no_as_needed ${CMAKE_CXX_LINK_LIBRARY_USING_rdc_no_as_needed}
+    CACHE INTERNAL "")
 else()
   set(CMAKE_CXX_LINK_LIBRARY_USING_no_as_needed_SUPPORTED FALSE)
 endif()
@@ -330,11 +334,11 @@ function(cuda_rdc_sources_contains_cuda var)
   set(_result)
   foreach(_source ${ARGN})
     get_source_file_property(_iscudafile "${_source}" LANGUAGE)
-    if(_iscudafile STREQUAL "CUDA")
+    if(_iscudafile STREQUAL "CUDA" OR _iscudafile STREQUAL "HIP")
       list(APPEND _result "${_source}")
     elseif(NOT _iscudafile)
       get_filename_component(_ext "${_source}" LAST_EXT)
-      if(_ext STREQUAL ".cu")
+      if(_ext STREQUAL ".cu" OR _ext STREQUAL ".hip")
         list(APPEND _result "${_source}")
       endif()
     endif()
@@ -456,6 +460,11 @@ function(cuda_rdc_add_library target)
   # So in the meantime we use rely on the user to call this routine
   # only in the case where they want the CUDA device code to be compiled
   # as "relocatable device code"
+
+  if(_cuda_sources AND NOT CMAKE_CUDA_COMPILER AND CMAKE_HIP_COMPILER)
+    cuda_rdc_hip_add_library(${target} ${ARGN})
+    return()
+  endif()
 
   if(NOT CMAKE_CUDA_COMPILER OR NOT _cuda_sources)
     add_library(${target} ${ARGN})
@@ -588,7 +597,7 @@ endfunction()
 # the 4 libraries (objects, static, middle, final) libraries needed
 # for a separatable CUDA library
 function(cuda_rdc_target_include_directories target)
-  if(NOT CMAKE_CUDA_COMPILER)
+  if(NOT CMAKE_CUDA_COMPILER AND NOT CMAKE_HIP_COMPILER)
     target_include_directories(${ARGV})
     return()
   endif()
@@ -631,7 +640,7 @@ endfunction()
 # the 4 libraries (objects, static, middle, final) libraries needed
 # for a separatable CUDA library
 function(cuda_rdc_target_compile_options target)
-  if(NOT CMAKE_CUDA_COMPILER)
+  if(NOT CMAKE_CUDA_COMPILER AND NOT CMAKE_HIP_COMPILER)
     target_compile_options(${ARGV})
     return()
   endif()
@@ -686,7 +695,10 @@ function(cuda_rdc_install subcommand firstarg)
         cuda_rdc_strip_alias(_target_middle ${_target_middle})
         get_target_property(_target_static ${_prop_target} CUDA_RDC_STATIC_LIBRARY)
         cuda_rdc_strip_alias(_target_static ${_target_static})
-        list(APPEND _toinstall ${_target_final})
+        if(_target_final)
+          # A static HIP library has no final library: its consumers do the device link
+          list(APPEND _toinstall ${_target_final})
+        endif()
         if(NOT _target_static STREQUAL _prop_target)
           list(APPEND _toinstall ${_target_static})
         endif()
@@ -949,9 +961,40 @@ endfunction()
 # Replacement for target_link_libraries that is aware of
 # the 3 libraries (static, middle, final) libraries needed
 # for a separatable CUDA library
+# Without a device compiler a consumer has no device code: an executable or module links the final library of its
+# relocatable dependencies; a shared library leaves it to the program that loads it, as with a device compiler
+function(cuda_rdc_host_consumer_link target)
+  cuda_rdc_strip_alias(target ${target})
+  get_target_property(_type ${target} TYPE)
+  if(NOT _type MATCHES "^(EXECUTABLE|MODULE_LIBRARY)$" OR CMAKE_VERSION VERSION_LESS "3.24")
+    return()
+  endif()
+  # Drop a final library chosen by an earlier call
+  get_target_property(_libs ${target} LINK_LIBRARIES)
+  if(_libs)
+    list(FILTER _libs EXCLUDE REGEX "^\\$<LINK_LIBRARY:rdc_no_as_needed,")
+    set_property(TARGET ${target} PROPERTY LINK_LIBRARIES "${_libs}")
+  endif()
+  set_property(TARGET ${target} PROPERTY CUDA_RDC_CACHED_LIB_DEPENDENCIES)
+  cuda_rdc_cuda_gather_dependencies(_deps ${target})
+  cuda_rdc_find_final_library(_finallibs "${_deps}")
+  list(LENGTH _finallibs _final_count)
+  if(_final_count EQUAL 1)
+    set_property(TARGET ${target} APPEND PROPERTY LINK_LIBRARIES "$<LINK_LIBRARY:rdc_no_as_needed,${_finallibs}>")
+  elseif(_final_count GREATER 1)
+    message(FATAL_ERROR "${target} links several libraries with relocatable device code (${_finallibs}): their "
+      "device link needs the CUDA or HIP language enabled in this project")
+  endif()
+endfunction()
+
 function(cuda_rdc_target_link_libraries target)
+  if(NOT CMAKE_CUDA_COMPILER AND CMAKE_HIP_COMPILER)
+    cuda_rdc_hip_target_link_libraries(${ARGV})
+    return()
+  endif()
   if(NOT CMAKE_CUDA_COMPILER)
     target_link_libraries(${ARGV})
+    cuda_rdc_host_consumer_link(${target})
     return()
   endif()
 
@@ -1188,8 +1231,12 @@ endfunction()
 # and can update the library type to RDC if needed
 #
 function(cuda_rdc_target_sources target)
-  if(NOT CMAKE_CUDA_COMPILER)
+  if(NOT CMAKE_CUDA_COMPILER AND NOT CMAKE_HIP_COMPILER)
     target_sources(${ARGV})
+    return()
+  endif()
+  if(NOT CMAKE_CUDA_COMPILER)
+    cuda_rdc_hip_target_sources(${ARGV})
     return()
   endif()
 
@@ -1290,3 +1337,283 @@ function(cuda_rdc_cuda_gather_dependencies outlist target)
 endfunction()
 
 #-----------------------------------------------------------------------------#
+
+#-----------------------------------------------------------------------------#
+# HIP
+#-----------------------------------------------------------------------------#
+#
+# With HIP the clang driver does the device link when it links a shared library
+# or an executable with `-fgpu-rdc --hip-link`; there is no separate device-link
+# tool. A library with relocatable device code (shared request) is built as:
+#
+# - `<target>_objects`: object library compiled with `-fgpu-rdc`
+# - `<target>_static`: static archive of the objects, input to device links
+# - `<target>`: the "middle" shared library, linked without device link, which
+#   holds the host code once per process
+# - `<target>_final`: shared library holding the device link of `<target>_static`
+#   and of the static archives of its relocatable dependencies
+#
+# With a static request `<target>` is the archive, and whatever links it does the
+# device link. A consumer without device code links the final library of its
+# most derived dependency. A consumer with device code, or with several unrelated
+# final libraries, does its own device link from the static archives.
+#
+# The device links never take the full static archives: the kernel registration
+# entries live in the host objects, so linking those would put a second copy of
+# the host code (and of its static initializers) into the process. Instead each
+# archive is reduced to its "device parts" (CudaRdcHipDevicePart.py): objects
+# holding only the device code and the registration entries, which refer to the
+# kernel handles and device variable shadows of the host libraries.
+
+# Helper writing the device parts of an archive, installed next to this file
+set(_CUDA_RDC_HIP_DEVICE_PART "${CMAKE_CURRENT_LIST_DIR}/CudaRdcHipDevicePart.py")
+
+# Link options doing the device link at the link of the target they are added to
+function(cuda_rdc_hip_link_flags OUTVAR)
+  set(_flags -fgpu-rdc --hip-link)
+  foreach(_arch IN LISTS CMAKE_HIP_ARCHITECTURES)
+    list(APPEND _flags --offload-arch=${_arch})
+  endforeach()
+  set(${OUTVAR} ${_flags} PARENT_SCOPE)
+endfunction()
+
+# Device link at the link of `target`, from the device-part archives listed in its
+# CUDA_RDC_HIP_DEVICE_LINK property (whole archives: kernels may only be
+# referenced from device code or by name)
+function(cuda_rdc_hip_device_link target)
+  cuda_rdc_hip_link_flags(_flags)
+  target_link_options(${target} PRIVATE ${_flags} "LINKER:--whole-archive"
+    "$<GENEX_EVAL:$<TARGET_PROPERTY:${target},CUDA_RDC_HIP_DEVICE_LINK>>" "LINKER:--no-whole-archive")
+endfunction()
+
+function(cuda_rdc_hip_add_library target)
+  cmake_parse_arguments(_ADDLIB_PARSE "STATIC;SHARED;MODULE;OBJECT" "" "" ${ARGN})
+  if(_ADDLIB_PARSE_OBJECT)
+    message(FATAL_ERROR "cuda_rdc_add_library does not support OBJECT library")
+  endif()
+  set(_rdc "$<$<COMPILE_LANGUAGE:HIP>:-fgpu-rdc>")
+  if(_ADDLIB_PARSE_MODULE)
+    add_library(${target} ${ARGN})
+    target_compile_options(${target} PRIVATE ${_rdc})
+    set_target_properties(${target} PROPERTIES CUDA_RDC_HIP_DEVICE_LINK "")
+    cuda_rdc_hip_device_link(${target})
+    return()
+  endif()
+  set(_shared TRUE)
+  if((NOT BUILD_SHARED_LIBS AND NOT _ADDLIB_PARSE_SHARED) OR _ADDLIB_PARSE_STATIC)
+    set(_shared FALSE)
+  endif()
+  set(_export_props "CUDA_RDC_LIBRARY_TYPE;CUDA_RDC_FINAL_LIBRARY;CUDA_RDC_MIDDLE_LIBRARY;CUDA_RDC_STATIC_LIBRARY")
+
+  add_library(${target}_objects OBJECT ${_ADDLIB_PARSE_UNPARSED_ARGUMENTS})
+  set_target_properties(${target}_objects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  target_compile_options(${target}_objects PRIVATE ${_rdc})
+
+  if(NOT _shared)
+    add_library(${target} STATIC $<TARGET_OBJECTS:${target}_objects>)
+    set_target_properties(${target} PROPERTIES
+      CUDA_RDC_LIBRARY_TYPE Static
+      CUDA_RDC_MIDDLE_LIBRARY ${target}
+      CUDA_RDC_STATIC_LIBRARY ${target}
+      CUDA_RDC_OBJECT_LIBRARY ${target}_objects
+    )
+    set_property(TARGET ${target} PROPERTY EXPORT_PROPERTIES "${_export_props}")
+    # Consumers compile relocatable device code, and their link does the device link
+    target_compile_options(${target} INTERFACE ${_rdc})
+    cuda_rdc_hip_link_flags(_flags)
+    target_link_options(${target} INTERFACE ${_flags})
+    return()
+  endif()
+
+  # Middle: host code only, linked by the C++ compiler without device link
+  add_library(${target} SHARED $<TARGET_OBJECTS:${target}_objects>)
+  set_target_properties(${target} PROPERTIES LINKER_LANGUAGE CXX)
+  add_library(${target}_static STATIC $<TARGET_OBJECTS:${target}_objects>)
+  set_target_properties(${target}_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  foreach(_lib ${target} ${target}_static)
+    target_compile_options(${_lib} INTERFACE ${_rdc})
+  endforeach()
+
+  # Final: the device link
+  set(_emptyfilename "${CMAKE_CURRENT_BINARY_DIR}/${target}_final.cpp")
+  file(CONFIGURE OUTPUT "${_emptyfilename}" CONTENT "// Device link of ${target}\n")
+  add_library(${target}_final SHARED "${_emptyfilename}")
+  set_target_properties(${target}_final PROPERTIES LINKER_LANGUAGE CXX)
+  target_link_libraries(${target}_final PUBLIC ${target})
+  cuda_rdc_hip_set_device_parts(${target}_final ${target}_static)
+  cuda_rdc_hip_device_link(${target}_final)
+
+  set(_props
+    CUDA_RDC_FINAL_LIBRARY ${target}_final
+    CUDA_RDC_MIDDLE_LIBRARY ${target}
+    CUDA_RDC_STATIC_LIBRARY ${target}_static
+    CUDA_RDC_OBJECT_LIBRARY ${target}_objects
+  )
+  foreach(_lib ${target} ${target}_static ${target}_final)
+    set_target_properties(${_lib} PROPERTIES ${_props})
+    set_property(TARGET ${_lib} PROPERTY EXPORT_PROPERTIES "${_export_props}")
+  endforeach()
+  set_target_properties(${target} PROPERTIES CUDA_RDC_LIBRARY_TYPE Shared)
+  set_target_properties(${target}_static PROPERTIES CUDA_RDC_LIBRARY_TYPE Static)
+  set_target_properties(${target}_final PROPERTIES CUDA_RDC_LIBRARY_TYPE Final)
+endfunction()
+
+# Static archive targets of the shared relocatable libraries `target` depends on.
+# Archives of static relocatable libraries are on the link line already.
+function(cuda_rdc_hip_dependency_archives OUTVAR target)
+  cuda_rdc_cuda_gather_dependencies(_deps ${target})
+  set(_targets "")
+  foreach(_dep IN LISTS _deps)
+    cuda_rdc_strip_alias(_adep ${_dep})
+    if(NOT TARGET ${_adep})
+      continue()
+    endif()
+    get_target_property(_static ${_adep} CUDA_RDC_STATIC_LIBRARY)
+    get_target_property(_final ${_adep} CUDA_RDC_FINAL_LIBRARY)
+    if(_static AND _final)
+      cuda_rdc_strip_alias(_astatic ${_static})
+      list(APPEND _targets ${_astatic})
+    endif()
+  endforeach()
+  list(REMOVE_DUPLICATES _targets)
+  set(${OUTVAR} "${_targets}" PARENT_SCOPE)
+endfunction()
+
+# Device-part archive of a static archive target, generated once per build tree (and configuration)
+function(cuda_rdc_hip_device_part_archive OUTFILE OUTTARGET static)
+  string(MAKE_C_IDENTIFIER "${static}" _id)
+  # One archive per configuration: multi-config generators build each from its own static archive
+  get_property(_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  set(_dir "${CMAKE_BINARY_DIR}/CudaRdcHip")
+  if(_multi)
+    string(APPEND _dir "/$<CONFIG>")
+  endif()
+  set(_file "${_dir}/lib${_id}_device.a")
+  set(_custom cuda_rdc_hip_${_id}_device)
+  get_property(_known GLOBAL PROPERTY CUDA_RDC_HIP_DEVICE_PARTS)
+  if(NOT _id IN_LIST _known)
+    if(NOT Python3_EXECUTABLE)
+      find_package(Python3 COMPONENTS Interpreter REQUIRED)
+    endif()
+    set(_depends "$<TARGET_FILE:${static}>" "${_CUDA_RDC_HIP_DEVICE_PART}")
+    get_target_property(_imported ${static} IMPORTED)
+    if(NOT _imported)
+      list(APPEND _depends ${static})
+    endif()
+    add_custom_command(OUTPUT "${_file}"
+      COMMAND "${CMAKE_COMMAND}" -E make_directory "${_dir}"
+      COMMAND "${Python3_EXECUTABLE}" "${_CUDA_RDC_HIP_DEVICE_PART}" --archive "$<TARGET_FILE:${static}>" "${_file}"
+        "${CMAKE_HIP_COMPILER}" "${CMAKE_AR}"
+      DEPENDS ${_depends}
+      COMMENT "Device parts of ${static}"
+      VERBATIM)
+    add_custom_target(${_custom} DEPENDS "${_file}")
+    set_property(GLOBAL APPEND PROPERTY CUDA_RDC_HIP_DEVICE_PARTS ${_id})
+  endif()
+  set(${OUTFILE} "${_file}" PARENT_SCOPE)
+  set(${OUTTARGET} "${_custom}" PARENT_SCOPE)
+endfunction()
+
+# Set the device-part archives of the given static archive targets as the device link inputs of `target`
+function(cuda_rdc_hip_set_device_parts target)
+  set(_files "")
+  foreach(_static IN LISTS ARGN)
+    cuda_rdc_hip_device_part_archive(_file _custom ${_static})
+    list(APPEND _files "${_file}")
+    add_dependencies(${target} ${_custom})
+  endforeach()
+  # The archives reach the linker through options only: make them link dependencies, replacing an earlier set
+  get_target_property(_previous ${target} CUDA_RDC_HIP_DEVICE_LINK)
+  get_target_property(_linkdeps ${target} LINK_DEPENDS)
+  if(NOT _linkdeps)
+    set(_linkdeps "")
+  endif()
+  if(_previous)
+    list(REMOVE_ITEM _linkdeps ${_previous})
+  endif()
+  list(APPEND _linkdeps ${_files})
+  set_target_properties(${target} PROPERTIES CUDA_RDC_HIP_DEVICE_LINK "${_files}" LINK_DEPENDS "${_linkdeps}")
+endfunction()
+
+function(cuda_rdc_hip_target_link_libraries target)
+  cuda_rdc_strip_alias(target ${target})
+  # Reset the cached dependency list, as the CUDA entry point does
+  set_property(TARGET ${target} PROPERTY CUDA_RDC_CACHED_LIB_DEPENDENCIES)
+  get_target_property(_targettype ${target} CUDA_RDC_LIBRARY_TYPE)
+  if(_targettype)
+    get_target_property(_middle ${target} CUDA_RDC_MIDDLE_LIBRARY)
+    get_target_property(_static ${target} CUDA_RDC_STATIC_LIBRARY)
+    get_target_property(_object ${target} CUDA_RDC_OBJECT_LIBRARY)
+    get_target_property(_final ${target} CUDA_RDC_FINAL_LIBRARY)
+    cuda_rdc_strip_alias(_middle ${_middle})
+    cuda_rdc_strip_alias(_static ${_static})
+    set_property(TARGET ${_middle} PROPERTY CUDA_RDC_CACHED_LIB_DEPENDENCIES)
+    target_link_libraries(${_middle} ${ARGN})
+    if(_object)
+      target_link_libraries(${_object} ${ARGN})
+    endif()
+    if(NOT _static STREQUAL _middle)
+      target_link_libraries(${_static} ${ARGN})
+    endif()
+    if(_final)
+      # The final library links the archives of this library and of all its relocatable dependencies
+      cuda_rdc_strip_alias(_final ${_final})
+      cuda_rdc_hip_dependency_archives(_archives ${_middle})
+      cuda_rdc_hip_set_device_parts(${_final} ${_static} ${_archives})
+    endif()
+    return()
+  endif()
+
+  # A consumer of relocatable libraries
+  target_link_libraries(${ARGV})
+  cuda_rdc_hip_consumer_link(${target})
+endfunction()
+
+# Decide, from the current sources and dependencies of a consumer, whether it links the final library of its
+# relocatable dependencies or does its own device link; called again when device sources are added later
+function(cuda_rdc_hip_consumer_link target)
+  get_target_property(_type ${target} TYPE)
+  if(NOT _type MATCHES "^(EXECUTABLE|SHARED_LIBRARY|MODULE_LIBRARY)$")
+    # Object and static libraries: the device link happens where they are linked
+    return()
+  endif()
+  # Drop a final library chosen by an earlier call
+  get_target_property(_libs ${target} LINK_LIBRARIES)
+  if(_libs)
+    list(FILTER _libs EXCLUDE REGEX "^\\$<LINK_LIBRARY:rdc_no_as_needed,")
+    set_property(TARGET ${target} PROPERTY LINK_LIBRARIES "${_libs}")
+  endif()
+  cuda_rdc_lib_contains_cuda(_contains_device ${target})
+  cuda_rdc_cuda_gather_dependencies(_deps ${target})
+  cuda_rdc_find_final_library(_finallibs "${_deps}")
+  list(LENGTH _finallibs _final_count)
+  if(NOT _contains_device AND _final_count EQUAL 1)
+    # As for CUDA: a host-only shared library leaves the final library to the executable or module linking it,
+    # so that a process never loads two device links of the same code
+    if(NOT _type STREQUAL "SHARED_LIBRARY")
+      target_link_libraries(${target} PRIVATE "$<LINK_LIBRARY:rdc_no_as_needed,${_finallibs}>")
+    endif()
+  elseif(_contains_device OR _final_count GREATER 1)
+    cuda_rdc_hip_dependency_archives(_archives ${target})
+    cuda_rdc_hip_set_device_parts(${target} ${_archives})
+    get_target_property(_done ${target} CUDA_RDC_HIP_DEVICE_LINK_SET)
+    if(NOT _done)
+      cuda_rdc_hip_device_link(${target})
+      set_target_properties(${target} PROPERTIES CUDA_RDC_HIP_DEVICE_LINK_SET TRUE)
+    endif()
+  endif()
+endfunction()
+
+function(cuda_rdc_hip_target_sources target)
+  cuda_rdc_strip_alias(target ${target})
+  get_target_property(_targettype ${target} CUDA_RDC_LIBRARY_TYPE)
+  if(_targettype)
+    get_target_property(_object ${target} CUDA_RDC_OBJECT_LIBRARY)
+    if(_object)
+      target_sources(${_object} ${ARGN})
+      return()
+    endif()
+  endif()
+  target_sources(${target} ${ARGN})
+  cuda_rdc_hip_consumer_link(${target})
+endfunction()

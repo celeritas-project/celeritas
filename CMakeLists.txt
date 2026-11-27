@@ -879,6 +879,8 @@ set(_cmake_files
   # TODO: in the future, don't include or distribute RdcUtils.
   # For now, include in case downstream projects do `include(CudaRdcUtils)`.
   "${_LOCAL_RDCUTILS_FILENAME}"
+  # Device-part extraction called by the HIP branch of RdcUtils
+  "${PROJECT_SOURCE_DIR}/cmake/external/CudaRdcHipDevicePart.py"
 )
 # Add packages with custom Celeritas-provided FindX scripts
 foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 LArSoft Perfetto ROOT Thrust VecGeom rocthrust roctracer)
