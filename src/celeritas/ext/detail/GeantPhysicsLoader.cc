@@ -337,10 +337,17 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 }
 
 //---------------------------------------------------------------------------//
-//! Load optical scintillation
+/*!
+ * Load optical scintillation.
+ *
+ * Material properties are loaded by \c GeantScintillationLoader. Settings from
+ * the Geant4 process then override them: as in Geant4, the rise times are
+ * ignored unless finite rise time is enabled.
+ */
 size_type GeantPhysicsLoader::scintillation(G4VProcess const& p)
 {
-    CELER_VALIDATE(dynamic_cast<G4Scintillation const*>(&p),
+    auto const* g4scint = dynamic_cast<G4Scintillation const*>(&p);
+    CELER_VALIDATE(g4scint,
                    << "process " << TypeDemangler<G4VProcess>{}(p)
                    << " is not actually scintillation");
 
@@ -357,6 +364,19 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const& p)
                          handle);
     }
     log_and_rethrow(std::move(handle));
+
+    // Override material properties with Geant4 process settings
+    if (!g4scint->GetFiniteRiseTime())
+    {
+        // Clear rise times since Geant4 ignores them
+        for (auto& [opt_id, mat] : s.materials)
+        {
+            for (auto& comp : mat.components)
+            {
+                comp.rise_time = 0;
+            }
+        }
+    }
 
     auto num_mats = s.materials.size();
     if (num_mats == 0)
