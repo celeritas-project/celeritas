@@ -24,12 +24,19 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-#if defined(VECGEOM_NAVIGATION_INDEXED_BVH)
-using CudaBVH_t = vecgeom::cuda::IndexedBVH<vgbvh_real_type>;
-#elif VECGEOM_VERSION >= 0x020000
-using CudaBVH_t = vecgeom::cuda::BVH<vgbvh_real_type>;
+#if VECGEOM_VERSION >= 0x020300
+// Since VecGeom 2.3 there is no separate namespace for the device types
+namespace vgdevice = ::vecgeom;
 #else
-using CudaBVH_t = vecgeom::cuda::BVH;
+namespace vgdevice = ::vecgeom::cuda;
+#endif
+
+#if defined(VECGEOM_NAVIGATION_INDEXED_BVH)
+using CudaBVH_t = vgdevice::IndexedBVH<vgbvh_real_type>;
+#elif VECGEOM_VERSION >= 0x020000
+using CudaBVH_t = vgdevice::BVH<vgbvh_real_type>;
+#else
+using CudaBVH_t = vgdevice::BVH;
 #endif
 
 //---------------------------------------------------------------------------//

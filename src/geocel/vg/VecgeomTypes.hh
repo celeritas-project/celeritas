@@ -12,6 +12,9 @@
 #include <VecGeom/base/Version.h>
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/volumes/PlacedVolume.h>
+#if VECGEOM_VERSION >= 0x020300
+#    include <VecGeom/volumes/VolumesFwd.h>
+#endif
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -41,12 +44,14 @@ template<vecgeom::uint MD>
 struct NavTuple;
 class NavStateTuple;
 #endif
+#if VECGEOM_VERSION < 0x020300
 VECGEOM_HOST_FORWARD_DECLARE(class LogicalVolume;);
 VECGEOM_DEVICE_FORWARD_DECLARE(class LogicalVolume;);
 VECGEOM_HOST_FORWARD_DECLARE(class VPlacedVolume;);
 VECGEOM_DEVICE_FORWARD_DECLARE(class VPlacedVolume;);
 VECGEOM_HOST_FORWARD_DECLARE(template<class T> class Vector3D;);
 VECGEOM_DEVICE_FORWARD_DECLARE(template<class T> class Vector3D;);
+#endif
 }  // namespace vecgeom
 
 namespace celeritas
@@ -93,6 +98,24 @@ using VgVolumeInstanceId = OpaqueId<struct VecgeomPlacedVolume_,
 // VOLUME/VECTOR TYPES
 //---------------------------------------------------------------------------//
 
+#if VECGEOM_VERSION >= 0x020300
+// Since VecGeom 2.3 the volume classes are templates on the memory space and
+// vectors have the same type on host and device
+template<MemSpace M>
+using VgLogicalVolume
+    = MemSpaceCond_t<M,
+                     vecgeom::LogicalVolumeT<vecgeom::MemSpace::host>,
+                     vecgeom::LogicalVolumeT<vecgeom::MemSpace::device>>;
+
+template<MemSpace M>
+using VgPlacedVolume
+    = MemSpaceCond_t<M,
+                     vecgeom::VPlacedVolumeT<vecgeom::MemSpace::host>,
+                     vecgeom::VPlacedVolumeT<vecgeom::MemSpace::device>>;
+
+template<class T, MemSpace M>
+using VgVector3 = vecgeom::Vector3D<T>;
+#else
 template<MemSpace M>
 using VgLogicalVolume
     = MemSpaceCond_t<M, vecgeom::cxx::LogicalVolume, vecgeom::cuda::LogicalVolume>;
@@ -104,6 +127,7 @@ using VgPlacedVolume
 template<class T, MemSpace M>
 using VgVector3
     = MemSpaceCond_t<M, vecgeom::cxx::Vector3D<T>, vecgeom::cuda::Vector3D<T>>;
+#endif
 
 using VgReal3 = VgVector3<vg_real_type, MemSpace::native>;
 

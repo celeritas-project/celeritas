@@ -710,8 +710,18 @@ if(CELERITAS_USE_VecGeom)
     set(VecGeom_LIBRARIES VecGeom::vecgeom)
   endif()
   if(CELERITAS_USE_Geant4)
-    # Enforce minimum version
-    celeritas_find_or_builtin_package(G4VG 1.0.3)
+    # Enforce minimum version: VecGeom 2.3 volume types need G4VG 1.0.9
+    if(VecGeom_VERSION VERSION_GREATER_EQUAL 2.3)
+      set(_g4vg_min 1.0.9)
+    else()
+      set(_g4vg_min 1.0.3)
+    endif()
+    celeritas_find_or_builtin_package(G4VG ${_g4vg_min})
+    # A parent project may have found G4VG already, without this minimum
+    if(NOT CELERITAS_BUILTIN_G4VG AND G4VG_VERSION VERSION_LESS "${_g4vg_min}")
+      message(FATAL_ERROR "Celeritas needs G4VG ${_g4vg_min} or later with "
+        "VecGeom ${VecGeom_VERSION} (found G4VG ${G4VG_VERSION})")
+    endif()
   endif()
 endif()
 

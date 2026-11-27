@@ -131,6 +131,10 @@ endif()
 #-----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILTIN_G4VG)
+  if(VecGeom_VERSION VERSION_GREATER_EQUAL 2.3)
+    message(FATAL_ERROR "The builtin G4VG 1.0.7 does not support VecGeom "
+      "${VecGeom_VERSION}: use an external G4VG 1.0.9 or later")
+  endif()
   celer_fetch_external(
     G4VG 1.0.7
     "https://github.com/celeritas-project/g4vg/releases/download/v@VERSION@/g4vg-@VERSION@.tar.gz"

@@ -23,7 +23,11 @@
 
 #include "corecel/Assert.hh"
 #ifdef VECGEOM_ENABLE_CUDA
-#    include <VecGeom/management/CudaManager.h>
+#    if VECGEOM_VERSION >= 0x020300
+#        include <VecGeom/management/DeviceManager.h>
+#    else
+#        include <VecGeom/management/CudaManager.h>
+#    endif
 #endif
 #ifdef VECGEOM_GDML
 #    include <VecGeom/gdml/Frontend.h>
@@ -60,6 +64,13 @@ static_assert(std::is_same_v<celeritas::real_type, vecgeom::Precision>,
               "Celeritas and VecGeom real types do not match");
 
 using vecgeom::cxx::BVHManager;
+#ifdef VECGEOM_ENABLE_CUDA
+#    if VECGEOM_VERSION >= 0x020300
+using VgDeviceManager = vecgeom::DeviceManager;
+#    else
+using VgDeviceManager = vecgeom::cxx::CudaManager;
+#    endif
+#endif
 
 namespace celeritas
 {
@@ -472,7 +483,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         if (celeritas::device())
         {
 #ifdef VECGEOM_ENABLE_CUDA
-            auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
+            auto& cuda_manager = VgDeviceManager::Instance();
             host_data.scalars.device_world = cuda_manager.world_gpu();
 #endif
             CELER_ENSURE(host_data.scalars.device_world);
@@ -571,7 +582,7 @@ VecgeomParams::~VecgeomParams()
         CELER_LOG(debug) << "Clearing VecGeom volume GPU data";
         try
         {
-            VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
+            VG_CUDA_CALL(VgDeviceManager::Instance().Clear());
         }
         catch (std::exception const& e)
         {
@@ -674,7 +685,7 @@ void VecgeomParams::build_volume_tracking()
             // NOTE: this *MUST* be the first time the CUDA manager is called,
             // otherwise we can't restore limits.
             ScopedLimitSaver save_cuda_limits;
-            VG_CUDA_CALL(vecgeom::cxx::CudaManager::Instance());
+            VG_CUDA_CALL(VgDeviceManager::Instance());
         }
 
         // Set custom stack and heap size now that it's been initialized
@@ -703,7 +714,7 @@ void VecgeomParams::build_volume_tracking()
         }
 
 #ifdef VECGEOM_ENABLE_CUDA
-        auto& cuda_manager = vecgeom::cxx::CudaManager::Instance();
+        auto& cuda_manager = VgDeviceManager::Instance();
         cuda_manager.set_verbose(vecgeom_verbosity());
 #endif
         {
