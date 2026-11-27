@@ -294,6 +294,54 @@ class GeoTrackInterface
      */
     virtual void move_internal(Real3 const& pos) = 0;
     //!@}
+    //!@{
+    //! \name Straight-line movement inside an enclosing volume
+    //!
+    //! These operations ignore all the volumes inside an \em ancestor, i.e.,
+    //! one of the volumes in the current volume path. They are available only
+    //! if \c GeoTraits<G>::has_ancestor_exit is true.
+
+    /*!
+     * Find the distance to exit an enclosing volume, up to a step.
+     *
+     * The level refers to the current volume path. The result is zero if the
+     * track is on or numerically outside the ancestor boundary and heading
+     * out, or if the distance cannot be calculated (e.g., the ancestor is a
+     * Geant4 replica): the track should then be moved with the usual
+     * boundary-limited operations.
+     *
+     * \pre \c geo_status() is not \c GeoStatus::boundary_inc .
+     * \post The physical and logical state are unchanged.
+     */
+    virtual Propagation find_exit_step(VolumeLevelId ancestor,
+                                       real_type max_step) = 0;
+
+    /*!
+     * Move to the boundary of the ancestor in preparation for leaving it.
+     *
+     * The logical state is changed to the ancestor: the track will be on its
+     * boundary after this call, and \c cross_boundary will relocate it outside
+     * of the ancestor.
+     *
+     * \pre The immediately preceding call is a \c find_exit_step with a
+     *   nonzero boundary-limited result
+     * \post \c geo_status() is \c GeoStatus::boundary_inc .
+     */
+    virtual void move_to_exit() = 0;
+
+    /*!
+     * Move along a straight line inside the ancestor and relocate.
+     *
+     * Any number of boundaries inside the ancestor can be crossed. The logical
+     * state is the deepest volume in the ancestor that contains the new point.
+     * Any previously calculated step is reset.
+     *
+     * \pre The distance is positive and less than the distance to exit
+     * \post \c geo_status() is \c GeoStatus::interior , or \c
+     *   GeoStatus::error if the new volume could not be found.
+     */
+    virtual void move_relocate(VolumeLevelId ancestor, real_type dist) = 0;
+    //!@}
 
   protected:
     GeoTrackInterface() = default;

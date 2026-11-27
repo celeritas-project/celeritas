@@ -293,6 +293,7 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/model/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/model/*.hh"
+  "${PROJECT_SOURCE_DIR}/src/celeritas/woodcock/detail/*.hh"
   "${PROJECT_SOURCE_DIR}/test/*.hh"
   "${PROJECT_SOURCE_DIR}/test/corecel/*.hh"
   "${PROJECT_SOURCE_DIR}/test/corecel/random/*.hh"

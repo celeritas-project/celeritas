@@ -183,6 +183,8 @@ list(APPEND SOURCES
   user/StepDiagnosticBase.cc
   user/StepTimes.cc
   user/detail/StepParams.cc
+  woodcock/WoodcockParams.cc
+  woodcock/detail/MajorantBuilder.cc
 )
 
 #-----------------------------------------------------------------------------#
@@ -463,6 +465,7 @@ celeritas_polysource(user/SlotDiagnostic)
 celeritas_polysource(user/StepDiagnostic)
 celeritas_polysource(user/detail/SimpleCaloImpl)
 celeritas_polysource(user/detail/StepGatherAction)
+celeritas_polysource(woodcock/WoodcockAction)
 
 #-----------------------------------------------------------------------------#
 # Create library

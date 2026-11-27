@@ -472,6 +472,50 @@ TEST_F(MaterialScintillationGaussianTest, time)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(MaterialScintillationGaussianTest, interaction_site)
+{
+    auto const params = this->build_scintillation_params();
+    auto const& data = params->host_ref();
+
+    // All energy is deposited by the interaction at the end of the step
+    auto particle
+        = this->make_particle_track_view(post_energy_, pdg::electron());
+    auto sim = this->make_sim_track_view(step_length_);
+    real_type const flight_time = sim.step_length()
+                                  / native_value_from(particle.speed());
+    sim.add_time(flight_time);
+    OffloadPrePostStepData pre_post_step{particle.speed(), zero_quantity()};
+
+    auto sample = [&](OffloadPreStepData const& pre_step) {
+        Rng rng;
+        auto const dist = ScintillationOffload(
+            particle, sim, post_pos_, edep_, data, pre_step, pre_post_step)(
+            rng);
+        EXPECT_TRUE(dist);
+        EXPECT_EQ(0, dist.continuous_edep_fraction);
+        optical::ScintillationGenerator generate(data, dist);
+        std::vector<real_type> time;
+        for ([[maybe_unused]] auto i : range(8))
+        {
+            auto photon = generate(rng);
+            EXPECT_VEC_SOFT_EQ(post_pos_, photon.position);
+            EXPECT_GE(photon.time, flight_time);
+            time.push_back(photon.time / units::nanosecond);
+        }
+        return time;
+    };
+
+    auto pre_step = this->build_pre_step();
+    pre_step.speed = particle.speed();
+    auto const expected_time = sample(pre_step);
+
+    // Pre-step data gathered at the end of a Woodcock flight
+    pre_step.pos = post_pos_;
+    pre_step.time = sim.time();
+    EXPECT_VEC_SOFT_EQ(expected_time, sample(pre_step));
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(MaterialScintillationGaussianTest, stress_test)
 {
     auto const params = this->build_scintillation_params();

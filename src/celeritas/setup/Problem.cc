@@ -96,6 +96,7 @@
 #include "celeritas/user/StepData.hh"
 #include "celeritas/user/StepDiagnostic.hh"
 #include "celeritas/user/StepTimes.hh"
+#include "celeritas/woodcock/WoodcockParams.hh"
 
 #include "Control.hh"
 #include "Model.hh"
@@ -545,6 +546,20 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     CELER_ASSUME(!p.field.valueless_by_exception());
     params.action_reg->insert(build_along_step(p.field, params, imported));
+
+    if (p.tracking.woodcock)
+    {
+        // Construct Woodcock tracking for selected regions
+        WoodcockParams::Input inp;
+        inp.geometry = params.geometry;
+        inp.volume = params.volume;
+        inp.geomaterial = params.geomaterial;
+        inp.material = params.material;
+        inp.particle = params.particle;
+        inp.physics = params.physics;
+        params.woodcock = std::make_shared<WoodcockParams>(
+            inp, p.tracking.woodcock, p.model.regions);
+    }
 
     // Construct RNG params
     params.rng = std::make_shared<RngParams>(p.control.seed);

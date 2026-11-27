@@ -121,6 +121,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_DEPRECATED(geant_options, physics_options);
 
     LDIO_LOAD_OPTION(step_limiter);
+    LDIO_LOAD_OPTION(woodcock);
     LDIO_LOAD_DEFAULT(
         track_order, v.use_device ? TrackOrder::init_charge : TrackOrder::none);
     LDIO_LOAD_OPTION(physics_options);
@@ -207,6 +208,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_WHEN(field_options, v.field != RunnerInput::no_field());
 
     LDIO_SAVE_OPTION(step_limiter);
+    LDIO_SAVE_WHEN(woodcock, static_cast<bool>(v.woodcock));
 
     LDIO_SAVE(track_order);
     LDIO_SAVE_WHEN(physics_options,

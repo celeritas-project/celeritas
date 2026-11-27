@@ -7,6 +7,7 @@
 #include "TrackingIO.json.hh"
 
 #include "corecel/io/JsonUtils.json.hh"
+#include "corecel/math/QuantityIO.json.hh"
 
 namespace celeritas
 {
@@ -48,12 +49,29 @@ void from_json(nlohmann::json const& j, OpticalTrackingLimits& v)
     CELER_JSON_LOAD_OPTION(j, v, surface_substeps);
 }
 
+void to_json(nlohmann::json& j, WoodcockTracking const& v)
+{
+    j = nlohmann::json{
+        CELER_JSON_PAIR(v, regions),
+        CELER_JSON_PAIR(v, min_energy),
+        CELER_JSON_PAIR(v, max_flights),
+    };
+}
+
+void from_json(nlohmann::json const& j, WoodcockTracking& v)
+{
+    CELER_JSON_LOAD_REQUIRED(j, v, regions);
+    CELER_JSON_LOAD_OPTION(j, v, min_energy);
+    CELER_JSON_LOAD_OPTION(j, v, max_flights);
+}
+
 void to_json(nlohmann::json& j, Tracking const& v)
 {
     j = nlohmann::json{
         CELER_JSON_PAIR(v, limits),
         CELER_JSON_PAIR(v, optical_limits),
         CELER_JSON_PAIR(v, force_step_limit),
+        CELER_JSON_PAIR_WHEN(v, woodcock, static_cast<bool>(v.woodcock)),
     };
 }
 
@@ -62,6 +80,7 @@ void from_json(nlohmann::json const& j, Tracking& v)
     CELER_JSON_LOAD_OPTION(j, v, limits);
     CELER_JSON_LOAD_OPTION(j, v, optical_limits);
     CELER_JSON_LOAD_OPTION(j, v, force_step_limit);
+    CELER_JSON_LOAD_OPTION(j, v, woodcock);
 }
 
 //!@}

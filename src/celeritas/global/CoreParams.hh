@@ -35,6 +35,7 @@ class SurfaceParams;
 class TrackInitParams;
 class VolumeParams;
 class WentzelOKVIParams;
+class WoodcockParams;
 
 class ActionRegistry;
 class AuxParamsRegistry;
@@ -65,6 +66,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstDetectors = std::shared_ptr<DetectorParams const>;
 
     using SPConstWentzelOKVI = std::shared_ptr<WentzelOKVIParams const>;
+    using SPConstWoodcock = std::shared_ptr<WoodcockParams const>;
 
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
@@ -92,6 +94,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstTrackInit init;
         SPConstDetectors detectors;
         SPConstWentzelOKVI wentzel;  //!< TODO: move to EM physics
+        SPConstWoodcock woodcock;  //!< Optional
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
@@ -133,6 +136,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstTrackInit const& init() const { return input_.init; }
     SPConstDetectors const& detectors() const { return input_.detectors; }
     SPConstWentzelOKVI const& wentzel() const { return input_.wentzel; }
+    SPConstWoodcock const& woodcock() const { return input_.woodcock; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
     SPAuxRegistry const& aux_reg() const { return input_.aux_reg; }

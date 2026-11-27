@@ -239,7 +239,11 @@ auto LArSphereOffloadTest::run(
 
         auto const& pre = dist.points[StepPoint::pre];
         auto const& post = dist.points[StepPoint::post];
-        EXPECT_GT(pre.speed, zero_quantity());
+        // Speed is unset only if all photons are emitted at the post-step point
+        EXPECT_EQ(dist.type == GeneratorType::cherenkov
+                      || dist.continuous_edep_fraction > 0,
+                  pre.speed > zero_quantity());
+        EXPECT_GE(post.time, pre.time);
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             EXPECT_NE(post.pos, pre.pos);

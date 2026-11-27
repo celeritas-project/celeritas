@@ -10,3 +10,4 @@ Tracking options control trade-offs between performance and accuracy.
 
 .. celerstruct:: inp::Tracking
 .. celerstruct:: inp::TrackingLimits
+.. celerstruct:: inp::WoodcockTracking

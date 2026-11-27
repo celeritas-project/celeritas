@@ -23,6 +23,7 @@
 #include "celeritas/phys/PhysicsData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
+#include "celeritas/woodcock/WoodcockData.hh"
 
 #include "CoreTrackDataFwd.hh"
 
@@ -44,6 +45,12 @@ struct CoreScalars
     // TODO: this is a hack until we improve the along-step interface
     ActionId along_step_user_action;
     ActionId along_step_neutral_action;
+
+    //!@{
+    //! \name Woodcock tracking actions (null if unused)
+    ActionId along_step_woodcock_action;
+    ActionId woodcock_null_action;
+    //!@}
 
     StreamId::size_type max_streams{0};
 
@@ -80,13 +87,14 @@ struct CoreParamsData
     VolumeParamsData<W, M> volumes;
     TrackInitParamsData<W, M> init;
     WentzelOKVIData<W, M> wentzel;
+    WoodcockParamsData<W, M> woodcock;
 
     CoreScalars scalars;
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        // Detectors are optional
+        // Detectors, Wentzel, and Woodcock data are optional
         return geometry && materials && geo_mats && particles && cutoffs
                && physics && rng && sim && surface && volumes && init
                && scalars;
@@ -110,6 +118,7 @@ struct CoreParamsData
         volumes = other.volumes;
         init = other.init;
         wentzel = other.wentzel;
+        woodcock = other.woodcock;
         scalars = other.scalars;
         return *this;
     }

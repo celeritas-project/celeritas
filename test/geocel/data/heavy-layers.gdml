@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- Copyright Celeritas contributors: see top-level COPYRIGHT file for details -->
+<!-- SPDX-License-Identifier: (Apache-2.0 OR MIT) -->
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <variable name="i" value="0"/>
+  </define>
+
+  <materials>
+    <material name="vacuum" Z="1" state="gas">
+      <D unit="g/cm3" value="1e-25"/>
+      <atom unit="g/mole" value="1.008"/>
+    </material>
+    <material name="tungsten" Z="74" state="solid">
+      <D unit="g/cm3" value="19.3"/>
+      <atom unit="g/mole" value="183.84"/>
+    </material>
+    <material name="uranium" Z="92" state="solid">
+      <D unit="g/cm3" value="18.95"/>
+      <atom unit="g/mole" value="238.03"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="mm" name="uranium_box" x="2.3" y="400" z="400"/>
+    <box lunit="mm" name="tungsten_box" x="5.7" y="400" z="400"/>
+    <box lunit="mm" name="layer_box" x="8" y="400" z="400"/>
+    <box lunit="mm" name="calorimeter_box" x="400" y="400" z="400"/>
+    <box lunit="mm" name="world_box" x="480" y="480" z="480"/>
+  </solids>
+
+  <structure>
+    <volume name="uranium_lv">
+      <materialref ref="uranium"/>
+      <solidref ref="uranium_box"/>
+    </volume>
+    <volume name="tungsten_lv">
+      <materialref ref="tungsten"/>
+      <solidref ref="tungsten_box"/>
+    </volume>
+    <volume name="layer">
+      <materialref ref="vacuum"/>
+      <solidref ref="layer_box"/>
+      <physvol name="uranium_pv">
+        <volumeref ref="uranium_lv"/>
+        <position unit="mm" x="-2.85" y="0" z="0"/>
+      </physvol>
+      <physvol name="tungsten_pv">
+        <volumeref ref="tungsten_lv"/>
+        <position unit="mm" x="1.15" y="0" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="calorimeter">
+      <materialref ref="vacuum"/>
+      <solidref ref="calorimeter_box"/>
+      <loop for="i" from="0" to="49" step="1">
+        <physvol name="layer_pv">
+          <volumeref ref="layer"/>
+          <position unit="mm" x="-196+8*i" y="0" z="0"/>
+        </physvol>
+      </loop>
+    </volume>
+    <volume name="world">
+      <materialref ref="vacuum"/>
+      <solidref ref="world_box"/>
+      <physvol name="calorimeter_pv">
+        <volumeref ref="calorimeter"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+</gdml>

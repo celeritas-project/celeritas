@@ -10,6 +10,7 @@
 #include <limits>
 #include <VecGeom/navigation/BVHNavigator.h>
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "geocel/vg/VecgeomTypes.hh"
@@ -76,6 +77,65 @@ class SolidsNavigator
         }
 
         return step;
+    }
+
+    //-----------------------------------------------------------------------//
+    // Find the distance out of the state's top volume, ignoring daughters
+    CELER_FUNCTION static vg_real_type ComputeExitStep(
+        VgReal3 const& glpos, VgReal3 const& gldir, NavState const& state)
+    {
+        vecgeom::Transformation3D trans;
+        state.TopMatrix(trans);
+        vg_real_type step = state.Top()->DistanceToOut(
+            trans.Transform(glpos), trans.TransformDirection(gldir));
+        // Negative if outside, infinite if not found
+        return (step > 0 && step < vecgeom::kInfLength) ? step : 0;
+    }
+
+    //-----------------------------------------------------------------------//
+    // Exit the top volume from its boundary in preparation for relocation
+    CELER_FUNCTION static void ExitToParent(VgReal3 const& glpos,
+                                            VgReal3 const& gldir,
+                                            NavState const& in_state,
+                                            NavState& out_state)
+    {
+        CELER_EXPECT(in_state.Top());
+        vecgeom::Transformation3D trans;
+        in_state.TopMatrix(trans);
+        // Push the point inside the next volume: parents may share the surface
+        VgReal3 pos = trans.Transform(
+            glpos + vecgeom::BVHNavigator::kBoundaryPush * gldir);
+
+        out_state = in_state;
+        VgPlacedVol const* vol = out_state.Top();
+        do
+        {
+            out_state.SetLastExited();
+            out_state.Pop();
+            pos = vol->GetTransformation()->InverseTransform(pos);
+            vol = out_state.Top();
+        } while (
+            vol
+            && (vol->IsAssembly()
+                || vol->GetUnplacedVolume()->Inside(pos) != vecgeom::kInside));
+        out_state.SetBoundaryState(true);
+    }
+
+    //-----------------------------------------------------------------------//
+    // Find the deepest volume inside the top volume that contains the point
+    CELER_FUNCTION static void LocatePointBelow(VgReal3 const& glpos,
+                                                NavState& state)
+    {
+        CELER_EXPECT(state.Top());
+        vecgeom::Transformation3D trans;
+        state.TopMatrix(trans);
+        vecgeom::BVHNavigator::LocatePointInNavState(
+            trans.Transform(glpos), state, /* top = */ false);
+        while (state.Top()->IsAssembly())
+        {
+            state.Pop();
+        }
+        state.SetBoundaryState(false);
     }
 
     //-----------------------------------------------------------------------//

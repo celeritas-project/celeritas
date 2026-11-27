@@ -120,6 +120,17 @@ class WrappedGeoTrackView final
     void set_dir(Real3 const& newdir) final { t_.set_dir(newdir); }
     void move_internal(Real3 const& pos) final { t_.move_internal(pos); }
 
+    // Straight-line movement inside an enclosing volume
+    Propagation find_exit_step(VolumeLevelId ancestor, real_type max_step) final
+    {
+        return t_.find_exit_step(ancestor, max_step);
+    }
+    void move_to_exit() final { t_.move_to_exit(); }
+    void move_relocate(VolumeLevelId ancestor, real_type dist) final
+    {
+        t_.move_relocate(ancestor, dist);
+    }
+
   private:
     GTV t_;
 

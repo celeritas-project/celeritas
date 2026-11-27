@@ -125,6 +125,9 @@ struct RunnerInput
     // (non-positive for unused)
     real_type step_limiter{};
 
+    // Optional Woodcock tracking of photons
+    inp::WoodcockTracking woodcock;
+
     // Track reordering options
     TrackOrder track_order{TrackOrder::none};
 

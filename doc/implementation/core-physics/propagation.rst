@@ -32,6 +32,18 @@ Propagation
 .. doxygenclass:: celeritas::FieldPropagator
 .. doxygenclass:: celeritas::FieldSubstepper
 
+.. _api_woodcock:
+
+Woodcock tracking
+-----------------
+
+Photons in granular regions can be tracked without stopping at every boundary:
+see :ref:`tracking options <inp_tracking>`.
+
+.. doxygenstruct:: celeritas::detail::WoodcockExecutor
+.. doxygenclass:: celeritas::WoodcockParams
+.. doxygenclass:: celeritas::detail::MajorantBuilder
+
 Field integration
 -----------------
 

@@ -40,6 +40,7 @@ class SurfaceParams;
 class TrackInitParams;
 class VolumeParams;
 class WentzelOKVIParams;
+class WoodcockParams;
 
 class ActionRegistry;
 class AuxParamsRegistry;
@@ -99,6 +100,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using SPConstVolume = SP<VolumeParams const>;
     using SPConstDetectors = SP<DetectorParams const>;
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
+    using SPConstWoodcock = SP<WoodcockParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
     using SPGenRegistry = SP<GeneratorRegistry>;
@@ -206,6 +208,8 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     [[nodiscard]] virtual SPConstTrackInit build_init() = 0;
     [[nodiscard]] virtual SPConstWentzelOKVI build_wentzel() = 0;
     [[nodiscard]] virtual SPConstAction build_along_step() = 0;
+    //! Optionally enable Woodcock tracking
+    [[nodiscard]] virtual SPConstWoodcock build_woodcock() { return nullptr; }
     [[nodiscard]] virtual SPConstCherenkov build_cherenkov() = 0;
     [[nodiscard]] virtual SPConstOpticalMaterial build_optical_material() = 0;
     [[nodiscard]] virtual SPConstOpticalPhysics build_optical_physics() = 0;

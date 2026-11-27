@@ -19,6 +19,7 @@
 #include <VecGeom/navigation/NavStateFwd.h>
 #include <VecGeom/navigation/NavigationState.h>
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/math/Algorithms.hh"
 #include "geocel/vg/VecgeomTypes.hh"
@@ -247,6 +248,26 @@ class BVHNavigator
             CELER_ASSERT(
                 !state.Top()->GetLogicalVolume()->GetUnplacedVolume()->IsAssembly());
         }
+    }
+
+    // Find the distance out of the state's top volume, ignoring daughters
+    CELER_FUNCTION static vg_real_type ComputeExitStep(
+        VgReal3 const&, VgReal3 const&, NavState const&)
+    {
+        CELER_NOT_IMPLEMENTED("exiting an enclosing volume with VecGeom 1");
+    }
+
+    // Exit the top volume from its boundary in preparation for relocation
+    CELER_FUNCTION static void ExitToParent(
+        VgReal3 const&, VgReal3 const&, NavState const&, NavState&)
+    {
+        CELER_NOT_IMPLEMENTED("exiting an enclosing volume with VecGeom 1");
+    }
+
+    // Find the deepest volume inside the top volume that contains the point
+    CELER_FUNCTION static void LocatePointBelow(VgReal3 const&, NavState&)
+    {
+        CELER_NOT_IMPLEMENTED("relocating below a volume with VecGeom 1");
     }
 
     // Compute the global boundary normal pointing from current to next state.

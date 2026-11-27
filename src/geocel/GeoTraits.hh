@@ -57,6 +57,7 @@ struct NotConfiguredGeoTraits
     using WrappedTrackView = NotConfiguredTrackView;
     static constexpr bool has_impl_surface = false;
     static constexpr bool has_impl_volume_instance = false;
+    static constexpr bool has_ancestor_exit = false;
     static constexpr char const name[] = "";
 };
 

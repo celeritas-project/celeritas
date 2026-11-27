@@ -137,6 +137,7 @@ inp::Problem load_problem(RunnerInput const& ri)
     // Tracking
     p.tracking.limits.step_iters = ri.max_steps;
     p.tracking.force_step_limit = ri.step_limiter;
+    p.tracking.woodcock = ri.woodcock;
     if (!std::holds_alternative<inp::NoField>(p.field))
     {
         p.tracking.limits.field_substeps = ri.field_options.max_substeps;

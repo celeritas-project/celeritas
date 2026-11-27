@@ -15,6 +15,7 @@
 #include "corecel/sys/Environment.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/inp/Tracking.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 #ifdef _WIN32
@@ -101,6 +102,9 @@ struct RunInput
     std::string field_file;
     Real3 field{no_field()};  //!< Field vector [T]
     FieldDriverOptions field_options;
+
+    // Optional Woodcock tracking of photons
+    inp::WoodcockTracking woodcock;
 
     // SD setup options
     SensitiveDetectorType sd_type{SensitiveDetectorType::event_hit};

@@ -18,6 +18,7 @@
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
+#include "celeritas/woodcock/WoodcockView.hh"
 
 #include "CoreTrackData.hh"
 
@@ -104,6 +105,9 @@ class CoreTrackView
 
     // Return a device-compatible view of all volumes
     inline CELER_FUNCTION AllVolumesView volumes() const;
+
+    // Return a view of Woodcock tracking data
+    inline CELER_FUNCTION WoodcockView woodcock() const;
 
     //// MUTATORS ////
 
@@ -404,6 +408,15 @@ CELER_FUNCTION CoreScalars const& CoreTrackView::core_scalars() const
 CELER_FUNCTION AllVolumesView CoreTrackView::volumes() const
 {
     return AllVolumesView{params_.volumes};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a view of Woodcock tracking data.
+ */
+CELER_FUNCTION WoodcockView CoreTrackView::woodcock() const
+{
+    return WoodcockView{params_.woodcock};
 }
 
 //---------------------------------------------------------------------------//

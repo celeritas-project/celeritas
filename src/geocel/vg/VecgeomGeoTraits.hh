@@ -43,6 +43,9 @@ struct GeoTraits<VecgeomParams>
     static constexpr bool has_impl_surface{false};
     //! VecGeom has "placed volumes"
     static constexpr bool has_impl_volume_instance = true;
+    //! Tracks can exit an enclosing volume while ignoring its daughters
+    static constexpr bool has_ancestor_exit = CELERITAS_VECGEOM_VERSION
+                                              >= 0x020000;
 
     //! Descriptive name for the geometry
     static constexpr char const name[] = "VecGeom";
