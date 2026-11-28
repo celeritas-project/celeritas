@@ -360,6 +360,8 @@ TEST_F(LarSphereGeneratorCountersTest, offload)
     osi_.problem.generator = inp::OpticalOffloadGenerator{};
     osi_.geant_setup.cherenkov.emplace();
     osi_.geant_setup.scintillation.emplace();
+    // Use the scintillation rise times from the geometry
+    osi_.geant_setup.scintillation->finite_rise_time = true;
 
     // Construct the params and state
     auto loaded = setup::standalone_input(osi_);

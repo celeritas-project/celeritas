@@ -266,6 +266,8 @@ TEST_F(LArSphereGeneratorTest, offload)
     osi_.problem.generator = inp::OpticalOffloadGenerator{};
     osi_.geant_setup.cherenkov = CherenkovPhysicsOptions{};
     osi_.geant_setup.scintillation = ScintillationPhysicsOptions{};
+    // Use the scintillation rise times from the geometry
+    osi_.geant_setup.scintillation->finite_rise_time = true;
 
     // Set number of track slots and number of distributions
     osi_.problem.capacity.tracks = 4096;

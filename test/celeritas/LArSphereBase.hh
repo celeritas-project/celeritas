@@ -36,6 +36,9 @@ class LArSphereBase : public GeantTestBase
         result.optical->rayleigh_scattering = false;
         result.optical->wavelength_shifting = std::nullopt;
         result.optical->wavelength_shifting2 = std::nullopt;
+        // Use the scintillation rise times from the geometry
+        CELER_ASSERT(result.optical->scintillation);
+        result.optical->scintillation->finite_rise_time = true;
         return result;
     }
 

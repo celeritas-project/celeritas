@@ -75,23 +75,37 @@ void GeantScintillationLoader::load_one(GeantOpticalMatHelper const& helper)
         scint_mat.resolution_scale, "RESOLUTIONSCALE", ImportUnits::unitless);
 
     // Loop over scintillation components (up to 3), saving their
-    // yields to renormalize based on total yield
+    // yields to renormalize based on total yield. As in Geant4, a missing
+    // component yield defaults to 1 for the first component and 0 otherwise.
     double renorm_yield{0};
     for (int comp_idx : range(1, 4))
     {
-        if (auto s = load_spectrum(
-                get_property, "SCINTILLATION", std::to_string(comp_idx)))
+        double const default_yield = (comp_idx == 1 ? 1 : 0);
+        auto s = load_spectrum(get_property,
+                               "SCINTILLATION",
+                               std::to_string(comp_idx),
+                               default_yield);
+        if (!s)
         {
-            renorm_yield += s->yield;
-            scint_mat.components.push_back(std::move(*s));
+            continue;
         }
+        CELER_VALIDATE(s->yield >= 0,
+                       << "invalid yield " << s->yield
+                       << " for scintillation component " << comp_idx);
+        if (s->yield == 0)
+        {
+            // Component emits no photons
+            continue;
+        }
+        renorm_yield += s->yield;
+        scint_mat.components.push_back(std::move(*s));
     }
 
     // Check for deprecated components
     std::vector<inp::ScintillationSpectrum> deprecated_components;
     for (auto prefix : {"FAST", "SLOW"})
     {
-        if (auto s = load_spectrum(get_property, prefix, ""))
+        if (auto s = load_spectrum(get_property, prefix, "", 0))
         {
             deprecated_components.push_back(*s);
         }
@@ -106,7 +120,8 @@ void GeantScintillationLoader::load_one(GeantOpticalMatHelper const& helper)
     }
 
     CELER_VALIDATE(!scint_mat.components.empty(),
-                   << "no scintillation components were present (perhaps the "
+                   << "no scintillation components with nonzero yield were "
+                      "present (perhaps the "
                       "material has only unsupported particle scintillation "
                       "or legacy G4 fast/slow components?)");
 
@@ -176,11 +191,14 @@ std::optional<inp::NormalDistribution> GeantScintillationLoader::load_gaussian(
  * Load a single scintillation component spectrum.
  *
  * Returns an optional spectrum. If no spectrum data is found, returns nullopt.
+ * If the spectrum is present but its yield is not, the yield is set to the
+ * given default, with a warning if a numbered component defaults to zero.
  */
 std::optional<inp::ScintillationSpectrum>
 GeantScintillationLoader::load_spectrum(GeantMaterialPropertyGetter const& get,
                                         std::string const& prefix,
-                                        std::string const& suffix)
+                                        std::string const& suffix,
+                                        double default_yield)
 {
     CELER_EXPECT(get);
 
@@ -194,10 +212,11 @@ GeantScintillationLoader::load_spectrum(GeantMaterialPropertyGetter const& get,
     };
 
     inp::ScintillationSpectrum s;
+    s.yield = default_yield;
 
     // Component yields are dimensionless relative weights
-    bool has_props = false;
-    has_props = get(s.yield, prop("YIELD"), IU::unitless) || has_props;
+    bool const has_yield = get(s.yield, prop("YIELD"), IU::unitless);
+    bool has_props = has_yield;
     has_props = get(s.rise_time, prop("RISETIME"), IU::time) || has_props;
     has_props = get(s.fall_time, prop("TIMECONSTANT"), IU::time) || has_props;
 
@@ -229,6 +248,14 @@ GeantScintillationLoader::load_spectrum(GeantMaterialPropertyGetter const& get,
     else
     {
         return std::nullopt;
+    }
+
+    if (!has_yield && default_yield == 0 && !suffix.empty())
+    {
+        // Geant4 silently gives components 2 and 3 a zero default yield
+        CELER_LOG(warning) << "Scintillation component " << suffix
+                           << " has a spectrum but no " << prop("YIELD")
+                           << ": it will emit no photons";
     }
 
     return s;
